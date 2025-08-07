@@ -1,0 +1,190 @@
+// Package base100 implements base100 encoding and decoding with streaming support.
+// It provides base100 encoding that converts bytes to emoji characters,
+// following the specification from https://github.com/stek29/base100.
+// Each byte is encoded as a 4-byte UTF-8 sequence representing an emoji.
+package base100
+
+import (
+	"io"
+)
+
+// StdEncoder represents a base100 encoder for standard encoding operations.
+// It implements base100 encoding that converts each input byte to a 4-byte
+// UTF-8 sequence representing an emoji character.
+type StdEncoder struct {
+	Error error // Error field for storing encoding errors
+}
+
+// NewStdEncoder creates a new base100 encoder.
+// Base100 encoding uses a fixed algorithm that doesn't require an alphabet lookup.
+func NewStdEncoder() *StdEncoder {
+	return &StdEncoder{}
+}
+
+// Encode encodes the given byte slice using base100 encoding.
+// Each input byte is converted to a 4-byte sequence: 0xf0, 0x9f, byte2, byte3
+// where byte2 = ((byte + 55) / 64) + 0x8f and byte3 = (byte + 55) % 64 + 0x80.
+// This creates UTF-8 sequences that represent emoji characters.
+func (e *StdEncoder) Encode(src []byte) (dst []byte) {
+	if e.Error != nil {
+		return
+	}
+	if len(src) == 0 {
+		return
+	}
+
+	buf := make([]byte, len(src)*4)
+	for i, v := range src {
+		buf[i*4+0] = 0xf0
+		buf[i*4+1] = 0x9f
+		buf[i*4+2] = byte((uint16(v)+55)/64 + 0x8f)
+		buf[i*4+3] = (v+55)%64 + 0x80
+	}
+	return buf
+}
+
+// StdDecoder represents a base100 decoder for standard decoding operations.
+// It implements base100 decoding that converts 4-byte UTF-8 sequences
+// back to their original byte values.
+type StdDecoder struct {
+	Error error // Error field for storing decoding errors
+}
+
+// NewStdDecoder creates a new base100 decoder.
+// Base100 decoding uses a fixed algorithm that doesn't require an alphabet lookup.
+func NewStdDecoder() *StdDecoder {
+	return &StdDecoder{}
+}
+
+// Decode decodes the given base100-encoded byte slice back to binary data.
+// Each 4-byte sequence is converted back to a single byte using the formula:
+// byte = (byte2 - 0x8f) * 64 + (byte3 - 0x80) - 55
+// Validates that the first two bytes are 0xf0 and 0x9f respectively.
+func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
+	if d.Error != nil {
+		return nil, d.Error
+	}
+	if len(src) == 0 {
+		return
+	}
+	if len(src)%4 != 0 {
+		return nil, InvalidLengthError(len(src))
+	}
+
+	buf := make([]byte, len(src)/4)
+	for i := 0; i != len(src); i += 4 {
+		if src[i+0] != 0xf0 || src[i+1] != 0x9f {
+			return nil, CorruptInputError(int64(i))
+		}
+		buf[i/4] = (src[i+2]-0x8f)*64 + src[i+3] - 0x80 - 55
+	}
+	return buf, nil
+}
+
+// StreamEncoder represents a streaming base100 encoder that implements io.WriteCloser.
+// It provides efficient encoding for large data streams by buffering data
+// and encoding it when Close() is called, reducing memory usage for large inputs.
+type StreamEncoder struct {
+	writer io.Writer // Underlying writer for encoded output
+	buffer []byte    // Buffer for accumulating data before encoding
+	Error  error     // Error field for storing encoding errors
+}
+
+// NewStreamEncoder creates a new streaming base100 encoder that writes encoded data
+// to the provided io.Writer. The encoder uses the standard base100 encoding algorithm.
+func NewStreamEncoder(w io.Writer) io.WriteCloser {
+	return &StreamEncoder{writer: w}
+}
+
+// Write implements the io.Writer interface for streaming base100 encoding.
+// Accumulates data in the internal buffer without immediate encoding.
+// The actual encoding occurs when Close() is called.
+func (e *StreamEncoder) Write(p []byte) (n int, err error) {
+	if e.Error != nil {
+		return 0, e.Error
+	}
+	e.buffer = append(e.buffer, p...)
+	return len(p), nil
+}
+
+// Close implements the io.Closer interface for streaming base100 encoding.
+// Encodes all buffered data and writes it to the underlying writer.
+// This method must be called to complete the encoding process.
+func (e *StreamEncoder) Close() error {
+	if e.Error != nil {
+		return e.Error
+	}
+	if len(e.buffer) > 0 {
+		encoded := NewStdEncoder().Encode(e.buffer)
+		_, err := e.writer.Write(encoded)
+		return err
+	}
+	return nil
+}
+
+// StreamDecoder represents a streaming base100 decoder that implements io.Reader.
+// It provides efficient decoding for large data streams by processing data
+// in chunks and maintaining an internal buffer for partial reads.
+type StreamDecoder struct {
+	reader io.Reader // Underlying reader for encoded input
+	buffer []byte    // Buffer for decoded data not yet read
+	pos    int       // Current position in the decoded buffer
+	Error  error     // Error field for storing decoding errors
+}
+
+// NewStreamDecoder creates a new streaming base100 decoder that reads encoded data
+// from the provided io.Reader. The decoder uses the standard base100 decoding algorithm.
+func NewStreamDecoder(r io.Reader) io.Reader {
+	return &StreamDecoder{reader: r}
+}
+
+// Read implements the io.Reader interface for streaming base100 decoding.
+// Reads and decodes base100 data from the underlying reader in chunks.
+// Maintains an internal buffer to handle partial reads efficiently.
+func (d *StreamDecoder) Read(p []byte) (n int, err error) {
+	if d.Error != nil {
+		return 0, d.Error
+	}
+	if d.pos < len(d.buffer) {
+		n = copy(p, d.buffer[d.pos:])
+		d.pos += n
+		return n, nil
+	}
+
+	buf := make([]byte, 1024)
+	var bufN int
+	bufN, err = d.reader.Read(buf)
+	if bufN > 0 {
+		// Decode the data we just read
+		decoded, decodeErr := NewStdDecoder().Decode(buf[:bufN])
+		if decodeErr != nil {
+			return 0, decodeErr
+		}
+
+		// Copy decoded data to output
+		n = copy(p, decoded)
+		if n < len(decoded) {
+			d.buffer = decoded[n:]
+			d.pos = 0
+		}
+		return n, nil
+	}
+
+	return 0, err
+}
+
+// Legacy functions for backward compatibility
+
+// Encode encodes by base100.
+// This is a legacy function that maintains backward compatibility.
+// Consider using NewStdEncoder().Encode() for new code.
+func Encode(src []byte) []byte {
+	return NewStdEncoder().Encode(src)
+}
+
+// Decode decodes by base100.
+// This is a legacy function that maintains backward compatibility.
+// Consider using NewStdDecoder().Decode() for new code.
+func Decode(src []byte) ([]byte, error) {
+	return NewStdDecoder().Decode(src)
+}
