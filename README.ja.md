@@ -9,13 +9,13 @@
 [![HelloGitHub](https://api.hellogithub.com/v1/widgets/recommend.svg?rid=0eddd8c3469549b7b246f85a83d1c42e&claim_uid=kKBvMpyxSgLhmJO&theme=small)](https://hellogithub.com/en/repository/dromara/carbon)
 [![License](https://img.shields.io/github/license/dromara/dongle)](https://github.com/dromara/dongle/blob/master/LICENSE)
 
-English | [简体中文](README.cn.md) | [日本語](README.ja.md)
+日本語 | [English](README.md) | [简体中文](README.cn.md)
 
-## Introduction
+## プロジェクト概要
 
-`Dongle` is a simple, semantic and developer-friendly golang crypto package，`100%` unit test coverage，has been included by [awesome-go](https://github.com/yinggaozhen/awesome-go-cn#安全 "awesome-go-cn") and [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") 
+`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/yinggaozhen/awesome-go-cn#安全 "awesome-go-cn") と [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") に収録され、`gitee` 2024年最有価値プロジェクト（`GVP`）と `gitcode` 2024年度オープンソース摘星計画（`G-Star`）プロジェクトに選ばれました。
 
-## Repository
+## リポジトリ
 
 [github.com/dromara/dongle](https://github.com/dromara/dongle "github.com/dromara/dongle")
 
@@ -23,36 +23,34 @@ English | [简体中文](README.cn.md) | [日本語](README.ja.md)
 
 [gitcode.com/dromara/dongle](https://gitcode.com/dromara/dongle "gitcode.com/dromara/dongle")
 
-## Quick Start
+## クイックスタート
 
-### Installation
+### インストール
 
 > go version >= 1.23
 
 ```go
-// via github 
+// github ライブラリを使用
 go get -u github.com/dromara/dongle
 import "github.com/dromara/dongle"
 
-// via gitee
+// gitee ライブラリを使用
 go get -u gitee.com/dromara/dongle
 import "gitee.com/dromara/dongle"
 
-// via gitcode 
+// gitcode ライブラリを使用
 go get -u gitcode.com/dromara/dongle
 import "gitcode.com/dromara/dongle"
 ```
 
-`Dongle` was donated to the [dromara](https://dromara.org/ "dromara") organization, the repository URL has changed. If
-the previous repository used was `golang-module/dongle`, please replace the original repository with the new repository
-in `go.mod`, or execute the following command:
+`Dongle` は [dromara](https://dromara.org/ "dromara") オープンソース組織に寄贈され、リポジトリURLが変更されました。以前のパスが `golang-module/dongle` だった場合は、`go.mod` で元のアドレスを新しいパスに置き換えるか、以下のコマンドを実行してください。
 
 ```go
 go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ```
 
-### Example Usage
-Encode&Decode
+### 使用例
+エンコード・デコード
 ```go
 import "github.com/dromara/dongle"
 
@@ -60,7 +58,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-HASH
+ハッシュ
 ```go
 import "github.com/dromara/dongle"
 
@@ -76,34 +74,34 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexStr
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
 ```
 
-Symmetric Encryption&Decryption
+対称暗号化・復号化
 ```go
 import (
 	"github.com/dromara/dongle"
 	"github.com/dromara/dongle/crypto/cipher"
 )
 
-// Create cipher
+// 暗号器を作成
 c := cipher.NewAesCipher(cipher.CBC)
-// Set key (16 bytes)
+// 鍵を設定（16バイト）
 c.SetKey([]byte("dongle1234567890")) 
-// Set initialization vector (16 bytes)
+// 初期化ベクトルを設定（16バイト）
 c.SetIV([]byte("1234567890123456"))
-// Set padding mode (optional, default is PKCS7)
+// パディングモードを設定（オプション、デフォルトはPKCS7）
 c.SetPadding(cipher.PKCS7)
 
-// Encrypt string plaintext, return hex string ciphertext
+// 文字列平文を暗号化し、16進文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByAes(c).ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Decrypt hex string ciphertext, return string plaintext
+// 16進文字列暗号文を復号化し、文字列平文を返す
 dongle.Decrypt.FromHexString("48c6bc076e1da2946e1c0e59e9c91ae9").ByAes(c).ToString() // hello world
 
-// Encrypt string plaintext, return base64 encoded string ciphertext
+// 文字列平文を暗号化し、base64エンコード文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Decrypt base64 encoded string ciphertext, return string plaintext
+// base64エンコード文字列暗号文を復号化し、文字列平文を返す
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
 ```
 
-Asymmetric Encryption&Decryption
+非対称暗号化・復号化
 ```go
 import (
 	"crypto"
@@ -111,47 +109,47 @@ import (
 	"github.com/dromara/dongle/crypto/keypair"
 )
 
-// Create key pair
+// 鍵ペアを作成
 kp := keypair.NewRsaKeyPair()
-// Set key format (optional, default is PKCS8)
+// 鍵形式を設定（オプション、デフォルトはPKCS8）
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256)
+// ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256）
 kp.SetHash(crypto.SHA256)   
 
-// Set public key
+// 公開鍵を設定
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
-// Set private key
+// 秘密鍵を設定
 kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
 
-// Encrypt string plaintext, return hex string ciphertext
+// 文字列平文を暗号化し、16進文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40...
-// Decrypt hex string ciphertext, return string plaintext
-dongle.Encrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
+// 16進文字列暗号文を復号化し、文字列平文を返す
+dongle.Decrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
 
-// Encrypt string plaintext, return base64 encoded string ciphertext
+// 文字列平文を暗号化し、base64エンコード文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==...
-// Decrypt base64 encoded string ciphertext, return string plaintext
-dongle.Encrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
+// base64エンコード文字列暗号文を復号化し、文字列平文を返す
+dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
 ```
 
-For more usage examples, please refer to <a href="https://dongle.go-pkg.com" target="_blank">official document</a>.
+より多くの使用例については、<a href="https://dongle.go-pkg.com" target="_blank">公式ドキュメント</a>をご覧ください。
 
-## Contributors
+## コントリビューター
 
-Thanks to all the following who contributed to `dongle`:
+`dongle` に貢献してくださった以下のすべての方々に感謝いたします：
 
 <a href="https://github.com/dromara/dongle/graphs/contributors"><img src="https://contrib.rocks/image?repo=dromara/dongle&max=80&columns=16"/></a>
 
-## Sponsors
+## スポンサー
 
-`Dongle` is a non-commercial open source project. If you want to support `dongle`, you can [buy a cup of coffee](https://dongle.go-pkg.com/sponsor.html) for developer.
+`Dongle` は非営利のオープンソースプロジェクトです。`dongle` をサポートしたい場合は、開発者に[コーヒーを一杯](https://dongle.go-pkg.com/sponsor.html)おごることができます。
 
-## Thanks
+## 謝辞
 
-`Dongle` had been being developed with GoLand under the free JetBrains Open Source license, I would like to express my thanks here.
+`Dongle` は無料の JetBrains オープンソースライセンスの下で GoLand を使用して開発されており、ここで感謝の意を表したいと思います。
 
 <a href="https://www.jetbrains.com" target="_blank"><img src="https://carbon.go-pkg.com/jetbrains.svg?v=2.6.x" height="50" alt="JetBrains"/></a>
 
-## License
+## ライセンス
 
-`Dongle` is licensed under the `MIT` License, see the [LICENSE](./LICENSE) file for details.
+`Dongle` は `MIT` ライセンスの下で提供されており、詳細は [LICENSE](./LICENSE) ファイルをご覧ください。
