@@ -15,18 +15,6 @@ func (k KeySizeError) Error() string {
 	return fmt.Sprintf("crypto/des: invalid key size %d, must be 8 bytes", k)
 }
 
-// KeyUnsetError represents an error when the DES key is not set.
-// This error occurs when attempting to perform encryption or decryption
-// operations without first setting a valid key using the SetKey() method.
-type KeyUnsetError struct {
-}
-
-// Error returns a formatted error message indicating that the key is not set.
-// The message provides guidance to use the SetKey() method to resolve the issue.
-func (k KeyUnsetError) Error() string {
-	return fmt.Sprintf("crypto/des: key not set, please use SetKey() method")
-}
-
 // EncryptError represents an error when DES encryption operation fails.
 // This error occurs when the encryption process fails due to various reasons.
 type EncryptError struct {

@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"github.com/dromara/dongle/coding/base45"
+	"gitee.com/golang-package/dongle/coding/base45"
 )
 
 // ByBase45 encodes by base45.

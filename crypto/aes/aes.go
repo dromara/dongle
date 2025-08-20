@@ -5,31 +5,30 @@ package aes
 
 import (
 	"crypto/aes"
+	stdcipher "crypto/cipher"
 	"io"
 
-	"github.com/dromara/dongle/crypto/cipher"
+	"gitee.com/golang-package/dongle/crypto/cipher"
 )
 
 // StdEncrypter represents an AES encrypter for standard encryption operations.
 // It implements AES encryption using the standard AES algorithm with support
 // for different key sizes and various cipher modes.
 type StdEncrypter struct {
-	cipher cipher.CipherInterface // The cipher interface for encryption operations
-	key    []byte                 // The encryption key
-	Error  error                  // Error field for storing encryption errors
+	cipher cipher.AesCipher // The cipher interface for encryption operations
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new AES encrypter with the specified cipher and key.
 // Validates the key length and initializes the encrypter for AES encryption operations.
 // The key must be 16, 24, or 32 bytes for AES-128, AES-192, or AES-256 respectively.
-func NewStdEncrypter(c cipher.CipherInterface, key []byte) *StdEncrypter {
+func NewStdEncrypter(c cipher.AesCipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
-		key:    key,
 	}
 
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		e.Error = KeySizeError(len(key))
+	if len(c.Key) != 16 && len(c.Key) != 24 && len(c.Key) != 32 {
+		e.Error = KeySizeError(len(c.Key))
 	}
 
 	return e
@@ -39,49 +38,33 @@ func NewStdEncrypter(c cipher.CipherInterface, key []byte) *StdEncrypter {
 // Creates an AES cipher block and uses the configured cipher interface
 // to perform the encryption operation with proper error handling.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
-	// Check for existing errors from initialization
-	if e.Error != nil {
-		err = e.Error
-		return
-	}
-
-	if len(src) == 0 {
-		return
-	}
-
 	// Create AES cipher block using the provided key
-	block, err := aes.NewCipher(e.key)
-	if err == nil {
-		// Use the configured cipher interface to perform the actual encryption
-		// The cipher interface handles the specific encryption mode (CBC, CTR, ECB, etc.)
-		dst, err = e.cipher.Encrypt(src, block)
-		if err != nil {
-			err = EncryptError{Err: err}
-		}
+	block, err := aes.NewCipher(e.cipher.Key)
+	if err != nil {
+		return nil, EncryptError{Err: err}
 	}
-	return
+
+	return encrypt(e.cipher, src, block)
 }
 
 // StdDecrypter represents an AES decrypter for standard decryption operations.
 // It implements AES decryption using the standard AES algorithm with support
 // for different key sizes and various cipher modes.
 type StdDecrypter struct {
-	cipher cipher.CipherInterface // The cipher interface for decryption operations
-	key    []byte                 // The decryption key
-	Error  error                  // Error field for storing decryption errors
+	cipher cipher.AesCipher // The cipher interface for decryption operations
+	Error  error            // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new AES decrypter with the specified cipher and key.
 // Validates the key length and initializes the decrypter for AES decryption operations.
 // The key must be 16, 24, or 32 bytes for AES-128, AES-192, or AES-256 respectively.
-func NewStdDecrypter(c cipher.CipherInterface, key []byte) *StdDecrypter {
+func NewStdDecrypter(c cipher.AesCipher) *StdDecrypter {
 	d := &StdDecrypter{
 		cipher: c,
-		key:    key,
 	}
 
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		d.Error = KeySizeError(len(key))
+	if len(c.Key) != 16 && len(c.Key) != 24 && len(c.Key) != 32 {
+		d.Error = KeySizeError(len(c.Key))
 	}
 	return d
 }
@@ -90,51 +73,35 @@ func NewStdDecrypter(c cipher.CipherInterface, key []byte) *StdDecrypter {
 // Creates an AES cipher block and uses the configured cipher interface
 // to perform the decryption operation with proper error handling.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
-	// Check for existing errors from initialization
-	if d.Error != nil {
-		err = d.Error
-		return
-	}
-
-	if len(src) == 0 {
-		return
-	}
-
 	// Create AES cipher block using the provided key
-	block, err := aes.NewCipher(d.key)
-	if err == nil {
-		// Use the configured cipher interface to perform the actual decryption
-		// The cipher interface handles the specific decryption mode (CBC, CTR, ECB, etc.)
-		dst, err = d.cipher.Decrypt(src, block)
-		if err != nil {
-			err = DecryptError{Err: err}
-		}
+	block, err := aes.NewCipher(d.cipher.Key)
+	if err != nil {
+		return nil, DecryptError{Err: err}
 	}
-	return
+
+	return decrypt(d.cipher, src, block)
 }
 
 // StreamEncrypter represents a streaming AES encrypter that implements io.WriteCloser.
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer.
 type StreamEncrypter struct {
-	writer io.Writer              // Underlying writer for encrypted output
-	cipher cipher.CipherInterface // The cipher interface for encryption operations
-	key    []byte                 // The encryption key
-	Error  error                  // Error field for storing encryption errors
+	writer io.Writer        // Underlying writer for encrypted output
+	cipher cipher.AesCipher // The cipher interface for encryption operations
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming AES encrypter that writes encrypted data
 // to the provided io.Writer. The encrypter uses the specified cipher interface
 // and validates the key length for proper AES encryption.
-func NewStreamEncrypter(w io.Writer, c cipher.CipherInterface, key []byte) io.WriteCloser {
+func NewStreamEncrypter(w io.Writer, c cipher.AesCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
 		cipher: c,
-		key:    key,
 	}
 
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		e.Error = KeySizeError(len(key))
+	if len(c.Key) != 16 && len(c.Key) != 24 && len(c.Key) != 32 {
+		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
 
@@ -156,24 +123,19 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Create AES cipher block using the provided key
-	block, err := aes.NewCipher(e.key)
-	var encrypted []byte
-	if err == nil {
-		// Encrypt the data using the configured cipher interface
-		encrypted, err = e.cipher.Encrypt(p, block)
-		if err != nil {
-			err = EncryptError{Err: err}
-			return
-		}
+	block, err := aes.NewCipher(e.cipher.Key)
+	if err != nil {
+		return 0, EncryptError{Err: err}
 	}
 
-	// Write encrypted data to the underlying writer
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, writeErr
+	// Use encrypt helper function to handle padding and encryption
+	encrypted, err := encrypt(e.cipher, p, block)
+
+	if err == nil {
+		return e.writer.Write(encrypted)
 	}
-	// Return the number of input bytes processed, not output bytes written
-	return len(p), nil
+
+	return
 }
 
 // Close implements the io.Closer interface for the streaming AES encrypter.
@@ -189,24 +151,22 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by processing data
 // in chunks and reading decrypted output from the underlying reader.
 type StreamDecrypter struct {
-	reader io.Reader              // Underlying reader for encrypted input
-	cipher cipher.CipherInterface // The cipher interface for decryption operations
-	key    []byte                 // The decryption key
-	Error  error                  // Error field for storing decryption errors
+	reader io.Reader        // Underlying reader for encrypted input
+	cipher cipher.AesCipher // The cipher interface for decryption operations
+	Error  error            // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming AES decrypter that reads encrypted data
 // from the provided io.Reader. The decrypter uses the specified cipher interface
 // and validates the key length for proper AES decryption.
-func NewStreamDecrypter(r io.Reader, c cipher.CipherInterface, key []byte) io.Reader {
+func NewStreamDecrypter(r io.Reader, c cipher.AesCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader: r,
 		cipher: c,
-		key:    key,
 	}
 
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		d.Error = KeySizeError(len(key))
+	if len(d.cipher.Key) != 16 && len(d.cipher.Key) != 24 && len(d.cipher.Key) != 32 {
+		d.Error = KeySizeError(len(d.cipher.Key))
 		return d
 	}
 
@@ -236,23 +196,111 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	}
 
 	// Create AES cipher block using the provided key
-	block, err := aes.NewCipher(d.key)
-	if err == nil {
-		var decrypted []byte
-		// Decrypt the data using the configured cipher interface
-		decrypted, err = d.cipher.Decrypt(encrypted, block)
-		if err != nil {
-			err = DecryptError{Err: err}
-			return
-		}
+	block, err := aes.NewCipher(d.cipher.Key)
+	if err != nil {
+		return 0, DecryptError{Err: err}
+	}
 
-		// Copy decrypted data to the provided buffer
-		n = copy(p, decrypted)
-		if n < len(decrypted) {
-			// Buffer is too small, we can't return all data
-			err = BufferError{bufferSize: len(p), dataSize: len(decrypted)}
-			return
+	unpadded, err := decrypt(d.cipher, encrypted, block)
+	if err != nil {
+		return 0, err
+	}
+
+	// Copy decrypted data to the provided buffer
+	n = copy(p, unpadded)
+	if n < len(unpadded) {
+		// Buffer is too small, we can't return all data
+		err = BufferError{bufferSize: len(p), dataSize: len(unpadded)}
+		return
+	}
+	return
+}
+
+func encrypt(c cipher.AesCipher, src []byte, block stdcipher.Block) (dst []byte, err error) {
+	var paddedSrc []byte
+	switch c.Padding {
+	case cipher.No:
+		paddedSrc = src
+	case cipher.Zero:
+		paddedSrc = cipher.NewZeroPadding(src, block.BlockSize())
+	case cipher.PKCS5:
+		paddedSrc = cipher.NewPKCS5Padding(src)
+	case cipher.PKCS7:
+		paddedSrc = cipher.NewPKCS7Padding(src, block.BlockSize())
+	case cipher.AnsiX923:
+		paddedSrc = cipher.NewAnsiX923Padding(src, block.BlockSize())
+	case cipher.ISO97971:
+		paddedSrc = cipher.NewISO97971Padding(src, block.BlockSize())
+	case cipher.ISO10126:
+		paddedSrc = cipher.NewISO10126Padding(src, block.BlockSize())
+	case cipher.ISO78164:
+		paddedSrc = cipher.NewISO78164Padding(src, block.BlockSize())
+	case cipher.Bit:
+		paddedSrc = cipher.NewBitPadding(src, block.BlockSize())
+	default:
+		// For GCM, CTR, CFB, OFB modes, don't apply padding if not explicitly specified
+		if c.Block == cipher.GCM || c.Block == cipher.CTR || c.Block == cipher.CFB || c.Block == cipher.OFB {
+			paddedSrc = src
+		} else {
+			// Default to no padding for other modes
+			paddedSrc = src
 		}
+	}
+	switch c.Block {
+	case cipher.CBC:
+		return cipher.NewCBCEncrypter(paddedSrc, c.IV, block)
+	case cipher.CTR:
+		return cipher.NewCTREncrypter(paddedSrc, c.IV, block)
+	case cipher.ECB:
+		return cipher.NewECBEncrypter(paddedSrc, block)
+	case cipher.GCM:
+		return cipher.NewGCMEncrypter(paddedSrc, c.Nonce, c.Aad, block)
+	case cipher.CFB:
+		return cipher.NewCFBEncrypter(paddedSrc, c.IV, block)
+	case cipher.OFB:
+		return cipher.NewOFBEncrypter(paddedSrc, c.IV, block)
+	}
+	return
+}
+
+func decrypt(c cipher.AesCipher, src []byte, block stdcipher.Block) (dst []byte, err error) {
+	var decrypted []byte
+	switch c.Block {
+	case cipher.CBC:
+		decrypted, err = cipher.NewCBCDecrypter(src, c.IV, block)
+	case cipher.CTR:
+		decrypted, err = cipher.NewCTRDecrypter(src, c.IV, block)
+	case cipher.ECB:
+		decrypted, err = cipher.NewECBDecrypter(src, block)
+	case cipher.GCM:
+		decrypted, err = cipher.NewGCMDecrypter(src, c.Nonce, c.Aad, block)
+	case cipher.CFB:
+		decrypted, err = cipher.NewCFBDecrypter(src, c.IV, block)
+	case cipher.OFB:
+		decrypted, err = cipher.NewOFBDecrypter(src, c.IV, block)
+	}
+	if err != nil {
+		return nil, DecryptError{Err: err}
+	}
+	switch c.Padding {
+	case cipher.No:
+		dst = decrypted
+	case cipher.Zero:
+		dst = cipher.NewZeroUnPadding(decrypted)
+	case cipher.PKCS5:
+		dst = cipher.NewPKCS5UnPadding(decrypted)
+	case cipher.PKCS7:
+		dst = cipher.NewPKCS7UnPadding(decrypted)
+	case cipher.AnsiX923:
+		dst = cipher.NewAnsiX923UnPadding(decrypted)
+	case cipher.ISO97971:
+		dst = cipher.NewISO97971UnPadding(decrypted)
+	case cipher.ISO10126:
+		dst = cipher.NewISO10126UnPadding(decrypted)
+	case cipher.ISO78164:
+		dst = cipher.NewISO78164UnPadding(decrypted)
+	case cipher.Bit:
+		dst = cipher.NewBitUnPadding(decrypted)
 	}
 	return
 }

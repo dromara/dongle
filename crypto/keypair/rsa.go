@@ -11,23 +11,8 @@ import (
 	"io"
 	"io/fs"
 
-	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
-)
-
-// KeyFormat represents the format of RSA keys.
-// It can be either PKCS1 or PKCS8 format.
-type KeyFormat string
-
-// Key format constants for RSA key pairs.
-const (
-	// PKCS1 represents the PKCS#1 format for RSA keys.
-	// This format uses specific headers like "-----BEGIN RSA PUBLIC KEY-----".
-	PKCS1 KeyFormat = "pkcs1"
-
-	// PKCS8 represents the PKCS#8 format for RSA keys.
-	// This format uses generic headers like "-----BEGIN PUBLIC KEY-----".
-	PKCS8 KeyFormat = "pkcs8"
+	"gitee.com/golang-package/dongle/coding"
+	"gitee.com/golang-package/dongle/utils"
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.
@@ -270,7 +255,7 @@ func (k *RsaKeyPair) formatPublicKey(publicKey []byte) []byte {
 		tail = "-----END PUBLIC KEY-----\n"
 	}
 
-	return formatKeyBody(block.Bytes, header, tail)
+	return k.formatKeyBody(block.Bytes, header, tail)
 }
 
 // formatPrivateKey formats a private key according to the specified format.
@@ -297,12 +282,12 @@ func (k *RsaKeyPair) formatPrivateKey(privateKey []byte) []byte {
 		tail = "-----END PRIVATE KEY-----\n"
 	}
 
-	return formatKeyBody(block.Bytes, header, tail)
+	return k.formatKeyBody(block.Bytes, header, tail)
 }
 
 // formatKeyBody formats the key body into 64-character lines with the specified header and tail.
 // This is a helper function used by formatPublicKey and formatPrivateKey.
-func formatKeyBody(keyBody []byte, header, tail string) []byte {
+func (k *RsaKeyPair) formatKeyBody(keyBody []byte, header, tail string) []byte {
 	bodyStr := utils.Bytes2String(keyBody)
 	formatted := header
 

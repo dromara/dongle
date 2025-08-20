@@ -3,7 +3,7 @@ package hash
 import (
 	"hash"
 
-	"github.com/dromara/dongle/hash/md2"
+	"gitee.com/golang-package/dongle/hash/md2"
 )
 
 // ByMd2 encrypts by MD2 or HMAC-MD2 based on whether key is set.

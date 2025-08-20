@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"github.com/dromara/dongle/coding/base62"
+	"gitee.com/golang-package/dongle/coding/base62"
 )
 
 // ByBase62 Encoders by base62.

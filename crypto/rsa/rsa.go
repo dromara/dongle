@@ -5,7 +5,7 @@ import (
 	"crypto/rsa"
 	"io"
 
-	"github.com/dromara/dongle/crypto/keypair"
+	"gitee.com/golang-package/dongle/crypto/keypair"
 )
 
 type StdEncrypter struct {
@@ -39,7 +39,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	if e.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		dst, err = rsa.EncryptPKCS1v15(rand.Reader, pubKey, src)
-	} else {
+	}
+	if e.keypair.Format == keypair.PKCS8 {
 		// Use OAEP padding for PKCS8 format (more secure)
 		dst, err = rsa.EncryptOAEP(e.keypair.Hash.New(), rand.Reader, pubKey, src, nil)
 	}
@@ -81,7 +82,8 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	if d.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		dst, err = rsa.DecryptPKCS1v15(rand.Reader, priKey, src)
-	} else {
+	}
+	if d.keypair.Format == keypair.PKCS8 {
 		// Use OAEP padding for PKCS8 format
 		dst, err = rsa.DecryptOAEP(d.keypair.Hash.New(), rand.Reader, priKey, src, nil)
 	}
@@ -127,7 +129,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	if e.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		encrypted, err = rsa.EncryptPKCS1v15(rand.Reader, pubKey, p)
-	} else {
+	}
+	if e.keypair.Format == keypair.PKCS8 {
 		// Use OAEP padding for PKCS8 format (more secure)
 		encrypted, err = rsa.EncryptOAEP(e.keypair.Hash.New(), rand.Reader, pubKey, p, nil)
 	}
@@ -194,7 +197,8 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	if d.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		decrypted, err = rsa.DecryptPKCS1v15(rand.Reader, priKey, encrypted)
-	} else {
+	}
+	if d.keypair.Format == keypair.PKCS8 {
 		// Use OAEP padding for PKCS8 format
 		decrypted, err = rsa.DecryptOAEP(d.keypair.Hash.New(), rand.Reader, priKey, encrypted, nil)
 	}
@@ -248,7 +252,8 @@ func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
 	if s.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		sign, err = rsa.SignPKCS1v15(rand.Reader, priKey, s.keypair.Hash, hashed)
-	} else {
+	}
+	if s.keypair.Format == keypair.PKCS8 {
 		// Use PSS padding for PKCS8 format (more secure)
 		sign, err = rsa.SignPSS(rand.Reader, priKey, s.keypair.Hash, hashed, nil)
 	}
@@ -295,7 +300,8 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	if v.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, sign)
-	} else {
+	}
+	if v.keypair.Format == keypair.PKCS8 {
 		// Use PSS padding for PKCS8 format
 		err = rsa.VerifyPSS(pubKey, v.keypair.Hash, hashed, sign, nil)
 	}

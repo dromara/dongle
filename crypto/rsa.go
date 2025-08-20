@@ -3,8 +3,8 @@ package crypto
 import (
 	"io"
 
-	"github.com/dromara/dongle/crypto/keypair"
-	"github.com/dromara/dongle/crypto/rsa"
+	"gitee.com/golang-package/dongle/crypto/keypair"
+	"gitee.com/golang-package/dongle/crypto/rsa"
 )
 
 func (e *Encrypter) ByRsa(kp *keypair.RsaKeyPair) *Encrypter {

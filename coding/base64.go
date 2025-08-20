@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"github.com/dromara/dongle/coding/base64"
+	"gitee.com/golang-package/dongle/coding/base64"
 )
 
 // ByBase64 Encoders by base64.
@@ -40,8 +40,8 @@ func (d *Decoder) ByBase64() *Decoder {
 	return d
 }
 
-// ByBase64URL Encoders by base64 URL-safe.
-func (e *Encoder) ByBase64URL() *Encoder {
+// ByBase64Url Encoders by base64 url-safe.
+func (e *Encoder) ByBase64Url() *Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -57,8 +57,8 @@ func (e *Encoder) ByBase64URL() *Encoder {
 	return e
 }
 
-// ByBase64URL decodes by base64 URL-safe.
-func (d *Decoder) ByBase64URL() *Decoder {
+// ByBase64Url decodes by base64 url-safe.
+func (d *Decoder) ByBase64Url() *Decoder {
 	if d.Error != nil {
 		return d
 	}

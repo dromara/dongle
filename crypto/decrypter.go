@@ -4,8 +4,8 @@ import (
 	"io"
 	"io/fs"
 
-	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
+	"gitee.com/golang-package/dongle/coding"
+	"gitee.com/golang-package/dongle/utils"
 )
 
 type Decrypter struct {

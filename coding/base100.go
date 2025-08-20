@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"github.com/dromara/dongle/coding/base100"
+	"gitee.com/golang-package/dongle/coding/base100"
 )
 
 // ByBase100 Encoders by base100.

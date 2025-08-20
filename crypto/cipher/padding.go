@@ -11,7 +11,6 @@ type PaddingMode string
 // Supported padding modes for block cipher operations
 const (
 	No       PaddingMode = "No"        // No padding - data must be exact block size
-	Empty    PaddingMode = "Empty"     // Empty padding - fills with zeros to block size
 	Zero     PaddingMode = "Zero"      // Zero padding - fills with zeros, always adds padding
 	PKCS5    PaddingMode = "PKCS5"     // PKCS5 padding - RFC 2898, 8-byte blocks only
 	PKCS7    PaddingMode = "PKCS7"     // PKCS7 padding - RFC 5652, variable block size
@@ -34,38 +33,6 @@ func NewNoPadding(src []byte) []byte {
 // This function simply returns the original data without modification.
 func NewNoUnPadding(src []byte) []byte {
 	return src
-}
-
-// NewEmptyPadding applies empty padding to the source data.
-// Empty padding fills the remaining space with zero bytes to reach the block size.
-// If the data length is already a multiple of block size, no padding is added.
-func NewEmptyPadding(src []byte, blockSize int) []byte {
-	if len(src) == 0 {
-		return make([]byte, blockSize)
-	}
-
-	paddingSize := blockSize - len(src)%blockSize
-	if paddingSize == blockSize {
-		// Data length is exactly a multiple of block size, no padding needed
-		return src
-	}
-
-	return append(src, make([]byte, paddingSize)...)
-}
-
-// NewEmptyUnPadding removes empty padding from the source data.
-// This function removes trailing zero bytes from the data.
-func NewEmptyUnPadding(src []byte) []byte {
-	if len(src) == 0 {
-		return nil
-	}
-
-	lastNonZero := len(src) - 1
-	for lastNonZero >= 0 && src[lastNonZero] == 0 {
-		lastNonZero--
-	}
-
-	return src[:lastNonZero+1]
 }
 
 // NewZeroPadding applies zero padding to the source data.
@@ -275,12 +242,10 @@ func NewBitUnPadding(src []byte) []byte {
 
 // padding is an internal function that applies the specified padding mode to source data.
 // This function serves as a dispatcher to the appropriate padding implementation.
-func padding(src []byte, paddingMode PaddingMode, blockSize int) []byte {
-	switch paddingMode {
+func padding(src []byte, padding PaddingMode, blockSize int) []byte {
+	switch padding {
 	case No:
 		return NewNoPadding(src)
-	case Empty:
-		return NewEmptyPadding(src, blockSize)
 	case Zero:
 		return NewZeroPadding(src, blockSize)
 	case PKCS5:
@@ -304,12 +269,10 @@ func padding(src []byte, paddingMode PaddingMode, blockSize int) []byte {
 
 // unpadding is an internal function that removes the specified padding mode from data.
 // This function serves as a dispatcher to the appropriate unpadding implementation.
-func unpadding(dst []byte, paddingMode PaddingMode) []byte {
-	switch paddingMode {
+func unpadding(dst []byte, padding PaddingMode) []byte {
+	switch padding {
 	case No:
 		return NewNoUnPadding(dst)
-	case Empty:
-		return NewEmptyUnPadding(dst)
 	case Zero:
 		return NewZeroUnPadding(dst)
 	case PKCS5:
