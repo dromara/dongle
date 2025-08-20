@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/coding/morse"
+	"github.com/dromara/dongle/coding/morse"
 )
 
 // ByMorse encodes by morse code.

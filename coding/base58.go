@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/coding/base58"
+	"github.com/dromara/dongle/coding/base58"
 )
 
 // ByBase58 Encoders by base58.

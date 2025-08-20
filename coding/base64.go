@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/coding/base64"
+	"github.com/dromara/dongle/coding/base64"
 )
 
 // ByBase64 Encoders by base64.

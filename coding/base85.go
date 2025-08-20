@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/coding/base85"
+	"github.com/dromara/dongle/coding/base85"
 )
 
 // ByBase85 encodes by base85.

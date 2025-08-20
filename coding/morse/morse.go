@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"gitee.com/golang-package/dongle/utils"
+	"github.com/dromara/dongle/utils"
 )
 
 var StdSeparator = " "

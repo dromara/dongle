@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/coding/hex"
+	"github.com/dromara/dongle/coding/hex"
 )
 
 // ByHex encodes by hex.

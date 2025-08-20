@@ -3,7 +3,7 @@ package coding
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/coding/base91"
+	"github.com/dromara/dongle/coding/base91"
 )
 
 // ByBase91 Encoders by base91.

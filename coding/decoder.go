@@ -4,7 +4,7 @@ import (
 	"io"
 	"io/fs"
 
-	"gitee.com/golang-package/dongle/utils"
+	"github.com/dromara/dongle/utils"
 )
 
 type Decoder struct {
