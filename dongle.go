@@ -10,6 +10,7 @@ package dongle
 import (
 	"github.com/dromara/dongle/coding"
 	"github.com/dromara/dongle/crypto"
+	"github.com/dromara/dongle/hash"
 )
 
 var (
@@ -17,6 +18,9 @@ var (
 	Encode = coding.NewEncoder()
 	// Decode defines a Decoder instance.
 	Decode = coding.NewDecoder()
+
+	// Hash defines a Hasher instance.
+	Hash = hash.NewHasher()
 
 	// Encrypt defines an Encrypter instance.
 	Encrypt = crypto.NewEncrypter()
