@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"gitee.com/golang-package/dongle/hash/md2"
-	"gitee.com/golang-package/dongle/mock"
+	"github.com/dromara/dongle/hash/md2"
+	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 
