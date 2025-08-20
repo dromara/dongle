@@ -3,8 +3,8 @@ package crypto
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/aes"
-	"gitee.com/golang-package/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/aes"
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 func (e *Encrypter) ByAes(c cipher.AesCipher) *Encrypter {

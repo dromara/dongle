@@ -3,8 +3,8 @@ package crypto
 import (
 	"testing"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
-	"gitee.com/golang-package/dongle/mock"
+	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 

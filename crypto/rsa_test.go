@@ -4,9 +4,9 @@ import (
 	"crypto"
 	"testing"
 
-	"gitee.com/golang-package/dongle/crypto/keypair"
-	"gitee.com/golang-package/dongle/crypto/rsa"
-	"gitee.com/golang-package/dongle/mock"
+	"github.com/dromara/dongle/crypto/keypair"
+	"github.com/dromara/dongle/crypto/rsa"
+	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 

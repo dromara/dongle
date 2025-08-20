@@ -3,8 +3,8 @@ package crypto
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
-	"gitee.com/golang-package/dongle/crypto/rc4"
+	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/rc4"
 )
 
 // ByRc4 encrypts by RC4.

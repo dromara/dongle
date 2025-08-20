@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"gitee.com/golang-package/dongle/mock"
+	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 

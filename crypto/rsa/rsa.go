@@ -5,7 +5,7 @@ import (
 	"crypto/rsa"
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/keypair"
+	"github.com/dromara/dongle/crypto/keypair"
 )
 
 type StdEncrypter struct {

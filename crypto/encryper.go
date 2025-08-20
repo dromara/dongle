@@ -4,8 +4,8 @@ import (
 	"io"
 	"io/fs"
 
-	"gitee.com/golang-package/dongle/coding"
-	"gitee.com/golang-package/dongle/utils"
+	"github.com/dromara/dongle/coding"
+	"github.com/dromara/dongle/utils"
 )
 
 type Encrypter struct {

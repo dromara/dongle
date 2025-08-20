@@ -3,8 +3,8 @@ package crypto
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
-	"gitee.com/golang-package/dongle/crypto/tea"
+	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/tea"
 )
 
 // ByTea encrypts by TEA.

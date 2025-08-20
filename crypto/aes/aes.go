@@ -8,7 +8,7 @@ import (
 	stdcipher "crypto/cipher"
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 // StdEncrypter represents an AES encrypter for standard encryption operations.

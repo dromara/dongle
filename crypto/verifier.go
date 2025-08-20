@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"gitee.com/golang-package/dongle/coding"
-	"gitee.com/golang-package/dongle/utils"
+	"github.com/dromara/dongle/coding"
+	"github.com/dromara/dongle/utils"
 )
 
 type Verifier struct {

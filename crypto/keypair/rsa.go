@@ -11,8 +11,8 @@ import (
 	"io"
 	"io/fs"
 
-	"gitee.com/golang-package/dongle/coding"
-	"gitee.com/golang-package/dongle/utils"
+	"github.com/dromara/dongle/coding"
+	"github.com/dromara/dongle/utils"
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.

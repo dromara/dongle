@@ -3,8 +3,8 @@ package crypto
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
-	"gitee.com/golang-package/dongle/crypto/des"
+	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/des"
 )
 
 func (e *Encrypter) ByDes(c cipher.DesCipher) *Encrypter {

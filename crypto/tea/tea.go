@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/crypto/tea"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 // StdEncrypter represents a TEA encrypter for standard encryption operations.

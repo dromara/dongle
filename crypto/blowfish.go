@@ -3,8 +3,8 @@ package crypto
 import (
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/blowfish"
-	"gitee.com/golang-package/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/blowfish"
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 func (e *Encrypter) ByBlowfish(c cipher.BlowfishCipher) *Encrypter {

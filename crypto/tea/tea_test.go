@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/cipher"
 	"github.com/stretchr/testify/assert"
 )
 

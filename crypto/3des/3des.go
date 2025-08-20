@@ -8,7 +8,7 @@ import (
 	"crypto/des"
 	"io"
 
-	"gitee.com/golang-package/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 // StdEncrypter represents a Triple DES encrypter for standard encryption operations.
