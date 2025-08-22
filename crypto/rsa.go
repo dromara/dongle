@@ -70,7 +70,7 @@ func (s *Signer) ByRsa(kp *keypair.RsaKeyPair) *Signer {
 	}
 
 	// Standard signing mode
-	signed, err := rsa.NewStdSigner(kp).Sign(s.src)
+	signed, err := rsa.NewStdSigner(kp).Sign(s.data)
 	if err != nil {
 		s.Error = err
 		return s
@@ -85,30 +85,43 @@ func (v *Verifier) ByRsa(kp *keypair.RsaKeyPair) *Verifier {
 	if v.Error != nil {
 		return v
 	}
-	v.sign = kp.Sign
 
-	// Check if we have a reader (streaming mode)
 	if v.reader != nil {
-		// For streaming verification, we need to provide the data to verify against
-		// This is a simplified implementation that reads all data first
-		_, err := v.stream(func(r io.Reader) io.Reader {
-			return rsa.NewStreamVerifier(r, kp, v.src)
-		})
-		if err != nil {
-			v.Error = err
+		// For streaming verification, we need to process the data through the verifier
+		// Since NewStreamVerifier now returns io.WriteCloser, we need to handle this differently
+		verifier := rsa.NewStreamVerifier(v.reader, kp)
+
+		// Write the data to be verified
+		if len(v.data) > 0 {
+			_, v.Error = verifier.Write(v.data)
 		}
+
+		// Close the verifier to perform verification
+		v.Error = verifier.Close()
+		if v.Error != nil {
+			return v
+		}
+
+		// Set verification result
+		v.data = []byte{1} // true
 		return v
 	}
 
-	// Standard verification mode
-	valid, err := rsa.NewStdVerifier(kp).Verify(v.src, v.sign)
+	signature := kp.Sign
+	if len(signature) == 0 {
+		v.Error = &rsa.NoSignatureError{}
+		return v
+	}
+
+	valid, err := rsa.NewStdVerifier(kp).Verify(v.data, signature)
 	if err != nil {
 		v.Error = err
 		return v
 	}
 
 	if valid {
-		v.src = []byte{1} // true
+		v.data = []byte{1} // true
+		v.sign = signature // Set the signature for ToBool() to work
 	}
 	return v
 }

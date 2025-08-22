@@ -9,7 +9,7 @@ import (
 )
 
 type Signer struct {
-	src    []byte
+	data   []byte
 	sign   []byte
 	reader io.Reader
 	Error  error
@@ -21,12 +21,12 @@ func NewSigner() *Signer {
 }
 
 func (s *Signer) FromString(str string) *Signer {
-	s.src = utils.String2Bytes(str)
+	s.data = utils.String2Bytes(str)
 	return s
 }
 
 func (s *Signer) FromBytes(b []byte) *Signer {
-	s.src = b
+	s.data = b
 	return s
 }
 

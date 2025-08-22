@@ -13,26 +13,26 @@ import (
 func TestSigner_FromString(t *testing.T) {
 	t.Run("from string", func(t *testing.T) {
 		signer := NewSigner().FromString("hello world")
-		assert.Equal(t, []byte("hello world"), signer.src)
+		assert.Equal(t, []byte("hello world"), signer.data)
 		assert.Equal(t, signer, signer)
 	})
 
 	t.Run("from empty string", func(t *testing.T) {
 		signer := NewSigner().FromString("")
-		assert.Equal(t, []byte{}, signer.src)
+		assert.Equal(t, []byte{}, signer.data)
 		assert.Equal(t, signer, signer)
 	})
 
 	t.Run("from unicode string", func(t *testing.T) {
 		signer := NewSigner().FromString("你好世界")
-		assert.Equal(t, []byte("你好世界"), signer.src)
+		assert.Equal(t, []byte("你好世界"), signer.data)
 		assert.Equal(t, signer, signer)
 	})
 
 	t.Run("from large string", func(t *testing.T) {
 		largeString := "Hello, World! " + string(make([]byte, 1000))
 		signer := NewSigner().FromString(largeString)
-		assert.Equal(t, []byte(largeString), signer.src)
+		assert.Equal(t, []byte(largeString), signer.data)
 		assert.Equal(t, signer, signer)
 	})
 }
@@ -41,19 +41,19 @@ func TestSigner_FromBytes(t *testing.T) {
 	t.Run("from bytes", func(t *testing.T) {
 		data := []byte{0x00, 0x01, 0x02, 0x03}
 		signer := NewSigner().FromBytes(data)
-		assert.Equal(t, data, signer.src)
+		assert.Equal(t, data, signer.data)
 		assert.Equal(t, signer, signer)
 	})
 
 	t.Run("from empty bytes", func(t *testing.T) {
 		signer := NewSigner().FromBytes([]byte{})
-		assert.Equal(t, []byte{}, signer.src)
+		assert.Equal(t, []byte{}, signer.data)
 		assert.Equal(t, signer, signer)
 	})
 
 	t.Run("from nil bytes", func(t *testing.T) {
 		signer := NewSigner().FromBytes(nil)
-		assert.Nil(t, signer.src)
+		assert.Nil(t, signer.data)
 		assert.Equal(t, signer, signer)
 	})
 
@@ -63,14 +63,14 @@ func TestSigner_FromBytes(t *testing.T) {
 			largeData[i] = byte(i % 256)
 		}
 		signer := NewSigner().FromBytes(largeData)
-		assert.Equal(t, largeData, signer.src)
+		assert.Equal(t, largeData, signer.data)
 		assert.Equal(t, signer, signer)
 	})
 
 	t.Run("from binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}
 		signer := NewSigner().FromBytes(binaryData)
-		assert.Equal(t, binaryData, signer.src)
+		assert.Equal(t, binaryData, signer.data)
 		assert.Equal(t, signer, signer)
 	})
 }
