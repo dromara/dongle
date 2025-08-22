@@ -5,6 +5,8 @@ import (
 	"io/fs"
 
 	"github.com/dromara/dongle/coding"
+	"github.com/dromara/dongle/coding/base64"
+	"github.com/dromara/dongle/coding/hex"
 	"github.com/dromara/dongle/utils"
 )
 
@@ -58,14 +60,13 @@ func (d *Decrypter) FromBase64File(f fs.File) *Decrypter {
 		return d
 	}
 
-	// Create a base64 decoder that wraps the file reader
-	decoder := coding.NewDecoder().FromFile(f).ByBase64()
-	if decoder.Error != nil {
-		d.Error = decoder.Error
+	src, err := io.ReadAll(base64.NewStreamDecoder(f, base64.StdAlphabet))
+	if err != nil {
+		d.Error = err
 		return d
 	}
 
-	d.src = decoder.ToBytes()
+	d.src = src
 	return d
 }
 
@@ -92,14 +93,13 @@ func (d *Decrypter) FromHexFile(f fs.File) *Decrypter {
 		return d
 	}
 
-	// Create a hex decoder that wraps the file reader
-	decoder := coding.NewDecoder().FromFile(f).ByHex()
-	if decoder.Error != nil {
-		d.Error = decoder.Error
+	src, err := io.ReadAll(hex.NewStreamDecoder(f))
+	if err != nil {
+		d.Error = err
 		return d
 	}
 
-	d.src = decoder.ToBytes()
+	d.src = src
 	return d
 }
 
