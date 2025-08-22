@@ -88,3 +88,10 @@ type DataTooLargeError struct {
 func (e DataTooLargeError) Error() string {
 	return fmt.Sprintf("crypto/rsa: data too large for direct encryption")
 }
+
+type NoSignatureError struct {
+}
+
+func (e NoSignatureError) Error() string {
+	return fmt.Sprintf("crypto/rsa: no signature provided for verification")
+}

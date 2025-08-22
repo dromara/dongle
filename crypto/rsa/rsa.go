@@ -3,6 +3,7 @@ package rsa
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"hash"
 	"io"
 
 	"github.com/dromara/dongle/crypto/keypair"
@@ -317,7 +318,7 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 type StreamSigner struct {
 	writer  io.Writer           // Underlying writer for signature output
 	keypair *keypair.RsaKeyPair // The key pair containing private key and format
-	buffer  []byte              // Buffer for accumulating data to sign
+	hasher  hash.Hash           // Hash function for streaming data processing
 	Error   error               // Error field for storing signature errors
 }
 
@@ -325,12 +326,15 @@ func NewStreamSigner(w io.Writer, kp *keypair.RsaKeyPair) io.WriteCloser {
 	s := &StreamSigner{
 		writer:  w,
 		keypair: kp,
-		buffer:  make([]byte, 0),
 	}
+
 	if kp == nil {
 		s.Error = NilKeyPairError{}
 		return s
 	}
+
+	s.hasher = kp.Hash.New()
+
 	if len(kp.PrivateKey) == 0 {
 		s.Error = KeyPairError{Err: keypair.InvalidPrivateKeyError{}}
 	}
@@ -348,8 +352,12 @@ func (s *StreamSigner) Write(p []byte) (n int, err error) {
 		return
 	}
 
-	// Accumulate data in buffer
-	s.buffer = append(s.buffer, p...)
+	// Process data through the hash function for streaming
+	_, err = s.hasher.Write(p)
+	if err != nil {
+		return 0, err
+	}
+
 	return len(p), nil
 }
 
@@ -358,12 +366,11 @@ func (s *StreamSigner) Close() error {
 		return s.Error
 	}
 
-	if len(s.buffer) == 0 {
-		return nil
-	}
+	// Get the final hash sum from the hasher
+	hashed := s.hasher.Sum(nil)
 
-	// Generate signature for the accumulated data
-	signature, err := s.Sign(s.buffer)
+	// Generate signature for the hashed data
+	signature, err := s.Sign(hashed)
 
 	// Write signature to the underlying writer
 	_, err = s.writer.Write(signature)
@@ -379,7 +386,7 @@ func (s *StreamSigner) Close() error {
 	return nil
 }
 
-func (s *StreamSigner) Sign(data []byte) (dst []byte, err error) {
+func (s *StreamSigner) Sign(hashed []byte) (signature []byte, err error) {
 	// Parse the private key from PEM format
 	priKey, err := s.keypair.ParsePrivateKey()
 	if err != nil {
@@ -387,89 +394,104 @@ func (s *StreamSigner) Sign(data []byte) (dst []byte, err error) {
 		return
 	}
 
-	hasher := s.keypair.Hash.New()
-	hasher.Write(data)
-	hashed := hasher.Sum(nil)
-
 	// Use PKCS1v15 padding for PKCS1 format
 	if s.keypair.Format == keypair.PKCS1 {
-		dst, err = rsa.SignPKCS1v15(rand.Reader, priKey, s.keypair.Hash, hashed)
+		signature, err = rsa.SignPKCS1v15(rand.Reader, priKey, s.keypair.Hash, hashed)
 	}
 	// Use PSS padding for PKCS8 format (more secure)
 	if s.keypair.Format == keypair.PKCS8 {
-		dst, err = rsa.SignPSS(rand.Reader, priKey, s.keypair.Hash, hashed, nil)
+		signature, err = rsa.SignPSS(rand.Reader, priKey, s.keypair.Hash, hashed, nil)
 	}
 
 	return
 }
 
 type StreamVerifier struct {
-	reader    io.Reader           // Underlying reader for signature input
+	reader    io.Reader           // Underlying reader for data input
 	keypair   *keypair.RsaKeyPair // The key pair containing public key and format
-	data      []byte              // Data to verify against
+	hasher    hash.Hash           // Hash function for streaming data processing
 	signature []byte              // Signature to verify
 	verified  bool                // Whether verification has been performed
 	Error     error               // Error field for storing verification errors
 }
 
-func NewStreamVerifier(r io.Reader, kp *keypair.RsaKeyPair, data []byte) io.Reader {
-	v := &StreamVerifier{
-		reader:  r,
-		keypair: kp,
-		data:    data,
-	}
-	if kp == nil {
-		v.Error = NilKeyPairError{}
-		return v
-	}
-	if len(kp.PublicKey) == 0 {
-		v.Error = KeyPairError{Err: keypair.InvalidPublicKeyError{}}
-	}
-	return v
-}
-
-func (v *StreamVerifier) Read(p []byte) (n int, err error) {
+// Write processes data through the hash function for streaming verification
+func (v *StreamVerifier) Write(p []byte) (n int, err error) {
 	// Check for existing errors from initialization
 	if v.Error != nil {
 		err = v.Error
 		return
 	}
 
-	// If verification has already been performed, return EOF
-	if v.verified {
-		return 0, io.EOF
+	if len(p) == 0 {
+		return
+	}
+
+	// Process data through the hash function for streaming
+	_, err = v.hasher.Write(p)
+	if err != nil {
+		return 0, err
+	}
+
+	return len(p), nil
+}
+
+// Close performs the final verification and closes the verifier
+func (v *StreamVerifier) Close() error {
+	if v.Error != nil {
+		return v.Error
 	}
 
 	// Read signature data from the underlying reader
+	var err error
 	v.signature, err = io.ReadAll(v.reader)
 	if err != nil {
-		err = ReadError{Err: err}
-		return
+		return ReadError{Err: err}
 	}
 	if len(v.signature) == 0 {
-		return 0, io.EOF
+		return nil
 	}
 
-	// Verify the signature
-	_, verifyErr := v.Verify(v.data, v.signature)
+	// Get the final hash sum from the hasher
+	hashed := v.hasher.Sum(nil)
+
+	// Verify the signature using the hashed data
+	_, verifyErr := v.Verify(hashed, v.signature)
 	if verifyErr != nil {
-		err = verifyErr
-		return
+		return verifyErr
 	}
 
 	// Mark verification as completed
 	v.verified = true
 
-	// Return verification result as a single byte
-	if len(p) > 0 {
-		p[0] = 1
-		return 1, io.EOF
+	// Close the underlying reader if it implements io.Closer
+	if closer, ok := v.reader.(io.Closer); ok {
+		return closer.Close()
 	}
 
-	return 0, io.EOF
+	return nil
 }
 
-func (v *StreamVerifier) Verify(data, signature []byte) (valid bool, err error) {
+func NewStreamVerifier(r io.Reader, kp *keypair.RsaKeyPair) io.WriteCloser {
+	v := &StreamVerifier{
+		reader:  r,
+		keypair: kp,
+	}
+
+	if kp == nil {
+		v.Error = NilKeyPairError{}
+		return v
+	}
+
+	v.hasher = kp.Hash.New()
+
+	if len(kp.PublicKey) == 0 {
+		v.Error = KeyPairError{Err: keypair.InvalidPublicKeyError{}}
+	}
+	return v
+}
+
+func (v *StreamVerifier) Verify(hashed, signature []byte) (valid bool, err error) {
 	// Parse the public key from PEM format
 	pubKey, err := v.keypair.ParsePublicKey()
 	if err != nil {
@@ -477,9 +499,6 @@ func (v *StreamVerifier) Verify(data, signature []byte) (valid bool, err error) 
 		return
 	}
 
-	hasher := v.keypair.Hash.New()
-	hasher.Write(data)
-	hashed := hasher.Sum(nil)
 	// Use PKCS1v15 padding for PKCS1 format
 	if v.keypair.Format == keypair.PKCS1 {
 		err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, signature)
