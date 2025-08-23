@@ -59,7 +59,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString()      // aGVsbG8gd2
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-Hash
+Hash Algorithm
 ```go
 import "github.com/dromara/dongle"
 
@@ -67,7 +67,7 @@ dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eee
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
 ```
 
-Hmac
+Hmac Algorithm
 ```go
 import "github.com/dromara/dongle"
 
