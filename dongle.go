@@ -13,6 +13,8 @@ import (
 	"github.com/dromara/dongle/hash"
 )
 
+const Version = "1.1.0"
+
 var (
 	// Encode defines an Encoder instance.
 	Encode = coding.NewEncoder()
