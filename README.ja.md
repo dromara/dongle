@@ -1,4 +1,4 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/ja" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
@@ -12,7 +12,7 @@
 
 ## プロジェクト概要
 
-`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn")  に収録。
+`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go") に収録されています。
 
 ## リポジトリ
 
@@ -57,7 +57,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-Hash
+ハッシュアルゴリズム
 ```go
 import "github.com/dromara/dongle"
 
@@ -65,7 +65,7 @@ dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eee
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
 ```
 
-Hmac
+HMAC アルゴリズム
 ```go
 import "github.com/dromara/dongle"
 
@@ -114,24 +114,23 @@ kp := keypair.NewRsaKeyPair()
 kp.SetFormat(keypair.PKCS8)
 // ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256）
 kp.SetHash(crypto.SHA256)   
-
 // 公開鍵を設定
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
 // 秘密鍵を設定
 kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
 
-// 文字列平文を暗号化し、16進文字列暗号文を返す
+// 公開鍵で文字列平文を暗号化し、16進文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40...
-// 16進文字列暗号文を復号化し、文字列平文を返す
+// 秘密鍵で16進文字列暗号文を復号化し、文字列平文を返す
 dongle.Decrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
 
-// 文字列平文を暗号化し、base64エンコード文字列暗号文を返す
+// 公開鍵で文字列平文を暗号化し、base64エンコード文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==...
-// base64エンコード文字列暗号文を復号化し、文字列平文を返す
+// 秘密鍵でbase64エンコード文字列暗号文を復号化し、文字列平文を返す
 dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
 ```
 
-より多くの使用例については、<a href="https://dongle.go-pkg.com" target="_blank">公式ドキュメント</a>をご覧ください。
+より多くの使用例については、<a href="https://dongle.go-pkg.com/ja" target="_blank">公式ドキュメント</a>をご覧ください。
 
 ## コントリビューター
 
@@ -141,11 +140,11 @@ dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToStrin
 
 ## スポンサー
 
-`Dongle` は非営利のオープンソースプロジェクトです。`dongle` をサポートしたい場合は、開発者に[コーヒーを一杯](https://dongle.go-pkg.com/sponsor.html)おごることができます。
+`Dongle` は非営利のオープンソースプロジェクトです。`dongle` をサポートしたい場合は、開発者に[コーヒーを一杯](https://dongle.go-pkg.com/ja/sponsor.html)おごることができます。
 
 ## 謝辞
 
-`Dongle` は無料の `JetBrains` オープンソースライセンスを取得しており、ここで感謝の意を表したいと思います。
+`Dongle` は無料の JetBrains オープンソースライセンスの下で GoLand を使用して開発されており、ここで感謝の意を表したいと思います。
 
 <a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg" height="50" alt="JetBrains"/></a>
 
