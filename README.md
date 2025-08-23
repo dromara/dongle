@@ -12,7 +12,7 @@ English | [简体中文](README.cn.md) | [日本語](README.ja.md)
 
 ## Introduction
 
-`Dongle` is a simple, semantic and developer-friendly golang crypto package with `100%` unit test coverage，has been included by [awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn") and [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") 
+`Dongle` is a simple, semantic and developer-friendly golang crypto package with `100%` unit test coverage，has been included by [awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn")
 
 ## Repository
 

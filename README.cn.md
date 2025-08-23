@@ -12,7 +12,7 @@
 
 ## 项目简介
 
-`Dongle` 是一个轻量级、语义化、对开发者友好的 `golang` 编码&密码库，`100%` 单元测试覆盖率，已被 [awesome-go](https://github.com/yinggaozhen/awesome-go-cn#安全 "awesome-go-cn") 和 [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") 收录，并获得
+`Dongle` 是一个轻量级、语义化、对开发者友好的 `golang` 编码&密码库，`100%` 单元测试覆盖率，已被 [awesome-go](https://github.com/yinggaozhen/awesome-go-cn#安全 "awesome-go-cn") 收录，并获得
 `gitee` 2024 年最有价值项目（`GVP`）和 `gitcode` 2024 年度开源摘星计划 (`G-Star`) 项目
 
 <img src="https://dongle.go-pkg.com/gvp.jpg?v=1.1.x" width="100%" alt="gvp"/>

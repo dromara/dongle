@@ -12,7 +12,7 @@
 
 ## プロジェクト概要
 
-`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn")  と [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") に収録され、`gitee` 2024年最有価値プロジェクト（`GVP`）と `gitcode` 2024年度オープンソース摘星計画（`G-Star`）プロジェクトに選ばれました。
+`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn")  に収録。
 
 ## リポジトリ
 
