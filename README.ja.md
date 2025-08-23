@@ -1,18 +1,18 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/zh" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dromara/dongle)](https://goreportcard.com/report/github.com/dromara/dongle)
 [![codecov](https://codecov.io/gh/dromara/dongle/branch/main/graph/badge.svg)](https://codecov.io/gh/dromara/dongle)
 [![Carbon Doc](https://img.shields.io/badge/go.dev-reference-brightgreen?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/dromara/dongle)
-[![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/avelino/awesome-go#date-and-time)
+[![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/avelino/awesome-go?tab=readme-ov-file#security)
 [![License](https://img.shields.io/github/license/dromara/dongle)](https://github.com/dromara/dongle/blob/master/LICENSE)
 
 日本語 | [English](README.md) | [简体中文](README.cn.md)
 
 ## プロジェクト概要
 
-`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/yinggaozhen/awesome-go-cn#安全 "awesome-go-cn") と [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") に収録され、`gitee` 2024年最有価値プロジェクト（`GVP`）と `gitcode` 2024年度オープンソース摘星計画（`G-Star`）プロジェクトに選ばれました。
+`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn")  と [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") に収録され、`gitee` 2024年最有価値プロジェクト（`GVP`）と `gitcode` 2024年度オープンソース摘星計画（`G-Star`）プロジェクトに選ばれました。
 
 ## リポジトリ
 
@@ -147,7 +147,7 @@ dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToStrin
 
 `Dongle` は無料の JetBrains オープンソースライセンスの下で GoLand を使用して開発されており、ここで感謝の意を表したいと思います。
 
-<a href="https://www.jetbrains.com" target="_blank"><img src="https://carbon.go-pkg.com/jetbrains.svg?v=2.6.x" height="50" alt="JetBrains"/></a>
+<a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg" height="50" alt="JetBrains"/></a>
 
 ## ライセンス
 

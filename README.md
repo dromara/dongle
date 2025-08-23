@@ -149,7 +149,7 @@ Thanks to all the following who contributed to `dongle`:
 
 `Dongle` had been being developed with GoLand under the free JetBrains Open Source license, I would like to express my thanks here.
 
-<a href="https://www.jetbrains.com" target="_blank"><img src="https://carbon.go-pkg.com/jetbrains.svg?v=2.6.x" height="50" alt="JetBrains"/></a>
+<a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg?v=2.6.x" height="50" alt="JetBrains"/></a>
 
 ## License
 
