@@ -3,7 +3,7 @@
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dromara/dongle)](https://goreportcard.com/report/github.com/dromara/dongle)
-[![codecov](https://codecov.io/gh/dromara/dongle/branch/main/graph/badge.svg)](https://codecov.io/gh/dromara/dongle)
+[![codecov](https://codecov.io/gh/dromara/dongle/branch/master/graph/badge.svg)](https://codecov.io/gh/dromara/dongle)
 [![Carbon Doc](https://img.shields.io/badge/go.dev-reference-brightgreen?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/dromara/dongle)
 [![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/avelino/awesome-go#date-and-time)
 [![License](https://img.shields.io/github/license/dromara/dongle)](https://github.com/dromara/dongle/blob/master/LICENSE)
