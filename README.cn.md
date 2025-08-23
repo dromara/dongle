@@ -150,9 +150,9 @@ dongle.Encrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToStrin
 
 ## 致谢
 
-`Dongle`已获取免费的 JetBrains 开源许可证，在此表示感谢
+`Dongle` 已获取免费的 `JetBrains` 开源许可证，在此表示感谢
 
-<a href="https://www.jetbrains.com" target="_blank"><img src="https://carbon.go-pkg.com/jetbrains.svg?v=2.6.x" height="50" alt="JetBrains"/></a>
+<a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg" height="50" alt="JetBrains"/></a>
 
 ## 开源协议
 

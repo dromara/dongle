@@ -1,18 +1,18 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/zh" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dromara/dongle)](https://goreportcard.com/report/github.com/dromara/dongle)
 [![codecov](https://codecov.io/gh/dromara/dongle/branch/main/graph/badge.svg)](https://codecov.io/gh/dromara/dongle)
 [![Carbon Doc](https://img.shields.io/badge/go.dev-reference-brightgreen?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/dromara/dongle)
-[![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/avelino/awesome-go#date-and-time)
+[![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/avelino/awesome-go?tab=readme-ov-file#security)
 [![License](https://img.shields.io/github/license/dromara/dongle)](https://github.com/dromara/dongle/blob/master/LICENSE)
 
 English | [简体中文](README.cn.md) | [日本語](README.ja.md)
 
 ## Introduction
 
-`Dongle` is a simple, semantic and developer-friendly golang crypto package，`100%` unit test coverage，has been included by [awesome-go](https://github.com/yinggaozhen/awesome-go-cn#安全 "awesome-go-cn") and [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") 
+`Dongle` is a simple, semantic and developer-friendly golang crypto package with `100%` unit test coverage，has been included by [awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn") and [hello-github](https://hellogithub.com/repository/dromara/dongle "hello-github") 
 
 ## Repository
 
@@ -29,15 +29,15 @@ English | [简体中文](README.cn.md) | [日本語](README.ja.md)
 > go version >= 1.23
 
 ```go
-// via github 
+// Via github 
 go get -u github.com/dromara/dongle
 import "github.com/dromara/dongle"
 
-// via gitee
+// Via gitee
 go get -u gitee.com/dromara/dongle
 import "gitee.com/dromara/dongle"
 
-// via gitcode 
+// Via gitcode 
 go get -u gitcode.com/dromara/dongle
 import "gitcode.com/dromara/dongle"
 ```
@@ -55,7 +55,7 @@ Encode&Decode
 ```go
 import "github.com/dromara/dongle"
 
-dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ=
+dongle.Encode.FromString("hello world").ByBase64().ToString()      // aGVsbG8gd29ybGQ=
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
