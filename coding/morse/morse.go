@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/util"
 )
 
 var StdSeparator = " "
@@ -48,7 +48,7 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 		return
 	}
 
-	s := strings.ToLower(utils.Bytes2String(src))
+	s := strings.ToLower(util.Bytes2String(src))
 	if strings.Contains(s, " ") {
 		e.Error = InvalidInputError{}
 		return
@@ -93,7 +93,7 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		return
 	}
 
-	morseString := utils.Bytes2String(src)
+	morseString := util.Bytes2String(src)
 	parts := strings.Split(morseString, StdSeparator) // Split by StdSeparator
 
 	var builder strings.Builder

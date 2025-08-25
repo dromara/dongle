@@ -8,7 +8,7 @@ import (
 	"io/fs"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/util"
 )
 
 type Hasher struct {
@@ -26,7 +26,7 @@ func NewHasher() *Hasher {
 
 // FromString encrypts from string.
 func (h *Hasher) FromString(s string) *Hasher {
-	h.src = utils.String2Bytes(s)
+	h.src = util.String2Bytes(s)
 	return h
 }
 
@@ -53,7 +53,7 @@ func (h *Hasher) WithKey(key []byte) *Hasher {
 
 // ToRawString outputs as raw string without encoding.
 func (h *Hasher) ToRawString() string {
-	return utils.Bytes2String(h.dst)
+	return util.Bytes2String(h.dst)
 }
 
 // ToRawBytes outputs as raw byte slice without encoding.

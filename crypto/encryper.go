@@ -5,7 +5,7 @@ import (
 	"io/fs"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/util"
 )
 
 type Encrypter struct {
@@ -22,7 +22,7 @@ func NewEncrypter() *Encrypter {
 
 // FromString encodes from string.
 func (e *Encrypter) FromString(s string) *Encrypter {
-	e.src = utils.String2Bytes(s)
+	e.src = util.String2Bytes(s)
 	return e
 }
 
@@ -39,7 +39,7 @@ func (e *Encrypter) FromFile(f fs.File) *Encrypter {
 
 // ToRawString outputs as raw string without encoding.
 func (e *Encrypter) ToRawString() string {
-	return utils.Bytes2String(e.dst)
+	return util.Bytes2String(e.dst)
 }
 
 // ToRawBytes outputs as raw byte slice without encoding.

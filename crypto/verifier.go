@@ -3,7 +3,7 @@ package crypto
 import (
 	"io"
 
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/util"
 )
 
 type Verifier struct {
@@ -18,7 +18,7 @@ func NewVerifier() *Verifier {
 }
 
 func (v *Verifier) FromString(s string) *Verifier {
-	v.data = utils.String2Bytes(s)
+	v.data = util.String2Bytes(s)
 	return v
 }
 
