@@ -18,7 +18,7 @@ func TestTeaCipher_SetKey(t *testing.T) {
 
 	t.Run("set empty key", func(t *testing.T) {
 		cipher := NewTeaCipher()
-		key := []byte{}
+		var key []byte
 
 		cipher.SetKey(key)
 		assert.Equal(t, key, cipher.Key)

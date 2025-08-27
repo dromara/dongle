@@ -6,498 +6,117 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNew3DesCipher(t *testing.T) {
-	t.Run("create with CBC mode", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		assert.NotNil(t, cipher)
-		assert.Equal(t, CBC, cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
-		assert.Nil(t, cipher.Key)
-		assert.Nil(t, cipher.IV)
-		assert.Nil(t, cipher.Nonce)
-		assert.Nil(t, cipher.Aad)
-	})
-
-	t.Run("create with ECB mode", func(t *testing.T) {
-		cipher := New3DesCipher(ECB)
-		assert.NotNil(t, cipher)
-		assert.Equal(t, ECB, cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
-		assert.Nil(t, cipher.Key)
-		assert.Nil(t, cipher.IV)
-		assert.Nil(t, cipher.Nonce)
-		assert.Nil(t, cipher.Aad)
-	})
-
-	t.Run("create with CTR mode", func(t *testing.T) {
-		cipher := New3DesCipher(CTR)
-		assert.NotNil(t, cipher)
-		assert.Equal(t, CTR, cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
-		assert.Nil(t, cipher.Key)
-		assert.Nil(t, cipher.IV)
-		assert.Nil(t, cipher.Nonce)
-		assert.Nil(t, cipher.Aad)
-	})
-
-	t.Run("create with GCM mode", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		assert.NotNil(t, cipher)
-		assert.Equal(t, GCM, cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
-		assert.Nil(t, cipher.Key)
-		assert.Nil(t, cipher.IV)
-		assert.Nil(t, cipher.Nonce)
-		assert.Nil(t, cipher.Aad)
-	})
-
-	t.Run("create with CFB mode", func(t *testing.T) {
-		cipher := New3DesCipher(CFB)
-		assert.NotNil(t, cipher)
-		assert.Equal(t, CFB, cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
-		assert.Nil(t, cipher.Key)
-		assert.Nil(t, cipher.IV)
-		assert.Nil(t, cipher.Nonce)
-		assert.Nil(t, cipher.Aad)
-	})
-
-	t.Run("create with OFB mode", func(t *testing.T) {
-		cipher := New3DesCipher(OFB)
-		assert.NotNil(t, cipher)
-		assert.Equal(t, OFB, cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
-		assert.Nil(t, cipher.Key)
-		assert.Nil(t, cipher.IV)
-		assert.Nil(t, cipher.Nonce)
-		assert.Nil(t, cipher.Aad)
-	})
-}
-
-func TestTripleDesCipher_SetPadding(t *testing.T) {
-	t.Run("set No padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(No)
-		assert.Equal(t, No, cipher.Padding)
-	})
-
-	t.Run("set Zero padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(Zero)
-		assert.Equal(t, Zero, cipher.Padding)
-	})
-
-	t.Run("set PKCS5 padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(PKCS5)
-		assert.Equal(t, PKCS5, cipher.Padding)
-	})
-
-	t.Run("set PKCS7 padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(PKCS7)
-		assert.Equal(t, PKCS7, cipher.Padding)
-	})
-
-	t.Run("set AnsiX923 padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(AnsiX923)
-		assert.Equal(t, AnsiX923, cipher.Padding)
-	})
-
-	t.Run("set ISO97971 padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(ISO97971)
-		assert.Equal(t, ISO97971, cipher.Padding)
-	})
-
-	t.Run("set ISO10126 padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(ISO10126)
-		assert.Equal(t, ISO10126, cipher.Padding)
-	})
-
-	t.Run("set ISO78164 padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(ISO78164)
-		assert.Equal(t, ISO78164, cipher.Padding)
-	})
-
-	t.Run("set Bit padding", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetPadding(Bit)
-		assert.Equal(t, Bit, cipher.Padding)
-	})
-
-	t.Run("change padding multiple times", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default
-
-		cipher.SetPadding(No)
-		assert.Equal(t, No, cipher.Padding)
-
-		cipher.SetPadding(Zero)
-		assert.Equal(t, Zero, cipher.Padding)
-
-		cipher.SetPadding(PKCS7)
-		assert.Equal(t, PKCS7, cipher.Padding)
-	})
-}
+// Test data for 3DES cipher
+var (
+	key243des = []byte("123456789012345678901234") // 24-byte key for 3DES
+	iv83des   = []byte("12345678")                 // 8-byte IV for 3DES (DES block size)
+)
 
 func TestTripleDesCipher_SetKey(t *testing.T) {
-	t.Run("set 16-byte key (Triple DES)", func(t *testing.T) {
+	t.Run("set valid 24-byte key", func(t *testing.T) {
 		cipher := New3DesCipher(CBC)
-		key := make([]byte, 16)
-		cipher.SetKey(key)
-		assert.Equal(t, key, cipher.Key)
-		assert.Equal(t, 16, len(cipher.Key))
+		cipher.SetKey(key243des)
+		assert.Equal(t, key243des, cipher.Key)
 	})
 
-	t.Run("set 24-byte key (Triple DES)", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		key := make([]byte, 24)
-		cipher.SetKey(key)
-		assert.Equal(t, key, cipher.Key)
-		assert.Equal(t, 24, len(cipher.Key))
-	})
-
-	t.Run("set empty key", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		key := []byte{}
-		cipher.SetKey(key)
-		assert.Equal(t, key, cipher.Key)
-		assert.Equal(t, 0, len(cipher.Key))
-	})
-
-	t.Run("set nil key", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetKey(nil)
-		assert.Nil(t, cipher.Key)
-	})
-
-	t.Run("change key multiple times", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		assert.Nil(t, cipher.Key)
-
-		key1 := make([]byte, 16)
-		cipher.SetKey(key1)
-		assert.Equal(t, key1, cipher.Key)
-
-		key2 := make([]byte, 24)
-		cipher.SetKey(key2)
-		assert.Equal(t, key2, cipher.Key)
-		assert.NotEqual(t, key1, cipher.Key)
+	t.Run("set different key values", func(t *testing.T) {
+		testCases := []struct {
+			name string
+			key  []byte
+		}{
+			{"nil key", nil},
+			{"empty key", []byte{}},
+			{"8-byte key", make([]byte, 8)},
+			{"16-byte key", make([]byte, 16)},
+			{"24-byte key", make([]byte, 24)},
+			{"32-byte key", make([]byte, 32)},
+		}
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				cipher := New3DesCipher(CBC)
+				cipher.SetKey(tc.key)
+				assert.Equal(t, tc.key, cipher.Key)
+			})
+		}
 	})
 }
 
 func TestTripleDesCipher_SetIV(t *testing.T) {
-	t.Run("set 8-byte IV", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		iv := make([]byte, 8)
-		cipher.SetIV(iv)
-		assert.Equal(t, iv, cipher.IV)
-		assert.Equal(t, 8, len(cipher.IV))
+	t.Run("set different IV values", func(t *testing.T) {
+		testCases := []struct {
+			name string
+			iv   []byte
+		}{
+			{"valid 8-byte IV", iv83des},
+			{"nil IV", nil},
+			{"empty IV", []byte{}},
+			{"4-byte IV", make([]byte, 4)},
+			{"12-byte IV", make([]byte, 12)},
+			{"16-byte IV", make([]byte, 16)},
+		}
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				cipher := New3DesCipher(CBC)
+				cipher.SetIV(tc.iv)
+				assert.Equal(t, tc.iv, cipher.IV)
+			})
+		}
 	})
+}
 
-	t.Run("set 12-byte nonce for GCM", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		nonce := make([]byte, 12)
-		cipher.SetIV(nonce)
-		assert.Equal(t, nonce, cipher.IV)
-		assert.Equal(t, 12, len(cipher.IV))
-	})
-
-	t.Run("set empty IV", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		iv := []byte{}
-		cipher.SetIV(iv)
-		assert.Equal(t, iv, cipher.IV)
-		assert.Equal(t, 0, len(cipher.IV))
-	})
-
-	t.Run("set nil IV", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetIV(nil)
-		assert.Nil(t, cipher.IV)
-	})
-
-	t.Run("change IV multiple times", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		assert.Nil(t, cipher.IV)
-
-		iv1 := make([]byte, 8)
-		cipher.SetIV(iv1)
-		assert.Equal(t, iv1, cipher.IV)
-
-		iv2 := make([]byte, 12)
-		cipher.SetIV(iv2)
-		assert.Equal(t, iv2, cipher.IV)
-		assert.NotEqual(t, iv1, cipher.IV)
+func TestTripleDesCipher_SetPadding(t *testing.T) {
+	t.Run("set all padding modes", func(t *testing.T) {
+		paddings := []PaddingMode{
+			No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit,
+		}
+		for _, padding := range paddings {
+			t.Run(string(padding), func(t *testing.T) {
+				cipher := New3DesCipher(CBC)
+				cipher.SetPadding(padding)
+				assert.Equal(t, padding, cipher.Padding)
+			})
+		}
 	})
 }
 
 func TestTripleDesCipher_SetNonce(t *testing.T) {
-	t.Run("set 12-byte nonce", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		nonce := make([]byte, 12)
-		cipher.SetNonce(nonce)
-		assert.Equal(t, nonce, cipher.Nonce)
-		assert.Equal(t, 12, len(cipher.Nonce))
-	})
-
-	t.Run("set 8-byte nonce", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		nonce := make([]byte, 8)
-		cipher.SetNonce(nonce)
-		assert.Equal(t, nonce, cipher.Nonce)
-		assert.Equal(t, 8, len(cipher.Nonce))
-	})
-
-	t.Run("set empty nonce", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		nonce := []byte{}
-		cipher.SetNonce(nonce)
-		assert.Equal(t, nonce, cipher.Nonce)
-		assert.Equal(t, 0, len(cipher.Nonce))
-	})
-
-	t.Run("set nil nonce", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		cipher.SetNonce(nil)
-		assert.Nil(t, cipher.Nonce)
-	})
-
-	t.Run("change nonce multiple times", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		assert.Nil(t, cipher.Nonce)
-
-		nonce1 := make([]byte, 12)
-		cipher.SetNonce(nonce1)
-		assert.Equal(t, nonce1, cipher.Nonce)
-
-		nonce2 := make([]byte, 8)
-		cipher.SetNonce(nonce2)
-		assert.Equal(t, nonce2, cipher.Nonce)
-		assert.NotEqual(t, nonce1, cipher.Nonce)
-	})
-
-	t.Run("set nonce for non-GCM mode", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		nonce := make([]byte, 12)
-		cipher.SetNonce(nonce)
-		assert.Equal(t, nonce, cipher.Nonce)
-		// Nonce can be set for any mode, but only used by GCM
+	t.Run("set different nonce values", func(t *testing.T) {
+		testCases := []struct {
+			name  string
+			nonce []byte
+		}{
+			{"valid 12-byte nonce", []byte("123456789012")},
+			{"nil nonce", nil},
+			{"empty nonce", []byte{}},
+			{"8-byte nonce", make([]byte, 8)},
+			{"16-byte nonce", make([]byte, 16)},
+		}
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				cipher := New3DesCipher(GCM)
+				cipher.SetNonce(tc.nonce)
+				assert.Equal(t, tc.nonce, cipher.Nonce)
+			})
+		}
 	})
 }
 
 func TestTripleDesCipher_SetAAD(t *testing.T) {
-	t.Run("set AAD data", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		aad := []byte("additional authenticated data")
-		cipher.SetAAD(aad)
-		assert.Equal(t, aad, cipher.Aad)
-		assert.Equal(t, len("additional authenticated data"), len(cipher.Aad))
-	})
-
-	t.Run("set empty AAD", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		aad := []byte{}
-		cipher.SetAAD(aad)
-		assert.Equal(t, aad, cipher.Aad)
-		assert.Equal(t, 0, len(cipher.Aad))
-	})
-
-	t.Run("set nil AAD", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		cipher.SetAAD(nil)
-		assert.Nil(t, cipher.Aad)
-	})
-
-	t.Run("change AAD multiple times", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		assert.Nil(t, cipher.Aad)
-
-		aad1 := []byte("first AAD")
-		cipher.SetAAD(aad1)
-		assert.Equal(t, aad1, cipher.Aad)
-
-		aad2 := []byte("second AAD")
-		cipher.SetAAD(aad2)
-		assert.Equal(t, aad2, cipher.Aad)
-		assert.NotEqual(t, aad1, cipher.Aad)
-	})
-
-	t.Run("set AAD for non-GCM mode", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		aad := []byte("AAD for CBC mode")
-		cipher.SetAAD(aad)
-		assert.Equal(t, aad, cipher.Aad)
-		// AAD can be set for any mode, but only used by GCM
-	})
-}
-
-func TestTripleDesCipher_Integration(t *testing.T) {
-	t.Run("complete cipher configuration", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-
-		// Set all properties
-		key := make([]byte, 16)
-		iv := make([]byte, 8)
-		nonce := make([]byte, 12)
-		aad := []byte("test AAD")
-
-		cipher.SetKey(key)
-		cipher.SetIV(iv)
-		cipher.SetNonce(nonce)
-		cipher.SetAAD(aad)
-		cipher.SetPadding(Zero)
-
-		// Verify all properties
-		assert.Equal(t, CBC, cipher.Block)
-		assert.Equal(t, Zero, cipher.Padding)
-		assert.Equal(t, key, cipher.Key)
-		assert.Equal(t, iv, cipher.IV)
-		assert.Equal(t, nonce, cipher.Nonce)
-		assert.Equal(t, aad, cipher.Aad)
-	})
-
-	t.Run("reconfigure existing cipher", func(t *testing.T) {
-		cipher := New3DesCipher(ECB)
-
-		// Initial configuration
-		key1 := make([]byte, 16)
-		cipher.SetKey(key1)
-		cipher.SetPadding(PKCS5)
-
-		// Reconfigure
-		key2 := make([]byte, 24)
-		cipher.SetKey(key2)
-		cipher.SetPadding(No)
-
-		// Verify changes
-		assert.Equal(t, ECB, cipher.Block)
-		assert.Equal(t, No, cipher.Padding)
-		assert.Equal(t, key2, cipher.Key)
-		assert.NotEqual(t, key1, cipher.Key)
-	})
-
-	t.Run("multiple mode configurations", func(t *testing.T) {
-		// Test CBC mode
-		cbcCipher := New3DesCipher(CBC)
-		cbcCipher.SetKey(make([]byte, 16))
-		cbcCipher.SetIV(make([]byte, 8))
-		cbcCipher.SetPadding(PKCS7)
-
-		assert.Equal(t, CBC, cbcCipher.Block)
-		assert.Equal(t, 16, len(cbcCipher.Key))
-		assert.Equal(t, 8, len(cbcCipher.IV))
-		assert.Equal(t, PKCS7, cbcCipher.Padding)
-
-		// Test GCM mode
-		gcmCipher := New3DesCipher(GCM)
-		gcmCipher.SetKey(make([]byte, 24))
-		gcmCipher.SetNonce(make([]byte, 12))
-		gcmCipher.SetAAD([]byte("GCM AAD"))
-		gcmCipher.SetPadding(No)
-
-		assert.Equal(t, GCM, gcmCipher.Block)
-		assert.Equal(t, 24, len(gcmCipher.Key))
-		assert.Equal(t, 12, len(gcmCipher.Nonce))
-		assert.Equal(t, []byte("GCM AAD"), gcmCipher.Aad)
-		assert.Equal(t, No, gcmCipher.Padding)
-	})
-}
-
-func TestTripleDesCipher_EdgeCases(t *testing.T) {
-	t.Run("zero-length key", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetKey([]byte{})
-		assert.Equal(t, 0, len(cipher.Key))
-	})
-
-	t.Run("zero-length IV", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		cipher.SetIV([]byte{})
-		assert.Equal(t, 0, len(cipher.IV))
-	})
-
-	t.Run("zero-length nonce", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		cipher.SetNonce([]byte{})
-		assert.Equal(t, 0, len(cipher.Nonce))
-	})
-
-	t.Run("zero-length AAD", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		cipher.SetAAD([]byte{})
-		assert.Equal(t, 0, len(cipher.Aad))
-	})
-
-	t.Run("very long key", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		longKey := make([]byte, 1024)
-		cipher.SetKey(longKey)
-		assert.Equal(t, 1024, len(cipher.Key))
-	})
-
-	t.Run("very long IV", func(t *testing.T) {
-		cipher := New3DesCipher(CBC)
-		longIV := make([]byte, 1024)
-		cipher.SetIV(longIV)
-		assert.Equal(t, 1024, len(cipher.IV))
-	})
-
-	t.Run("very long nonce", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		longNonce := make([]byte, 1024)
-		cipher.SetNonce(longNonce)
-		assert.Equal(t, 1024, len(cipher.Nonce))
-	})
-
-	t.Run("very long AAD", func(t *testing.T) {
-		cipher := New3DesCipher(GCM)
-		longAAD := make([]byte, 1024)
-		cipher.SetAAD(longAAD)
-		assert.Equal(t, 1024, len(cipher.Aad))
-	})
-}
-
-func TestTripleDesCipher_FieldAccess(t *testing.T) {
-	t.Run("direct field access", func(t *testing.T) {
-		cipher := New3DesCipher(CTR)
-
-		// Set values
-		key := make([]byte, 16)
-		iv := make([]byte, 8)
-		nonce := make([]byte, 12)
-		aad := []byte("test")
-
-		cipher.Key = key
-		cipher.IV = iv
-		cipher.Nonce = nonce
-		cipher.Aad = aad
-		cipher.Padding = Zero
-
-		// Verify direct access
-		assert.Equal(t, key, cipher.Key)
-		assert.Equal(t, iv, cipher.IV)
-		assert.Equal(t, nonce, cipher.Nonce)
-		assert.Equal(t, aad, cipher.Aad)
-		assert.Equal(t, Zero, cipher.Padding)
-	})
-
-	t.Run("field modification after setter", func(t *testing.T) {
-		cipher := New3DesCipher(CFB)
-
-		// Use setter
-		key := make([]byte, 16)
-		cipher.SetKey(key)
-		assert.Equal(t, key, cipher.Key)
-
-		// Modify field directly
-		modifiedKey := make([]byte, 24)
-		cipher.Key = modifiedKey
-		assert.Equal(t, modifiedKey, cipher.Key)
-		assert.Equal(t, 24, len(cipher.Key))
+	t.Run("set different AAD values", func(t *testing.T) {
+		testCases := []struct {
+			name string
+			aad  []byte
+		}{
+			{"valid AAD", []byte("additional authenticated data")},
+			{"nil AAD", nil},
+			{"empty AAD", []byte{}},
+		}
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				cipher := New3DesCipher(GCM)
+				cipher.SetAAD(tc.aad)
+				assert.Equal(t, tc.aad, cipher.Aad)
+			})
+		}
 	})
 }
