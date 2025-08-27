@@ -6,22 +6,23 @@ package tea
 import (
 	"io"
 
-	"github.com/dromara/dongle/crypto/cipher"
 	"golang.org/x/crypto/tea"
+
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 // StdEncrypter represents a TEA encrypter for standard encryption operations.
 // It implements TEA encryption using the standard TEA algorithm with support
 // for different key sizes and various cipher modes.
 type StdEncrypter struct {
-	cipher cipher.TeaCipher // The cipher interface for encryption operations
-	Error  error            // Error field for storing encryption errors
+	cipher *cipher.TeaCipher // The cipher interface for encryption operations
+	Error  error             // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new TEA encrypter with the specified cipher and key.
 // Validates the key length and initializes the encrypter for TEA encryption operations.
 // The key must be exactly 16 bytes (128 bits).
-func NewStdEncrypter(c cipher.TeaCipher) *StdEncrypter {
+func NewStdEncrypter(c *cipher.TeaCipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
 	}
@@ -65,14 +66,14 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements TEA decryption using the standard TEA algorithm with support
 // for different key sizes and various cipher modes.
 type StdDecrypter struct {
-	cipher cipher.TeaCipher // The cipher interface for decryption operations
-	Error  error            // Error field for storing decryption errors
+	cipher *cipher.TeaCipher // The cipher interface for decryption operations
+	Error  error             // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new TEA decrypter with the specified cipher and key.
 // Validates the key length and initializes the decrypter for TEA decryption operations.
 // The key must be exactly 16 bytes (128 bits).
-func NewStdDecrypter(c cipher.TeaCipher) *StdDecrypter {
+func NewStdDecrypter(c *cipher.TeaCipher) *StdDecrypter {
 	d := &StdDecrypter{
 		cipher: c,
 	}
@@ -115,15 +116,15 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer.
 type StreamEncrypter struct {
-	writer io.Writer        // Underlying writer for encrypted output
-	cipher cipher.TeaCipher // The cipher interface for encryption operations
-	Error  error            // Error field for storing encryption errors
+	writer io.Writer         // Underlying writer for encrypted output
+	cipher *cipher.TeaCipher // The cipher interface for encryption operations
+	Error  error             // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming TEA encrypter that writes encrypted data
 // to the provided io.Writer. The encrypter uses the specified cipher interface
 // and validates the key length for proper TEA encryption.
-func NewStreamEncrypter(w io.Writer, c cipher.TeaCipher) io.WriteCloser {
+func NewStreamEncrypter(w io.Writer, c *cipher.TeaCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
 		cipher: c,
@@ -201,15 +202,15 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by reading encrypted data
 // from the underlying reader and decrypting it in chunks.
 type StreamDecrypter struct {
-	reader io.Reader        // Underlying reader for encrypted input
-	cipher cipher.TeaCipher // The cipher interface for decryption operations
-	Error  error            // Error field for storing decryption errors
+	reader io.Reader         // Underlying reader for encrypted input
+	cipher *cipher.TeaCipher // The cipher interface for decryption operations
+	Error  error             // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming TEA decrypter that reads encrypted data
 // from the provided io.Reader. The decrypter uses the specified cipher interface
 // and validates the key length for proper TEA decryption.
-func NewStreamDecrypter(r io.Reader, c cipher.TeaCipher) io.Reader {
+func NewStreamDecrypter(r io.Reader, c *cipher.TeaCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader: r,
 		cipher: c,

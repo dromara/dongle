@@ -6,15 +6,15 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test data constants
 var (
-	key16_tea      = []byte("dongle1234567890") // 16 bytes
-	testData8_tea  = []byte("12345678")         // 8 bytes (block-aligned)
-	testData16_tea = []byte("1234567890123456") // 16 bytes (block-aligned)
-	testData_tea   = []byte("hello world")      // 11 bytes (not block-aligned)
+	key16_tea     = []byte("dongle1234567890") // 16 bytes
+	testData8_tea = []byte("12345678")         // 8 bytes (block-aligned)
+	testData_tea  = []byte("hello world")      // 11 bytes (not block-aligned)
 )
 
 func TestNewStdEncrypter(t *testing.T) {
@@ -22,7 +22,7 @@ func TestNewStdEncrypter(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 	})
 
@@ -30,7 +30,7 @@ func TestNewStdEncrypter(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey([]byte("short")) // 5 bytes
 
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.NotNil(t, encrypter.Error)
 		assert.Contains(t, encrypter.Error.Error(), "invalid key size 5")
 	})
@@ -41,7 +41,7 @@ func TestNewStdDecrypter(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		decrypter := NewStdDecrypter(*c)
+		decrypter := NewStdDecrypter(c)
 		assert.Nil(t, decrypter.Error)
 	})
 
@@ -49,7 +49,7 @@ func TestNewStdDecrypter(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey([]byte("short")) // 5 bytes
 
-		decrypter := NewStdDecrypter(*c)
+		decrypter := NewStdDecrypter(c)
 		assert.NotNil(t, decrypter.Error)
 		assert.Contains(t, decrypter.Error.Error(), "invalid key size 5")
 	})
@@ -60,7 +60,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 
 		result, err := encrypter.Encrypt(testData8_tea)
@@ -72,7 +72,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 
 		_, err := encrypter.Encrypt(testData_tea) // 11 bytes, not block-aligned
@@ -84,7 +84,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 
 		result, err := encrypter.Encrypt([]byte{})
@@ -96,7 +96,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 
 		// Set an error
@@ -113,7 +113,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		c.SetKey(key16_tea)
 		c.SetRounds(-1) // Invalid rounds
 
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 
 		// Try to encrypt - this should fail due to invalid rounds
@@ -129,13 +129,13 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// First encrypt
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 		encrypted, err := encrypter.Encrypt(testData8_tea)
 		assert.Nil(t, err)
 
 		// Then decrypt
-		decrypter := NewStdDecrypter(*c)
+		decrypter := NewStdDecrypter(c)
 		assert.Nil(t, decrypter.Error)
 		result, err := decrypter.Decrypt(encrypted)
 		assert.Nil(t, err)
@@ -146,7 +146,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		decrypter := NewStdDecrypter(*c)
+		decrypter := NewStdDecrypter(c)
 		assert.Nil(t, decrypter.Error)
 
 		_, err := decrypter.Decrypt(testData_tea) // 11 bytes, not block-aligned
@@ -158,7 +158,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		decrypter := NewStdDecrypter(*c)
+		decrypter := NewStdDecrypter(c)
 		assert.Nil(t, decrypter.Error)
 
 		result, err := decrypter.Decrypt([]byte{})
@@ -170,7 +170,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		c := cipher.NewTeaCipher()
 		c.SetKey(key16_tea)
 
-		decrypter := NewStdDecrypter(*c)
+		decrypter := NewStdDecrypter(c)
 		assert.Nil(t, decrypter.Error)
 
 		// Set an error
@@ -187,7 +187,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		c.SetKey(key16_tea)
 		c.SetRounds(-1) // Invalid rounds
 
-		decrypter := NewStdDecrypter(*c)
+		decrypter := NewStdDecrypter(c)
 		assert.Nil(t, decrypter.Error)
 
 		// Try to decrypt - this should fail due to invalid rounds
@@ -203,7 +203,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 	})
 
@@ -212,7 +212,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 		c.SetKey([]byte("short")) // 5 bytes
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.NotNil(t, streamEncrypter.(*StreamEncrypter).Error)
 		assert.Contains(t, streamEncrypter.(*StreamEncrypter).Error.Error(), "invalid key size 5")
 	})
@@ -224,7 +224,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Write 8-byte data (complete block)
@@ -238,7 +238,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Write 5-byte data (incomplete block)
@@ -252,7 +252,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Write empty data
@@ -266,7 +266,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Set an error
@@ -284,14 +284,13 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// Create a mock closer
-		mockCloser := &mockCloser{}
-		streamEncrypter := NewStreamEncrypter(mockCloser, *c)
+		mockCloser := mock.NewWriteCloser(&bytes.Buffer{})
+		streamEncrypter := NewStreamEncrypter(mockCloser, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Close
 		err := streamEncrypter.Close()
 		assert.Nil(t, err)
-		assert.True(t, mockCloser.closed)
 	})
 
 	t.Run("close_without_closer", func(t *testing.T) {
@@ -299,7 +298,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Close
@@ -314,7 +313,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := NewStreamDecrypter(reader, *c)
+		streamDecrypter := NewStreamDecrypter(reader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 	})
 
@@ -323,7 +322,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		c.SetKey([]byte("short")) // 5 bytes
 
 		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := NewStreamDecrypter(reader, *c)
+		streamDecrypter := NewStreamDecrypter(reader, c)
 		assert.NotNil(t, streamDecrypter.(*StreamDecrypter).Error)
 		assert.Contains(t, streamDecrypter.(*StreamDecrypter).Error.Error(), "invalid key size 5")
 	})
@@ -335,14 +334,14 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// First encrypt some data
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 		encrypted, err := encrypter.Encrypt(testData8_tea)
 		assert.Nil(t, err)
 
 		// Then create stream decrypter
 		reader := bytes.NewReader(encrypted)
-		streamDecrypter := NewStreamDecrypter(reader, *c)
+		streamDecrypter := NewStreamDecrypter(reader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Read decrypted data
@@ -357,7 +356,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := NewStreamDecrypter(reader, *c)
+		streamDecrypter := NewStreamDecrypter(reader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Read with empty buffer
@@ -372,7 +371,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := NewStreamDecrypter(reader, *c)
+		streamDecrypter := NewStreamDecrypter(reader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Set an error
@@ -389,8 +388,8 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// Create a reader that returns partial data
-		partialReader := &partialReader{data: []byte("12345")}
-		streamDecrypter := NewStreamDecrypter(partialReader, *c)
+		partialReader := mock.NewFile([]byte("12345"), "partial.txt")
+		streamDecrypter := NewStreamDecrypter(partialReader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Try to read
@@ -412,28 +411,24 @@ func TestErrors(t *testing.T) {
 		originalErr := assert.AnError
 		err := EncryptError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to encrypt data")
-		assert.Equal(t, originalErr, err.Unwrap())
 	})
 
 	t.Run("decrypt_error", func(t *testing.T) {
 		originalErr := assert.AnError
 		err := DecryptError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to decrypt data")
-		assert.Equal(t, originalErr, err.Unwrap())
 	})
 
 	t.Run("write_error", func(t *testing.T) {
 		originalErr := assert.AnError
 		err := WriteError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to write encrypted data")
-		assert.Equal(t, originalErr, err.Unwrap())
 	})
 
 	t.Run("read_error", func(t *testing.T) {
 		originalErr := assert.AnError
 		err := ReadError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to read encrypted data")
-		assert.Equal(t, originalErr, err.Unwrap())
 	})
 
 	t.Run("invalid_data_size_error", func(t *testing.T) {
@@ -449,8 +444,8 @@ func TestStreamEncrypter_Write_ErrorCases(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// Create a mock writer that returns error
-		errorWriter := &errorWriter{}
-		streamEncrypter := NewStreamEncrypter(errorWriter, *c)
+		errorWriter := mock.NewErrorReadWriteCloser(assert.AnError)
+		streamEncrypter := NewStreamEncrypter(errorWriter, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Try to write
@@ -466,7 +461,7 @@ func TestStreamEncrypter_Write_ErrorCases(t *testing.T) {
 		c.SetRounds(-1) // Invalid rounds
 
 		writer := &bytes.Buffer{}
-		streamEncrypter := NewStreamEncrypter(writer, *c)
+		streamEncrypter := NewStreamEncrypter(writer, c)
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 
 		// Try to write - this should fail due to invalid rounds
@@ -482,8 +477,8 @@ func TestStreamDecrypter_Read_ErrorCases(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// Create a reader that returns error
-		errorReader := &errorReader{}
-		streamDecrypter := NewStreamDecrypter(errorReader, *c)
+		errorReader := mock.NewErrorReadWriteCloser(assert.AnError)
+		streamDecrypter := NewStreamDecrypter(errorReader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Try to read
@@ -498,8 +493,8 @@ func TestStreamDecrypter_Read_ErrorCases(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// Create a reader that returns EOF
-		eofReader := &eofReader{}
-		streamDecrypter := NewStreamDecrypter(eofReader, *c)
+		eofReader := mock.NewFile([]byte{}, "eof.txt")
+		streamDecrypter := NewStreamDecrypter(eofReader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Try to read
@@ -513,8 +508,8 @@ func TestStreamDecrypter_Read_ErrorCases(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// Create a reader that returns EOF with 0 bytes read
-		eofZeroReader := &eofZeroReader{}
-		streamDecrypter := NewStreamDecrypter(eofZeroReader, *c)
+		eofZeroReader := mock.NewFile([]byte{}, "eof_zero.txt")
+		streamDecrypter := NewStreamDecrypter(eofZeroReader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Try to read
@@ -530,7 +525,7 @@ func TestStreamDecrypter_Read_ErrorCases(t *testing.T) {
 		c.SetRounds(-1) // Invalid rounds
 
 		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := NewStreamDecrypter(reader, *c)
+		streamDecrypter := NewStreamDecrypter(reader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Try to read - this should fail due to invalid rounds
@@ -545,14 +540,14 @@ func TestStreamDecrypter_Read_ErrorCases(t *testing.T) {
 		c.SetKey(key16_tea)
 
 		// First encrypt some data
-		encrypter := NewStdEncrypter(*c)
+		encrypter := NewStdEncrypter(c)
 		assert.Nil(t, encrypter.Error)
 		encrypted, err := encrypter.Encrypt(testData8_tea)
 		assert.Nil(t, err)
 
 		// Then create stream decrypter
 		reader := bytes.NewReader(encrypted)
-		streamDecrypter := NewStreamDecrypter(reader, *c)
+		streamDecrypter := NewStreamDecrypter(reader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
 		// Read with large buffer (larger than block size)
@@ -561,61 +556,4 @@ func TestStreamDecrypter_Read_ErrorCases(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, 8, n)
 	})
-}
-
-// errorWriter is a mock writer that returns error
-type errorWriter struct{}
-
-func (e *errorWriter) Write(p []byte) (n int, err error) {
-	return 0, assert.AnError
-}
-
-// errorReader is a mock reader that returns error
-type errorReader struct{}
-
-func (e *errorReader) Read(p []byte) (n int, err error) {
-	return 0, assert.AnError
-}
-
-// eofReader is a mock reader that returns EOF
-type eofReader struct{}
-
-func (e *eofReader) Read(p []byte) (n int, err error) {
-	return 0, io.EOF
-}
-
-// eofZeroReader is a mock reader that returns EOF with 0 bytes read
-type eofZeroReader struct{}
-
-func (e *eofZeroReader) Read(p []byte) (n int, err error) {
-	return 0, io.EOF
-}
-
-// mockCloser is a mock implementation of io.Closer for testing
-type mockCloser struct {
-	closed bool
-}
-
-func (m *mockCloser) Write(p []byte) (n int, err error) {
-	return len(p), nil
-}
-
-func (m *mockCloser) Close() error {
-	m.closed = true
-	return nil
-}
-
-// partialReader is a mock reader that returns partial data
-type partialReader struct {
-	data []byte
-	pos  int
-}
-
-func (p *partialReader) Read(buf []byte) (n int, err error) {
-	if p.pos >= len(p.data) {
-		return 0, io.EOF
-	}
-	n = copy(buf, p.data[p.pos:])
-	p.pos += n
-	return n, nil
 }

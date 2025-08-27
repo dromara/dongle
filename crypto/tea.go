@@ -8,7 +8,7 @@ import (
 )
 
 // ByTea encrypts by TEA.
-func (e *Encrypter) ByTea(c cipher.TeaCipher) *Encrypter {
+func (e *Encrypter) ByTea(c *cipher.TeaCipher) *Encrypter {
 	if e.Error != nil {
 		return e
 	}
@@ -28,7 +28,7 @@ func (e *Encrypter) ByTea(c cipher.TeaCipher) *Encrypter {
 }
 
 // ByTea decrypts by TEA.
-func (d *Decrypter) ByTea(c cipher.TeaCipher) *Decrypter {
+func (d *Decrypter) ByTea(c *cipher.TeaCipher) *Decrypter {
 	if d.Error != nil {
 		return d
 	}

@@ -28,11 +28,6 @@ func (e EncryptError) Error() string {
 	return fmt.Sprintf("crypto/tea: failed to encrypt data: %v", e.Err)
 }
 
-// Unwrap returns the underlying error for error handling.
-func (e EncryptError) Unwrap() error {
-	return e.Err
-}
-
 // DecryptError represents an error when TEA decryption fails.
 // This error occurs when the underlying TEA decryption operation fails.
 // The error includes the underlying error for detailed debugging.
@@ -44,11 +39,6 @@ type DecryptError struct {
 // The message includes the underlying error for debugging.
 func (e DecryptError) Error() string {
 	return fmt.Sprintf("crypto/tea: failed to decrypt data: %v", e.Err)
-}
-
-// Unwrap returns the underlying error for error handling.
-func (e DecryptError) Unwrap() error {
-	return e.Err
 }
 
 // WriteError represents an error when writing encrypted data fails.
@@ -64,11 +54,6 @@ func (e WriteError) Error() string {
 	return fmt.Sprintf("crypto/tea: failed to write encrypted data: %v", e.Err)
 }
 
-// Unwrap returns the underlying error for error handling.
-func (e WriteError) Unwrap() error {
-	return e.Err
-}
-
 // ReadError represents an error when reading encrypted data fails.
 // This error occurs when reading encrypted data from the underlying reader fails.
 // The error includes the underlying error for detailed debugging.
@@ -80,11 +65,6 @@ type ReadError struct {
 // The message includes the underlying error for debugging.
 func (e ReadError) Error() string {
 	return fmt.Sprintf("crypto/tea: failed to read encrypted data: %v", e.Err)
-}
-
-// Unwrap returns the underlying error for error handling.
-func (e ReadError) Unwrap() error {
-	return e.Err
 }
 
 // InvalidDataSizeError represents an error when the data size is invalid for TEA operations.

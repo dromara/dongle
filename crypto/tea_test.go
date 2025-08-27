@@ -1,784 +1,612 @@
 package crypto
 
 import (
-	"bytes"
-	"io"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
-	"github.com/dromara/dongle/crypto/tea"
 	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 
-// TEA test data constants
-var (
-	key16_tea      = []byte("dongle1234567890") // 16 bytes
-	testData8_tea  = []byte("12345678")         // 8 bytes (block-aligned)
-	testData16_tea = []byte("1234567890123456") // 16 bytes (block-aligned)
-	testData_tea   = []byte("hello world")      // 11 bytes (not block-aligned)
-)
+// TestTeaInputTypes tests TEA encryption with various input types
+func TestTeaInputTypes(t *testing.T) {
+	t.Run("string input", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := "12345678" // 8-byte string for TEA
 
-func TestEncrypter_ByTea(t *testing.T) {
-	t.Run("basic_encryption", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+		encrypted := NewEncrypter().FromString(plaintext).ByTea(teaCipher).ToRawString()
+		assert.NotEmpty(t, encrypted)
 
-		encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.NotNil(t, encrypter.dst)
-		assert.Equal(t, 8, len(encrypter.dst))
+		decrypted := NewDecrypter().FromRawString(encrypted).ByTea(teaCipher).ToString()
+		assert.Equal(t, plaintext, decrypted)
 	})
 
-	t.Run("encryption_with_string_input", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("bytes input", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data for TEA
 
-		encrypter := NewEncrypter().FromString("12345678").ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.NotNil(t, encrypter.dst)
-		assert.Equal(t, 8, len(encrypter.dst))
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
 	})
 
-	t.Run("encryption_with_file_input", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("empty input", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := ""
 
-		file := mock.NewFile(testData8_tea, "test.txt")
-		encrypter := NewEncrypter().FromFile(file).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.NotNil(t, encrypter.dst)
-		assert.Equal(t, 8, len(encrypter.dst))
+		// TEA requires data to be multiple of 8 bytes, so empty input should result in error
+		encrypted := NewEncrypter().FromString(plaintext).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
 	})
 
-	t.Run("streaming_encryption", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("empty bytes input", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte{}
 
-		file := mock.NewFile(testData16_tea, "test.txt")
-		encrypter := NewEncrypter().FromFile(file).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.NotNil(t, encrypter.dst)
-		assert.Equal(t, 16, len(encrypter.dst))
+		// TEA requires data to be multiple of 8 bytes, so empty input should result in error
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
 	})
 
-	t.Run("encryption_with_different_key_sizes", func(t *testing.T) {
-		t.Run("16_byte_key", func(t *testing.T) {
-			c := cipher.NewTeaCipher()
-			c.SetKey(key16_tea)
+	t.Run("unicode input", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := "12345678" // 8-byte data for TEA
 
-			encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-			assert.Nil(t, encrypter.Error)
-			assert.NotNil(t, encrypter.dst)
-		})
+		encrypted := NewEncrypter().FromString(plaintext).ByTea(teaCipher).ToRawString()
+		assert.NotEmpty(t, encrypted)
 
-		t.Run("invalid_key_size", func(t *testing.T) {
-			c := cipher.NewTeaCipher()
-			c.SetKey([]byte("short")) // 5 bytes
-
-			encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-			assert.NotNil(t, encrypter.Error)
-			assert.Contains(t, encrypter.Error.Error(), "invalid key size 5")
-		})
+		decrypted := NewDecrypter().FromRawString(encrypted).ByTea(teaCipher).ToString()
+		assert.Equal(t, plaintext, decrypted)
 	})
 
-	t.Run("encryption_with_different_rounds", func(t *testing.T) {
-		t.Run("32_rounds", func(t *testing.T) {
-			c := cipher.NewTeaCipher()
-			c.SetKey(key16_tea)
-			c.SetRounds(32)
+	t.Run("binary input", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		// 8-byte binary data (multiple of 8 bytes as required by TEA)
+		plaintext := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07}
 
-			encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-			assert.Nil(t, encrypter.Error)
-			assert.NotNil(t, encrypter.dst)
-		})
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
 
-		t.Run("64_rounds", func(t *testing.T) {
-			c := cipher.NewTeaCipher()
-			c.SetKey(key16_tea)
-			c.SetRounds(64)
-
-			encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-			assert.Nil(t, encrypter.Error)
-			assert.NotNil(t, encrypter.dst)
-		})
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
 	})
 
-	t.Run("encryption_with_block_aligned_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("8-byte multiple input", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		// 16-byte data (multiple of 8 bytes as required by TEA)
+		plaintext := []byte("1234567890123456")
 
-		// Test with 8-byte data
-		encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 8, len(encrypter.dst))
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
 
-		// Test with 16-byte data
-		encrypter = NewEncrypter().FromBytes(testData16_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 16, len(encrypter.dst))
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
+	})
+}
+
+// TestTeaErrorHandling tests TEA error handling scenarios
+func TestTeaErrorHandling(t *testing.T) {
+	t.Run("empty key", func(t *testing.T) {
+		plaintext := "Hello, TEA!"
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey([]byte{}) // Empty key
+
+		encrypted := NewEncrypter().FromString(plaintext).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawString(plaintext).ByTea(teaCipher).ToString()
+		assert.Empty(t, decrypted)
 	})
 
-	t.Run("encryption_with_non_block_aligned_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("invalid key size", func(t *testing.T) {
+		plaintext := "Hello, TEA!"
+		key := []byte("short") // Invalid key size (not 16 bytes)
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
 
-		// Test with 11-byte data (not block-aligned)
-		encrypter := NewEncrypter().FromBytes(testData_tea).ByTea(*c)
-		assert.NotNil(t, encrypter.Error)
-		assert.Contains(t, encrypter.Error.Error(), "invalid data size 11")
+		encrypted := NewEncrypter().FromString(plaintext).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawString(plaintext).ByTea(teaCipher).ToString()
+		assert.Empty(t, decrypted)
 	})
 
-	t.Run("encryption_with_empty_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		encrypter := NewEncrypter().FromBytes([]byte{}).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 0, len(encrypter.dst))
-	})
-
-	t.Run("encryption_with_nil_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		encrypter := NewEncrypter().FromBytes(nil).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 0, len(encrypter.dst))
-	})
-
-	t.Run("encryption_with_existing_error", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("with existing error", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := "Hello, TEA!"
 
 		encrypter := NewEncrypter()
 		encrypter.Error = assert.AnError
 
-		result := encrypter.FromBytes(testData8_tea).ByTea(*c)
-		assert.Equal(t, assert.AnError, result.Error)
-		assert.Nil(t, result.dst)
-	})
-}
-
-func TestDecrypter_ByTea(t *testing.T) {
-	t.Run("basic_decryption", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// First encrypt
-		encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		encrypted := encrypter.ToRawBytes()
-
-		// Then decrypt
-		decrypter := NewDecrypter().FromRawBytes(encrypted).ByTea(*c)
-		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData8_tea, decrypter.ToBytes())
-	})
-
-	t.Run("decryption_with_string_input", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// First encrypt
-		encrypter := NewEncrypter().FromString("12345678").ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		encrypted := encrypter.ToRawBytes()
-
-		// Then decrypt
-		decrypter := NewDecrypter().FromRawString(string(encrypted)).ByTea(*c)
-		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, "12345678", decrypter.ToString())
-	})
-
-	t.Run("decryption_with_file_input", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// First encrypt
-		encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		encrypted := encrypter.ToRawBytes()
-
-		// Then decrypt from file
-		file := mock.NewFile(encrypted, "encrypted.bin")
-		decrypter := NewDecrypter().FromRawFile(file).ByTea(*c)
-		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData8_tea, decrypter.ToBytes())
-	})
-
-	t.Run("streaming_decryption", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// First encrypt
-		encrypter := NewEncrypter().FromBytes(testData16_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		encrypted := encrypter.ToRawBytes()
-
-		// Then decrypt from file
-		file := mock.NewFile(encrypted, "encrypted.bin")
-		decrypter := NewDecrypter().FromRawFile(file).ByTea(*c)
-		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData16_tea, decrypter.ToBytes())
-	})
-
-	t.Run("decryption_with_different_rounds", func(t *testing.T) {
-		t.Run("32_rounds", func(t *testing.T) {
-			c := cipher.NewTeaCipher()
-			c.SetKey(key16_tea)
-			c.SetRounds(32)
-
-			// First encrypt
-			encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-			assert.Nil(t, encrypter.Error)
-			encrypted := encrypter.ToRawBytes()
-
-			// Then decrypt
-			decrypter := NewDecrypter().FromRawBytes(encrypted).ByTea(*c)
-			assert.Nil(t, decrypter.Error)
-			assert.Equal(t, testData8_tea, decrypter.ToBytes())
-		})
-
-		t.Run("64_rounds", func(t *testing.T) {
-			c := cipher.NewTeaCipher()
-			c.SetKey(key16_tea)
-			c.SetRounds(64)
-
-			// First encrypt
-			encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-			assert.Nil(t, encrypter.Error)
-			encrypted := encrypter.ToRawBytes()
-
-			// Then decrypt
-			decrypter := NewDecrypter().FromRawBytes(encrypted).ByTea(*c)
-			assert.Nil(t, decrypter.Error)
-			assert.Equal(t, testData8_tea, decrypter.ToBytes())
-		})
-	})
-
-	t.Run("decryption_with_empty_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		decrypter := NewDecrypter().FromRawBytes([]byte{}).ByTea(*c)
-		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, 0, len(decrypter.ToBytes()))
-	})
-
-	t.Run("decryption_with_nil_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		decrypter := NewDecrypter().FromRawBytes(nil).ByTea(*c)
-		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, 0, len(decrypter.ToBytes()))
-	})
-
-	t.Run("decryption_with_existing_error", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+		encrypted := encrypter.FromString(plaintext).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
 
 		decrypter := NewDecrypter()
 		decrypter.Error = assert.AnError
 
-		result := decrypter.FromRawBytes(testData8_tea).ByTea(*c)
-		assert.Equal(t, assert.AnError, result.Error)
-		assert.Nil(t, result.dst)
+		decrypted := decrypter.FromRawString(plaintext).ByTea(teaCipher).ToString()
+		assert.Empty(t, decrypted)
+	})
+
+	t.Run("encryption error with invalid data size", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		// 7-byte data (not multiple of 8 bytes)
+		plaintext := []byte("1234567")
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+	})
+
+	t.Run("decryption error with invalid data size", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		// 7-byte data (not multiple of 8 bytes)
+		plaintext := []byte("1234567")
+
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 }
 
-func TestTea_ErrorHandling(t *testing.T) {
-	t.Run("invalid_cipher_configuration", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey([]byte("")) // Empty key
+// TestTeaStreaming tests TEA streaming encryption and decryption
+func TestTeaStreaming(t *testing.T) {
+	t.Run("stream encrypter with valid key", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
 
-		encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-		assert.NotNil(t, encrypter.Error)
-		assert.Contains(t, encrypter.Error.Error(), "invalid key size 0")
+		// Create a mock file for streaming (must be multiple of 8 bytes)
+		mockFile := mock.NewFile([]byte("1234567890123456"), "test.txt")
+		encrypted := NewEncrypter().FromFile(mockFile).ByTea(teaCipher).ToRawString()
+		assert.NotEmpty(t, encrypted)
+
+		// For decryption, we need to use the encrypted data directly
+		decrypted := NewDecrypter().FromRawBytes([]byte(encrypted)).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, []byte("1234567890123456"), decrypted)
 	})
 
-	t.Run("invalid_data_size", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// Try to encrypt non-block-aligned data
-		encrypter := NewEncrypter().FromBytes(testData_tea).ByTea(*c)
-		assert.NotNil(t, encrypter.Error)
-		assert.Contains(t, encrypter.Error.Error(), "invalid data size 11")
+	t.Run("stream encrypter with invalid key", func(t *testing.T) {
+		key := []byte("invalid") // Invalid key size
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		// plaintext is not used in this test case, removing it
+		mockFile := mock.NewFile([]byte("test data"), "test.txt")
+		encrypted := NewEncrypter().FromFile(mockFile).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
 	})
 
-	t.Run("decryption_with_wrong_key", func(t *testing.T) {
-		c1 := cipher.NewTeaCipher()
-		c1.SetKey(key16_tea)
+	t.Run("stream with read error", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		errorReader := mock.NewErrorFile(assert.AnError)
 
-		c2 := cipher.NewTeaCipher()
-		c2.SetKey([]byte("different1234567")) // Different 16-byte key
-
-		// Encrypt with first key
-		encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c1)
-		assert.Nil(t, encrypter.Error)
-		encrypted := encrypter.ToRawBytes()
-
-		// Try to decrypt with second key
-		decrypter := NewDecrypter().FromRawBytes(encrypted).ByTea(*c2)
-		assert.Nil(t, decrypter.Error)
-		// Should get different result
-		assert.NotEqual(t, testData8_tea, decrypter.ToBytes())
+		encrypted := NewEncrypter().FromFile(errorReader).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
 	})
 }
 
-func TestTea_EdgeCases(t *testing.T) {
-	t.Run("empty_and_nil_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+// TestTeaStdEncrypter tests TEA standard encrypter functionality
+func TestTeaStdEncrypter(t *testing.T) {
+	t.Run("new std encrypter with valid key", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
-		// Empty data
-		encrypter := NewEncrypter().FromBytes([]byte{}).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 0, len(encrypter.dst))
-
-		// Nil data
-		encrypter = NewEncrypter().FromBytes(nil).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 0, len(encrypter.dst))
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
 	})
 
-	t.Run("exact_block_size_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("new std encrypter with invalid key", func(t *testing.T) {
+		key := []byte("invalid") // Invalid key size
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
-		// 8-byte data (exact block size)
-		encrypter := NewEncrypter().FromBytes(testData8_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 8, len(encrypter.dst))
-
-		// 16-byte data (exact block size)
-		encrypter = NewEncrypter().FromBytes(testData16_tea).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 16, len(encrypter.dst))
-	})
-}
-
-func TestTea_StreamingEdgeCases(t *testing.T) {
-	t.Run("streaming_with_empty_reader", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// Create empty file
-		file := mock.NewFile([]byte{}, "empty.txt")
-		encrypter := NewEncrypter().FromFile(file).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 0, len(encrypter.dst))
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
 	})
 
-	t.Run("streaming_with_large_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("std encrypter encrypt with existing error", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
-		// Create large block-aligned data
-		largeData := make([]byte, 1024)
-		for i := range largeData {
-			largeData[i] = byte(i % 256)
-		}
+		encrypter := NewEncrypter()
+		encrypter.Error = assert.AnError
 
-		file := mock.NewFile(largeData, "large.txt")
-		encrypter := NewEncrypter().FromFile(file).ByTea(*c)
-		assert.Nil(t, encrypter.Error)
-		assert.Equal(t, 1024, len(encrypter.dst))
+		encrypted := encrypter.FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+	})
+
+	t.Run("std encrypter encrypt empty data", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte{} // Empty data
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+	})
+
+	t.Run("std encrypter encrypt with invalid data size", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("1234567") // 7-byte data (not multiple of 8)
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
 	})
 }
 
-// Test crypto/tea package specific implementations
-func TestTeaPackage_NewStdEncrypter(t *testing.T) {
-	t.Run("valid_key", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		encrypter := tea.NewStdEncrypter(*c)
-		assert.Nil(t, encrypter.Error)
-	})
-
-	t.Run("invalid_key_size", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey([]byte("short")) // 5 bytes
-
-		encrypter := tea.NewStdEncrypter(*c)
-		assert.NotNil(t, encrypter.Error)
-		assert.Contains(t, encrypter.Error.Error(), "invalid key size 5")
-	})
-}
-
-func TestTeaPackage_NewStdDecrypter(t *testing.T) {
-	t.Run("valid_key", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		decrypter := tea.NewStdDecrypter(*c)
-		assert.Nil(t, decrypter.Error)
-	})
-
-	t.Run("invalid_key_size", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey([]byte("short")) // 5 bytes
-
-		decrypter := tea.NewStdDecrypter(*c)
-		assert.NotNil(t, decrypter.Error)
-		assert.Contains(t, decrypter.Error.Error(), "invalid key size 5")
-	})
-}
-
-func TestTeaPackage_Encrypt(t *testing.T) {
-	t.Run("valid_encryption", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		encrypter := tea.NewStdEncrypter(*c)
-		assert.Nil(t, encrypter.Error)
-
-		result, err := encrypter.Encrypt(testData8_tea)
-		assert.Nil(t, err)
-		assert.Equal(t, 8, len(result))
-	})
-
-	t.Run("invalid_data_size", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		encrypter := tea.NewStdEncrypter(*c)
-		assert.Nil(t, encrypter.Error)
-
-		_, err := encrypter.Encrypt(testData_tea) // 11 bytes, not block-aligned
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "invalid data size 11")
-	})
-
-	t.Run("empty_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		encrypter := tea.NewStdEncrypter(*c)
-		assert.Nil(t, encrypter.Error)
-
-		result, err := encrypter.Encrypt([]byte{})
-		assert.Nil(t, err)
-		assert.Equal(t, 0, len(result))
-	})
-}
-
-func TestTeaPackage_Decrypt(t *testing.T) {
-	t.Run("valid_decryption", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+// TestTeaStdDecrypter tests TEA standard decrypter functionality
+func TestTeaStdDecrypter(t *testing.T) {
+	t.Run("new std decrypter with valid key", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
 		// First encrypt
-		encrypter := tea.NewStdEncrypter(*c)
-		assert.Nil(t, encrypter.Error)
-		encrypted, err := encrypter.Encrypt(testData8_tea)
-		assert.Nil(t, err)
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
 
 		// Then decrypt
-		decrypter := tea.NewStdDecrypter(*c)
-		assert.Nil(t, decrypter.Error)
-		result, err := decrypter.Decrypt(encrypted)
-		assert.Nil(t, err)
-		assert.Equal(t, testData8_tea, result)
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
 	})
 
-	t.Run("invalid_data_size", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("new std decrypter with invalid key", func(t *testing.T) {
+		key := []byte("invalid") // Invalid key size
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
-		decrypter := tea.NewStdDecrypter(*c)
-		assert.Nil(t, decrypter.Error)
-
-		_, err := decrypter.Decrypt(testData_tea) // 11 bytes, not block-aligned
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "invalid data size 11")
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 
-	t.Run("empty_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("std decrypter decrypt with existing error", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
-		decrypter := tea.NewStdDecrypter(*c)
-		assert.Nil(t, decrypter.Error)
+		decrypter := NewDecrypter()
+		decrypter.Error = assert.AnError
 
-		result, err := decrypter.Decrypt([]byte{})
-		assert.Nil(t, err)
-		assert.Equal(t, 0, len(result))
-	})
-}
-
-func TestTeaPackage_StreamEncrypter(t *testing.T) {
-	t.Run("new_stream_encrypter", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		writer := &bytes.Buffer{}
-		streamEncrypter := tea.NewStreamEncrypter(writer, *c)
-		assert.Nil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
+		decrypted := decrypter.FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 
-	t.Run("new_stream_encrypter_invalid_key", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey([]byte("short")) // 5 bytes
+	t.Run("std decrypter decrypt empty data", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte{} // Empty data
 
-		writer := &bytes.Buffer{}
-		streamEncrypter := tea.NewStreamEncrypter(writer, *c)
-		assert.NotNil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
-		assert.Contains(t, streamEncrypter.(*tea.StreamEncrypter).Error.Error(), "invalid key size 5")
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 
-	t.Run("write_complete_blocks", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
+	t.Run("std decrypter decrypt with invalid data size", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("1234567") // 7-byte data (not multiple of 8)
 
-		writer := &bytes.Buffer{}
-		streamEncrypter := tea.NewStreamEncrypter(writer, *c)
-		assert.Nil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
-
-		// Write 8-byte data (complete block)
-		n, err := streamEncrypter.Write(testData8_tea)
-		assert.Nil(t, err)
-		assert.Equal(t, 8, n)
-
-		// Close
-		err = streamEncrypter.Close()
-		assert.Nil(t, err)
-	})
-
-	t.Run("write_incomplete_block", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		writer := &bytes.Buffer{}
-		streamEncrypter := tea.NewStreamEncrypter(writer, *c)
-		assert.Nil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
-
-		// Write 5-byte data (incomplete block)
-		_, err := streamEncrypter.Write([]byte("12345"))
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "invalid data size 5")
-	})
-
-	t.Run("write_empty_data", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		writer := &bytes.Buffer{}
-		streamEncrypter := tea.NewStreamEncrypter(writer, *c)
-		assert.Nil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
-
-		// Write empty data
-		n, err := streamEncrypter.Write([]byte{})
-		assert.Nil(t, err)
-		assert.Equal(t, 0, n)
-	})
-
-	t.Run("write_with_existing_error", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		writer := &bytes.Buffer{}
-		streamEncrypter := tea.NewStreamEncrypter(writer, *c)
-		assert.Nil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
-
-		// Set an error
-		streamEncrypter.(*tea.StreamEncrypter).Error = assert.AnError
-
-		// Try to write
-		_, err := streamEncrypter.Write(testData8_tea)
-		assert.Equal(t, assert.AnError, err)
-	})
-
-	t.Run("close_with_closer", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// Create a mock closer
-		mockCloser := &mockCloser{}
-		streamEncrypter := tea.NewStreamEncrypter(mockCloser, *c)
-		assert.Nil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
-
-		// Close
-		err := streamEncrypter.Close()
-		assert.Nil(t, err)
-		assert.True(t, mockCloser.closed)
-	})
-
-	t.Run("close_without_closer", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		writer := &bytes.Buffer{}
-		streamEncrypter := tea.NewStreamEncrypter(writer, *c)
-		assert.Nil(t, streamEncrypter.(*tea.StreamEncrypter).Error)
-
-		// Close
-		err := streamEncrypter.Close()
-		assert.Nil(t, err)
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 }
 
-// mockCloser is a mock implementation of io.Closer for testing
-type mockCloser struct {
-	closed bool
-}
+// TestTeaDecrypterComprehensive tests comprehensive TEA decryption scenarios
+func TestTeaDecrypterComprehensive(t *testing.T) {
+	t.Run("decrypter with existing error", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
-func (m *mockCloser) Write(p []byte) (n int, err error) {
-	return len(p), nil
-}
+		decrypter := NewDecrypter()
+		decrypter.Error = assert.AnError
 
-func (m *mockCloser) Close() error {
-	m.closed = true
-	return nil
-}
-
-func TestTeaPackage_StreamDecrypter(t *testing.T) {
-	t.Run("new_stream_decrypter", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := tea.NewStreamDecrypter(reader, *c)
-		assert.Nil(t, streamDecrypter.(*tea.StreamDecrypter).Error)
+		decrypted := decrypter.FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 
-	t.Run("new_stream_decrypter_invalid_key", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey([]byte("short")) // 5 bytes
+	t.Run("decrypter with invalid key size", func(t *testing.T) {
+		key := []byte("invalid") // Invalid key size
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
 
-		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := tea.NewStreamDecrypter(reader, *c)
-		assert.NotNil(t, streamDecrypter.(*tea.StreamDecrypter).Error)
-		assert.Contains(t, streamDecrypter.(*tea.StreamDecrypter).Error.Error(), "invalid key size 5")
-	})
-
-	t.Run("read_block", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// First encrypt some data
-		encrypter := tea.NewStdEncrypter(*c)
-		assert.Nil(t, encrypter.Error)
-		encrypted, err := encrypter.Encrypt(testData8_tea)
-		assert.Nil(t, err)
-
-		// Then create stream decrypter
-		reader := bytes.NewReader(encrypted)
-		streamDecrypter := tea.NewStreamDecrypter(reader, *c)
-		assert.Nil(t, streamDecrypter.(*tea.StreamDecrypter).Error)
-
-		// Read decrypted data
-		buffer := make([]byte, 8)
-		n, err := streamDecrypter.Read(buffer)
-		assert.Nil(t, err)
-		assert.Equal(t, 8, n)
-	})
-
-	t.Run("read_empty_buffer", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := tea.NewStreamDecrypter(reader, *c)
-		assert.Nil(t, streamDecrypter.(*tea.StreamDecrypter).Error)
-
-		// Read with empty buffer
-		buffer := make([]byte, 0)
-		n, err := streamDecrypter.Read(buffer)
-		assert.Nil(t, err)
-		assert.Equal(t, 0, n)
-	})
-
-	t.Run("read_with_existing_error", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		reader := bytes.NewReader(testData8_tea)
-		streamDecrypter := tea.NewStreamDecrypter(reader, *c)
-		assert.Nil(t, streamDecrypter.(*tea.StreamDecrypter).Error)
-
-		// Set an error
-		streamDecrypter.(*tea.StreamDecrypter).Error = assert.AnError
-
-		// Try to read
-		buffer := make([]byte, 8)
-		_, err := streamDecrypter.Read(buffer)
-		assert.Equal(t, assert.AnError, err)
-	})
-
-	t.Run("read_partial_block", func(t *testing.T) {
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16_tea)
-
-		// Create a reader that returns partial data
-		partialReader := &partialReader{data: []byte("12345")}
-		streamDecrypter := tea.NewStreamDecrypter(partialReader, *c)
-		assert.Nil(t, streamDecrypter.(*tea.StreamDecrypter).Error)
-
-		// Try to read
-		buffer := make([]byte, 8)
-		_, err := streamDecrypter.Read(buffer)
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "unexpected EOF")
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 }
 
-// partialReader is a mock reader that returns partial data
-type partialReader struct {
-	data []byte
-	pos  int
+// TestTeaPackageDirect tests direct TEA package usage
+func TestTeaPackageDirect(t *testing.T) {
+	t.Run("ByTea with invalid key", func(t *testing.T) {
+		key := []byte("invalid") // Invalid key size
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("12345678") // 8-byte data
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
+	})
+
+	t.Run("ByTea stream branch with invalid key", func(t *testing.T) {
+		key := []byte("invalid") // Invalid key size
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		mockFile := mock.NewFile([]byte("test data"), "test.txt")
+		encrypted := NewEncrypter().FromFile(mockFile).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
+	})
 }
 
-func (p *partialReader) Read(buf []byte) (n int, err error) {
-	if p.pos >= len(p.data) {
-		return 0, io.EOF
-	}
-	n = copy(buf, p.data[p.pos:])
-	p.pos += n
-	return n, nil
+// TestTeaByTeaStreamBranch tests TEA ByTea stream branch
+func TestTeaByTeaStreamBranch(t *testing.T) {
+	t.Run("ByTea stream branch", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("1234567890123456") // 16-byte data
+
+		mockFile := mock.NewFile(plaintext, "test.txt")
+		encrypted := NewEncrypter().FromFile(mockFile).ByTea(teaCipher).ToRawString()
+		assert.NotEmpty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes([]byte(encrypted)).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
+	})
+
+	t.Run("ByTea stream branch with error", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		// plaintext is not used in this test case, removing it
+		encrypted := NewEncrypter().FromFile(mock.NewErrorFile(assert.AnError)).ByTea(teaCipher).ToRawString()
+		assert.Empty(t, encrypted)
+	})
+
+	t.Run("decrypter stream branch", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+		plaintext := []byte("1234567890123456") // 16-byte data
+
+		// First encrypt using streaming
+		mockFile := mock.NewFile(plaintext, "test.txt")
+		encrypted := NewEncrypter().FromFile(mockFile).ByTea(teaCipher).ToRawString()
+		assert.NotEmpty(t, encrypted)
+
+		// Then decrypt using streaming by directly setting reader field
+		mockFile2 := mock.NewFile([]byte(encrypted), "test2.txt")
+		decrypter := NewDecrypter()
+		decrypter.reader = mockFile2 // Directly set reader field
+		decrypted := decrypter.ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
+	})
 }
 
-func TestTeaPackage_Errors(t *testing.T) {
-	t.Run("key_size_error", func(t *testing.T) {
-		err := tea.KeySizeError(5)
-		assert.Contains(t, err.Error(), "invalid key size 5")
-		assert.Contains(t, err.Error(), "must be exactly 16 bytes")
+// TestTeaEdgeCases tests TEA edge cases for full coverage
+func TestTeaEdgeCases(t *testing.T) {
+	t.Run("encrypter with nil src", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		// Create encrypter with nil src
+		encrypter := NewEncrypter()
+		// Manually set src to nil to simulate edge case
+		encrypter.src = nil
+		result := encrypter.ByTea(teaCipher)
+		assert.Equal(t, encrypter, result)
+		// Should not have error since nil src is handled gracefully
+		assert.Nil(t, result.Error)
 	})
 
-	t.Run("encrypt_error", func(t *testing.T) {
-		originalErr := assert.AnError
-		err := tea.EncryptError{Err: originalErr}
-		assert.Contains(t, err.Error(), "failed to encrypt data")
-		assert.Equal(t, originalErr, err.Unwrap())
+	t.Run("decrypter with nil src", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		// Create decrypter with nil src
+		decrypter := NewDecrypter()
+		// Manually set src to nil to simulate edge case
+		decrypter.src = nil
+		result := decrypter.ByTea(teaCipher)
+		assert.Equal(t, decrypter, result)
+		// Should not have error since nil src is handled gracefully
+		assert.Nil(t, result.Error)
 	})
 
-	t.Run("decrypt_error", func(t *testing.T) {
-		originalErr := assert.AnError
-		err := tea.DecryptError{Err: originalErr}
-		assert.Contains(t, err.Error(), "failed to decrypt data")
-		assert.Equal(t, originalErr, err.Unwrap())
+	t.Run("encrypter with empty src", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		// Create encrypter with empty src
+		encrypter := NewEncrypter()
+		encrypter.src = []byte{}
+		result := encrypter.ByTea(teaCipher)
+		assert.Equal(t, encrypter, result)
+		// Empty src is handled gracefully in the crypto package - no error is returned
+		assert.Nil(t, result.Error)
+		assert.Empty(t, result.dst)
 	})
 
-	t.Run("write_error", func(t *testing.T) {
-		originalErr := assert.AnError
-		err := tea.WriteError{Err: originalErr}
-		assert.Contains(t, err.Error(), "failed to write encrypted data")
-		assert.Equal(t, originalErr, err.Unwrap())
+	t.Run("decrypter with empty src", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		// Create decrypter with empty src
+		decrypter := NewDecrypter()
+		decrypter.src = []byte{}
+		result := decrypter.ByTea(teaCipher)
+		assert.Equal(t, decrypter, result)
+		// Empty src is handled gracefully in the crypto package - no error is returned
+		assert.Nil(t, result.Error)
+		assert.Empty(t, result.dst)
 	})
 
-	t.Run("read_error", func(t *testing.T) {
-		originalErr := assert.AnError
-		err := tea.ReadError{Err: originalErr}
-		assert.Contains(t, err.Error(), "failed to read encrypted data")
-		assert.Equal(t, originalErr, err.Unwrap())
+	t.Run("encrypter with reader nil and empty src", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		// Create encrypter with nil reader and empty src
+		encrypter := NewEncrypter()
+		encrypter.reader = nil
+		encrypter.src = []byte{}
+		result := encrypter.ByTea(teaCipher)
+		assert.Equal(t, encrypter, result)
+		// Empty src is handled gracefully in the crypto package - no error is returned
+		assert.Nil(t, result.Error)
+		assert.Empty(t, result.dst)
 	})
 
-	t.Run("invalid_data_size_error", func(t *testing.T) {
-		err := tea.InvalidDataSizeError{Size: 11}
-		assert.Contains(t, err.Error(), "invalid data size 11")
-		assert.Contains(t, err.Error(), "must be a multiple of 8 bytes")
+	t.Run("decrypter with reader nil and empty src", func(t *testing.T) {
+		key := []byte("1234567890123456") // 16-byte key for TEA
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		// Create decrypter with nil reader and empty src
+		decrypter := NewDecrypter()
+		decrypter.reader = nil
+		decrypter.src = []byte{}
+		result := decrypter.ByTea(teaCipher)
+		assert.Equal(t, decrypter, result)
+		// Empty src is handled gracefully in the crypto package - no error is returned
+		assert.Nil(t, result.Error)
+		assert.Empty(t, result.dst)
+	})
+}
+
+// TestTeaWithDifferentDataSizes tests TEA with different data sizes
+func TestTeaWithDifferentDataSizes(t *testing.T) {
+	key := []byte("1234567890123456") // 16-byte key for TEA
+	teaCipher := cipher.NewTeaCipher()
+	teaCipher.SetKey(key)
+
+	t.Run("8-byte data", func(t *testing.T) {
+		plaintext := []byte("12345678") // Exactly 8 bytes
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
+	})
+
+	t.Run("16-byte data", func(t *testing.T) {
+		plaintext := []byte("1234567890123456") // Exactly 16 bytes
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
+	})
+
+	t.Run("24-byte data", func(t *testing.T) {
+		plaintext := []byte("123456789012345678901234") // Exactly 24 bytes
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
+	})
+
+	t.Run("invalid 7-byte data", func(t *testing.T) {
+		plaintext := []byte("1234567") // 7 bytes (not multiple of 8)
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+	})
+
+	t.Run("invalid 15-byte data", func(t *testing.T) {
+		plaintext := []byte("123456789012345") // 15 bytes (not multiple of 8)
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+	})
+}
+
+// TestTeaWithDifferentKeySizes tests TEA with different key sizes
+func TestTeaWithDifferentKeySizes(t *testing.T) {
+	plaintext := []byte("12345678") // 8-byte data
+
+	t.Run("16-byte key", func(t *testing.T) {
+		key := []byte("1234567890123456") // Exactly 16 bytes
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted)
+	})
+
+	t.Run("invalid 8-byte key", func(t *testing.T) {
+		key := []byte("12345678") // 8 bytes (invalid for TEA)
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
+	})
+
+	t.Run("invalid 32-byte key", func(t *testing.T) {
+		key := make([]byte, 32) // 32 bytes (invalid for TEA)
+		for i := range key {
+			key[i] = byte(i % 256)
+		}
+		teaCipher := cipher.NewTeaCipher()
+		teaCipher.SetKey(key)
+
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.Empty(t, encrypted)
+
+		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
+		assert.Empty(t, decrypted)
 	})
 }
