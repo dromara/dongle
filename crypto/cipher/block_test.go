@@ -57,7 +57,7 @@ func TestNewCBCEncrypter(t *testing.T) {
 	src := make([]byte, 32) // 2 blocks
 
 	t.Run("successful encryption", func(t *testing.T) {
-		result, err := NewCBCEncrypter(src, iv, block)
+		result, err := newCBCEncrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
@@ -65,7 +65,7 @@ func TestNewCBCEncrypter(t *testing.T) {
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewCBCEncrypter(src, []byte{}, block)
+		result, err := newCBCEncrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -73,7 +73,7 @@ func TestNewCBCEncrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCBCEncrypter(src, iv, nil)
+		result, err := newCBCEncrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -82,7 +82,7 @@ func TestNewCBCEncrypter(t *testing.T) {
 
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
-		result, err := NewCBCEncrypter(src, invalidIV, block)
+		result, err := newCBCEncrypter(src, invalidIV, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidIVError{}, err)
@@ -91,7 +91,7 @@ func TestNewCBCEncrypter(t *testing.T) {
 
 	t.Run("invalid source length", func(t *testing.T) {
 		invalidSrc := make([]byte, 17) // Not multiple of block size
-		result, err := NewCBCEncrypter(invalidSrc, iv, block)
+		result, err := newCBCEncrypter(invalidSrc, iv, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidSrcError{}, err)
@@ -106,14 +106,14 @@ func TestNewCBCDecrypter(t *testing.T) {
 	src := make([]byte, 32) // 2 blocks
 
 	t.Run("successful decryption", func(t *testing.T) {
-		result, err := NewCBCDecrypter(src, iv, block)
+		result, err := newCBCDecrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewCBCDecrypter(src, []byte{}, block)
+		result, err := newCBCDecrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -121,7 +121,7 @@ func TestNewCBCDecrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCBCDecrypter(src, iv, nil)
+		result, err := newCBCDecrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -130,7 +130,7 @@ func TestNewCBCDecrypter(t *testing.T) {
 
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
-		result, err := NewCBCDecrypter(src, invalidIV, block)
+		result, err := newCBCDecrypter(src, invalidIV, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidIVError{}, err)
@@ -139,7 +139,7 @@ func TestNewCBCDecrypter(t *testing.T) {
 
 	t.Run("invalid source length", func(t *testing.T) {
 		invalidSrc := make([]byte, 17) // Not multiple of block size
-		result, err := NewCBCDecrypter(invalidSrc, iv, block)
+		result, err := newCBCDecrypter(invalidSrc, iv, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidSrcError{}, err)
@@ -154,7 +154,7 @@ func TestNewCTREncrypter(t *testing.T) {
 	src := make([]byte, 25) // Any length is fine for CTR
 
 	t.Run("successful encryption with 16-byte IV", func(t *testing.T) {
-		result, err := NewCTREncrypter(src, iv, block)
+		result, err := newCTREncrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
@@ -163,7 +163,7 @@ func TestNewCTREncrypter(t *testing.T) {
 
 	t.Run("successful encryption with 12-byte nonce", func(t *testing.T) {
 		nonce := make([]byte, 12)
-		result, err := NewCTREncrypter(src, nonce, block)
+		result, err := newCTREncrypter(src, nonce, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
@@ -171,7 +171,7 @@ func TestNewCTREncrypter(t *testing.T) {
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewCTREncrypter(src, []byte{}, block)
+		result, err := newCTREncrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -179,7 +179,7 @@ func TestNewCTREncrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCTREncrypter(src, iv, nil)
+		result, err := newCTREncrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -194,7 +194,7 @@ func TestNewCTRDecrypter(t *testing.T) {
 	src := make([]byte, 25) // Any length is fine for CTR
 
 	t.Run("successful decryption with 16-byte IV", func(t *testing.T) {
-		result, err := NewCTRDecrypter(src, iv, block)
+		result, err := newCTRDecrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
@@ -202,14 +202,14 @@ func TestNewCTRDecrypter(t *testing.T) {
 
 	t.Run("successful decryption with 12-byte nonce", func(t *testing.T) {
 		nonce := make([]byte, 12)
-		result, err := NewCTRDecrypter(src, nonce, block)
+		result, err := newCTRDecrypter(src, nonce, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewCTRDecrypter(src, []byte{}, block)
+		result, err := newCTRDecrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -217,7 +217,7 @@ func TestNewCTRDecrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCTRDecrypter(src, iv, nil)
+		result, err := newCTRDecrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -231,7 +231,7 @@ func TestNewECBEncrypter(t *testing.T) {
 	src := make([]byte, 32) // 2 blocks
 
 	t.Run("successful encryption", func(t *testing.T) {
-		result, err := NewECBEncrypter(src, block)
+		result, err := newECBEncrypter(src, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
@@ -239,7 +239,7 @@ func TestNewECBEncrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewECBEncrypter(src, nil)
+		result, err := newECBEncrypter(src, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -248,7 +248,7 @@ func TestNewECBEncrypter(t *testing.T) {
 
 	t.Run("invalid source length", func(t *testing.T) {
 		invalidSrc := make([]byte, 17) // Not multiple of block size
-		result, err := NewECBEncrypter(invalidSrc, block)
+		result, err := newECBEncrypter(invalidSrc, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidSrcError{}, err)
@@ -257,7 +257,7 @@ func TestNewECBEncrypter(t *testing.T) {
 
 	t.Run("single block encryption", func(t *testing.T) {
 		singleBlock := make([]byte, 16)
-		result, err := NewECBEncrypter(singleBlock, block)
+		result, err := newECBEncrypter(singleBlock, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(singleBlock), len(result))
@@ -271,14 +271,14 @@ func TestNewECBDecrypter(t *testing.T) {
 	src := make([]byte, 32) // 2 blocks
 
 	t.Run("successful decryption", func(t *testing.T) {
-		result, err := NewECBDecrypter(src, block)
+		result, err := newECBDecrypter(src, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewECBDecrypter(src, nil)
+		result, err := newECBDecrypter(src, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -287,7 +287,7 @@ func TestNewECBDecrypter(t *testing.T) {
 
 	t.Run("invalid source length", func(t *testing.T) {
 		invalidSrc := make([]byte, 17) // Not multiple of block size
-		result, err := NewECBDecrypter(invalidSrc, block)
+		result, err := newECBDecrypter(invalidSrc, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidSrcError{}, err)
@@ -296,7 +296,7 @@ func TestNewECBDecrypter(t *testing.T) {
 
 	t.Run("single block decryption", func(t *testing.T) {
 		singleBlock := make([]byte, 16)
-		result, err := NewECBDecrypter(singleBlock, block)
+		result, err := newECBDecrypter(singleBlock, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(singleBlock), len(result))
@@ -311,7 +311,7 @@ func TestNewGCMEncrypter(t *testing.T) {
 	src := make([]byte, 25) // Any length is fine for GCM
 
 	t.Run("successful encryption", func(t *testing.T) {
-		result, err := NewGCMEncrypter(src, nonce, aad, block)
+		result, err := newGCMEncrypter(src, nonce, aad, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.NotEqual(t, src, result)        // Should be encrypted
@@ -319,14 +319,14 @@ func TestNewGCMEncrypter(t *testing.T) {
 	})
 
 	t.Run("successful encryption without AAD", func(t *testing.T) {
-		result, err := NewGCMEncrypter(src, nonce, nil, block)
+		result, err := newGCMEncrypter(src, nonce, nil, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.NotEqual(t, src, result) // Should be encrypted
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewGCMEncrypter(src, nonce, aad, nil)
+		result, err := newGCMEncrypter(src, nonce, aad, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -334,7 +334,7 @@ func TestNewGCMEncrypter(t *testing.T) {
 	})
 
 	t.Run("empty nonce", func(t *testing.T) {
-		result, err := NewGCMEncrypter(src, []byte{}, aad, block)
+		result, err := newGCMEncrypter(src, []byte{}, aad, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyNonceError{}, err)
@@ -342,7 +342,7 @@ func TestNewGCMEncrypter(t *testing.T) {
 	})
 
 	t.Run("empty source", func(t *testing.T) {
-		result, err := NewGCMEncrypter([]byte{}, nonce, aad, block)
+		result, err := newGCMEncrypter([]byte{}, nonce, aad, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.True(t, len(result) > 0) // GCM adds authentication tag even for empty data
@@ -357,12 +357,12 @@ func TestNewGCMDecrypter(t *testing.T) {
 
 	t.Run("successful decryption", func(t *testing.T) {
 		// First encrypt some data
-		encrypted, err := NewGCMEncrypter([]byte("test data"), nonce, aad, block)
+		encrypted, err := newGCMEncrypter([]byte("test data"), nonce, aad, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, encrypted)
 
 		// Then decrypt it
-		result, err := NewGCMDecrypter(encrypted, nonce, aad, block)
+		result, err := newGCMDecrypter(encrypted, nonce, aad, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, []byte("test data"), result)
@@ -370,19 +370,19 @@ func TestNewGCMDecrypter(t *testing.T) {
 
 	t.Run("successful decryption without AAD", func(t *testing.T) {
 		// First encrypt some data without AAD
-		encrypted, err := NewGCMEncrypter([]byte("test data"), nonce, nil, block)
+		encrypted, err := newGCMEncrypter([]byte("test data"), nonce, nil, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, encrypted)
 
 		// Then decrypt it without AAD
-		result, err := NewGCMDecrypter(encrypted, nonce, nil, block)
+		result, err := newGCMDecrypter(encrypted, nonce, nil, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, []byte("test data"), result)
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewGCMDecrypter([]byte("test"), nonce, aad, nil)
+		result, err := newGCMDecrypter([]byte("test"), nonce, aad, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -390,7 +390,7 @@ func TestNewGCMDecrypter(t *testing.T) {
 	})
 
 	t.Run("empty nonce", func(t *testing.T) {
-		result, err := NewGCMDecrypter([]byte("test"), []byte{}, aad, block)
+		result, err := newGCMDecrypter([]byte("test"), []byte{}, aad, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyNonceError{}, err)
@@ -399,13 +399,13 @@ func TestNewGCMDecrypter(t *testing.T) {
 
 	t.Run("decryption with wrong AAD", func(t *testing.T) {
 		// First encrypt some data with AAD
-		encrypted, err := NewGCMEncrypter([]byte("test data"), nonce, aad, block)
+		encrypted, err := newGCMEncrypter([]byte("test data"), nonce, aad, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, encrypted)
 
 		// Then decrypt it with wrong AAD
 		wrongAAD := []byte("wrong additional data")
-		result, err := NewGCMDecrypter(encrypted, nonce, wrongAAD, block)
+		result, err := newGCMDecrypter(encrypted, nonce, wrongAAD, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, CreateCipherError{}, err)
@@ -425,14 +425,14 @@ func TestNewGCMDecrypter(t *testing.T) {
 		}
 
 		// Test encryption with failing GCM creation
-		result, err := NewGCMEncrypter([]byte("test data"), nonce, aad, mockBlock)
+		result, err := newGCMEncrypter([]byte("test data"), nonce, aad, mockBlock)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, CreateCipherError{}, err)
 		assert.Contains(t, err.Error(), "failed to create cipher")
 
 		// Test decryption with failing GCM creation
-		result, err = NewGCMDecrypter([]byte("test data"), nonce, aad, mockBlock)
+		result, err = newGCMDecrypter([]byte("test data"), nonce, aad, mockBlock)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, CreateCipherError{}, err)
@@ -447,7 +447,7 @@ func TestNewCFBEncrypter(t *testing.T) {
 	src := make([]byte, 25) // Any length is fine for CFB
 
 	t.Run("successful encryption", func(t *testing.T) {
-		result, err := NewCFBEncrypter(src, iv, block)
+		result, err := newCFBEncrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
@@ -455,7 +455,7 @@ func TestNewCFBEncrypter(t *testing.T) {
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewCFBEncrypter(src, []byte{}, block)
+		result, err := newCFBEncrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -463,7 +463,7 @@ func TestNewCFBEncrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCFBEncrypter(src, iv, nil)
+		result, err := newCFBEncrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -472,7 +472,7 @@ func TestNewCFBEncrypter(t *testing.T) {
 
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
-		result, err := NewCFBEncrypter(src, invalidIV, block)
+		result, err := newCFBEncrypter(src, invalidIV, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidIVError{}, err)
@@ -480,7 +480,7 @@ func TestNewCFBEncrypter(t *testing.T) {
 	})
 
 	t.Run("empty source", func(t *testing.T) {
-		result, err := NewCFBEncrypter([]byte{}, iv, block)
+		result, err := newCFBEncrypter([]byte{}, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, 0, len(result))
@@ -494,14 +494,14 @@ func TestNewCFBDecrypter(t *testing.T) {
 	src := make([]byte, 25) // Any length is fine for CFB
 
 	t.Run("successful decryption", func(t *testing.T) {
-		result, err := NewCFBDecrypter(src, iv, block)
+		result, err := newCFBDecrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewCFBDecrypter(src, []byte{}, block)
+		result, err := newCFBDecrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -509,7 +509,7 @@ func TestNewCFBDecrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCFBDecrypter(src, iv, nil)
+		result, err := newCFBDecrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -518,7 +518,7 @@ func TestNewCFBDecrypter(t *testing.T) {
 
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
-		result, err := NewCFBDecrypter(src, invalidIV, block)
+		result, err := newCFBDecrypter(src, invalidIV, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidIVError{}, err)
@@ -526,7 +526,7 @@ func TestNewCFBDecrypter(t *testing.T) {
 	})
 
 	t.Run("empty source", func(t *testing.T) {
-		result, err := NewCFBDecrypter([]byte{}, iv, block)
+		result, err := newCFBDecrypter([]byte{}, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, 0, len(result))
@@ -540,7 +540,7 @@ func TestNewOFBEncrypter(t *testing.T) {
 	src := make([]byte, 25) // Any length is fine for OFB
 
 	t.Run("successful encryption", func(t *testing.T) {
-		result, err := NewOFBEncrypter(src, iv, block)
+		result, err := newOFBEncrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
@@ -548,7 +548,7 @@ func TestNewOFBEncrypter(t *testing.T) {
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewOFBEncrypter(src, []byte{}, block)
+		result, err := newOFBEncrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -556,7 +556,7 @@ func TestNewOFBEncrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewOFBEncrypter(src, iv, nil)
+		result, err := newOFBEncrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -565,7 +565,7 @@ func TestNewOFBEncrypter(t *testing.T) {
 
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
-		result, err := NewOFBEncrypter(src, invalidIV, block)
+		result, err := newOFBEncrypter(src, invalidIV, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidIVError{}, err)
@@ -573,7 +573,7 @@ func TestNewOFBEncrypter(t *testing.T) {
 	})
 
 	t.Run("empty source", func(t *testing.T) {
-		result, err := NewOFBEncrypter([]byte{}, iv, block)
+		result, err := newOFBEncrypter([]byte{}, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, 0, len(result))
@@ -587,14 +587,14 @@ func TestNewOFBDecrypter(t *testing.T) {
 	src := make([]byte, 25) // Any length is fine for OFB
 
 	t.Run("successful decryption", func(t *testing.T) {
-		result, err := NewOFBDecrypter(src, iv, block)
+		result, err := newOFBDecrypter(src, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
 	})
 
 	t.Run("empty IV", func(t *testing.T) {
-		result, err := NewOFBDecrypter(src, []byte{}, block)
+		result, err := newOFBDecrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
@@ -602,7 +602,7 @@ func TestNewOFBDecrypter(t *testing.T) {
 	})
 
 	t.Run("nil block", func(t *testing.T) {
-		result, err := NewOFBDecrypter(src, iv, nil)
+		result, err := newOFBDecrypter(src, iv, nil)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, NilBlockError{}, err)
@@ -611,7 +611,7 @@ func TestNewOFBDecrypter(t *testing.T) {
 
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
-		result, err := NewOFBDecrypter(src, invalidIV, block)
+		result, err := newOFBDecrypter(src, invalidIV, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, InvalidIVError{}, err)
@@ -619,7 +619,7 @@ func TestNewOFBDecrypter(t *testing.T) {
 	})
 
 	t.Run("empty source", func(t *testing.T) {
-		result, err := NewOFBDecrypter([]byte{}, iv, block)
+		result, err := newOFBDecrypter([]byte{}, iv, block)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, 0, len(result))

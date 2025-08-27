@@ -17,10 +17,10 @@ const (
 	OFB BlockMode = "OFB" // Output Feedback mode
 )
 
-// NewCBCEncrypter encrypts data using Cipher Block Chaining (CBC) mode.
+// newCBCEncrypter encrypts data using Cipher Block Chaining (CBC) mode.
 // CBC mode encrypts each block of plaintext by XORing it with the previous
 // ciphertext block before applying the block cipher algorithm.
-func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
 
@@ -47,10 +47,10 @@ func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	return dst, nil
 }
 
-// NewCBCDecrypter decrypts data using Cipher Block Chaining (CBC) mode.
+// newCBCDecrypter decrypts data using Cipher Block Chaining (CBC) mode.
 // CBC decryption reverses the encryption process by applying the block cipher
 // and then XORing with the previous ciphertext block.
-func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -78,10 +78,10 @@ func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	return dst, nil
 }
 
-// NewCTREncrypter encrypts data using Counter (CTR) mode.
+// newCTREncrypter encrypts data using Counter (CTR) mode.
 // CTR mode transforms a block cipher into a stream cipher by encrypting
 // a counter value and XORing the result with the plaintext.
-func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -110,9 +110,9 @@ func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	return dst, nil
 }
 
-// NewCTRDecrypter decrypts data using Counter (CTR) mode.
+// newCTRDecrypter decrypts data using Counter (CTR) mode.
 // In CTR mode, decryption is identical to encryption since it's a stream cipher.
-func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -141,11 +141,11 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	return dst, nil
 }
 
-// NewECBEncrypter encrypts data using Electronic Codebook (ECB) mode.
+// newECBEncrypter encrypts data using Electronic Codebook (ECB) mode.
 // ECB mode encrypts each block of plaintext independently using the same key.
 // Note: ECB mode is generally not recommended for secure applications due to
 // its vulnerability to pattern analysis.
-func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
+func newECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -167,9 +167,9 @@ func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 	return dst, nil
 }
 
-// NewECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
+// newECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
 // ECB decryption decrypts each block independently.
-func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
+func newECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -191,11 +191,11 @@ func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 	return dst, nil
 }
 
-// NewGCMEncrypter encrypts data using Galois/Counter Mode (GCM).
+// newGCMEncrypter encrypts data using Galois/Counter Mode (GCM).
 // GCM is an authenticated encryption mode that provides both confidentiality
 // and authenticity. It combines CTR mode encryption with a Galois field
 // multiplication for authentication.
-func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
+func newGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -219,9 +219,9 @@ func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 	return dst, nil
 }
 
-// NewGCMDecrypter decrypts data using Galois/Counter Mode (GCM).
+// newGCMDecrypter decrypts data using Galois/Counter Mode (GCM).
 // GCM decryption verifies the authentication tag before decrypting the data.
-func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
+func newGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -249,10 +249,10 @@ func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 	return dst, nil
 }
 
-// NewCFBEncrypter encrypts data using Cipher Feedback (CFB) mode.
+// newCFBEncrypter encrypts data using Cipher Feedback (CFB) mode.
 // CFB mode transforms a block cipher into a stream cipher by encrypting
 // the previous ciphertext block and XORing the result with the plaintext.
-func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -279,9 +279,9 @@ func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	return dst, nil
 }
 
-// NewCFBDecrypter decrypts data using Cipher Feedback (CFB) mode.
+// newCFBDecrypter decrypts data using Cipher Feedback (CFB) mode.
 // In CFB mode, decryption is identical to encryption since it's a stream cipher.
-func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -308,10 +308,10 @@ func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	return dst, nil
 }
 
-// NewOFBEncrypter encrypts data using Output Feedback (OFB) mode.
+// newOFBEncrypter encrypts data using Output Feedback (OFB) mode.
 // OFB mode transforms a block cipher into a stream cipher by repeatedly
 // encrypting the initialization vector and using the output as a keystream.
-func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
@@ -338,9 +338,9 @@ func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	return dst, nil
 }
 
-// NewOFBDecrypter decrypts data using Output Feedback (OFB) mode.
+// newOFBDecrypter decrypts data using Output Feedback (OFB) mode.
 // In OFB mode, decryption is identical to encryption since it's a stream cipher.
-func NewOFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+func newOFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	// Validate input parameters
 	// Note: Empty src should have been padded before reaching this function
 	// So we don't need to check for empty src here
