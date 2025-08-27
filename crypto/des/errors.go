@@ -62,5 +62,5 @@ type BufferError struct {
 // Error returns a formatted error message describing the buffer size issue.
 // The message includes both buffer size and data size for debugging.
 func (e BufferError) Error() string {
-	return fmt.Sprintf("crypto/des: : buffer size %d is too small for data size %d", e.bufferSize, e.dataSize)
+	return fmt.Sprintf("crypto/des: buffer size %d is too small for data size %d", e.bufferSize, e.dataSize)
 }

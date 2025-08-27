@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/des"
 )
 
-func (e *Encrypter) ByDes(c cipher.DesCipher) *Encrypter {
+func (e *Encrypter) ByDes(c *cipher.DesCipher) *Encrypter {
 	if e.Error != nil {
 		return e
 	}
@@ -37,7 +37,7 @@ func (e *Encrypter) ByDes(c cipher.DesCipher) *Encrypter {
 	return e
 }
 
-func (d *Decrypter) ByDes(c cipher.DesCipher) *Decrypter {
+func (d *Decrypter) ByDes(c *cipher.DesCipher) *Decrypter {
 	if d.Error != nil {
 		return d
 	}
