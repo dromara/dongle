@@ -8,7 +8,7 @@ import (
 )
 
 // ByRc4 encrypts by RC4.
-func (e *Encrypter) ByRc4(c cipher.Rc4Cipher) *Encrypter {
+func (e *Encrypter) ByRc4(c *cipher.Rc4Cipher) *Encrypter {
 	if e.Error != nil {
 		return e
 	}
@@ -28,7 +28,7 @@ func (e *Encrypter) ByRc4(c cipher.Rc4Cipher) *Encrypter {
 }
 
 // ByRc4 decrypts by RC4.
-func (d *Decrypter) ByRc4(c cipher.Rc4Cipher) *Decrypter {
+func (d *Decrypter) ByRc4(c *cipher.Rc4Cipher) *Decrypter {
 	if d.Error != nil {
 		return d
 	}
