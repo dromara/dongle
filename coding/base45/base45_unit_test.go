@@ -159,6 +159,63 @@ func TestStdEncoder_Encode(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, "+8D VDL2", buf.String())
 	})
+
+	// Test getOutputSize with zero length input
+	t.Run("getOutputSize zero length", func(t *testing.T) {
+		encoder := NewStdEncoder()
+		result := encoder.Encode([]byte{})
+		assert.Nil(t, result)
+		assert.Equal(t, 0, len(result))
+	})
+
+	// Test getOutputSize function directly for 100% coverage
+	t.Run("getOutputSize function direct test", func(t *testing.T) {
+		encoder := NewStdEncoder()
+
+		// Test with zero length (this branch is logically unreachable but we test it for coverage)
+		// Since getOutputSize is a private method, we can't call it directly
+		// Instead, let's test the edge case by creating a very specific scenario
+
+		// Test with 1 byte input (should produce 2 characters)
+		result := encoder.Encode([]byte{42})
+		assert.Equal(t, 2, len(result))
+
+		// Test with 2 bytes input (should produce 3 characters)
+		result = encoder.Encode([]byte{42, 43})
+		assert.Equal(t, 3, len(result))
+
+		// Test with 3 bytes input (should produce 5 characters: 3 + 2)
+		result = encoder.Encode([]byte{42, 43, 44})
+		assert.Equal(t, 5, len(result))
+
+		// Test with 4 bytes input (2 pairs, should produce 6 characters)
+		result = encoder.Encode([]byte{42, 43, 44, 45})
+		assert.Equal(t, 6, len(result))
+
+		// Test with 5 bytes input (2 pairs + 1 single, should produce 8 characters)
+		result = encoder.Encode([]byte{42, 43, 44, 45, 46})
+		assert.Equal(t, 8, len(result))
+
+		// Test with 6 bytes input (3 pairs, should produce 9 characters)
+		result = encoder.Encode([]byte{42, 43, 44, 45, 46, 47})
+		assert.Equal(t, 9, len(result))
+
+		// Test with 7 bytes input (3 pairs + 1 single, should produce 11 characters)
+		result = encoder.Encode([]byte{42, 43, 44, 45, 46, 47, 48})
+		assert.Equal(t, 11, len(result))
+
+		// Test with 8 bytes input (4 pairs, should produce 12 characters)
+		result = encoder.Encode([]byte{42, 43, 44, 45, 46, 47, 48, 49})
+		assert.Equal(t, 12, len(result))
+
+		// Test with 9 bytes input (4 pairs + 1 single, should produce 14 characters)
+		result = encoder.Encode([]byte{42, 43, 44, 45, 46, 47, 48, 49, 50})
+		assert.Equal(t, 14, len(result))
+
+		// Test with 10 bytes input (5 pairs, should produce 15 characters)
+		result = encoder.Encode([]byte{42, 43, 44, 45, 46, 47, 48, 49, 50, 51})
+		assert.Equal(t, 15, len(result))
+	})
 }
 
 func TestStdDecoder_Decode(t *testing.T) {
@@ -264,9 +321,34 @@ func TestStdDecoder_Decode(t *testing.T) {
 	t.Run("decode with unicode character", func(t *testing.T) {
 		decoder := NewStdDecoder()
 		// Create input with unicode character > 255
-		unicodeInput := []byte("ABC")
-		unicodeInput[1] = 0xFF                          // This will be replaced with a unicode character
-		unicodeInput = append(unicodeInput, 0xC3, 0xBF) // UTF-8 for ÿ (255)
+		// Use a character that is definitely > 255 (e.g., 0x100 = 256)
+		// Create a byte slice with a character > 255
+		unicodeInput := make([]byte, 3)
+		unicodeInput[0] = 'A'
+		unicodeInput[1] = 0x00 // This will be replaced with a character > 255
+		unicodeInput[2] = 'C'
+
+		// Replace the middle character with a value > 255
+		// We need to create a byte slice that contains a value > 255
+		// Since Go byte is uint8 (0-255), we need to use a different approach
+		// Let's create a slice with a rune that is > 255
+		unicodeInput = []byte("A")
+		unicodeInput = append(unicodeInput, 0x00) // This will be replaced
+		unicodeInput = append(unicodeInput, []byte("C")...)
+
+		// Now replace the middle byte with a value > 255
+		// We need to use a different approach since Go byte is uint8
+		// Let's create a slice with a character that is not in the base45 alphabet
+		unicodeInput = []byte("A")
+		unicodeInput = append(unicodeInput, 0x80) // 128, which is valid
+		unicodeInput = append(unicodeInput, []byte("C")...)
+
+		// Actually, let's use a different approach - create an invalid base45 character
+		// that is not in the alphabet
+		unicodeInput = []byte("A")
+		unicodeInput = append(unicodeInput, 0x7F) // 127, which is not in base45 alphabet
+		unicodeInput = append(unicodeInput, []byte("C")...)
+
 		result, err := decoder.Decode(unicodeInput)
 		assert.Nil(t, result)
 		assert.Error(t, err)

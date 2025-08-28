@@ -33,14 +33,15 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 		return
 	}
 
-	buf := make([]byte, len(src)*4)
+	// Pre-allocate buffer with exact size needed
+	dst = make([]byte, len(src)*4)
 	for i, v := range src {
-		buf[i*4+0] = 0xf0
-		buf[i*4+1] = 0x9f
-		buf[i*4+2] = byte((uint16(v)+55)/64 + 0x8f)
-		buf[i*4+3] = (v+55)%64 + 0x80
+		dst[i*4+0] = 0xf0
+		dst[i*4+1] = 0x9f
+		dst[i*4+2] = byte((uint16(v)+55)/64 + 0x8f)
+		dst[i*4+3] = (v+55)%64 + 0x80
 	}
-	return buf
+	return dst
 }
 
 // StdDecoder represents a base100 decoder for standard decoding operations.
@@ -71,29 +72,34 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		return nil, InvalidLengthError(len(src))
 	}
 
-	buf := make([]byte, len(src)/4)
+	// Pre-allocate buffer with exact size needed
+	dst = make([]byte, len(src)/4)
 	for i := 0; i != len(src); i += 4 {
 		if src[i+0] != 0xf0 || src[i+1] != 0x9f {
 			return nil, CorruptInputError(int64(i))
 		}
-		buf[i/4] = (src[i+2]-0x8f)*64 + src[i+3] - 0x80 - 55
+		dst[i/4] = (src[i+2]-0x8f)*64 + src[i+3] - 0x80 - 55
 	}
-	return buf, nil
+	return dst, nil
 }
 
 // StreamEncoder represents a streaming base100 encoder that implements io.WriteCloser.
 // It provides efficient encoding for large data streams by buffering data
 // and encoding it when Close() is called, reducing memory usage for large inputs.
 type StreamEncoder struct {
-	writer io.Writer // Underlying writer for encoded output
-	buffer []byte    // Buffer for accumulating data before encoding
-	Error  error     // Error field for storing encoding errors
+	writer  io.Writer   // Underlying writer for encoded output
+	buffer  []byte      // Buffer for accumulating data before encoding
+	encoder *StdEncoder // Reuse encoder instance to avoid repeated creation
+	Error   error       // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base100 encoder that writes encoded data
 // to the provided io.Writer. The encoder uses the standard base100 encoding algorithm.
 func NewStreamEncoder(w io.Writer) io.WriteCloser {
-	return &StreamEncoder{writer: w}
+	return &StreamEncoder{
+		writer:  w,
+		encoder: NewStdEncoder(),
+	}
 }
 
 // Write implements the io.Writer interface for streaming base100 encoding.
@@ -115,7 +121,7 @@ func (e *StreamEncoder) Close() error {
 		return e.Error
 	}
 	if len(e.buffer) > 0 {
-		encoded := NewStdEncoder().Encode(e.buffer)
+		encoded := e.encoder.Encode(e.buffer)
 		_, err := e.writer.Write(encoded)
 		return err
 	}
@@ -126,16 +132,22 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader io.Reader // Underlying reader for encoded input
-	buffer []byte    // Buffer for decoded data not yet read
-	pos    int       // Current position in the decoded buffer
-	Error  error     // Error field for storing decoding errors
+	reader  io.Reader   // Underlying reader for encoded input
+	buffer  []byte      // Buffer for decoded data not yet read
+	pos     int         // Current position in the decoded buffer
+	Error   error       // Error field for storing decoding errors
+	decoder *StdDecoder // Reuse decoder instance to avoid repeated creation
+	readBuf []byte      // Reuse read buffer to avoid repeated allocation
 }
 
 // NewStreamDecoder creates a new streaming base100 decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard base100 decoding algorithm.
 func NewStreamDecoder(r io.Reader) io.Reader {
-	return &StreamDecoder{reader: r}
+	return &StreamDecoder{
+		reader:  r,
+		decoder: NewStdDecoder(),
+		readBuf: make([]byte, 1024), // Pre-allocate read buffer
+	}
 }
 
 // Read implements the io.Reader interface for streaming base100 decoding.
@@ -151,12 +163,11 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	buf := make([]byte, 1024)
-	var bufN int
-	bufN, err = d.reader.Read(buf)
+	// Read new data into readBuf using pre-allocated buffer
+	bufN, err := d.reader.Read(d.readBuf)
 	if bufN > 0 {
-		// Decode the data we just read
-		decoded, decodeErr := NewStdDecoder().Decode(buf[:bufN])
+		// Decode the data we just read using reused decoder
+		decoded, decodeErr := d.decoder.Decode(d.readBuf[:bufN])
 		if decodeErr != nil {
 			return 0, decodeErr
 		}

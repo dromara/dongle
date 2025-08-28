@@ -5,7 +5,6 @@ package base45
 
 import (
 	"io"
-	"strings"
 )
 
 const (
@@ -35,8 +34,7 @@ type StdEncoder struct {
 // Initializes the encoding lookup table for efficient character mapping.
 func NewStdEncoder() *StdEncoder {
 	e := &StdEncoder{alphabet: StdAlphabet}
-	alphabet := StdAlphabet
-	copy(e.encodeMap[:], alphabet)
+	copy(e.encodeMap[:], StdAlphabet)
 	return e
 }
 
@@ -44,29 +42,40 @@ func NewStdEncoder() *StdEncoder {
 // Base45 encodes 2 bytes in 3 characters, or 1 byte in 2 characters.
 // The encoding process handles both even and odd-length inputs efficiently.
 func (e *StdEncoder) Encode(src []byte) (dst []byte) {
+	// Pre-calculate output size for better memory allocation
+	outputSize := e.getOutputSize(len(src))
 	if len(src) == 0 {
 		return
 	}
 
-	var builder strings.Builder
+	result := make([]byte, 0, outputSize)
+
 	for i := 0; i < len(src); i += 2 {
 		if i+1 < len(src) {
 			// Two bytes: encode as uint16 using base45^2
 			n := uint16(src[i])<<8 | uint16(src[i+1])
 			v, x := n/baseSquare, n%baseSquare
 			d, c := x/baseRadix, x%baseRadix
-			builder.WriteByte(e.encodeMap[byte(c)])
-			builder.WriteByte(e.encodeMap[byte(d)])
-			builder.WriteByte(e.encodeMap[byte(v)])
+			result = append(result, e.encodeMap[c], e.encodeMap[d], e.encodeMap[v])
 		} else {
 			// Single byte: encode as uint8 using base45
 			n := uint16(src[i])
 			d, c := n/baseRadix, n%baseRadix
-			builder.WriteByte(e.encodeMap[byte(c)])
-			builder.WriteByte(e.encodeMap[byte(d)])
+			result = append(result, e.encodeMap[c], e.encodeMap[d])
 		}
 	}
-	return []byte(builder.String())
+	return result
+}
+
+// getOutputSize calculates the output size for a given input length
+func (e *StdEncoder) getOutputSize(inputLen int) int {
+	if inputLen == 0 {
+		return 0
+	}
+	// Each pair of bytes produces 3 characters, each single byte produces 2 characters
+	pairs := inputLen / 2
+	singles := inputLen % 2
+	return pairs*3 + singles*2
 }
 
 // StdDecoder represents a base45 decoder for standard decoding operations.
@@ -82,12 +91,13 @@ type StdDecoder struct {
 // Initializes the decoding lookup table for efficient character mapping.
 func NewStdDecoder() *StdDecoder {
 	d := &StdDecoder{alphabet: StdAlphabet}
-	alphabet := StdAlphabet
-	for i := 0; i < 256; i++ {
+	// Initialize all values to invalid (0xFF)
+	for i := range d.decodeMap {
 		d.decodeMap[i] = 0xFF
 	}
-	for i := 0; i < len(alphabet); i++ {
-		d.decodeMap[alphabet[i]] = byte(i)
+	// Set valid values for the alphabet
+	for i, char := range StdAlphabet {
+		d.decodeMap[byte(char)] = byte(i)
 	}
 	return d
 }
@@ -96,6 +106,8 @@ func NewStdDecoder() *StdDecoder {
 // Validates input length (must be congruent to 0 or 2 modulo 3) and character validity.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	size := len(src)
+	// Pre-allocate with estimated capacity
+	estimatedSize := d.getDecodedSize(size)
 	if size == 0 {
 		return
 	}
@@ -104,21 +116,19 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		err = InvalidLengthError{Length: size, Mod: mod}
 		return
 	}
+
 	bytes := make([]byte, 0, size)
-	for pos, char := range string(src) {
-		if char > 255 {
-			err = InvalidCharacterError{Char: char, Position: pos}
-			return
-		}
-		v := d.decodeMap[byte(char)]
+
+	for pos, char := range src {
+		v := d.decodeMap[char]
 		if v == 0xFF {
-			err = InvalidCharacterError{Char: char, Position: pos}
+			err = InvalidCharacterError{Char: rune(char), Position: pos}
 			return
 		}
 		bytes = append(bytes, v)
 	}
 
-	var decoded []byte
+	decoded := make([]byte, 0, estimatedSize)
 	for i := 0; i < len(bytes); i += 3 {
 		if i+2 < len(bytes) {
 			// Three characters: decode to 2 bytes
@@ -141,6 +151,17 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		}
 	}
 	return decoded, nil
+}
+
+// getDecodedSize calculates the decoded size for a given encoded length
+func (d *StdDecoder) getDecodedSize(encodedLen int) int {
+	if encodedLen == 0 {
+		return 0
+	}
+	// Each group of 3 characters produces 2 bytes, each group of 2 characters produces 1 byte
+	groups := encodedLen / 3
+	remainder := encodedLen % 3
+	return groups*2 + remainder/2
 }
 
 // StreamEncoder represents a streaming base45 encoder that implements io.WriteCloser.
@@ -179,8 +200,7 @@ func (e *StreamEncoder) Close() error {
 		return e.Error
 	}
 	if len(e.buffer) > 0 {
-		enc := &StdEncoder{}
-		copy(enc.encodeMap[:], e.alphabet)
+		enc := NewStdEncoder()
 		_, err := e.writer.Write(enc.Encode(e.buffer))
 		return err
 	}
@@ -221,7 +241,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	var nn int
 	nn, err = d.reader.Read(readBuf)
 	if nn > 0 {
-		decoded, decodeErr := NewStdDecoder().Decode(readBuf[:nn])
+		decoder := NewStdDecoder()
+		decoded, decodeErr := decoder.Decode(readBuf[:nn])
 		if decodeErr != nil {
 			return 0, decodeErr
 		}

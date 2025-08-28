@@ -13,6 +13,12 @@ import (
 // for a total of 58 characters, providing maximum character efficiency while avoiding confusion.
 var StdAlphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
+// Pre-computed constants for better performance
+var (
+	bigInt0  = big.NewInt(0)
+	bigInt58 = big.NewInt(58)
+)
+
 // StdEncoder represents a base58 encoder for standard encoding operations.
 // It implements base58 encoding following Bitcoin-style specifications,
 // providing efficient encoding of binary data to base58 strings with proper
@@ -27,8 +33,7 @@ type StdEncoder struct {
 // Initializes the encoding lookup table for efficient character mapping.
 func NewStdEncoder() *StdEncoder {
 	e := &StdEncoder{alphabet: StdAlphabet}
-	alphabet := StdAlphabet
-	copy(e.encodeMap[:], alphabet)
+	copy(e.encodeMap[:], StdAlphabet)
 	return e
 }
 
@@ -64,16 +69,21 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 
 	// Convert to big.Int, skipping leading zeros
 	intBytes := big.NewInt(0).SetBytes(src[leadingZeros:])
-	int0, int58 := big.NewInt(0), big.NewInt(58)
+
+	// Pre-allocate dst slice with estimated capacity to avoid reallocations
+	// Base58 encoding typically produces ~1.37x the input size
+	estimatedSize := (len(src)-leadingZeros)*137/100 + leadingZeros
+	dst = make([]byte, 0, estimatedSize)
 
 	// Encode the non-zero part
-	for intBytes.Cmp(big.NewInt(0)) > 0 {
-		intBytes.DivMod(intBytes, int58, int0)
-		dst = append(dst, e.encodeMap[int0.Int64()])
+	for intBytes.Cmp(bigInt0) > 0 {
+		var remainder big.Int
+		intBytes.DivMod(intBytes, bigInt58, &remainder)
+		dst = append(dst, e.encodeMap[remainder.Int64()])
 	}
 
 	// Reverse the encoded part
-	dst = reverseBytes(dst)
+	reverseBytes(dst)
 
 	// Add leading '1's for each leading zero byte
 	result := make([]byte, leadingZeros+len(dst))
@@ -88,11 +98,10 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 // reverseBytes reverses a byte slice in place.
 // This is used to correct the order of encoded characters after base58 encoding,
 // as the encoding process produces characters in reverse order.
-func reverseBytes(b []byte) []byte {
+func reverseBytes(b []byte) {
 	for i := 0; i < len(b)/2; i++ {
 		b[i], b[len(b)-1-i] = b[len(b)-1-i], b[i]
 	}
-	return b
 }
 
 // StdDecoder represents a base58 decoder for standard decoding operations.
@@ -111,12 +120,13 @@ type StdDecoder struct {
 // The lookup table provides O(1) character validation and value retrieval.
 func NewStdDecoder() *StdDecoder {
 	d := &StdDecoder{alphabet: StdAlphabet}
-	alphabet := StdAlphabet
+	// Initialize all bytes to 0xFF (invalid)
 	for i := 0; i < 256; i++ {
 		d.decodeMap[i] = 0xFF
 	}
-	for i := 0; i < len(alphabet); i++ {
-		d.decodeMap[alphabet[i]] = byte(i)
+	// Set valid characters
+	for i := 0; i < len(StdAlphabet); i++ {
+		d.decodeMap[StdAlphabet[i]] = byte(i)
 	}
 	return d
 }
@@ -146,9 +156,6 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	// If all characters are '1', return appropriate number of zero bytes
 	if leadingOnes == len(src) {
 		result := make([]byte, leadingOnes)
-		for i := range result {
-			result[i] = 0
-		}
 		return result, nil
 	}
 
@@ -158,9 +165,9 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		index := int(d.decodeMap[v])
 		if index == 0xFF {
 			// Invalid character
-			return nil, CorruptInputError(int64(i + leadingOnes))
+			return nil, CorruptInputError(i + leadingOnes)
 		}
-		bigInt.Mul(bigInt, big.NewInt(58))
+		bigInt.Mul(bigInt, bigInt58)
 		bigInt.Add(bigInt, big.NewInt(int64(index)))
 	}
 
@@ -169,9 +176,6 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 
 	// Add leading zeros
 	result := make([]byte, leadingOnes+len(decodedBytes))
-	for i := 0; i < leadingOnes; i++ {
-		result[i] = 0
-	}
 	copy(result[leadingOnes:], decodedBytes)
 
 	return result, nil
@@ -181,17 +185,22 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // It provides efficient encoding for large data streams by buffering data
 // and encoding it when Close() is called, reducing memory usage for large inputs.
 type StreamEncoder struct {
-	writer   io.Writer // Underlying writer for encoded output
-	buffer   []byte    // Buffer for accumulating data before encoding
-	alphabet string    // The alphabet used for encoding
-	Error    error     // Error field for storing encoding errors
+	writer   io.Writer   // Underlying writer for encoded output
+	buffer   []byte      // Buffer for accumulating data before encoding
+	alphabet string      // The alphabet used for encoding
+	encoder  *StdEncoder // Reuse encoder instance
+	Error    error       // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base58 encoder that writes encoded data
 // to the provided io.Writer. The encoder uses the standard base58 alphabet.
 // Returns an io.WriteCloser that buffers data and performs encoding on Close().
 func NewStreamEncoder(w io.Writer) io.WriteCloser {
-	return &StreamEncoder{writer: w, alphabet: StdAlphabet}
+	return &StreamEncoder{
+		writer:   w,
+		alphabet: StdAlphabet,
+		encoder:  NewStdEncoder(),
+	}
 }
 
 // Write implements the io.Writer interface for streaming base58 encoding.
@@ -215,9 +224,8 @@ func (e *StreamEncoder) Close() error {
 		return e.Error
 	}
 	if len(e.buffer) > 0 {
-		enc := &StdEncoder{}
-		copy(enc.encodeMap[:], e.alphabet)
-		encoded := enc.Encode(e.buffer)
+		// Reuse the encoder instance instead of creating a new one
+		encoded := e.encoder.Encode(e.buffer)
 		_, err := e.writer.Write(encoded)
 		return err
 	}
@@ -228,18 +236,23 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader   io.Reader // Underlying reader for encoded input
-	buffer   []byte    // Buffer for decoded data not yet read
-	pos      int       // Current position in the decoded buffer
-	alphabet string    // The alphabet used for decoding
-	Error    error     // Error field for storing decoding errors
+	reader   io.Reader   // Underlying reader for encoded input
+	buffer   []byte      // Buffer for decoded data not yet read
+	pos      int         // Current position in the decoded buffer
+	alphabet string      // The alphabet used for decoding
+	decoder  *StdDecoder // Reuse decoder instance
+	Error    error       // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming base58 decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard base58 alphabet.
 // Returns an io.Reader that provides decoded data in chunks for efficient processing.
 func NewStreamDecoder(r io.Reader) io.Reader {
-	return &StreamDecoder{reader: r, alphabet: StdAlphabet}
+	return &StreamDecoder{
+		reader:   r,
+		alphabet: StdAlphabet,
+		decoder:  NewStdDecoder(),
+	}
 }
 
 // Read implements the io.Reader interface for streaming base58 decoding.
@@ -250,18 +263,24 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	if d.Error != nil {
 		return 0, d.Error
 	}
+
+	// Check if we have buffered data to return
 	if d.pos < len(d.buffer) {
 		n = copy(p, d.buffer[d.pos:])
 		d.pos += n
 		return n, nil
 	}
 
+	// Read more data from the underlying reader
 	buf := make([]byte, 1024)
-	var bufN int
-	bufN, err = d.reader.Read(buf)
+	bufN, err := d.reader.Read(buf)
+	if err != nil && err != io.EOF {
+		return 0, err
+	}
+
 	if bufN > 0 {
-		// Decode the data we just read
-		decoded, decodeErr := NewStdDecoder().Decode(buf[:bufN])
+		// Decode the data we just read using the reused decoder
+		decoded, decodeErr := d.decoder.Decode(buf[:bufN])
 		if decodeErr != nil {
 			return 0, decodeErr
 		}
@@ -269,13 +288,14 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		// Copy decoded data to output
 		n = copy(p, decoded)
 		if n < len(decoded) {
+			// Buffer the remaining decoded data
 			d.buffer = decoded[n:]
 			d.pos = 0
 		}
 		return n, nil
 	}
 
-	return 0, err
+	return 0, io.EOF
 }
 
 // Encode encodes the given byte slice using base58 encoding.

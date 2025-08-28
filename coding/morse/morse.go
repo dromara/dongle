@@ -54,7 +54,11 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 		return
 	}
 
-	var builder strings.Builder
+	// Pre-allocate buffer with estimated size for better performance
+	estimatedSize := len(s) * 8 // Average morse code length is ~4 chars + separator
+	builder := strings.Builder{}
+	builder.Grow(estimatedSize)
+
 	for _, letter := range s {
 		let := string(letter)
 		if morseCode, exists := e.alphabet[let]; exists {
@@ -96,7 +100,11 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	morseString := util.Bytes2String(src)
 	parts := strings.Split(morseString, StdSeparator) // Split by StdSeparator
 
-	var builder strings.Builder
+	// Pre-allocate buffer with estimated size for better performance
+	estimatedSize := len(parts) * 2 // Most characters are single letters
+	builder := strings.Builder{}
+	builder.Grow(estimatedSize)
+
 	for _, part := range parts {
 		found := false
 		for key, morseCode := range d.alphabet {
@@ -118,16 +126,19 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // It provides efficient encoding for large data streams by buffering data
 // and encoding it when Close() is called.
 type StreamEncoder struct {
-	writer   io.Writer         // Underlying writer for encoded output
-	buffer   []byte            // Buffer for accumulating data before encoding
-	alphabet map[string]string // The alphabet used for encoding
-	Error    error             // Error field for storing encoding errors
+	writer  io.Writer   // Underlying writer for encoded output
+	buffer  []byte      // Buffer for accumulating data before encoding
+	encoder *StdEncoder // Reuse encoder instance to avoid repeated creation
+	Error   error       // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming morse encoder that writes encoded data
 // to the provided io.Writer. The encoder uses the standard morse alphabet.
 func NewStreamEncoder(w io.Writer) io.WriteCloser {
-	return &StreamEncoder{writer: w, alphabet: StdAlphabet}
+	return &StreamEncoder{
+		writer:  w,
+		encoder: NewStdEncoder(),
+	}
 }
 
 // Write implements the io.Writer interface for streaming morse encoding.
@@ -149,10 +160,9 @@ func (e *StreamEncoder) Close() error {
 		return e.Error
 	}
 	if len(e.buffer) > 0 {
-		encoder := &StdEncoder{alphabet: e.alphabet}
-		encoded := encoder.Encode(e.buffer)
-		if encoder.Error != nil {
-			return encoder.Error
+		encoded := e.encoder.Encode(e.buffer)
+		if e.encoder.Error != nil {
+			return e.encoder.Error
 		}
 		_, err := e.writer.Write(encoded)
 		return err
@@ -164,17 +174,22 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader   io.Reader         // Underlying reader for encoded input
-	buffer   []byte            // Buffer for decoded data not yet read
-	pos      int               // Current position in the decoded buffer
-	alphabet map[string]string // The alphabet used for decoding
-	Error    error             // Error field for storing decoding errors
+	reader  io.Reader   // Underlying reader for encoded input
+	buffer  []byte      // Buffer for decoded data not yet read
+	pos     int         // Current position in the decoded buffer
+	decoder *StdDecoder // Reuse decoder instance to avoid repeated creation
+	readBuf []byte      // Reuse read buffer to avoid repeated allocation
+	Error   error       // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming morse decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard morse alphabet.
 func NewStreamDecoder(r io.Reader) io.Reader {
-	return &StreamDecoder{reader: r, alphabet: StdAlphabet}
+	return &StreamDecoder{
+		reader:  r,
+		decoder: NewStdDecoder(),
+		readBuf: make([]byte, 1024), // Pre-allocate read buffer
+	}
 }
 
 // Read implements the io.Reader interface for streaming morse decoding.
@@ -190,12 +205,11 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	readBuf := make([]byte, 1024)
-	var nn int
-	nn, err = d.reader.Read(readBuf)
+	// Read new data into readBuf using pre-allocated buffer
+	nn, err := d.reader.Read(d.readBuf)
 	if nn > 0 {
-		decoder := &StdDecoder{alphabet: d.alphabet}
-		decoded, decodeErr := decoder.Decode(readBuf[:nn])
+		// Decode the data we just read using reused decoder
+		decoded, decodeErr := d.decoder.Decode(d.readBuf[:nn])
 		if decodeErr != nil {
 			return 0, decodeErr
 		}

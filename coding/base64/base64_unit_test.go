@@ -463,4 +463,210 @@ func TestStreamError(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 		assert.Equal(t, 0, n)
 	})
+
+	t.Run("stream encoder with error", func(t *testing.T) {
+		encoder := &StreamEncoder{Error: assert.AnError}
+		n, err := encoder.Write([]byte("hello"))
+		assert.Equal(t, 0, n)
+		assert.Equal(t, assert.AnError, err)
+	})
+
+	t.Run("stream encoder close with error", func(t *testing.T) {
+		encoder := &StreamEncoder{Error: assert.AnError}
+		err := encoder.Close()
+		assert.Equal(t, assert.AnError, err)
+	})
+
+	t.Run("stream decoder with error", func(t *testing.T) {
+		decoder := &StreamDecoder{Error: assert.AnError}
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, assert.AnError, err)
+	})
+}
+
+// Test convenience functions
+func TestConvenienceFunctions(t *testing.T) {
+	t.Run("Encode convenience function", func(t *testing.T) {
+		data := []byte("hello world")
+		encoded := Encode(data)
+		assert.Equal(t, []byte("aGVsbG8gd29ybGQ="), encoded)
+	})
+
+	t.Run("EncodeURLSafe convenience function", func(t *testing.T) {
+		data := []byte("hello world")
+		encoded := EncodeURLSafe(data)
+		assert.Equal(t, []byte("aGVsbG8gd29ybGQ="), encoded)
+		// URL-safe encoding should not contain + or /
+		assert.NotContains(t, string(encoded), "+")
+		assert.NotContains(t, string(encoded), "/")
+	})
+
+	t.Run("Decode convenience function", func(t *testing.T) {
+		encoded := []byte("aGVsbG8gd29ybGQ=")
+		decoded := Decode(encoded)
+		assert.Equal(t, []byte("hello world"), decoded)
+	})
+
+	t.Run("DecodeURLSafe convenience function", func(t *testing.T) {
+		encoded := []byte("aGVsbG8gd29ybGQ=")
+		decoded := DecodeURLSafe(encoded)
+		assert.Equal(t, []byte("hello world"), decoded)
+	})
+
+	t.Run("Decode convenience function with invalid input", func(t *testing.T) {
+		encoded := []byte("invalid!")
+		decoded := Decode(encoded)
+		// Should return empty result when there's an error
+		assert.Nil(t, decoded)
+	})
+
+	t.Run("DecodeURLSafe convenience function with invalid input", func(t *testing.T) {
+		encoded := []byte("invalid!")
+		decoded := DecodeURLSafe(encoded)
+		// Should return empty result when there's an error
+		assert.Nil(t, decoded)
+	})
+}
+
+// Test edge cases and error conditions
+func TestEdgeCases(t *testing.T) {
+	t.Run("encoder with empty alphabet", func(t *testing.T) {
+		encoder := NewStdEncoder("")
+		assert.NotNil(t, encoder.Error)
+		assert.Equal(t, "coding/base64: invalid alphabet, the alphabet length must be 64, got 0", encoder.Error.Error())
+		result := encoder.Encode([]byte("hello"))
+		assert.Nil(t, result)
+	})
+
+	t.Run("decoder with empty alphabet", func(t *testing.T) {
+		decoder := NewStdDecoder("")
+		assert.NotNil(t, decoder.Error)
+		assert.Equal(t, "coding/base64: invalid alphabet, the alphabet length must be 64, got 0", decoder.Error.Error())
+		result, err := decoder.Decode([]byte("aGVsbG8="))
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Equal(t, "coding/base64: invalid alphabet, the alphabet length must be 64, got 0", err.Error())
+	})
+
+	t.Run("stream encoder with empty alphabet", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, "")
+		// Type assert to access Error field
+		streamEncoder := encoder.(*StreamEncoder)
+		assert.NotNil(t, streamEncoder.Error)
+		assert.Equal(t, "coding/base64: invalid alphabet, the alphabet length must be 64, got 0", streamEncoder.Error.Error())
+	})
+
+	t.Run("stream decoder with empty alphabet", func(t *testing.T) {
+		file := mock.NewFile([]byte("test"), "test.txt")
+		decoder := NewStreamDecoder(file, "")
+		// Type assert to access Error field
+		streamDecoder := decoder.(*StreamDecoder)
+		assert.NotNil(t, streamDecoder.Error)
+		assert.Equal(t, "coding/base64: invalid alphabet, the alphabet length must be 64, got 0", streamDecoder.Error.Error())
+	})
+
+	t.Run("stream encoder with very long alphabet", func(t *testing.T) {
+		var buf bytes.Buffer
+		longAlphabet := string(make([]byte, 100)) // 100 bytes
+		encoder := NewStreamEncoder(&buf, longAlphabet)
+		// Type assert to access Error field
+		streamEncoder := encoder.(*StreamEncoder)
+		assert.NotNil(t, streamEncoder.Error)
+		assert.Equal(t, "coding/base64: invalid alphabet, the alphabet length must be 64, got 100", streamEncoder.Error.Error())
+	})
+
+	t.Run("stream decoder with very long alphabet", func(t *testing.T) {
+		file := mock.NewFile([]byte("test"), "test.txt")
+		longAlphabet := string(make([]byte, 100)) // 100 bytes
+		decoder := NewStreamDecoder(file, longAlphabet)
+		// Type assert to access Error field
+		streamDecoder := decoder.(*StreamDecoder)
+		assert.NotNil(t, streamDecoder.Error)
+		assert.Equal(t, "coding/base64: invalid alphabet, the alphabet length must be 64, got 100", streamDecoder.Error.Error())
+	})
+
+	t.Run("decode with corrupted input that causes std library error", func(t *testing.T) {
+		decoder := NewStdDecoder(StdAlphabet)
+		// Create input that will cause the standard library to return an error
+		corruptedInput := []byte("aGVsbG8=invalid")
+		result, err := decoder.Decode(corruptedInput)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "illegal data at input byte")
+	})
+
+	t.Run("decode with padding issues", func(t *testing.T) {
+		decoder := NewStdDecoder(StdAlphabet)
+		// Test with invalid padding
+		invalidPadding := []byte("aGVsbG8")
+		result, err := decoder.Decode(invalidPadding)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "illegal data at input byte")
+	})
+
+	t.Run("decode with non-base64 characters", func(t *testing.T) {
+		decoder := NewStdDecoder(StdAlphabet)
+		// Test with characters not in the base64 alphabet
+		invalidChars := []byte("aGVsbG8!@#")
+		result, err := decoder.Decode(invalidChars)
+		assert.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "illegal data at input byte")
+	})
+
+	t.Run("stream encoder write with nil buffer", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		n, err := encoder.Write(nil)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("stream encoder write with empty buffer", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		n, err := encoder.Write([]byte{})
+		assert.NoError(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("stream encoder close with empty buffer", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		err := encoder.Close()
+		assert.NoError(t, err)
+		assert.Empty(t, buf.String())
+	})
+
+	t.Run("stream decoder read with nil buffer", func(t *testing.T) {
+		file := mock.NewFile([]byte("aGVsbG8="), "test.txt")
+		decoder := NewStreamDecoder(file, StdAlphabet)
+		n, err := decoder.Read(nil)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("stream decoder read with empty buffer", func(t *testing.T) {
+		file := mock.NewFile([]byte("aGVsbG8="), "test.txt")
+		decoder := NewStreamDecoder(file, StdAlphabet)
+		emptyBuf := make([]byte, 0)
+		n, err := decoder.Read(emptyBuf)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("stream encoder close with write error", func(t *testing.T) {
+		// Create a mock writer that returns an error on Write
+		errorWriter := mock.NewErrorReadWriteCloser(assert.AnError)
+		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
+		encoder.Write([]byte("hello"))
+
+		err := encoder.Close()
+		assert.Error(t, err)
+		assert.Equal(t, assert.AnError, err)
+	})
 }

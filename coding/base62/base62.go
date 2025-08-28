@@ -13,6 +13,12 @@ import (
 // for a total of 62 characters, providing maximum character efficiency.
 var StdAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
+// Pre-computed constants for better performance
+var (
+	bigInt0  = big.NewInt(0)
+	bigInt62 = big.NewInt(62)
+)
+
 // StdEncoder represents a base62 encoder for standard encoding operations.
 // It implements base62 encoding following Python base62 library specifications,
 // providing efficient encoding of binary data to base62 strings with proper
@@ -27,8 +33,7 @@ type StdEncoder struct {
 // Initializes the encoding lookup table for efficient character mapping.
 func NewStdEncoder() *StdEncoder {
 	e := &StdEncoder{alphabet: StdAlphabet}
-	alphabet := StdAlphabet
-	copy(e.encodeMap[:], alphabet)
+	copy(e.encodeMap[:], StdAlphabet)
 	return e
 }
 
@@ -52,40 +57,51 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 	n := leadingZerosCount / charsetLen
 	r := leadingZerosCount % charsetLen
 
-	var zeroPadding string
+	// Pre-allocate buffer for zero padding to avoid string concatenation
+	zeroPaddingLen := n * 2
+	if r > 0 {
+		zeroPaddingLen += 2
+	}
+	zeroPadding := make([]byte, 0, zeroPaddingLen)
+
 	for i := 0; i < n; i++ {
-		zeroPadding += "0" + string(e.encodeMap[len(e.encodeMap)-1])
+		zeroPadding = append(zeroPadding, '0', e.encodeMap[len(e.encodeMap)-1])
 	}
 	if r > 0 {
-		zeroPadding += "0" + string(e.encodeMap[r])
+		zeroPadding = append(zeroPadding, '0', e.encodeMap[r])
 	}
 
 	if leadingZerosCount == len(src) {
-		return []byte(zeroPadding)
+		return zeroPadding
 	}
 
 	// Convert bytes to big integer (big-endian)
 	value := new(big.Int).SetBytes(src)
 	encodedValue := e.bigInt2string(value)
 
-	result := zeroPadding + encodedValue
-	return []byte(result)
+	// Pre-allocate result buffer
+	result := make([]byte, len(zeroPadding)+len(encodedValue))
+	copy(result, zeroPadding)
+	copy(result[len(zeroPadding):], encodedValue)
+
+	return result
 }
 
 // bigInt2string converts a big.Int to a base62 string representation.
 // Uses the standard base62 encoding algorithm with big integer arithmetic.
-func (e *StdEncoder) bigInt2string(n *big.Int) string {
-	var chs []byte
-	int0 := big.NewInt(0)
-	int62 := big.NewInt(62)
+func (e *StdEncoder) bigInt2string(n *big.Int) []byte {
+	// Pre-allocate with estimated capacity (base62 typically produces ~1.37x the input size)
+	estimatedSize := n.BitLen() * 137 / 100
+	chs := make([]byte, 0, estimatedSize)
+
 	newInt := new(big.Int)
 
-	for n.Cmp(int0) > 0 {
-		n.QuoRem(n, int62, newInt)
+	for n.Cmp(bigInt0) > 0 {
+		n.QuoRem(n, bigInt62, newInt)
 		chs = append([]byte{e.encodeMap[newInt.Int64()]}, chs...)
 	}
 
-	return string(chs)
+	return chs
 }
 
 // StdDecoder represents a base62 decoder for standard decoding operations.
@@ -103,12 +119,13 @@ type StdDecoder struct {
 // Invalid characters are marked with 0xFF for error detection.
 func NewStdDecoder() *StdDecoder {
 	d := &StdDecoder{alphabet: StdAlphabet}
-	alphabet := StdAlphabet
+	// Initialize all bytes to 0xFF (invalid)
 	for i := 0; i < 256; i++ {
 		d.decodeMap[i] = 0xFF
 	}
-	for i := 0; i < len(alphabet); i++ {
-		d.decodeMap[alphabet[i]] = byte(i)
+	// Set valid characters
+	for i := 0; i < len(StdAlphabet); i++ {
+		d.decodeMap[StdAlphabet[i]] = byte(i)
 	}
 	return d
 }
@@ -132,7 +149,13 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 			return
 		}
 
-		// Add null bytes based on the count
+		// Pre-allocate leading null bytes to avoid repeated append
+		if cap(leadingNullBytes) < len(leadingNullBytes)+val {
+			newLeadingNullBytes := make([]byte, len(leadingNullBytes), len(leadingNullBytes)+val)
+			copy(newLeadingNullBytes, leadingNullBytes)
+			leadingNullBytes = newLeadingNullBytes
+		}
+
 		for i := 0; i < val; i++ {
 			leadingNullBytes = append(leadingNullBytes, 0)
 		}
@@ -164,8 +187,8 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // string2bigInt converts a base62 string to a big.Int representation.
 // Uses the standard base62 decoding algorithm with big integer arithmetic.
 func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
+	encodedLen := len(encoded)
 	int0 := big.NewInt(0)
-	int62 := big.NewInt(62)
 
 	for i, x := range encoded {
 		// Check if the character is in the valid range
@@ -179,7 +202,7 @@ func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
 			return
 		}
 
-		power := new(big.Int).Exp(int62, big.NewInt(int64(len(encoded)-(i+1))), nil)
+		power := new(big.Int).Exp(bigInt62, big.NewInt(int64(encodedLen-(i+1))), nil)
 		term := new(big.Int).Mul(big.NewInt(val), power)
 		int0.Add(int0, term)
 	}
@@ -191,16 +214,21 @@ func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
 // It provides efficient encoding for large data streams by buffering data
 // and encoding it when Close() is called, reducing memory usage for large inputs.
 type StreamEncoder struct {
-	writer   io.Writer // Underlying writer for encoded output
-	buffer   []byte    // Buffer for accumulating data before encoding
-	alphabet string    // The alphabet used for encoding
-	Error    error     // Error field for storing encoding errors
+	writer   io.Writer   // Underlying writer for encoded output
+	buffer   []byte      // Buffer for accumulating data before encoding
+	alphabet string      // The alphabet used for encoding
+	encoder  *StdEncoder // Reuse encoder instance
+	Error    error       // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base62 encoder that writes encoded data
 // to the provided io.Writer. The encoder uses the standard base62 alphabet.
 func NewStreamEncoder(w io.Writer) io.WriteCloser {
-	return &StreamEncoder{writer: w, alphabet: StdAlphabet}
+	return &StreamEncoder{
+		writer:   w,
+		alphabet: StdAlphabet,
+		encoder:  NewStdEncoder(),
+	}
 }
 
 // Write implements the io.Writer interface for streaming base62 encoding.
@@ -222,9 +250,8 @@ func (e *StreamEncoder) Close() error {
 		return e.Error
 	}
 	if len(e.buffer) > 0 {
-		enc := &StdEncoder{}
-		copy(enc.encodeMap[:], e.alphabet)
-		encoded := enc.Encode(e.buffer)
+		// Reuse the encoder instance instead of creating a new one
+		encoded := e.encoder.Encode(e.buffer)
 		_, err := e.writer.Write(encoded)
 		return err
 	}
@@ -235,17 +262,22 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader   io.Reader // Underlying reader for encoded input
-	buffer   []byte    // Buffer for decoded data not yet read
-	pos      int       // Current position in the decoded buffer
-	alphabet string    // The alphabet used for decoding
-	Error    error     // Error field for storing decoding errors
+	reader   io.Reader   // Underlying reader for encoded input
+	buffer   []byte      // Buffer for decoded data not yet read
+	pos      int         // Current position in the decoded buffer
+	alphabet string      // The alphabet used for decoding
+	decoder  *StdDecoder // Reuse decoder instance
+	Error    error       // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming base62 decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard base62 alphabet.
 func NewStreamDecoder(r io.Reader) io.Reader {
-	return &StreamDecoder{reader: r, alphabet: StdAlphabet}
+	return &StreamDecoder{
+		reader:   r,
+		alphabet: StdAlphabet,
+		decoder:  NewStdDecoder(),
+	}
 }
 
 // Read implements the io.Reader interface for streaming base62 decoding.
@@ -255,18 +287,24 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	if d.Error != nil {
 		return 0, d.Error
 	}
+
+	// Check if we have buffered data to return
 	if d.pos < len(d.buffer) {
 		n = copy(p, d.buffer[d.pos:])
 		d.pos += n
 		return n, nil
 	}
 
+	// Read more data from the underlying reader
 	buf := make([]byte, 1024)
-	var bufN int
-	bufN, err = d.reader.Read(buf)
+	bufN, err := d.reader.Read(buf)
+	if err != nil && err != io.EOF {
+		return 0, err
+	}
+
 	if bufN > 0 {
-		// Decode the data we just read
-		decoded, decodeErr := NewStdDecoder().Decode(buf[:bufN])
+		// Decode the data we just read using the reused decoder
+		decoded, decodeErr := d.decoder.Decode(buf[:bufN])
 		if decodeErr != nil {
 			return 0, decodeErr
 		}
@@ -274,11 +312,12 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		// Copy decoded data to output
 		n = copy(p, decoded)
 		if n < len(decoded) {
+			// Buffer the remaining decoded data
 			d.buffer = decoded[n:]
 			d.pos = 0
 		}
 		return n, nil
 	}
 
-	return 0, err
+	return 0, io.EOF
 }
