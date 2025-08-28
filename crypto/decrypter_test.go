@@ -1,9 +1,7 @@
 package crypto
 
 import (
-	"bytes"
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/mock"
@@ -312,7 +310,7 @@ func TestDecrypter_ToBytes(t *testing.T) {
 func TestDecrypter_Stream(t *testing.T) {
 	t.Run("stream with success", func(t *testing.T) {
 		decrypter := NewDecrypter()
-		decrypter.reader = strings.NewReader("hello world")
+		decrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		result, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return r
@@ -324,7 +322,7 @@ func TestDecrypter_Stream(t *testing.T) {
 
 	t.Run("stream with empty reader", func(t *testing.T) {
 		decrypter := NewDecrypter()
-		decrypter.reader = strings.NewReader("")
+		decrypter.reader = mock.NewFile([]byte{}, "empty.txt")
 
 		result, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return r
@@ -341,7 +339,7 @@ func TestDecrypter_Stream(t *testing.T) {
 		}
 
 		decrypter := NewDecrypter()
-		decrypter.reader = bytes.NewReader(largeData)
+		decrypter.reader = mock.NewFile(largeData, "large.dat")
 
 		result, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return r
@@ -365,7 +363,7 @@ func TestDecrypter_Stream(t *testing.T) {
 
 	t.Run("stream with error in copy", func(t *testing.T) {
 		decrypter := NewDecrypter()
-		decrypter.reader = strings.NewReader("hello world")
+		decrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		_, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return mock.NewErrorReadWriteCloser(assert.AnError)
@@ -388,7 +386,7 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 	})
 
 	t.Run("from empty file", func(t *testing.T) {
-		data := []byte{}
+		var data []byte
 		file := mock.NewFile(data, "empty.txt")
 
 		decrypter := NewDecrypter()

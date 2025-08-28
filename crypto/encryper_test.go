@@ -3,7 +3,6 @@ package crypto
 import (
 	"bytes"
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/mock"
@@ -340,7 +339,7 @@ func TestEncrypter_ToHexBytes(t *testing.T) {
 func TestEncrypter_Stream(t *testing.T) {
 	t.Run("stream with success", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = strings.NewReader("hello world")
+		encrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -352,7 +351,7 @@ func TestEncrypter_Stream(t *testing.T) {
 
 	t.Run("stream with empty reader", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = strings.NewReader("")
+		encrypter.reader = mock.NewFile([]byte{}, "empty.txt")
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -393,7 +392,7 @@ func TestEncrypter_Stream(t *testing.T) {
 
 	t.Run("stream with error in write", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = strings.NewReader("hello world")
+		encrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		_, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewErrorWriteCloser(assert.AnError)
@@ -405,7 +404,7 @@ func TestEncrypter_Stream(t *testing.T) {
 
 	t.Run("stream with error in close", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = strings.NewReader("hello world")
+		encrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewCloseErrorWriteCloser(w, assert.AnError)

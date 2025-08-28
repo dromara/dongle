@@ -1,9 +1,7 @@
 package crypto
 
 import (
-	"bytes"
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/mock"
@@ -340,7 +338,7 @@ func TestSigner_ToHexBytes(t *testing.T) {
 func TestSigner_Stream(t *testing.T) {
 	t.Run("stream with success", func(t *testing.T) {
 		signer := NewSigner()
-		signer.reader = strings.NewReader("hello world")
+		signer.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		result, err := signer.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -352,7 +350,7 @@ func TestSigner_Stream(t *testing.T) {
 
 	t.Run("stream with empty reader", func(t *testing.T) {
 		signer := NewSigner()
-		signer.reader = strings.NewReader("")
+		signer.reader = mock.NewFile([]byte{}, "empty.txt")
 
 		result, err := signer.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -369,7 +367,7 @@ func TestSigner_Stream(t *testing.T) {
 		}
 
 		signer := NewSigner()
-		signer.reader = bytes.NewReader(largeData)
+		signer.reader = mock.NewFile(largeData, "large.dat")
 
 		result, err := signer.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -393,7 +391,7 @@ func TestSigner_Stream(t *testing.T) {
 
 	t.Run("stream with error in write", func(t *testing.T) {
 		signer := NewSigner()
-		signer.reader = strings.NewReader("hello world")
+		signer.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		_, err := signer.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewErrorWriteCloser(assert.AnError)
@@ -405,7 +403,7 @@ func TestSigner_Stream(t *testing.T) {
 
 	t.Run("stream with error in close", func(t *testing.T) {
 		signer := NewSigner()
-		signer.reader = strings.NewReader("hello world")
+		signer.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
 		result, err := signer.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewCloseErrorWriteCloser(w, assert.AnError)
