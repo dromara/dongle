@@ -13,6 +13,30 @@ const HashSize = 16
 // BlockSize is the block size of the MD2 hash in bytes.
 const BlockSize = 16
 
+// S-box used in MD2 algorithm (RFC 1319)
+// This substitution table is used for the non-linear transformation
+// that provides the cryptographic strength of the MD2 algorithm
+var sBox = [256]byte{
+	41, 46, 67, 201, 162, 216, 124, 1, 61, 54, 84, 161, 236, 240, 6,
+	19, 98, 167, 5, 243, 192, 199, 115, 140, 152, 147, 43, 217, 188,
+	76, 130, 202, 30, 155, 87, 60, 253, 212, 224, 22, 103, 66, 111, 24,
+	138, 23, 229, 18, 190, 78, 196, 214, 218, 158, 222, 73, 160, 251,
+	245, 142, 187, 47, 238, 122, 169, 104, 121, 145, 21, 178, 7, 63,
+	148, 194, 16, 137, 11, 34, 95, 33, 128, 127, 93, 154, 90, 144, 50,
+	39, 53, 62, 204, 231, 191, 247, 151, 3, 255, 25, 48, 179, 72, 165,
+	181, 209, 215, 94, 146, 42, 172, 86, 170, 198, 79, 184, 56, 210,
+	150, 164, 125, 182, 118, 252, 107, 226, 156, 116, 4, 241, 69, 157,
+	112, 89, 100, 113, 135, 32, 134, 91, 207, 101, 230, 45, 168, 2, 27,
+	96, 37, 173, 174, 176, 185, 246, 28, 70, 97, 105, 52, 64, 126, 15,
+	85, 71, 163, 35, 221, 81, 175, 58, 195, 92, 249, 206, 186, 197,
+	234, 38, 44, 83, 13, 110, 133, 40, 132, 9, 211, 223, 205, 244, 65,
+	129, 77, 82, 106, 220, 55, 200, 108, 193, 171, 250, 36, 225, 123,
+	8, 12, 189, 177, 74, 120, 136, 149, 139, 227, 99, 232, 109, 233,
+	203, 213, 254, 59, 0, 29, 57, 242, 239, 183, 14, 102, 88, 208, 228,
+	166, 119, 114, 248, 235, 117, 75, 10, 49, 68, 80, 180, 143, 237,
+	31, 26, 219, 153, 141, 51, 159, 17, 131, 20,
+}
+
 // digest represents the partial evaluation of an MD2 hash.
 type digest struct {
 	// digest stores the current hash state
@@ -27,18 +51,10 @@ type digest struct {
 
 // Reset resets the hash to its initial state.
 func (d *digest) Reset() {
-	for i := range d.digest {
-		d.digest[i] = 0
-	}
-
-	for i := range d.state {
-		d.state[i] = 0
-	}
-
-	for i := range d.x {
-		d.x[i] = 0
-	}
-
+	// Use clear for better performance on modern Go versions
+	clear(d.digest[:])
+	clear(d.state[:])
+	clear(d.x[:])
 	d.nx = 0
 }
 
@@ -64,22 +80,18 @@ func (d *digest) Write(p []byte) (n int, err error) {
 	if d.nx > 0 {
 		nu := uint8(n)
 
-		var i uint8
 		// try to copy the rest n bytes free of the buffer into the buffer than hash the buffer
 		if (nu + d.nx) > BlockSize {
 			nu = BlockSize - d.nx
 		}
 
-		for i = 0; i < nu; i++ {
-			// copy n bytes to the buffer
-			d.x[d.nx+i] = p[i]
-		}
-
+		// Use copy for better performance
+		copy(d.x[d.nx:], p[:nu])
 		d.nx += nu
 
 		// if we have exactly 1 block in the buffer than hash that block
 		if d.nx == BlockSize {
-			d.block(d.x[0:BlockSize])
+			d.block(d.x[:])
 			d.nx = 0
 		}
 
@@ -109,15 +121,15 @@ func (d *digest) Sum(in []byte) []byte {
 	*dig = *d
 
 	// Padding. Add padding bytes to make the total length a multiple of BlockSize.
-	var sizes [BlockSize]byte
-
-	for i := range sizes {
-		sizes[i] = BlockSize - dig.nx
+	paddingSize := BlockSize - dig.nx
+	padding := make([]byte, paddingSize)
+	for i := range padding {
+		padding[i] = byte(paddingSize)
 	}
 
-	dig.Write(sizes[0 : BlockSize-dig.nx])
-	dig.Write(dig.digest[0:16])
-	return append(in, dig.state[0:16]...)
+	dig.Write(padding)
+	dig.Write(dig.digest[:])
+	return append(in, dig.state[:HashSize]...)
 }
 
 // block processes a single block of data according to the MD2 algorithm.
@@ -127,37 +139,12 @@ func (d *digest) Sum(in []byte) []byte {
 // 2. Process state buffer through S-box substitution
 // 3. Update digest using input block and current digest
 func (d *digest) block(p []byte) {
-	// S-box used in MD2 algorithm (RFC 1319)
-	// This substitution table is used for the non-linear transformation
-	// that provides the cryptographic strength of the MD2 algorithm
-	blocks := []uint8{
-		41, 46, 67, 201, 162, 216, 124, 1, 61, 54, 84, 161, 236, 240, 6,
-		19, 98, 167, 5, 243, 192, 199, 115, 140, 152, 147, 43, 217, 188,
-		76, 130, 202, 30, 155, 87, 60, 253, 212, 224, 22, 103, 66, 111, 24,
-		138, 23, 229, 18, 190, 78, 196, 214, 218, 158, 222, 73, 160, 251,
-		245, 142, 187, 47, 238, 122, 169, 104, 121, 145, 21, 178, 7, 63,
-		148, 194, 16, 137, 11, 34, 95, 33, 128, 127, 93, 154, 90, 144, 50,
-		39, 53, 62, 204, 231, 191, 247, 151, 3, 255, 25, 48, 179, 72, 165,
-		181, 209, 215, 94, 146, 42, 172, 86, 170, 198, 79, 184, 56, 210,
-		150, 164, 125, 182, 118, 252, 107, 226, 156, 116, 4, 241, 69, 157,
-		112, 89, 100, 113, 135, 32, 134, 91, 207, 101, 230, 45, 168, 2, 27,
-		96, 37, 173, 174, 176, 185, 246, 28, 70, 97, 105, 52, 64, 126, 15,
-		85, 71, 163, 35, 221, 81, 175, 58, 195, 92, 249, 206, 186, 197,
-		234, 38, 44, 83, 13, 110, 133, 40, 132, 9, 211, 223, 205, 244, 65,
-		129, 77, 82, 106, 220, 55, 200, 108, 193, 171, 250, 36, 225, 123,
-		8, 12, 189, 177, 74, 120, 136, 149, 139, 227, 99, 232, 109, 233,
-		203, 213, 254, 59, 0, 29, 57, 242, 239, 183, 14, 102, 88, 208, 228,
-		166, 119, 114, 248, 235, 117, 75, 10, 49, 68, 80, 180, 143, 237,
-		31, 26, 219, 153, 141, 51, 159, 17, 131, 20,
-	}
-
-	var t, i, j uint8
-	t = 0 // Checksum accumulator for the S-box processing
+	var t uint8
 
 	// Step 1: Copy input block to state buffer and compute checksum
 	// Copy the 16-byte input block to positions 16-31 of the state buffer
 	// Also compute XOR of input block with current state for positions 32-47
-	for i = 0; i < 16; i++ {
+	for i := 0; i < 16; i++ {
 		d.state[i+16] = p[i]              // Copy input to state[16:32]
 		d.state[i+32] = p[i] ^ d.state[i] // XOR input with current state for state[32:48]
 	}
@@ -165,12 +152,12 @@ func (d *digest) block(p []byte) {
 	// Step 2: Process state buffer through S-box substitution
 	// Perform 18 rounds of S-box substitution on the entire 48-byte state buffer
 	// Each round uses the current value of t as an index into the S-box
-	for i = 0; i < 18; i++ {
-		for j = 0; j < 48; j++ {
-			d.state[j] = d.state[j] ^ blocks[t] // XOR state byte with S-box value
-			t = d.state[j]                      // Update t with the new state value
+	for i := 0; i < 18; i++ {
+		for j := 0; j < 48; j++ {
+			d.state[j] = d.state[j] ^ sBox[t] // XOR state byte with S-box value
+			t = d.state[j]                    // Update t with the new state value
 		}
-		t = t + i // Add round number to t for the next round
+		t = t + uint8(i) // Add round number to t for the next round
 	}
 
 	// Step 3: Update digest using input block and current digest
@@ -180,8 +167,8 @@ func (d *digest) block(p []byte) {
 
 	// Process each byte of the input block to update the digest
 	// Use the input byte XORed with t as an index into the S-box
-	for i = 0; i < 16; i++ {
-		d.digest[i] = d.digest[i] ^ blocks[p[i]^t] // XOR digest byte with S-box value
-		t = d.digest[i]                            // Update t with the new digest value
+	for i := 0; i < 16; i++ {
+		d.digest[i] = d.digest[i] ^ sBox[p[i]^t] // XOR digest byte with S-box value
+		t = d.digest[i]                          // Update t with the new digest value
 	}
 }

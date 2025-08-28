@@ -16,6 +16,19 @@ const (
 	BlockSize = 64
 )
 
+// Precomputed constants for optimization
+var (
+	// Initial hash values
+	initialHash = [8]uint32{
+		0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600,
+		0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e,
+	}
+
+	// Round constants
+	tj0 = uint32(0x79cc4519)
+	tj1 = uint32(0x7a879d8a)
+)
+
 // digest represents the partial evaluation of an SM3 checksum.
 type digest struct {
 	h      [8]uint32 // hash values
@@ -32,18 +45,9 @@ func New() hash.Hash {
 
 // Reset resets the digest to its initial state.
 func (d *digest) Reset() {
-	// Reset digest to initial values
-	d.h[0] = 0x7380166f
-	d.h[1] = 0x4914b2b9
-	d.h[2] = 0x172442d7
-	d.h[3] = 0xda8a0600
-	d.h[4] = 0xa96f30bc
-	d.h[5] = 0x163138aa
-	d.h[6] = 0xe38dee4d
-	d.h[7] = 0xb0fb0e4e
-
+	copy(d.h[:], initialHash[:])
 	d.length = 0
-	d.data = []byte{}
+	d.data = d.data[:0] // Reuse slice to avoid allocation
 }
 
 // Size returns the number of bytes Sum will return.
@@ -84,109 +88,46 @@ func (d *digest) Sum(in []byte) []byte {
 
 // pad performs message padding according to SM3 standard.
 func (d *digest) pad() []byte {
-	data := d.data
-	data = append(data, 0x80) // Append '1' bit
-	blockSize := 64           // Block size in bytes
+	// Pre-allocate with estimated capacity to reduce allocations
+	estimatedSize := len(d.data) + 1 + 8 // data + 0x80 + length
+	if len(d.data)%BlockSize >= 56 {
+		estimatedSize += BlockSize - (len(d.data) % BlockSize)
+	}
 
-	for len(data)%blockSize != 56 {
+	data := make([]byte, 0, estimatedSize)
+	data = append(data, d.data...)
+	data = append(data, 0x80) // Append '1' bit
+
+	for len(data)%BlockSize != 56 {
 		data = append(data, 0x00)
 	}
-	// Append message length in bits
-	data = append(data, uint8(d.length>>56&0xff))
-	data = append(data, uint8(d.length>>48&0xff))
-	data = append(data, uint8(d.length>>40&0xff))
-	data = append(data, uint8(d.length>>32&0xff))
-	data = append(data, uint8(d.length>>24&0xff))
-	data = append(data, uint8(d.length>>16&0xff))
-	data = append(data, uint8(d.length>>8&0xff))
-	data = append(data, uint8(d.length>>0&0xff))
+
+	// Append message length in bits (big-endian)
+	lengthBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(lengthBytes, d.length)
+	data = append(data, lengthBytes...)
 
 	return data
 }
 
 // update processes message blocks and updates the digest.
 func (d *digest) update(msg []byte) {
-	var w [68]uint32
-	var w1 [64]uint32
-
-	a, b, c, dd, e, f, g, h := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7]
-
-	for len(msg) >= 64 {
-		// Convert bytes to words
-		for i := 0; i < 16; i++ {
-			w[i] = binary.BigEndian.Uint32(msg[4*i : 4*(i+1)])
-		}
-
-		// Message expansion
-		for i := 16; i < 68; i++ {
-			w[i] = p1(w[i-16]^w[i-9]^leftRotate(w[i-3], 15)) ^ leftRotate(w[i-13], 7) ^ w[i-6]
-		}
-
-		// Calculate W1 array
-		for i := 0; i < 64; i++ {
-			w1[i] = w[i] ^ w[i+4]
-		}
-
-		// Initialize working variables
-		A, B, C, D, E, F, G, H := a, b, c, dd, e, f, g, h
-
-		// First 16 rounds
-		for i := 0; i < 16; i++ {
-			SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(0x79cc4519, uint32(i)), 7)
-			SS2 := SS1 ^ leftRotate(A, 12)
-			TT1 := ff0(A, B, C) + D + SS2 + w1[i]
-			TT2 := gg0(E, F, G) + H + SS1 + w[i]
-			D = C
-			C = leftRotate(B, 9)
-			B = A
-			A = TT1
-			H = G
-			G = leftRotate(F, 19)
-			F = E
-			E = p0(TT2)
-		}
-
-		// Last 48 rounds
-		for i := 16; i < 64; i++ {
-			SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(0x7a879d8a, uint32(i)), 7)
-			SS2 := SS1 ^ leftRotate(A, 12)
-			TT1 := ff1(A, B, C) + D + SS2 + w1[i]
-			TT2 := gg1(E, F, G) + H + SS1 + w[i]
-			D = C
-			C = leftRotate(B, 9)
-			B = A
-			A = TT1
-			H = G
-			G = leftRotate(F, 19)
-			F = E
-			E = p0(TT2)
-		}
-
-		// Update digest using XOR
-		a ^= A
-		b ^= B
-		c ^= C
-		dd ^= D
-		e ^= E
-		f ^= F
-		g ^= G
-		h ^= H
-
-		msg = msg[64:]
-	}
-
-	// Update final digest
-	d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7] = a, b, c, dd, e, f, g, h
+	d.processBlocks(msg, false)
 }
 
 // update2 processes message blocks and returns the final digest.
 func (d *digest) update2(msg []byte) [8]uint32 {
+	return d.processBlocks(msg, true)
+}
+
+// processBlocks processes message blocks and either updates the digest or returns the final hash.
+func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 	var w [68]uint32
 	var w1 [64]uint32
 
 	a, b, c, dd, e, f, g, h := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7]
 
-	for len(msg) >= 64 {
+	for len(msg) >= BlockSize {
 		// Convert bytes to words
 		for i := 0; i < 16; i++ {
 			w[i] = binary.BigEndian.Uint32(msg[4*i : 4*(i+1)])
@@ -207,7 +148,7 @@ func (d *digest) update2(msg []byte) [8]uint32 {
 
 		// First 16 rounds
 		for i := 0; i < 16; i++ {
-			SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(0x79cc4519, uint32(i)), 7)
+			SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(tj0, uint32(i)), 7)
 			SS2 := SS1 ^ leftRotate(A, 12)
 			TT1 := ff0(A, B, C) + D + SS2 + w1[i]
 			TT2 := gg0(E, F, G) + H + SS1 + w[i]
@@ -223,7 +164,7 @@ func (d *digest) update2(msg []byte) [8]uint32 {
 
 		// Last 48 rounds
 		for i := 16; i < 64; i++ {
-			SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(0x7a879d8a, uint32(i)), 7)
+			SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(tj1, uint32(i)), 7)
 			SS2 := SS1 ^ leftRotate(A, 12)
 			TT1 := ff1(A, B, C) + D + SS2 + w1[i]
 			TT2 := gg1(E, F, G) + H + SS1 + w[i]
@@ -247,9 +188,16 @@ func (d *digest) update2(msg []byte) [8]uint32 {
 		g ^= G
 		h ^= H
 
-		msg = msg[64:]
+		msg = msg[BlockSize:]
 	}
-	return [8]uint32{a, b, c, dd, e, f, g, h}
+
+	if returnFinal {
+		return [8]uint32{a, b, c, dd, e, f, g, h}
+	} else {
+		// Update final digest
+		d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7] = a, b, c, dd, e, f, g, h
+		return [8]uint32{}
+	}
 }
 
 // Helper functions

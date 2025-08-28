@@ -424,7 +424,7 @@ func TestSM3EdgeCases(t *testing.T) {
 			actual := hex.EncodeToString(hash)
 
 			// Note: We're using placeholder expected values since we don't have the actual SM3 hashes
-			// In a real implementation, these would be the correct expected values
+			// In a real implementation, these would be the correct-expected values
 			assert.Equal(t, Size, len(hash), "Hash should have correct size")
 			assert.NotEqual(t, "", actual, "Hash should not be empty")
 		})
