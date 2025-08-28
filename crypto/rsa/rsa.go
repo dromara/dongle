@@ -352,12 +352,7 @@ func (s *StreamSigner) Write(p []byte) (n int, err error) {
 		return
 	}
 
-	// Process data through the hash function for streaming
-	_, err = s.hasher.Write(p)
-	if err != nil {
-		return 0, err
-	}
-
+	s.hasher.Write(p)
 	return len(p), nil
 }
 
