@@ -153,7 +153,7 @@ func TestFile_Write(t *testing.T) {
 	t.Run("write empty data", func(t *testing.T) {
 		file := NewFile([]byte{}, "test.txt")
 
-		data := []byte{}
+		var data []byte
 		n, err := file.Write(data)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, n)
@@ -175,7 +175,7 @@ func TestFile_Write(t *testing.T) {
 
 		// Check that file was extended with zeros
 		expected := make([]byte, 15)
-		copy(expected, []byte("Hello"))
+		copy(expected, "Hello")
 		copy(expected[10:], data)
 		assert.Equal(t, expected, file.data)
 	})
