@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"io"
+	"io/fs"
 
 	"github.com/dromara/dongle/util"
 )
@@ -24,6 +25,11 @@ func (v *Verifier) FromString(s string) *Verifier {
 
 func (v *Verifier) FromBytes(b []byte) *Verifier {
 	v.data = b
+	return v
+}
+
+func (v *Verifier) FromFile(f fs.File) *Verifier {
+	v.reader = f
 	return v
 }
 

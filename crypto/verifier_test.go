@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestNewVerifier tests the NewVerifier function
 func TestNewVerifier(t *testing.T) {
 	t.Run("create new verifier", func(t *testing.T) {
 		verifier := NewVerifier()
@@ -20,7 +19,6 @@ func TestNewVerifier(t *testing.T) {
 	})
 }
 
-// TestVerifier_FromString tests the FromRawString method
 func TestVerifier_FromString(t *testing.T) {
 	t.Run("from raw string", func(t *testing.T) {
 		verifier := NewVerifier()
@@ -50,7 +48,6 @@ func TestVerifier_FromString(t *testing.T) {
 	})
 }
 
-// TestVerifier_FromRawBytes tests the FromRawBytes method
 func TestVerifier_FromBytes(t *testing.T) {
 	t.Run("from raw bytes", func(t *testing.T) {
 		verifier := NewVerifier()
@@ -81,7 +78,27 @@ func TestVerifier_FromBytes(t *testing.T) {
 	})
 }
 
-// TestVerifier_ToBool tests the ToBool method
+func TestVerifier_FromFile(t *testing.T) {
+	t.Run("from valid file", func(t *testing.T) {
+		verifier := NewVerifier()
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		result := verifier.FromFile(file)
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, file, verifier.reader)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("from nil file", func(t *testing.T) {
+		verifier := NewVerifier()
+		result := verifier.FromFile(nil)
+
+		assert.Equal(t, verifier, result)
+		assert.Nil(t, verifier.reader)
+		assert.Nil(t, verifier.Error)
+	})
+}
+
 func TestVerifier_ToBool(t *testing.T) {
 	t.Run("with valid data and keypair", func(t *testing.T) {
 		verifier := NewVerifier()
@@ -136,9 +153,49 @@ func TestVerifier_ToBool(t *testing.T) {
 		result := verifier.ToBool()
 		assert.False(t, result)
 	})
+
+	// Additional test cases for 100% coverage
+	t.Run("with empty data and empty signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		verifier.data = []byte{}
+		verifier.sign = []byte{}
+		verifier.Error = nil
+
+		result := verifier.ToBool()
+		assert.False(t, result)
+	})
+
+	t.Run("with valid data but empty signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		verifier.data = []byte("hello world")
+		verifier.sign = []byte{}
+		verifier.Error = nil
+
+		result := verifier.ToBool()
+		assert.False(t, result)
+	})
+
+	t.Run("with valid data, valid signature, and no error", func(t *testing.T) {
+		verifier := NewVerifier()
+		verifier.data = []byte("hello world")
+		verifier.sign = []byte("signature")
+		verifier.Error = nil
+
+		result := verifier.ToBool()
+		assert.True(t, result)
+	})
+
+	t.Run("with valid data, valid signature, but with error", func(t *testing.T) {
+		verifier := NewVerifier()
+		verifier.data = []byte("hello world")
+		verifier.sign = []byte("signature")
+		verifier.Error = errors.New("test error")
+
+		result := verifier.ToBool()
+		assert.False(t, result)
+	})
 }
 
-// TestVerifier_stream tests the stream method
 func TestVerifier_stream(t *testing.T) {
 	t.Run("with valid reader", func(t *testing.T) {
 		verifier := NewVerifier()
@@ -222,5 +279,32 @@ func TestVerifier_stream(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, largeData, result)
+	})
+
+	t.Run("with write error in stream", func(t *testing.T) {
+		verifier := NewVerifier()
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		verifier.reader = file
+
+		result, err := verifier.stream(func(w io.Writer) io.WriteCloser {
+			return mock.NewErrorWriteCloser(errors.New("write error"))
+		})
+
+		assert.Error(t, err)
+		assert.Empty(t, result)
+		assert.Equal(t, "write error", err.Error())
+	})
+
+	t.Run("with EOF error in stream", func(t *testing.T) {
+		verifier := NewVerifier()
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		verifier.reader = file
+
+		result, err := verifier.stream(func(w io.Writer) io.WriteCloser {
+			return mock.NewWriteCloser(w)
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("hello world"), result)
 	})
 }
