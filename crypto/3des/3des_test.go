@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
@@ -40,7 +39,7 @@ func TestNewStdEncrypter(t *testing.T) {
 	t.Run("invalid key sizes", func(t *testing.T) {
 		invalidKeys := [][]byte{
 			nil,
-			[]byte{},
+			{},
 			[]byte("short"),
 			[]byte("17bytes_key1234567"),
 			make([]byte, 33),
@@ -121,7 +120,7 @@ func TestNewStdDecrypter(t *testing.T) {
 	t.Run("invalid key sizes", func(t *testing.T) {
 		invalidKeys := [][]byte{
 			nil,
-			[]byte{},
+			{},
 			[]byte("short"),
 		}
 		for _, key := range invalidKeys {
@@ -316,21 +315,21 @@ func TestStreamEncrypter_Close(t *testing.T) {
 
 func TestNewStreamDecrypter(t *testing.T) {
 	t.Run("valid key", func(t *testing.T) {
-		reader := strings.NewReader("test")
+		file := mock.NewFile([]byte("test"), "test.txt")
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.Nil(t, streamDecrypter.Error)
 	})
 
 	t.Run("invalid key", func(t *testing.T) {
-		reader := strings.NewReader("test")
+		file := mock.NewFile([]byte("test"), "test.txt")
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
 		assert.IsType(t, KeySizeError(0), streamDecrypter.Error)
@@ -353,8 +352,8 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Then decrypt
-		reader := bytes.NewReader(buf.Bytes())
-		decrypter := NewStreamDecrypter(reader, c)
+		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		decrypter := NewStreamDecrypter(file, c)
 		resultBuf := make([]byte, 100)
 		n, err := decrypter.Read(resultBuf)
 		assert.True(t, n > 0)
@@ -363,11 +362,11 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	})
 
 	t.Run("read with existing error", func(t *testing.T) {
-		reader := strings.NewReader("test")
+		file := mock.NewFile([]byte("test"), "test.txt")
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		streamDecrypter.Error = errors.New("test error")
 
@@ -390,11 +389,11 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	})
 
 	t.Run("read with empty data", func(t *testing.T) {
-		reader := strings.NewReader("")
+		file := mock.NewFile([]byte{}, "empty.txt")
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		buf := make([]byte, 10)
 		n, err := decrypter.Read(buf)
 		assert.Equal(t, 0, n)
@@ -402,11 +401,11 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	})
 
 	t.Run("read with invalid key", func(t *testing.T) {
-		reader := strings.NewReader("test data")
+		file := mock.NewFile([]byte("test data"), "test.txt")
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		streamDecrypter.Error = nil
 
@@ -431,11 +430,11 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Then decrypt with small buffer
-		reader := bytes.NewReader(buf.Bytes())
-		decrypter := NewStreamDecrypter(reader, c)
+		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		decrypter := NewStreamDecrypter(file, c)
 		smallBuf := make([]byte, 5)
 		n, err := decrypter.Read(smallBuf)
-		// 根据实现，当缓冲区太小时会返回BufferError
+		// According to implementation, BufferError is returned when buffer is too small
 		assert.Equal(t, 5, n)
 		assert.IsType(t, BufferError{}, err)
 	})
@@ -443,13 +442,13 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	t.Run("read with cipher decrypt error", func(t *testing.T) {
 		// Create invalid encrypted data that will cause decryption error
 		invalidData := []byte("invalid_encrypted_data_that_cannot_be_decrypted")
-		reader := bytes.NewReader(invalidData)
+		file := mock.NewFile(invalidData, "invalid.dat")
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 		c.SetIV(iv8)
 		c.SetPadding(cipher.PKCS7)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		buf := make([]byte, 100)
 		n, err := decrypter.Read(buf)
 		assert.Equal(t, 0, n)

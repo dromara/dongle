@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
@@ -345,21 +344,21 @@ func TestStreamEncrypter_Close(t *testing.T) {
 
 func TestNewStreamDecrypter(t *testing.T) {
 	t.Run("valid key", func(t *testing.T) {
-		reader := strings.NewReader("test")
+		file := mock.NewFile([]byte("test"), "test.txt")
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(key16)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.Nil(t, streamDecrypter.Error)
 	})
 
 	t.Run("invalid key", func(t *testing.T) {
-		reader := strings.NewReader("test")
+		file := mock.NewFile([]byte("test"), "test.txt")
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey([]byte("123")) // 3 bytes - too short for Blowfish
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
 		assert.IsType(t, KeySizeError(0), streamDecrypter.Error)
@@ -376,18 +375,12 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		encrypter := NewStreamEncrypter(&buf, c)
-		_, err := encrypter.Write(testData)
-		if err != nil {
-			return
-		}
-		err = encrypter.Close()
-		if err != nil {
-			return
-		}
+		encrypter.Write(testData)
+		encrypter.Close()
 
 		// Then decrypt
-		reader := bytes.NewReader(buf.Bytes())
-		decrypter := NewStreamDecrypter(reader, c)
+		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		decrypter := NewStreamDecrypter(file, c)
 		resultBuf := make([]byte, 20)
 		n, err := decrypter.Read(resultBuf)
 		assert.Equal(t, len(testData), n)
@@ -396,11 +389,11 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	})
 
 	t.Run("read with existing error", func(t *testing.T) {
-		reader := strings.NewReader("test")
+		file := mock.NewFile([]byte("test"), "test.txt")
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(key16)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		streamDecrypter.Error = errors.New("test error")
 
@@ -423,11 +416,11 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	})
 
 	t.Run("read with empty data", func(t *testing.T) {
-		reader := strings.NewReader("")
+		file := mock.NewFile([]byte{}, "empty.txt")
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(key16)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		buf := make([]byte, 10)
 		n, err := decrypter.Read(buf)
 		assert.Equal(t, 0, n)
@@ -435,11 +428,11 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	})
 
 	t.Run("read with cipher error", func(t *testing.T) {
-		reader := strings.NewReader("test data")
+		file := mock.NewFile([]byte("test data"), "test.txt")
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(key16)
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		streamDecrypter.Error = nil
 
@@ -461,18 +454,12 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		encrypter := NewStreamEncrypter(&buf, c)
-		_, err := encrypter.Write(testData)
-		if err != nil {
-			return
-		}
-		err = encrypter.Close()
-		if err != nil {
-			return
-		}
+		encrypter.Write(testData)
+		encrypter.Close()
 
 		// Then decrypt with small buffer
-		reader := bytes.NewReader(buf.Bytes())
-		decrypter := NewStreamDecrypter(reader, c)
+		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		decrypter := NewStreamDecrypter(file, c)
 		smallBuf := make([]byte, 5)
 		n, err := decrypter.Read(smallBuf)
 		assert.Equal(t, 5, n)
@@ -489,14 +476,8 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		// First encrypt with one cipher configuration
 		var buf bytes.Buffer
 		encrypter := NewStreamEncrypter(&buf, c)
-		_, err := encrypter.Write(testData)
-		if err != nil {
-			return
-		}
-		err = encrypter.Close()
-		if err != nil {
-			return
-		}
+		encrypter.Write(testData)
+		encrypter.Close()
 		encrypted := buf.Bytes()
 
 		// Try to decrypt with different padding mode to cause error
@@ -505,8 +486,8 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c2.SetIV(iv8)
 		c2.SetPadding(cipher.No) // Different padding mode
 
-		reader := bytes.NewReader(encrypted)
-		decrypter := NewStreamDecrypter(reader, c2)
+		file := mock.NewFile(encrypted, "encrypted.dat")
+		decrypter := NewStreamDecrypter(file, c2)
 		buf2 := make([]byte, 100)
 		n, err := decrypter.Read(buf2)
 		// This may or may not cause an error depending on the implementation
@@ -522,13 +503,13 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	t.Run("read with cipher decrypt error path", func(t *testing.T) {
 		// Use invalid data size to trigger cipher.Decrypt error
 		invalidData := []byte("invalid") // 7 bytes, not multiple of block size (8)
-		reader := bytes.NewReader(invalidData)
+		file := mock.NewFile(invalidData, "invalid.dat")
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(key16)
 		c.SetIV(iv8)
 		c.SetPadding(cipher.No) // No padding with invalid block size
 
-		decrypter := NewStreamDecrypter(reader, c)
+		decrypter := NewStreamDecrypter(file, c)
 		buf := make([]byte, 100)
 		n, err := decrypter.Read(buf)
 		assert.Equal(t, 0, n)
