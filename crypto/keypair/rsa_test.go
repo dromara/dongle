@@ -640,7 +640,7 @@ func TestRsaKeyPairIntegration(t *testing.T) {
 }
 
 // TestErrorTypes tests all error types to achieve 100% coverage
-func TestErrorTypes(t *testing.T) {
+func TestRsaErrorTypes(t *testing.T) {
 	t.Run("NilPemBlockError", func(t *testing.T) {
 		err := NilPemBlockError{}
 		expected := "pem block cannot be nil"
