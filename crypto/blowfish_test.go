@@ -12,77 +12,77 @@ import (
 
 // Test data and common setup for Blowfish
 var (
-	key8_blowfish      = []byte("12345678")                                                 // 8-byte key
-	key16_blowfish     = []byte("1234567890123456")                                         // 16-byte key
-	key32_blowfish     = []byte("12345678901234567890123456789012")                         // 32-byte key
-	key56_blowfish     = []byte("12345678901234567890123456789012345678901234567890123456") // 56-byte key
-	iv8_blowfish       = []byte("87654321")                                                 // 8-byte IV
-	nonce12_blowfish   = []byte("123456789012")                                             // 12-byte nonce
-	testData_blowfish  = []byte("hello world")
-	testData8_blowfish = []byte("12345678") // Exactly 8 bytes for no-padding tests
+	key8Blowfish  = []byte("12345678")                                                 // 8-byte key
+	key16Blowfish = []byte("1234567890123456")                                         // 16-byte key
+	key32Blowfish = []byte("12345678901234567890123456789012")                         // 32-byte key
+	key56Blowfish = []byte("12345678901234567890123456789012345678901234567890123456") // 56-byte key
+	iv8Blowfish   = []byte("87654321")                                                 // 8-byte IV
+
+	testdataBlowfish  = []byte("hello world")
+	testdata8Blowfish = []byte("12345678") // Exactly 8 bytes for no-padding tests
 )
 
 func TestEncrypter_ByBlowfish(t *testing.T) {
 	t.Run("standard encryption with 8-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key8_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key8Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
-		assert.NotEqual(t, testData_blowfish, encrypter.dst)
+		assert.NotEqual(t, testdataBlowfish, encrypter.dst)
 	})
 
 	t.Run("standard encryption with 16-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
-		assert.NotEqual(t, testData_blowfish, encrypter.dst)
+		assert.NotEqual(t, testdataBlowfish, encrypter.dst)
 	})
 
 	t.Run("standard encryption with 32-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key32_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key32Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
-		assert.NotEqual(t, testData_blowfish, encrypter.dst)
+		assert.NotEqual(t, testdataBlowfish, encrypter.dst)
 	})
 
 	t.Run("standard encryption with 56-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key56_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key56Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
-		assert.NotEqual(t, testData_blowfish, encrypter.dst)
+		assert.NotEqual(t, testdataBlowfish, encrypter.dst)
 	})
 
 	t.Run("streaming encryption with reader", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		file := mock.NewFile([]byte("hello world"), "test.txt")
 		encrypter := NewEncrypter().FromFile(file).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
-		assert.NotEqual(t, testData_blowfish, encrypter.dst)
+		assert.NotEqual(t, testdataBlowfish, encrypter.dst)
 	})
 
 	t.Run("streaming encryption with large data", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		largeData := strings.Repeat("hello world ", 1000)
 		file := mock.NewFile([]byte(largeData), "large.txt")
@@ -94,8 +94,8 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("streaming encryption with empty reader", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encrypter := NewEncrypter().FromFile(file).ByBlowfish(c)
@@ -105,8 +105,8 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("encryption with existing error", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		encrypter := NewEncrypter()
 		encrypter.Error = errors.New("existing error")
@@ -122,15 +122,15 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 		for _, mode := range modes {
 			t.Run(string(mode), func(t *testing.T) {
 				c := cipher.NewBlowfishCipher(mode)
-				c.SetKey(key16_blowfish)
+				c.SetKey(key16Blowfish)
 				c.SetPadding(cipher.PKCS7)
 
 				// For modes that need IV
 				if mode == cipher.CTR || mode == cipher.CFB || mode == cipher.OFB || mode == cipher.CBC {
-					c.SetIV(iv8_blowfish)
+					c.SetIV(iv8Blowfish)
 				}
 
-				encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+				encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 				assert.Nil(t, encrypter.Error)
 				assert.NotNil(t, encrypter.dst)
 			})
@@ -145,16 +145,16 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 		for _, padding := range paddings {
 			t.Run(string(padding), func(t *testing.T) {
 				c := cipher.NewBlowfishCipher(cipher.CBC)
-				c.SetKey(key16_blowfish)
-				c.SetIV(iv8_blowfish)
+				c.SetKey(key16Blowfish)
+				c.SetIV(iv8Blowfish)
 				c.SetPadding(padding)
 
 				// For No padding, we need data that is block-aligned
 				var testDataForPadding []byte
 				if padding == cipher.No {
-					testDataForPadding = testData8_blowfish // 8 bytes, exactly one block
+					testDataForPadding = testdata8Blowfish // 8 bytes, exactly one block
 				} else {
-					testDataForPadding = testData_blowfish
+					testDataForPadding = testdataBlowfish
 				}
 
 				encrypter := NewEncrypter().FromBytes(testDataForPadding).ByBlowfish(c)
@@ -166,18 +166,18 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("encryption with no padding and block-aligned data", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.No)
-		encrypter := NewEncrypter().FromBytes(testData8_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdata8Blowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
 	})
 
 	t.Run("streaming encryption with buffer overflow", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// Create a reader that will cause buffer overflow
 		largeData := strings.Repeat("hello world ", 10000)
@@ -190,9 +190,9 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 	t.Run("standard encryption with blowfish error", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey([]byte("123")) // Invalid key size to trigger error
-		c.SetIV(iv8_blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		// Check if error occurs - this implementation may be more tolerant
 		if encrypter.Error != nil {
 			assert.Contains(t, encrypter.Error.Error(), "invalid key size")
@@ -204,8 +204,8 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("streaming encryption with error reader", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// Use error reader to trigger streaming error
 		errorReader := mock.NewErrorReadWriteCloser(errors.New("read error"))
@@ -217,8 +217,8 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("standard encryption with invalid padding", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		// Set invalid padding mode or missing required configuration
 		// This may trigger error in the underlying blowfish encryption
 		c.SetPadding(cipher.No)
@@ -238,75 +238,75 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 func TestDecrypter_ByBlowfish(t *testing.T) {
 	t.Run("standard decryption with 8-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key8_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key8Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// First encrypt some data
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		encryptedData := encrypter.dst
 
 		// Then decrypt it
 		decrypter := NewDecrypter().FromRawBytes(encryptedData).ByBlowfish(c)
 		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData_blowfish, decrypter.dst)
+		assert.Equal(t, testdataBlowfish, decrypter.dst)
 	})
 
 	t.Run("standard decryption with 16-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// First encrypt some data
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		encryptedData := encrypter.dst
 
 		// Then decrypt it
 		decrypter := NewDecrypter().FromRawBytes(encryptedData).ByBlowfish(c)
 		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData_blowfish, decrypter.dst)
+		assert.Equal(t, testdataBlowfish, decrypter.dst)
 	})
 
 	t.Run("standard decryption with 32-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key32_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key32Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// First encrypt some data
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		encryptedData := encrypter.dst
 
 		// Then decrypt it
 		decrypter := NewDecrypter().FromRawBytes(encryptedData).ByBlowfish(c)
 		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData_blowfish, decrypter.dst)
+		assert.Equal(t, testdataBlowfish, decrypter.dst)
 	})
 
 	t.Run("standard decryption with 56-byte key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key56_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key56Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// First encrypt some data
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		encryptedData := encrypter.dst
 
 		// Then decrypt it
 		decrypter := NewDecrypter().FromRawBytes(encryptedData).ByBlowfish(c)
 		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData_blowfish, decrypter.dst)
+		assert.Equal(t, testdataBlowfish, decrypter.dst)
 	})
 
 	t.Run("streaming decryption with reader", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// First encrypt some data
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		encryptedData := encrypter.dst
 
@@ -314,13 +314,13 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 		file := mock.NewFile(encryptedData, "stream.txt")
 		decrypter := NewDecrypter().FromRawFile(file).ByBlowfish(c)
 		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData_blowfish, decrypter.dst)
+		assert.Equal(t, testdataBlowfish, decrypter.dst)
 	})
 
 	t.Run("streaming decryption with large data", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		largeData := strings.Repeat("hello world ", 1000)
 		// First encrypt some data
@@ -337,8 +337,8 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("streaming decryption with empty reader", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decrypter := NewDecrypter().FromRawFile(file).ByBlowfish(c)
@@ -348,8 +348,8 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("decryption with existing error", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		decrypter := NewDecrypter()
 		decrypter.Error = errors.New("existing error")
@@ -365,23 +365,23 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 		for _, mode := range modes {
 			t.Run(string(mode), func(t *testing.T) {
 				c := cipher.NewBlowfishCipher(mode)
-				c.SetKey(key16_blowfish)
+				c.SetKey(key16Blowfish)
 				c.SetPadding(cipher.PKCS7)
 
 				// For modes that need IV
 				if mode == cipher.CTR || mode == cipher.CFB || mode == cipher.OFB || mode == cipher.CBC {
-					c.SetIV(iv8_blowfish)
+					c.SetIV(iv8Blowfish)
 				}
 
 				// First encrypt some data
-				encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+				encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 				assert.Nil(t, encrypter.Error)
 				encryptedData := encrypter.dst
 
 				// Then decrypt it
 				decrypter := NewDecrypter().FromRawBytes(encryptedData).ByBlowfish(c)
 				assert.Nil(t, decrypter.Error)
-				assert.Equal(t, testData_blowfish, decrypter.dst)
+				assert.Equal(t, testdataBlowfish, decrypter.dst)
 			})
 		}
 	})
@@ -394,16 +394,16 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 		for _, padding := range paddings {
 			t.Run(string(padding), func(t *testing.T) {
 				c := cipher.NewBlowfishCipher(cipher.CBC)
-				c.SetKey(key16_blowfish)
-				c.SetIV(iv8_blowfish)
+				c.SetKey(key16Blowfish)
+				c.SetIV(iv8Blowfish)
 				c.SetPadding(padding)
 
 				// For No padding, we need data that is block-aligned
 				var testDataForPadding []byte
 				if padding == cipher.No {
-					testDataForPadding = testData8_blowfish // 8 bytes, exactly one block
+					testDataForPadding = testdata8Blowfish // 8 bytes, exactly one block
 				} else {
-					testDataForPadding = testData_blowfish
+					testDataForPadding = testdataBlowfish
 				}
 
 				// First encrypt some data
@@ -421,24 +421,24 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("decryption with no padding and block-aligned data", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.No)
 		// First encrypt some data
-		encrypter := NewEncrypter().FromBytes(testData8_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdata8Blowfish).ByBlowfish(c)
 		assert.Nil(t, encrypter.Error)
 		encryptedData := encrypter.dst
 
 		// Then decrypt it
 		decrypter := NewDecrypter().FromRawBytes(encryptedData).ByBlowfish(c)
 		assert.Nil(t, decrypter.Error)
-		assert.Equal(t, testData8_blowfish, decrypter.dst)
+		assert.Equal(t, testdata8Blowfish, decrypter.dst)
 	})
 
 	t.Run("streaming decryption with buffer overflow", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// Use smaller data to avoid timeout
 		largeData := strings.Repeat("hello world ", 1000)
@@ -457,7 +457,7 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 	t.Run("standard decryption with blowfish error", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey([]byte("123")) // Invalid key size to trigger error
-		c.SetIV(iv8_blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		decrypter := NewDecrypter().FromRawBytes([]byte("some encrypted data")).ByBlowfish(c)
 		// Check if error occurs - this implementation may be more tolerant
@@ -475,8 +475,8 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("streaming decryption with error reader", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// Use error reader to trigger streaming error
 		errorReader := mock.NewErrorReadWriteCloser(errors.New("read error"))
@@ -488,8 +488,8 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 
 	t.Run("standard decryption with invalid encrypted data", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16_blowfish)
-		c.SetIV(iv8_blowfish)
+		c.SetKey(key16Blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
 		// Use invalid encrypted data that will cause decryption to fail
 		invalidEncrypted := []byte("invalid encrypted data that will cause error")
@@ -503,9 +503,9 @@ func TestBlowfish_Error(t *testing.T) {
 	t.Run("invalid key size", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey([]byte("123")) // 3 bytes - invalid for Blowfish
-		c.SetIV(iv8_blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		// Check if error occurs or operation succeeds gracefully
 		if encrypter.Error != nil {
 			assert.Contains(t, encrypter.Error.Error(), "invalid key size")
@@ -518,9 +518,9 @@ func TestBlowfish_Error(t *testing.T) {
 	t.Run("nil key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(nil)
-		c.SetIV(iv8_blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		// Check if error occurs or operation succeeds gracefully
 		if encrypter.Error != nil {
 			assert.Contains(t, encrypter.Error.Error(), "invalid key size")
@@ -533,9 +533,9 @@ func TestBlowfish_Error(t *testing.T) {
 	t.Run("empty key", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey([]byte{})
-		c.SetIV(iv8_blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		// Check if error occurs or operation succeeds gracefully
 		if encrypter.Error != nil {
 			assert.Contains(t, encrypter.Error.Error(), "invalid key size")
@@ -552,9 +552,9 @@ func TestBlowfish_Error(t *testing.T) {
 			longKey[i] = byte(i)
 		}
 		c.SetKey(longKey)
-		c.SetIV(iv8_blowfish)
+		c.SetIV(iv8Blowfish)
 		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testData_blowfish).ByBlowfish(c)
+		encrypter := NewEncrypter().FromBytes(testdataBlowfish).ByBlowfish(c)
 		// Check if error occurs or operation succeeds gracefully
 		if encrypter.Error != nil {
 			assert.Contains(t, encrypter.Error.Error(), "invalid key size")
