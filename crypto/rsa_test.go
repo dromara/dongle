@@ -1096,7 +1096,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer2.Error)
 
 		kp.SetRawSign(signer2.ToRawBytes())
-		file := mock.NewFile([]byte(data2), "edge_case.txt")
+		file := mock.NewFile(data2, "edge_case.txt")
 		verifier2 := NewVerifier()
 		verifier2.reader = file
 		verifier2.data = data2
