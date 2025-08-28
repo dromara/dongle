@@ -51,7 +51,7 @@ func TestTeaInputTypes(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
 		teaCipher := cipher.NewTeaCipher()
 		teaCipher.SetKey(key)
-		plaintext := []byte{}
+		var plaintext []byte
 
 		// TEA requires data to be multiple of 8 bytes, so empty input should result in error
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
@@ -246,7 +246,7 @@ func TestTeaStdEncrypter(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
 		teaCipher := cipher.NewTeaCipher()
 		teaCipher.SetKey(key)
-		plaintext := []byte{} // Empty data
+		var plaintext []byte // Empty data
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
 		assert.Empty(t, encrypted)
@@ -307,7 +307,7 @@ func TestTeaStdDecrypter(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
 		teaCipher := cipher.NewTeaCipher()
 		teaCipher.SetKey(key)
-		plaintext := []byte{} // Empty data
+		var plaintext []byte // Empty data
 
 		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
 		assert.Empty(t, decrypted)

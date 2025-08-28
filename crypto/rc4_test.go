@@ -53,13 +53,14 @@ func TestRc4InputTypes(t *testing.T) {
 		key := []byte("testkey")
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
-		plaintext := []byte{}
+		var plaintext []byte
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByRc4(rc4Cipher).ToRawBytes()
 		assert.Empty(t, encrypted)
 
 		decrypted := NewDecrypter().FromRawBytes(encrypted).ByRc4(rc4Cipher).ToBytes()
-		assert.Equal(t, plaintext, decrypted)
+		// Both nil and empty slices are acceptable for empty data
+		assert.True(t, len(decrypted) == 0)
 	})
 
 	t.Run("unicode input", func(t *testing.T) {
@@ -176,7 +177,7 @@ func TestRc4Streaming(t *testing.T) {
 	})
 
 	t.Run("stream encrypter with invalid key", func(t *testing.T) {
-		key := []byte{} // Empty key
+		var key []byte // Empty key
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4 streaming!"
@@ -211,7 +212,7 @@ func TestRc4StdEncrypter(t *testing.T) {
 	})
 
 	t.Run("new std encrypter with invalid key", func(t *testing.T) {
-		key := []byte{} // Empty key
+		var key []byte // Empty key
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -244,7 +245,7 @@ func TestRc4StdEncrypter(t *testing.T) {
 	})
 
 	t.Run("std encrypter encrypt with encryption error", func(t *testing.T) {
-		key := []byte{} // Empty key to trigger error
+		var key []byte // Empty key to trigger error
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -272,7 +273,7 @@ func TestRc4StdDecrypter(t *testing.T) {
 	})
 
 	t.Run("new std decrypter with invalid key", func(t *testing.T) {
-		key := []byte{} // Empty key
+		var key []byte // Empty key
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -308,14 +309,15 @@ func TestRc4StdDecrypter(t *testing.T) {
 		key := []byte("testkey")
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
-		plaintext := []byte{}
+		var plaintext []byte
 
 		decrypted := NewDecrypter().FromRawBytes(plaintext).ByRc4(rc4Cipher).ToBytes()
-		assert.Equal(t, plaintext, decrypted)
+		// Both nil and empty slices are acceptable for empty data
+		assert.True(t, len(decrypted) == 0)
 	})
 
 	t.Run("std decrypter decrypt with decryption error", func(t *testing.T) {
-		key := []byte{} // Empty key to trigger error
+		var key []byte // Empty key to trigger error
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -341,7 +343,7 @@ func TestRc4DecrypterComprehensive(t *testing.T) {
 	})
 
 	t.Run("decrypter with rc4.NewStdDecrypter error", func(t *testing.T) {
-		key := []byte{} // Empty key to trigger error
+		var key []byte // Empty key to trigger error
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -351,7 +353,7 @@ func TestRc4DecrypterComprehensive(t *testing.T) {
 	})
 
 	t.Run("decrypter with rc4.NewStdDecrypter error in constructor", func(t *testing.T) {
-		key := []byte{} // Empty key to trigger error
+		var key []byte // Empty key to trigger error
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -365,7 +367,7 @@ func TestRc4DecrypterComprehensive(t *testing.T) {
 // TestRc4PackageDirect tests direct RC4 package usage
 func TestRc4PackageDirect(t *testing.T) {
 	t.Run("NewStdEncrypter with invalid key", func(t *testing.T) {
-		key := []byte{} // Empty key
+		var key []byte // Empty key
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -375,7 +377,7 @@ func TestRc4PackageDirect(t *testing.T) {
 	})
 
 	t.Run("NewStdDecrypter with invalid key", func(t *testing.T) {
-		key := []byte{} // Empty key
+		var key []byte // Empty key
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4!"
@@ -385,7 +387,7 @@ func TestRc4PackageDirect(t *testing.T) {
 	})
 
 	t.Run("NewStreamEncrypter with invalid key", func(t *testing.T) {
-		key := []byte{} // Empty key
+		var key []byte // Empty key
 		rc4Cipher := cipher.NewRc4Cipher()
 		rc4Cipher.SetKey(key)
 		plaintext := "Hello, RC4 streaming!"
