@@ -3,7 +3,7 @@ package crypto
 import (
 	"io"
 
-	triple_des "github.com/dromara/dongle/crypto/3des"
+	tripledes "github.com/dromara/dongle/crypto/3des"
 	"github.com/dromara/dongle/crypto/cipher"
 )
 
@@ -15,13 +15,13 @@ func (e *Encrypter) By3Des(c *cipher.TripleDesCipher) *Encrypter {
 	// Check if we have a reader (streaming mode)
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
-			return triple_des.NewStreamEncrypter(w, c)
+			return tripledes.NewStreamEncrypter(w, c)
 		})
 		return e
 	}
 
 	// Standard encryption mode
-	enc := triple_des.NewStdEncrypter(c)
+	enc := tripledes.NewStdEncrypter(c)
 	if enc.Error != nil {
 		e.Error = enc.Error
 		return e
@@ -45,13 +45,13 @@ func (d *Decrypter) By3Des(c *cipher.TripleDesCipher) *Decrypter {
 	// Check if we have a reader (streaming mode)
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
-			return triple_des.NewStreamDecrypter(r, c)
+			return tripledes.NewStreamDecrypter(r, c)
 		})
 		return d
 	}
 
 	// Standard decryption mode
-	decrypted, err := triple_des.NewStdDecrypter(c).Decrypt(d.src)
+	decrypted, err := tripledes.NewStdDecrypter(c).Decrypt(d.src)
 	if err != nil {
 		d.Error = err
 		return d

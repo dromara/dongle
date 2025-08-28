@@ -12,9 +12,10 @@ import (
 
 // Test data and common setup for 3DES
 var (
-	key163des     = []byte("1234567890123456")         // 16-byte key for 3DES
-	key243des     = []byte("123456789012345678901234") // 24-byte key for 3DES
-	iv83des       = []byte("12345678")                 // 8-byte IV for 3DES
+	key163des = []byte("1234567890123456")         // 16-byte key for 3DES
+	key243des = []byte("123456789012345678901234") // 24-byte key for 3DES
+	iv83des   = []byte("12345678")                 // 8-byte IV for 3DES
+
 	testdata3des  = []byte("hello world")
 	testdata83des = []byte("12345678") // Exactly 8 bytes for no-padding tests
 )
