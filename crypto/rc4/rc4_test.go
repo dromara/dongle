@@ -3,6 +3,7 @@ package rc4
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io"
 	"testing"
 
@@ -641,7 +642,8 @@ func TestStreamDecrypter_Read(t *testing.T) {
 			}
 			if err != nil {
 				// Check if it's a ReadError wrapping EOF
-				if readErr, ok := err.(ReadError); ok {
+				var readErr ReadError
+				if errors.As(err, &readErr) {
 					if readErr.Err == io.EOF {
 						break
 					}
