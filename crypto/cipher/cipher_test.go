@@ -653,8 +653,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	// Note: We removed test cases that would cause nil pointer exceptions
-
 	t.Run("round trip encryption/decryption", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   CBC,
@@ -688,7 +686,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Equal(t, testData, decrypted)
 	})
 
-	// Add test case to cover decryption error cases
 	t.Run("decrypt with error from block decrypter", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   CBC,
@@ -725,7 +722,7 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.NotNil(t, result) // The function doesn't return an error, just processes the data
 	})
 
-	// 添加测试用例以覆盖所有块模式的解密
+	// Add test case to cover decryption for all block modes
 	t.Run("decrypt with all block modes", func(t *testing.T) {
 		modes := []BlockMode{CBC, ECB, CTR, GCM, CFB, OFB}
 		for _, mode := range modes {
@@ -775,7 +772,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		}
 	})
 
-	// 添加测试用例以覆盖所有填充模式的解密
 	t.Run("decrypt with all padding modes", func(t *testing.T) {
 		paddings := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit}
 		for _, padding := range paddings {
@@ -891,7 +887,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	// Add test case to cover decryption function returning error cases
 	t.Run("decrypt with decryption error", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   BlockMode("UNKNOWN"), // Unknown block mode
@@ -921,7 +916,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	// Add test case to cover nil data decryption cases
 	t.Run("decrypt with nil data", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   CBC,
@@ -951,7 +945,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Nil(t, result) // Should return nil result
 	})
 
-	// Add test case to cover default block mode cases
 	t.Run("decrypt with default block mode", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   BlockMode(""), // Empty block mode
@@ -981,7 +974,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	// Add test case to cover default padding mode cases
 	t.Run("decrypt with default padding mode", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   CBC,
@@ -1016,7 +1008,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	// Add test case to cover decryption function returning error cases
 	t.Run("decrypt with function error", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   CBC,
