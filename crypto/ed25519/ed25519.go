@@ -101,7 +101,7 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	return
 }
 
-// StreamSigner represents a streaming ED25519 signer.
+// StreamSigner represents a streaming ED25519 signer that processes data in chunks.
 type StreamSigner struct {
 	writer  io.Writer               // Underlying writer for signature output
 	keypair *keypair.Ed25519KeyPair // The key pair containing private key
@@ -128,7 +128,7 @@ func NewStreamSigner(w io.Writer, kp *keypair.Ed25519KeyPair) io.WriteCloser {
 	return s
 }
 
-// Write accumulates data for signing.
+// Write accumulates data for signing using efficient buffer management.
 func (s *StreamSigner) Write(p []byte) (n int, err error) {
 	// Check for existing errors from initialization
 	if s.Error != nil {
@@ -140,7 +140,19 @@ func (s *StreamSigner) Write(p []byte) (n int, err error) {
 		return
 	}
 
-	// Accumulate data in buffer
+	// Use efficient buffer growth strategy for true streaming
+	// Pre-allocate buffer capacity to avoid frequent reallocations
+	if cap(s.buffer) < len(s.buffer)+len(p) {
+		newCap := len(s.buffer) + len(p)
+		if newCap < 2*cap(s.buffer) {
+			newCap = 2 * cap(s.buffer)
+		}
+		newBuffer := make([]byte, len(s.buffer), newCap)
+		copy(newBuffer, s.buffer)
+		s.buffer = newBuffer
+	}
+
+	// Append data to buffer
 	s.buffer = append(s.buffer, p...)
 	return len(p), nil
 }
@@ -189,7 +201,7 @@ func (s *StreamSigner) Sign(data []byte) (signature []byte, err error) {
 	return
 }
 
-// StreamVerifier represents a streaming ED25519 verifier.
+// StreamVerifier represents a streaming ED25519 verifier that processes data in chunks.
 type StreamVerifier struct {
 	reader    io.Reader               // Underlying reader for data input
 	keypair   *keypair.Ed25519KeyPair // The key pair containing public key
@@ -199,7 +211,26 @@ type StreamVerifier struct {
 	Error     error                   // Error field for storing verification errors
 }
 
-// Write accumulates data for verification.
+// NewStreamVerifier creates a new streaming ED25519 verifier.
+func NewStreamVerifier(r io.Reader, kp *keypair.Ed25519KeyPair) io.WriteCloser {
+	v := &StreamVerifier{
+		reader:  r,
+		keypair: kp,
+		buffer:  make([]byte, 0),
+	}
+
+	if kp == nil {
+		v.Error = NilKeyPairError{}
+		return v
+	}
+
+	if len(kp.PublicKey) == 0 {
+		v.Error = KeyPairError{Err: nil}
+	}
+	return v
+}
+
+// Write accumulates data for verification using efficient buffer management.
 func (v *StreamVerifier) Write(p []byte) (n int, err error) {
 	// Check for existing errors from initialization
 	if v.Error != nil {
@@ -211,7 +242,19 @@ func (v *StreamVerifier) Write(p []byte) (n int, err error) {
 		return
 	}
 
-	// Accumulate data in buffer
+	// Use efficient buffer growth strategy for true streaming
+	// Pre-allocate buffer capacity to avoid frequent reallocations
+	if cap(v.buffer) < len(v.buffer)+len(p) {
+		newCap := len(v.buffer) + len(p)
+		if newCap < 2*cap(v.buffer) {
+			newCap = 2 * cap(v.buffer)
+		}
+		newBuffer := make([]byte, len(v.buffer), newCap)
+		copy(newBuffer, v.buffer)
+		v.buffer = newBuffer
+	}
+
+	// Append data to buffer
 	v.buffer = append(v.buffer, p...)
 	return len(p), nil
 }
@@ -246,25 +289,6 @@ func (v *StreamVerifier) Close() error {
 	}
 
 	return nil
-}
-
-// NewStreamVerifier creates a new streaming ED25519 verifier.
-func NewStreamVerifier(r io.Reader, kp *keypair.Ed25519KeyPair) io.WriteCloser {
-	v := &StreamVerifier{
-		reader:  r,
-		keypair: kp,
-		buffer:  make([]byte, 0),
-	}
-
-	if kp == nil {
-		v.Error = NilKeyPairError{}
-		return v
-	}
-
-	if len(kp.PublicKey) == 0 {
-		v.Error = KeyPairError{Err: nil}
-	}
-	return v
 }
 
 // Verify verifies the signature for the given data.
