@@ -93,6 +93,18 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		assert.Nil(t, err) // Should succeed despite Error field being set
 	})
 
+	t.Run("encryption with empty input", func(t *testing.T) {
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStdEncrypter(c)
+		result, err := encrypter.Encrypt([]byte{})
+		assert.Empty(t, result)
+		assert.Nil(t, err)
+	})
+
 	t.Run("encryption with cipher error", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(key16)
@@ -187,6 +199,18 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		result, err := decrypter.Decrypt(encrypted)
 		// Should succeed despite Error field being set
 		assert.Equal(t, testData, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("decryption with empty input", func(t *testing.T) {
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		decrypter := NewStdDecrypter(c)
+		result, err := decrypter.Decrypt([]byte{})
+		assert.Empty(t, result)
 		assert.Nil(t, err)
 	})
 
