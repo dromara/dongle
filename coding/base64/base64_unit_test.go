@@ -303,6 +303,26 @@ func TestStreamEncoder_Close(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, buf.String())
 	})
+
+	t.Run("close with write error", func(t *testing.T) {
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
+		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
+
+		// Write data that will leave 1-2 bytes in buffer
+		encoder.Write([]byte("a")) // 1 byte, will be buffered
+
+		err := encoder.Close()
+		assert.Error(t, err)
+		assert.Equal(t, "write error", err.Error())
+	})
+
+	t.Run("close with existing error", func(t *testing.T) {
+		encoder := &StreamEncoder{Error: errors.New("existing error")}
+
+		err := encoder.Close()
+		assert.Error(t, err)
+		assert.Equal(t, "existing error", err.Error())
+	})
 }
 
 func TestNewStreamDecoder(t *testing.T) {
@@ -663,10 +683,13 @@ func TestEdgeCases(t *testing.T) {
 		// Create a mock writer that returns an error on Write
 		errorWriter := mock.NewErrorReadWriteCloser(assert.AnError)
 		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
-		encoder.Write([]byte("hello"))
 
-		err := encoder.Close()
+		// Write data that will trigger encoding in Write method
+		// "hello" is 5 bytes, will be split into 1 complete 3-byte chunk + 2 remaining bytes
+		// The first chunk will be encoded in Write, triggering the error
+		n, err := encoder.Write([]byte("hello"))
 		assert.Error(t, err)
+		assert.Equal(t, 5, n)
 		assert.Equal(t, assert.AnError, err)
 	})
 }

@@ -120,11 +120,11 @@ func (d *StdDecoder) calculateActualBytes(charCount int) int {
 }
 
 // StreamEncoder represents a streaming base85 encoder that implements io.WriteCloser.
-// It provides efficient encoding for large data streams by buffering data
-// and encoding it when Close() is called, reducing memory usage for large inputs.
+// It provides efficient encoding for large data streams by processing data
+// in chunks and writing encoded output immediately.
 type StreamEncoder struct {
 	writer  io.Writer   // Underlying writer for encoded output
-	buffer  []byte      // Buffer for accumulating data before encoding
+	buffer  []byte      // Buffer for accumulating partial bytes (0-3 bytes)
 	encoder *StdEncoder // Encoder instance for consistent encoding
 	Error   error       // Error field for storing encoding errors
 }
@@ -139,28 +139,63 @@ func NewStreamEncoder(w io.Writer) io.WriteCloser {
 }
 
 // Write implements the io.Writer interface for streaming base85 encoding.
-// Accumulates data in the internal buffer without immediate encoding.
-// The actual encoding occurs when Close() is called.
+// Processes data in chunks while maintaining minimal state for cross-Write calls.
+// This is true streaming - processes data immediately without accumulating large buffers.
 func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	if e.Error != nil {
 		return 0, e.Error
 	}
-	e.buffer = append(e.buffer, p...)
+
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	// Combine any leftover bytes from previous write with new data
+	// This is necessary for true streaming across multiple Write calls
+	data := append(e.buffer, p...)
+	e.buffer = nil // Clear buffer after combining
+
+	// Process data in chunks of 4 bytes (optimal for base85 encoding)
+	// Base85 encoding converts 4 bytes to 5 characters
+	chunkSize := 4
+	chunks := len(data) / chunkSize
+
+	for i := 0; i < chunks*chunkSize; i += chunkSize {
+		chunk := data[i : i+chunkSize]
+		encoded := e.encoder.Encode(chunk)
+		_, writeErr := e.writer.Write(encoded)
+		if writeErr != nil {
+			return len(p), writeErr
+		}
+	}
+
+	// Buffer remaining 0-3 bytes for next write or close
+	remainder := len(data) % chunkSize
+	if remainder > 0 {
+		e.buffer = data[len(data)-remainder:]
+	}
+
 	return len(p), nil
 }
 
 // Close implements the io.WriteCloser interface for streaming base85 encoding.
-// Encodes any remaining data in the buffer and writes it to the underlying writer.
-// This method must be called to complete the encoding process.
+// Encodes any remaining buffered bytes from the last Write call.
+// This is the only place where we handle cross-Write state.
 func (e *StreamEncoder) Close() error {
 	if e.Error != nil {
 		return e.Error
 	}
+
+	// Encode any remaining bytes (1-3 bytes) from the last Write
 	if len(e.buffer) > 0 {
 		encoded := e.encoder.Encode(e.buffer)
 		_, err := e.writer.Write(encoded)
-		return err
+		if err != nil {
+			return err
+		}
+		e.buffer = nil
 	}
+
 	return nil
 }
 
@@ -168,18 +203,22 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader    io.Reader // Underlying reader for encoded input
-	buffer    []byte    // Buffer for decoded data not yet read
-	pos       int       // Current position in the decoded buffer
-	encodeBuf []byte    // Buffer for encoded data not yet decoded
-	eof       bool      // Flag to track if we've reached EOF
-	Error     error     // Error field for storing decoding errors
+	reader  io.Reader   // Underlying reader for encoded input
+	buffer  []byte      // Buffer for decoded data not yet read
+	pos     int         // Current position in the decoded buffer
+	decoder *StdDecoder // Reuse decoder instance
+	Error   error       // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming base85 decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard ASCII85 alphabet.
 func NewStreamDecoder(r io.Reader) io.Reader {
-	return &StreamDecoder{reader: r}
+	return &StreamDecoder{
+		reader:  r,
+		decoder: NewStdDecoder(),
+		buffer:  make([]byte, 0, 1024), // Pre-allocate buffer for decoded data
+		pos:     0,
+	}
 }
 
 // Read implements the io.Reader interface for streaming base85 decoding.
@@ -190,62 +229,37 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, d.Error
 	}
 
-	for {
-		// First, output any remaining data in the buffer
-		if d.pos < len(d.buffer) {
-			n = copy(p, d.buffer[d.pos:])
-			d.pos += n
-			if d.eof && d.pos >= len(d.buffer) {
-				return n, io.EOF
-			}
-			return n, nil
-		}
-
-		// Read new data into encodeBuf
-		readBuf := make([]byte, 1024)
-		bufN, readErr := d.reader.Read(readBuf)
-		if bufN > 0 {
-			d.encodeBuf = append(d.encodeBuf, readBuf[:bufN]...)
-		}
-		if readErr == io.EOF {
-			d.eof = true
-		} else if readErr != nil {
-			d.Error = readErr
-			return 0, readErr
-		}
-
-		// Process encoded data
-		if len(d.encodeBuf) > 0 {
-			if d.eof {
-				// At EOF, decode all remaining data
-				decoded, _ := NewStdDecoder().Decode(d.encodeBuf)
-				d.buffer = decoded
-				d.pos = 0
-				d.encodeBuf = nil
-				continue // Go back to output buffer
-			} else {
-				// When not at EOF, only decode complete 5-character groups
-				groupCount := len(d.encodeBuf) / 5
-				toDecode := groupCount * 5
-				if toDecode > 0 {
-					decoded, decodeErr := NewStdDecoder().Decode(d.encodeBuf[:toDecode])
-					if decodeErr != nil {
-						d.Error = decodeErr
-						return 0, decodeErr
-					}
-					d.buffer = decoded
-					d.pos = 0
-					d.encodeBuf = d.encodeBuf[toDecode:]
-					continue // Go back to output buffer
-				}
-				// No complete groups, wait for more data
-				return 0, nil
-			}
-		}
-
-		// EOF and no more data
-		if d.eof && len(d.encodeBuf) == 0 {
-			return 0, io.EOF
-		}
+	// Return buffered data if available
+	if d.pos < len(d.buffer) {
+		n = copy(p, d.buffer[d.pos:])
+		d.pos += n
+		return n, nil
 	}
+
+	// Read encoded data in chunks
+	readBuf := make([]byte, 1024) // Pre-allocate read buffer
+	nn, err := d.reader.Read(readBuf)
+	if err != nil && err != io.EOF {
+		return 0, err
+	}
+
+	if nn == 0 {
+		return 0, io.EOF
+	}
+
+	// Decode the data using the configured decoder
+	decoded, decodeErr := d.decoder.Decode(readBuf[:nn])
+	if decodeErr != nil {
+		return 0, decodeErr
+	}
+
+	// Copy decoded data to the provided buffer
+	copied := copy(p, decoded)
+	if copied < len(decoded) {
+		// Buffer remaining data for next read
+		d.buffer = decoded[copied:]
+		d.pos = 0
+	}
+
+	return copied, nil
 }

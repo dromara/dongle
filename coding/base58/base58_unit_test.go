@@ -255,6 +255,84 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, buf.String())
 	})
+
+	t.Run("write with exact chunk size", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write exactly 8 bytes (complete chunk, no remainder)
+		data := []byte("12345678") // 8 bytes = complete chunk
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 8, n)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.String()) // Should have written encoded data
+	})
+
+	t.Run("write with multiple chunks", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write 16 bytes (2 complete chunks, no remainder)
+		data := []byte("1234567812345678") // 16 bytes = 2 complete chunks
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 16, n)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.String()) // Should have written encoded data
+	})
+
+	t.Run("write with remainder", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write 10 bytes (1 complete chunk + 2 remainder)
+		data := []byte("1234567890") // 10 bytes = 1 chunk + 2 remainder
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 10, n)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.String()) // Should have written encoded data for complete chunk
+	})
+
+	t.Run("write with writer error", func(t *testing.T) {
+		// Test that Write properly handles writer errors
+		errorWriter := mock.NewErrorWriteCloser(errors.New("writer error"))
+		encoder := NewStreamEncoder(errorWriter)
+
+		// Write data that will trigger encoding and writing
+		data := []byte("12345678") // 8 bytes = complete chunk
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 8, n)
+		assert.Error(t, err)
+		assert.Equal(t, "writer error", err.Error())
+	})
+
+	t.Run("write with existing error", func(t *testing.T) {
+		// Test Write when encoder already has an error
+		encoder := &StreamEncoder{Error: errors.New("existing error")}
+
+		data := []byte("hello")
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Equal(t, "existing error", err.Error())
+	})
+
+	t.Run("write empty data", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write empty data
+		data := []byte{}
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 0, n)
+		assert.Nil(t, err)
+		assert.Empty(t, buf.String()) // Should not write anything
+	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {

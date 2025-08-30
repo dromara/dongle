@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -104,57 +105,40 @@ func TestStdEncoder_Encode(t *testing.T) {
 		assert.Nil(t, encoder.Error)
 	})
 
-	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
-
-		data1 := []byte("hello")
-		data2 := []byte("world")
-
-		n1, err1 := encoder.Write(data1)
-		n2, err2 := encoder.Write(data2)
-
-		assert.Equal(t, 5, n1)
-		assert.Nil(t, err1)
-		assert.Equal(t, 5, n2)
-		assert.Nil(t, err2)
-
-		err := encoder.Close()
-		assert.Nil(t, err)
-		assert.Equal(t, ".... . .-.. .-.. --- .-- --- .-. .-.. -..", buf.String())
+	t.Run("encode with existing error", func(t *testing.T) {
+		encoder := &StdEncoder{Error: errors.New("test error")}
+		result := encoder.Encode([]byte("hello"))
+		assert.Nil(t, result)
+		assert.Equal(t, "test error", encoder.Error.Error())
 	})
 
-	t.Run("close with data success", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+	t.Run("encode with punctuation marks", func(t *testing.T) {
+		encoder := NewStdEncoder()
 
-		encoder.Write([]byte("test"))
-		err := encoder.Close()
+		// Test all supported punctuation
+		result := encoder.Encode([]byte("."))
+		assert.Equal(t, []byte(".-.-.-"), result)
+		assert.Nil(t, encoder.Error)
 
-		assert.Nil(t, err)
-		assert.Equal(t, "- . ... -", buf.String())
-	})
+		result = encoder.Encode([]byte(","))
+		assert.Equal(t, []byte("--..--"), result)
+		assert.Nil(t, encoder.Error)
 
-	t.Run("close with single character", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		result = encoder.Encode([]byte("="))
+		assert.Equal(t, []byte("-...-"), result)
+		assert.Nil(t, encoder.Error)
 
-		encoder.Write([]byte("a"))
-		err := encoder.Close()
+		result = encoder.Encode([]byte("+"))
+		assert.Equal(t, []byte(".-.-."), result)
+		assert.Nil(t, encoder.Error)
 
-		assert.Nil(t, err)
-		assert.Equal(t, ".-", buf.String())
-	})
+		result = encoder.Encode([]byte("-"))
+		assert.Equal(t, []byte("-....-"), result)
+		assert.Nil(t, encoder.Error)
 
-	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
-
-		encoder.Write([]byte("hello"))
-		err := encoder.Close()
-
-		assert.Nil(t, err)
-		assert.Equal(t, ".... . .-.. .-.. ---", buf.String())
+		result = encoder.Encode([]byte("/"))
+		assert.Equal(t, []byte("-..-."), result)
+		assert.Nil(t, encoder.Error)
 	})
 }
 
@@ -246,6 +230,49 @@ func TestStdDecoder_Decode(t *testing.T) {
 		assert.Nil(t, decoded)
 		assert.Contains(t, err.Error(), "unknown character")
 	})
+
+	t.Run("decode with existing error", func(t *testing.T) {
+		decoder := &StdDecoder{Error: errors.New("test error")}
+		result, err := decoder.Decode([]byte(".... . .-.. .-.. ---"))
+		assert.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "test error", err.Error())
+	})
+
+	t.Run("decode punctuation marks", func(t *testing.T) {
+		decoder := NewStdDecoder()
+
+		// Test all supported punctuation
+		encoded := []byte(".-.-.-")
+		decoded, err := decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("."), decoded)
+
+		encoded = []byte("--..--")
+		decoded, err = decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte(","), decoded)
+
+		encoded = []byte("-...-")
+		decoded, err = decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("="), decoded)
+
+		encoded = []byte(".-.-.")
+		decoded, err = decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("+"), decoded)
+
+		encoded = []byte("-....-")
+		decoded, err = decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("-"), decoded)
+
+		encoded = []byte("-..-.")
+		decoded, err = decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("/"), decoded)
+	})
 }
 
 func TestStreamEncoder_Write(t *testing.T) {
@@ -258,22 +285,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 5, n)
 		assert.Nil(t, err)
-	})
-
-	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
-
-		data1 := []byte("hello")
-		data2 := []byte("world")
-
-		n1, err1 := encoder.Write(data1)
-		n2, err2 := encoder.Write(data2)
-
-		assert.Equal(t, 5, n1)
-		assert.Nil(t, err1)
-		assert.Equal(t, 5, n2)
-		assert.Nil(t, err2)
+		// Data is processed immediately in Write
+		assert.Equal(t, ".... . .-.. .-.. ---", buf.String())
 	})
 
 	t.Run("write with error", func(t *testing.T) {
@@ -295,6 +308,60 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 0, n)
 		assert.Nil(t, err)
+		assert.Empty(t, buf.String())
+	})
+
+	t.Run("write with writer error", func(t *testing.T) {
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
+		encoder := NewStreamEncoder(errorWriter)
+
+		n, err := encoder.Write([]byte("hello"))
+		assert.Equal(t, 5, n)
+		assert.Error(t, err)
+		assert.Equal(t, "write error", err.Error())
+	})
+
+	t.Run("write with encoding error", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write data with spaces to trigger encoding error
+		data := []byte("hello world") // contains space
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 11, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "input cannot contain spaces")
+	})
+
+	t.Run("write with encoder error", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Set an error on the underlying encoder to test error handling
+		encoder.(*StreamEncoder).encoder.Error = errors.New("encoder error")
+
+		n, err := encoder.Write([]byte("hello"))
+		assert.Equal(t, 5, n)
+		assert.Error(t, err)
+		assert.Equal(t, "encoder error", err.Error())
+	})
+
+	t.Run("write with unknown character buffering", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write data with unknown character to test buffering logic
+		n, err := encoder.Write([]byte("ab@"))
+		assert.Equal(t, 3, n)
+		assert.Nil(t, err)
+
+		// Should encode "ab" and buffer "@"
+		assert.Equal(t, ".- -...", buf.String())
+
+		// Check that "@" is buffered
+		streamEncoder := encoder.(*StreamEncoder)
+		assert.Equal(t, []byte("@"), streamEncoder.buffer)
 	})
 }
 
@@ -307,6 +374,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 		err := encoder.Close()
 
 		assert.Nil(t, err)
+		// StreamEncoder processes data immediately in Write
 		assert.Equal(t, ".... . .-.. .-.. ---", buf.String())
 	})
 
@@ -317,7 +385,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "", buf.String())
+		assert.Empty(t, buf.String())
 	})
 
 	t.Run("close with error", func(t *testing.T) {
@@ -328,28 +396,43 @@ func TestStreamEncoder_Close(t *testing.T) {
 		assert.Equal(t, "test error", err.Error())
 	})
 
-	t.Run("close with write error", func(t *testing.T) {
-		// Create a simple error writer
-		errorWriter := &errorWriter{err: errors.New("write error")}
-		encoder := NewStreamEncoder(errorWriter)
-
-		encoder.Write([]byte("hello"))
-		err := encoder.Close()
-
-		assert.NotNil(t, err)
-		assert.Equal(t, "write error", err.Error())
-	})
-
-	t.Run("close with encoding error", func(t *testing.T) {
+	t.Run("close with buffered data", func(t *testing.T) {
 		var buf bytes.Buffer
 		encoder := NewStreamEncoder(&buf)
 
-		// Write data with spaces to trigger encoding error
-		encoder.Write([]byte("hello world"))
-		err := encoder.Close()
+		// Manually set buffer with some data (simulating incomplete write)
+		streamEncoder := encoder.(*StreamEncoder)
+		streamEncoder.buffer = []byte("abc")
 
-		assert.NotNil(t, err)
+		err := encoder.Close()
+		assert.Nil(t, err)
+		assert.Equal(t, ".- -... -.-.", buf.String())
+	})
+
+	t.Run("close with buffered data and space error", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Manually set buffer with space character
+		streamEncoder := encoder.(*StreamEncoder)
+		streamEncoder.buffer = []byte("a b")
+
+		err := encoder.Close()
+		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "input cannot contain spaces")
+	})
+
+	t.Run("close with buffered data and write error", func(t *testing.T) {
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
+		encoder := NewStreamEncoder(errorWriter)
+
+		// Manually set buffer with some data
+		streamEncoder := encoder.(*StreamEncoder)
+		streamEncoder.buffer = []byte("abc")
+
+		err := encoder.Close()
+		assert.Error(t, err)
+		assert.Equal(t, "write error", err.Error())
 	})
 }
 
@@ -409,27 +492,18 @@ func TestStreamDecoder_Read(t *testing.T) {
 	})
 
 	t.Run("read from buffer", func(t *testing.T) {
-		encoder := NewStdEncoder()
-		encoded := encoder.Encode([]byte("hello"))
+		decoder := &StreamDecoder{
+			buffer: []byte("hello"),
+			pos:    0,
+		}
 
-		reader := bytes.NewReader(encoded)
-		decoder := NewStreamDecoder(reader)
+		buffer := make([]byte, 3)
+		n, err := decoder.Read(buffer)
 
-		// Read first part
-		buffer1 := make([]byte, 3)
-		n1, err1 := decoder.Read(buffer1)
-		assert.Nil(t, err1)
-		assert.Equal(t, 3, n1)
-
-		// Read second part
-		buffer2 := make([]byte, 3)
-		n2, err2 := decoder.Read(buffer2)
-		assert.Nil(t, err2)
-		assert.Equal(t, 2, n2)
-
-		// Verify complete data
-		complete := append(buffer1[:n1], buffer2[:n2]...)
-		assert.Equal(t, []byte("hello"), complete)
+		assert.Equal(t, 3, n)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("hel"), buffer)
+		assert.Equal(t, 3, decoder.pos)
 	})
 
 	t.Run("read with error", func(t *testing.T) {
@@ -457,7 +531,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	})
 
 	t.Run("read with reader error", func(t *testing.T) {
-		errorReader := &errorReader{err: errors.New("read error")}
+		errorReader := mock.NewErrorFile(errors.New("read error"))
 		decoder := NewStreamDecoder(errorReader)
 
 		buffer := make([]byte, 10)
@@ -498,41 +572,35 @@ func TestStdError(t *testing.T) {
 		assert.Contains(t, encoder.Error.Error(), "input cannot contain spaces")
 	})
 
-	t.Run("decoder with error", func(t *testing.T) {
-		decoder := &StdDecoder{Error: errors.New("test error")}
-		result, err := decoder.Decode([]byte(".... . .-.. .-.. ---"))
-		assert.NotNil(t, err)
-		assert.Nil(t, result)
-		assert.Equal(t, "test error", err.Error())
-	})
-
-	t.Run("encoder with error", func(t *testing.T) {
-		encoder := &StdEncoder{Error: errors.New("test error")}
-		result := encoder.Encode([]byte("hello"))
-		assert.Nil(t, result)
-		assert.Equal(t, "test error", encoder.Error.Error())
-	})
-
 	t.Run("invalid character error message", func(t *testing.T) {
 		err := InvalidCharacterError{Char: "INVALID"}
 		assert.Equal(t, "coding/morse: unknown character INVALID", err.Error())
 	})
+
+	t.Run("invalid input error message", func(t *testing.T) {
+		err := InvalidInputError{}
+		assert.Equal(t, "coding/morse: input cannot contain spaces", err.Error())
+	})
 }
 
 func TestStreamError(t *testing.T) {
-	t.Run("stream encoder close with writer error", func(t *testing.T) {
-		errorWriter := &errorWriter{err: errors.New("write error")}
+	t.Run("stream encoder with writer error", func(t *testing.T) {
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
 		encoder := NewStreamEncoder(errorWriter)
 
-		encoder.Write([]byte("hello"))
-		err := encoder.Close()
-
-		assert.NotNil(t, err)
+		// Error occurs during Write, not Close
+		n, err := encoder.Write([]byte("hello"))
+		assert.Equal(t, 5, n)
+		assert.Error(t, err)
 		assert.Equal(t, "write error", err.Error())
+
+		// Close should not return an error
+		closeErr := encoder.Close()
+		assert.Nil(t, closeErr)
 	})
 
 	t.Run("stream decoder with reader error", func(t *testing.T) {
-		errorReader := &errorReader{err: errors.New("read error")}
+		errorReader := mock.NewErrorFile(errors.New("read error"))
 		decoder := NewStreamDecoder(errorReader)
 
 		buffer := make([]byte, 10)
@@ -545,31 +613,6 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
 		invalidData := []byte("invalid morse code")
-		reader := bytes.NewReader(invalidData)
-		decoder := NewStreamDecoder(reader)
-
-		buffer := make([]byte, 10)
-		n, err := decoder.Read(buffer)
-
-		assert.Equal(t, 0, n)
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "unknown character")
-	})
-
-	t.Run("stream decoder with mock error reader", func(t *testing.T) {
-		errorReader := &errorReader{err: errors.New("mock error")}
-		decoder := NewStreamDecoder(errorReader)
-
-		buffer := make([]byte, 10)
-		n, err := decoder.Read(buffer)
-
-		assert.Equal(t, 0, n)
-		assert.NotNil(t, err)
-		assert.Equal(t, "mock error", err.Error())
-	})
-
-	t.Run("read with invalid data", func(t *testing.T) {
-		invalidData := []byte(".... . .-.. .-.. --- INVALID")
 		reader := bytes.NewReader(invalidData)
 		decoder := NewStreamDecoder(reader)
 
@@ -608,22 +651,4 @@ func TestStreamError(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, "existing error", err.Error())
 	})
-}
-
-// errorWriter is a simple mock writer that always returns an error
-type errorWriter struct {
-	err error
-}
-
-func (w *errorWriter) Write(p []byte) (n int, err error) {
-	return 0, w.err
-}
-
-// errorReader is a simple mock reader that always returns an error
-type errorReader struct {
-	err error
-}
-
-func (r *errorReader) Read(p []byte) (n int, err error) {
-	return 0, r.err
 }

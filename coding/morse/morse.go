@@ -123,11 +123,11 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 }
 
 // StreamEncoder represents a streaming morse encoder that implements io.WriteCloser.
-// It provides efficient encoding for large data streams by buffering data
-// and encoding it when Close() is called.
+// It provides efficient encoding for large data streams by processing data
+// in chunks and writing encoded output immediately.
 type StreamEncoder struct {
 	writer  io.Writer   // Underlying writer for encoded output
-	buffer  []byte      // Buffer for accumulating data before encoding
+	buffer  []byte      // Buffer for accumulating partial bytes (0-3 bytes)
 	encoder *StdEncoder // Reuse encoder instance to avoid repeated creation
 	Error   error       // Error field for storing encoding errors
 }
@@ -138,35 +138,106 @@ func NewStreamEncoder(w io.Writer) io.WriteCloser {
 	return &StreamEncoder{
 		writer:  w,
 		encoder: NewStdEncoder(),
+		buffer:  make([]byte, 0, 4), // Initialize buffer for potential UTF-8 characters
 	}
 }
 
 // Write implements the io.Writer interface for streaming morse encoding.
-// Accumulates data in the internal buffer without immediate encoding.
-// The actual encoding occurs when Close() is called.
+// Processes data character by character for true streaming.
+// Each character is immediately encoded and output, maintaining minimal state.
 func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	if e.Error != nil {
 		return 0, e.Error
 	}
-	e.buffer = append(e.buffer, p...)
+
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	// Combine any leftover bytes from previous write with new data
+	data := append(e.buffer, p...)
+	e.buffer = nil // Clear buffer after combining
+
+	// Check for existing encoder error
+	if e.encoder.Error != nil {
+		return len(p), e.encoder.Error
+	}
+
+	// Process each character individually for true streaming
+	var output strings.Builder
+
+	for i, b := range data {
+		char := strings.ToLower(string(b))
+
+		// Skip spaces as they're not supported in morse encoding
+		if char == " " {
+			e.encoder.Error = InvalidInputError{}
+			return len(p), e.encoder.Error
+		}
+
+		if morseCode, exists := e.encoder.alphabet[char]; exists {
+			// Add separator before morse code if not the first character
+			if output.Len() > 0 {
+				output.WriteString(StdSeparator)
+			}
+			output.WriteString(morseCode)
+		} else {
+			// If character is not found, buffer remaining bytes for potential UTF-8 completion
+			e.buffer = data[i:]
+			break
+		}
+	}
+
+	// Write the encoded output
+	if output.Len() > 0 {
+		_, writeErr := e.writer.Write([]byte(output.String()))
+		if writeErr != nil {
+			return len(p), writeErr
+		}
+	}
+
 	return len(p), nil
 }
 
 // Close implements the io.Closer interface for streaming morse encoding.
-// Encodes all buffered data and writes it to the underlying writer.
-// This method must be called to complete the encoding process.
+// Processes any remaining buffered bytes from the last Write call.
 func (e *StreamEncoder) Close() error {
 	if e.Error != nil {
 		return e.Error
 	}
+
+	// Process any remaining bytes in the buffer
 	if len(e.buffer) > 0 {
-		encoded := e.encoder.Encode(e.buffer)
-		if e.encoder.Error != nil {
-			return e.encoder.Error
+		var output strings.Builder
+
+		for _, b := range e.buffer {
+			char := strings.ToLower(string(b))
+
+			// Skip spaces as they're not supported in morse encoding
+			if char == " " {
+				return InvalidInputError{}
+			}
+
+			if morseCode, exists := e.encoder.alphabet[char]; exists {
+				// Add separator before morse code if not the first character
+				if output.Len() > 0 {
+					output.WriteString(StdSeparator)
+				}
+				output.WriteString(morseCode)
+			}
 		}
-		_, err := e.writer.Write(encoded)
-		return err
+
+		// Write the final encoded output
+		if output.Len() > 0 {
+			_, err := e.writer.Write([]byte(output.String()))
+			if err != nil {
+				return err
+			}
+		}
+
+		e.buffer = nil
 	}
+
 	return nil
 }
 
@@ -178,7 +249,6 @@ type StreamDecoder struct {
 	buffer  []byte      // Buffer for decoded data not yet read
 	pos     int         // Current position in the decoded buffer
 	decoder *StdDecoder // Reuse decoder instance to avoid repeated creation
-	readBuf []byte      // Reuse read buffer to avoid repeated allocation
 	Error   error       // Error field for storing decoding errors
 }
 
@@ -188,7 +258,8 @@ func NewStreamDecoder(r io.Reader) io.Reader {
 	return &StreamDecoder{
 		reader:  r,
 		decoder: NewStdDecoder(),
-		readBuf: make([]byte, 1024), // Pre-allocate read buffer
+		buffer:  make([]byte, 0, 1024), // Pre-allocate buffer for decoded data
+		pos:     0,
 	}
 }
 
@@ -199,28 +270,38 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	if d.Error != nil {
 		return 0, d.Error
 	}
+
+	// Return buffered data if available
 	if d.pos < len(d.buffer) {
 		n = copy(p, d.buffer[d.pos:])
 		d.pos += n
 		return n, nil
 	}
 
-	// Read new data into readBuf using pre-allocated buffer
-	nn, err := d.reader.Read(d.readBuf)
-	if nn > 0 {
-		// Decode the data we just read using reused decoder
-		decoded, decodeErr := d.decoder.Decode(d.readBuf[:nn])
-		if decodeErr != nil {
-			return 0, decodeErr
-		}
-
-		n = copy(p, decoded)
-		if n < len(decoded) {
-			d.buffer = decoded[n:]
-			d.pos = 0
-		}
-		return n, nil
+	// Read encoded data in chunks
+	readBuf := make([]byte, 1024) // Pre-allocate read buffer
+	nn, err := d.reader.Read(readBuf)
+	if err != nil && err != io.EOF {
+		return 0, err
 	}
 
-	return 0, err
+	if nn == 0 {
+		return 0, io.EOF
+	}
+
+	// Decode the data using the configured decoder
+	decoded, decodeErr := d.decoder.Decode(readBuf[:nn])
+	if decodeErr != nil {
+		return 0, decodeErr
+	}
+
+	// Copy decoded data to the provided buffer
+	copied := copy(p, decoded)
+	if copied < len(decoded) {
+		// Buffer remaining data for next read
+		d.buffer = decoded[copied:]
+		d.pos = 0
+	}
+
+	return copied, nil
 }

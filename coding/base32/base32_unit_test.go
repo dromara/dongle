@@ -312,6 +312,83 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, 11, n)
 		assert.Nil(t, err)
 	})
+
+	t.Run("write with writer error", func(t *testing.T) {
+		// Test that Write properly handles writer errors
+		errorWriter := mock.NewErrorWriteCloser(errors.New("writer error"))
+		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
+
+		// Write data that will trigger encoding and writing
+		data := []byte("hello") // 5 bytes = complete block
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 5, n)
+		assert.Error(t, err)
+		assert.Equal(t, "writer error", err.Error())
+	})
+
+	t.Run("write with invalid alphabet length", func(t *testing.T) {
+		// Test NewStreamEncoder with invalid alphabet length
+		encoder := NewStreamEncoder(nil, "invalid")
+		// Type assert to access Error field
+		streamEncoder := encoder.(*StreamEncoder)
+		assert.Error(t, streamEncoder.Error)
+		assert.Contains(t, streamEncoder.Error.Error(), "invalid alphabet")
+	})
+
+	t.Run("write with exact block size", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+
+		// Write exactly 5 bytes (complete block, no remainder)
+		data := []byte("hello") // 5 bytes = complete block
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 5, n)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.String()) // Should have written encoded data
+	})
+
+	t.Run("write with multiple complete blocks", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+
+		// Write 10 bytes (2 complete blocks, no remainder)
+		data := []byte("helloworld") // 10 bytes = 2 complete blocks
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 10, n)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.String()) // Should have written encoded data
+	})
+
+	t.Run("write with existing error", func(t *testing.T) {
+		// Test Write when encoder already has an error
+		encoder := &StreamEncoder{Error: errors.New("existing error")}
+
+		data := []byte("hello")
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Equal(t, "existing error", err.Error())
+	})
+
+	t.Run("write with no remainder", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+
+		// Write exactly 5 bytes (complete block, no remainder)
+		data := []byte("hello") // 5 bytes = complete block
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 5, n)
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.String())
+		// Verify that no bytes are buffered (remainder = 0)
+		streamEncoder := encoder.(*StreamEncoder)
+		assert.Empty(t, streamEncoder.buffer)
+	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {
@@ -344,11 +421,113 @@ func TestStreamEncoder_Close(t *testing.T) {
 		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
 		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
 
-		encoder.Write([]byte("hello"))
+		// Write 1 byte (incomplete block) so it gets buffered
+		encoder.Write([]byte("a"))
 		err := encoder.Close()
 
 		assert.Error(t, err)
 		assert.Equal(t, "write error", err.Error())
+	})
+
+	t.Run("close with 3 bytes buffered", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+
+		// Write 3 bytes (incomplete block)
+		encoder.Write([]byte("abc"))
+		err := encoder.Close()
+
+		assert.Nil(t, err)
+		// 3 bytes should produce 5 characters + 3 padding
+		assert.Contains(t, buf.String(), "===")
+	})
+
+	t.Run("close with 4 bytes buffered", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+
+		// Write 4 bytes (incomplete block)
+		encoder.Write([]byte("abcd"))
+		err := encoder.Close()
+
+		assert.Nil(t, err)
+		// 4 bytes should produce 7 characters + 1 padding
+		assert.Contains(t, buf.String(), "=")
+	})
+
+	t.Run("close with no buffered data", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf, StdAlphabet)
+
+		// Write complete blocks only, no remainder
+		encoder.Write([]byte("hello")) // 5 bytes = complete block
+		err := encoder.Close()
+
+		assert.Nil(t, err)
+		// Should have written the complete block
+		assert.NotEmpty(t, buf.String())
+	})
+
+	t.Run("close with write error during padding", func(t *testing.T) {
+		// Test that Close properly handles write errors when encoding padded data
+		errorWriter := mock.NewErrorWriteCloser(errors.New("padding write error"))
+		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
+
+		// Write 1 byte (incomplete block) so it gets buffered
+		encoder.Write([]byte("a"))
+		err := encoder.Close()
+
+		assert.Error(t, err)
+		assert.Equal(t, "padding write error", err.Error())
+	})
+
+	t.Run("close with write error during padding for 2 bytes", func(t *testing.T) {
+		// Test that Close properly handles write errors when encoding 2-byte padded data
+		errorWriter := mock.NewErrorWriteCloser(errors.New("padding write error 2"))
+		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
+
+		// Write 2 bytes (incomplete block) so it gets buffered
+		encoder.Write([]byte("ab"))
+		err := encoder.Close()
+
+		assert.Error(t, err)
+		assert.Equal(t, "padding write error 2", err.Error())
+	})
+
+	t.Run("close with write error during padding for 3 bytes", func(t *testing.T) {
+		// Test that Close properly handles write errors when encoding 3-byte padded data
+		errorWriter := mock.NewErrorWriteCloser(errors.New("padding write error 3"))
+		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
+
+		// Write 3 bytes (incomplete block) so it gets buffered
+		encoder.Write([]byte("abc"))
+		err := encoder.Close()
+
+		assert.Error(t, err)
+		assert.Equal(t, "padding write error 3", err.Error())
+	})
+
+	t.Run("close with write error during padding for 4 bytes", func(t *testing.T) {
+		// Test that Close properly handles write errors when encoding 4-byte padded data
+		errorWriter := mock.NewErrorWriteCloser(errors.New("padding write error 4"))
+		encoder := NewStreamEncoder(errorWriter, StdAlphabet)
+
+		// Write 4 bytes (incomplete block) so it gets buffered
+		encoder.Write([]byte("abcd"))
+		err := encoder.Close()
+
+		assert.Error(t, err)
+		assert.Equal(t, "padding write error 4", err.Error())
+	})
+
+	t.Run("close with existing error", func(t *testing.T) {
+		// Test Close when encoder already has an error
+		encoder := &StreamEncoder{Error: errors.New("existing close error")}
+
+		err := encoder.Close()
+
+		assert.Error(t, err)
+		assert.Equal(t, "existing close error", err.Error())
 	})
 }
 
@@ -455,6 +634,55 @@ func TestStreamDecoder_Read(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, 11, n)
 		assert.Equal(t, []byte("hello world"), buf[:n])
+	})
+
+	t.Run("read with decode error", func(t *testing.T) {
+		// Test that Read properly handles decode errors
+		file := mock.NewFile([]byte("INVALID!"), "test.txt")
+		decoder := NewStreamDecoder(file, StdAlphabet)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "illegal base32 data")
+	})
+
+	t.Run("read with invalid alphabet length", func(t *testing.T) {
+		// Test NewStreamDecoder with invalid alphabet length
+		decoder := NewStreamDecoder(nil, "invalid")
+		// Type assert to access Error field
+		streamDecoder := decoder.(*StreamDecoder)
+		assert.Error(t, streamDecoder.Error)
+		assert.Contains(t, streamDecoder.Error.Error(), "invalid alphabet")
+	})
+
+	t.Run("read with large buffer fits all data", func(t *testing.T) {
+		// Test that Read handles case where buffer can fit all decoded data
+		encoded := "NBSWY3DP"
+		file := mock.NewFile([]byte(encoded), "test.txt")
+		decoder := NewStreamDecoder(file, StdAlphabet)
+
+		// Use a large buffer that can fit all decoded data
+		buf := make([]byte, 100)
+		n, err := decoder.Read(buf)
+
+		assert.Equal(t, 5, n)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("hello"), buf[:n])
+	})
+
+	t.Run("read with existing error", func(t *testing.T) {
+		// Test Read when decoder already has an error
+		decoder := &StreamDecoder{Error: errors.New("existing error")}
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Equal(t, "existing error", err.Error())
 	})
 }
 

@@ -113,7 +113,8 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.Equal(t, "AAwf93rvy4aWQVw", buf.String())
+		// Now with true streaming, we get block-by-block encoding results
+		assert.Equal(t, "8xhIpNzLldvVSnE", buf.String())
 	})
 
 	t.Run("close with data success", func(t *testing.T) {
@@ -343,6 +344,87 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.Nil(t, err)
 	})
+
+	t.Run("write with writer error", func(t *testing.T) {
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
+		encoder := NewStreamEncoder(errorWriter)
+
+		data := []byte("hello world") // 11 bytes, will trigger chunk processing
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 11, n)
+		assert.Error(t, err)
+		assert.Equal(t, "write error", err.Error())
+	})
+
+	t.Run("write with exact chunk size", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		data := make([]byte, 8) // Exactly 8 bytes
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 8, n)
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with multiple chunks", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		data := make([]byte, 16) // Exactly 2 chunks of 8 bytes
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 16, n)
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with remainder", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write data that would normally leave a remainder in the buffer
+		// This tests the buffer handling logic
+		data := []byte("test")
+		n, err := encoder.Write(data)
+		assert.Equal(t, 4, n)
+		assert.Nil(t, err)
+
+		// Write more data to test buffer combination
+		data2 := []byte("ing")
+		n2, err2 := encoder.Write(data2)
+		assert.Equal(t, 3, n2)
+		assert.Nil(t, err2)
+
+		// Close to finalize
+		err = encoder.Close()
+		assert.Nil(t, err)
+
+		// Verify the result with true streaming (block-by-block encoding)
+		expected := "2Q3IiUYU6h" // "testing" encoded with 8-byte chunks
+		assert.Equal(t, expected, buf.String())
+	})
+
+	t.Run("write with encoder error", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Set an error on the underlying encoder to test error handling
+		streamEncoder := encoder.(*StreamEncoder)
+		streamEncoder.encoder.Error = errors.New("encoder error")
+
+		// Write 8 bytes to trigger chunk processing and error
+		n, err := encoder.Write([]byte("12345678"))
+		assert.Equal(t, 8, n)
+		assert.Error(t, err)
+		assert.Equal(t, "encoder error", err.Error())
+	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {
@@ -375,14 +457,36 @@ func TestStreamEncoder_Close(t *testing.T) {
 	})
 
 	t.Run("close with write error", func(t *testing.T) {
+		// Test write error during Close when processing buffered data
 		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
 		encoder := NewStreamEncoder(errorWriter)
 
-		encoder.Write([]byte("hello"))
-		err := encoder.Close()
+		// Write data that will be buffered (less than 8 bytes)
+		n, err := encoder.Write([]byte("hello")) // 5 bytes, will be buffered
+		assert.Equal(t, 5, n)
+		assert.Nil(t, err) // Write should succeed as data is just buffered
 
-		assert.Error(t, err)
-		assert.Equal(t, "write error", err.Error())
+		// Close should fail when trying to encode the buffered data
+		closeErr := encoder.Close()
+		assert.Error(t, closeErr)
+		assert.Equal(t, "write error", closeErr.Error())
+	})
+
+	t.Run("close with encoder error", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write data that will be buffered
+		encoder.Write([]byte("hello")) // 5 bytes, will be buffered
+
+		// Set an error on the underlying encoder
+		streamEncoder := encoder.(*StreamEncoder)
+		streamEncoder.encoder.Error = errors.New("encoder error")
+
+		// Close should fail when trying to encode the buffered data
+		closeErr := encoder.Close()
+		assert.Error(t, closeErr)
+		assert.Equal(t, "encoder error", closeErr.Error())
 	})
 }
 
@@ -543,13 +647,19 @@ func TestStdError(t *testing.T) {
 
 func TestStreamError(t *testing.T) {
 	t.Run("stream encoder close with writer error", func(t *testing.T) {
+		// Test write error during Close when processing buffered data
 		errorWriter := mock.NewErrorWriteCloser(assert.AnError)
 		encoder := NewStreamEncoder(errorWriter)
-		_, err := encoder.Write([]byte("test"))
-		assert.NoError(t, err)
 
-		err = encoder.Close()
-		assert.Equal(t, assert.AnError, err)
+		// Write data that will be buffered (less than 8 bytes)
+		n, err := encoder.Write([]byte("test")) // 4 bytes, will be buffered
+		assert.Equal(t, 4, n)
+		assert.Nil(t, err) // Write should succeed as data is just buffered
+
+		// Close should fail when trying to encode the buffered data
+		closeErr := encoder.Close()
+		assert.Error(t, closeErr)
+		assert.Equal(t, assert.AnError, closeErr)
 	})
 
 	t.Run("stream decoder with reader error", func(t *testing.T) {

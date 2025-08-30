@@ -294,6 +294,111 @@ func TestEncoder_stream(t *testing.T) {
 		assert.Contains(t, err.Error(), "transform error")
 		assert.Equal(t, []byte{}, result)
 	})
+
+	t.Run("stream with write error", func(t *testing.T) {
+		// Test the encoder.Write error path
+		file := mock.NewFile([]byte("test data"), "test.txt")
+		encoder := NewEncoder()
+		encoder.reader = file
+
+		result, err := encoder.stream(func(w io.Writer) io.WriteCloser {
+			// Return a write closer that will fail on Write
+			return mock.NewErrorWriteCloser(errors.New("write failed"))
+		})
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "write failed")
+		assert.Equal(t, []byte{}, result)
+	})
+
+	t.Run("stream with close error", func(t *testing.T) {
+		// Test the encoder.Close error path
+		file := mock.NewFile([]byte("test data"), "test.txt")
+		encoder := NewEncoder()
+		encoder.reader = file
+
+		result, err := encoder.stream(func(w io.Writer) io.WriteCloser {
+			// Return a write closer that will fail on Close
+			return mock.NewCloseErrorWriteCloser(w, errors.New("close failed"))
+		})
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "close failed")
+		assert.Equal(t, []byte{}, result)
+	})
+
+	t.Run("stream with single byte data", func(t *testing.T) {
+		// Test with single byte to cover small data handling
+		file := mock.NewFile([]byte{0x41}, "single.txt")
+		encoder := NewEncoder()
+		encoder.reader = file
+
+		result, err := encoder.stream(func(w io.Writer) io.WriteCloser {
+			return mock.NewWriteCloser(w)
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, []byte{0x41}, result)
+	})
+
+	t.Run("stream with exact buffer size data", func(t *testing.T) {
+		// Test with data that exactly matches buffer size
+		const bufferSize = 64 * 1024
+		exactData := make([]byte, bufferSize)
+		for i := range exactData {
+			exactData[i] = byte(i % 256)
+		}
+
+		file := mock.NewFile(exactData, "exact.txt")
+		encoder := NewEncoder()
+		encoder.reader = file
+
+		result, err := encoder.stream(func(w io.Writer) io.WriteCloser {
+			return mock.NewWriteCloser(w)
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, exactData, result)
+	})
+
+	t.Run("stream with larger than buffer data", func(t *testing.T) {
+		// Test with data larger than buffer size
+		const largeSize = 128 * 1024 // 128KB
+		largeData := make([]byte, largeSize)
+		for i := range largeData {
+			largeData[i] = byte(i % 256)
+		}
+
+		file := mock.NewFile(largeData, "large.txt")
+		encoder := NewEncoder()
+		encoder.reader = file
+
+		result, err := encoder.stream(func(w io.Writer) io.WriteCloser {
+			return mock.NewWriteCloser(w)
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, largeData, result)
+	})
+
+	t.Run("stream with partial buffer data", func(t *testing.T) {
+		// Test with data that requires partial buffer handling
+		partialData := make([]byte, 100*1024) // 100KB
+		for i := range partialData {
+			partialData[i] = byte(i % 256)
+		}
+
+		file := mock.NewFile(partialData, "partial.txt")
+		encoder := NewEncoder()
+		encoder.reader = file
+
+		result, err := encoder.stream(func(w io.Writer) io.WriteCloser {
+			return mock.NewWriteCloser(w)
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, partialData, result)
+	})
 }
 
 func TestEncoder_Error(t *testing.T) {

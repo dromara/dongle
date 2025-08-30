@@ -2,6 +2,8 @@ package base58
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"testing"
 )
 
@@ -572,5 +574,117 @@ func BenchmarkStdDecoder_DecodeHashData(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		decoder.Decode(encoded)
+	}
+}
+
+// BenchmarkStreamingVsStandard benchmarks streaming vs standard encoding/decoding
+func BenchmarkStreamingVsStandard(b *testing.B) {
+	data := make([]byte, 10*1024) // 10KB
+	for i := range data {
+		data[i] = byte(i % 256)
+	}
+
+	b.Run("standard_encoder", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			NewStdEncoder().Encode(data)
+		}
+	})
+
+	b.Run("streaming_encoder", func(b *testing.B) {
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			var buf bytes.Buffer
+			encoder := NewStreamEncoder(&buf)
+			encoder.Write(data)
+			encoder.Close()
+		}
+	})
+
+	b.Run("standard_decoder", func(b *testing.B) {
+		encoded := NewStdEncoder().Encode(data)
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			NewStdDecoder().Decode(encoded)
+		}
+	})
+
+	b.Run("streaming_decoder", func(b *testing.B) {
+		encoded := NewStdEncoder().Encode(data)
+		b.ResetTimer()
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			reader := bytes.NewReader(encoded)
+			decoder := NewStreamDecoder(reader)
+			io.Copy(io.Discard, decoder)
+		}
+	})
+}
+
+// BenchmarkLargeFileStreaming benchmarks streaming performance for various data sizes
+func BenchmarkLargeFileStreaming(b *testing.B) {
+	sizes := []int{1024, 10 * 1024, 50 * 1024} // 1KB, 10KB, 50KB (reduced from 100KB and 1MB)
+
+	for _, size := range sizes {
+		data := make([]byte, size)
+		for i := range data {
+			data[i] = byte(i % 256)
+		}
+
+		b.Run(fmt.Sprintf("encode_%dKB", size/1024), func(b *testing.B) {
+			b.ResetTimer()
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				var buf bytes.Buffer
+				encoder := NewStreamEncoder(&buf)
+				encoder.Write(data)
+				encoder.Close()
+			}
+		})
+
+		b.Run(fmt.Sprintf("decode_%dKB", size/1024), func(b *testing.B) {
+			encoded := NewStdEncoder().Encode(data)
+			b.ResetTimer()
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				reader := bytes.NewReader(encoded)
+				decoder := NewStreamDecoder(reader)
+				io.Copy(io.Discard, decoder)
+			}
+		})
+	}
+}
+
+// BenchmarkStreamingBufferSizes benchmarks streaming performance with different buffer sizes
+func BenchmarkStreamingBufferSizes(b *testing.B) {
+	data := make([]byte, 20*1024) // 20KB (reduced from 100KB)
+	for i := range data {
+		data[i] = byte(i % 256)
+	}
+
+	bufferSizes := []int{256, 512, 1024, 2048} // Reduced from 5 sizes to 4
+
+	for _, bufSize := range bufferSizes {
+		b.Run(fmt.Sprintf("buffer_%d", bufSize), func(b *testing.B) {
+			b.ResetTimer()
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				var buf bytes.Buffer
+				encoder := NewStreamEncoder(&buf)
+
+				// Write in chunks of buffer size
+				for j := 0; j < len(data); j += bufSize {
+					end := j + bufSize
+					if end > len(data) {
+						end = len(data)
+					}
+					encoder.Write(data[j:end])
+				}
+				encoder.Close()
+			}
+		})
 	}
 }

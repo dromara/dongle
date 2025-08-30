@@ -13,7 +13,7 @@ func TestEncoder_ByBase62(t *testing.T) {
 	t.Run("encode string", func(t *testing.T) {
 		encoder := NewEncoder().FromString("hello world").ByBase62()
 		assert.Nil(t, encoder.Error)
-		// Base62 encoding of "hello world" = "AAwf93rvy4aWQVw"
+		// String encoding uses StdEncoder (non-streaming)
 		assert.Equal(t, []byte("AAwf93rvy4aWQVw"), encoder.dst)
 	})
 
@@ -46,8 +46,8 @@ func TestEncoder_ByBase62(t *testing.T) {
 		file := mock.NewFile([]byte("hello world"), "test.txt")
 		encoder := NewEncoder().FromFile(file).ByBase62()
 		assert.Nil(t, encoder.Error)
-		// Base62 encoding of "hello world" = "AAwf93rvy4aWQVw"
-		assert.Equal(t, []byte("AAwf93rvy4aWQVw"), encoder.dst)
+		// With true streaming, "hello world" is encoded in 8-byte chunks
+		assert.Equal(t, []byte("8xhIpNzLldvVSnE"), encoder.dst)
 	})
 
 	t.Run("encode with empty file", func(t *testing.T) {

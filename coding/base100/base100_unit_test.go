@@ -2,6 +2,7 @@ package base100
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"testing"
 
@@ -277,6 +278,63 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Empty(t, encoder.(*StreamEncoder).buffer)
 	})
+
+	t.Run("write with writer error", func(t *testing.T) {
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
+		encoder := NewStreamEncoder(errorWriter).(*StreamEncoder)
+
+		data := make([]byte, 4) // Exactly 4 bytes to trigger chunk processing
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 4, n)
+		assert.Error(t, err)
+		assert.Equal(t, "write error", err.Error())
+	})
+
+	t.Run("write with exact chunk size", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		data := make([]byte, 4) // Exactly 4 bytes
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 4, n)
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with multiple chunks", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		data := make([]byte, 8) // Exactly 2 chunks of 4 bytes
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 8, n)
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with remainder", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		data := make([]byte, 6) // 4 + 2 bytes, will have 2 bytes remainder
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 6, n)
+		assert.Nil(t, err)
+	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {
@@ -446,10 +504,12 @@ func TestStreamError(t *testing.T) {
 	t.Run("stream encoder close with writer error", func(t *testing.T) {
 		errorWriter := mock.NewErrorWriteCloser(assert.AnError)
 		encoder := NewStreamEncoder(errorWriter)
-		_, err := encoder.Write([]byte("test"))
-		assert.NoError(t, err)
 
-		err = encoder.Close()
+		// Write data that will leave 1-3 bytes in buffer
+		encoder.Write([]byte("a")) // 1 byte, will be buffered
+
+		err := encoder.Close()
+		assert.Error(t, err)
 		assert.Equal(t, assert.AnError, err)
 	})
 

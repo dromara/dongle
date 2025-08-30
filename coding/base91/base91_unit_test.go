@@ -187,6 +187,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 5, n)
 		assert.Nil(t, err)
+		// With true streaming, incomplete chunks (less than 13 bytes) are buffered
 		assert.Equal(t, data, encoder.buffer)
 	})
 
@@ -204,6 +205,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Nil(t, err1)
 		assert.Equal(t, 6, n2)
 		assert.Nil(t, err2)
+		// With true streaming, incomplete chunks are buffered for next write or close
 		assert.Equal(t, []byte("hello world"), encoder.buffer)
 	})
 
@@ -224,6 +226,63 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.Nil(t, err)
 		assert.Empty(t, encoder.buffer)
+	})
+
+	t.Run("write with writer error", func(t *testing.T) {
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
+		encoder := NewStreamEncoder(errorWriter).(*StreamEncoder)
+
+		data := make([]byte, 13) // Exactly 13 bytes to trigger chunk processing
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 13, n)
+		assert.Error(t, err)
+		assert.Equal(t, "write error", err.Error())
+	})
+
+	t.Run("write with exact chunk size", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		data := make([]byte, 13) // Exactly 13 bytes
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 13, n)
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with multiple chunks", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		data := make([]byte, 26) // Exactly 2 chunks of 13 bytes
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 26, n)
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with remainder", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		data := make([]byte, 20) // 13 + 7 bytes, will have 7 bytes remainder
+		for i := range data {
+			data[i] = byte(i)
+		}
+
+		n, err := encoder.Write(data)
+		assert.Equal(t, 20, n)
+		assert.Nil(t, err)
 	})
 }
 

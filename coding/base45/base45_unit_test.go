@@ -405,6 +405,63 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.Nil(t, err)
 	})
+
+	t.Run("write with writer error", func(t *testing.T) {
+		// Test that Write properly handles writer errors
+		errorWriter := mock.NewErrorWriteCloser(errors.New("writer error"))
+		encoder := NewStreamEncoder(errorWriter)
+
+		// Write data that will trigger encoding and writing
+		data := []byte("ab") // 2 bytes = complete pair
+		n, err := encoder.Write(data)
+
+		assert.Equal(t, 2, n)
+		assert.Error(t, err)
+		assert.Equal(t, "writer error", err.Error())
+	})
+
+	t.Run("write with remainder buffering", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write 1 byte (incomplete pair)
+		data1 := []byte("a")
+		n1, err1 := encoder.Write(data1)
+		assert.Equal(t, 1, n1)
+		assert.Nil(t, err1)
+		assert.Empty(t, buf.String()) // Nothing written yet
+
+		// Write 1 more byte to complete the pair
+		data2 := []byte("b")
+		n2, err2 := encoder.Write(data2)
+		assert.Equal(t, 1, n2)
+		assert.Nil(t, err2)
+		assert.Equal(t, "0EC", buf.String()) // Now the pair is encoded
+
+		// Close to handle any remaining bytes
+		err := encoder.Close()
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with buffer and new data combination", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Write 1 byte (buffered)
+		data1 := []byte("a")
+		n1, err1 := encoder.Write(data1)
+		assert.Equal(t, 1, n1)
+		assert.Nil(t, err1)
+		assert.Empty(t, buf.String())
+
+		// Write 3 bytes (1 buffered + 3 new = 4 bytes = 2 pairs)
+		data2 := []byte("bcd")
+		n2, err2 := encoder.Write(data2)
+		assert.Equal(t, 3, n2)
+		assert.Nil(t, err2)
+		// Should have encoded 2 pairs: "ab" and "cd"
+		assert.Contains(t, buf.String(), "0EC") // "ab" encoded
+	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {
@@ -437,12 +494,17 @@ func TestStreamEncoder_Close(t *testing.T) {
 	})
 
 	t.Run("close with write error", func(t *testing.T) {
+		// Test that Close properly handles write errors when encoding remaining bytes
 		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
 		encoder := NewStreamEncoder(errorWriter)
 
-		encoder.Write([]byte("hello"))
-		err := encoder.Close()
+		// Write a single byte that will be buffered
+		n, err := encoder.Write([]byte("h")) // 1 byte = incomplete pair
+		assert.Equal(t, 1, n)
+		assert.Nil(t, err) // Write should succeed as it only buffers
 
+		// Close should fail when trying to encode the remaining byte
+		err = encoder.Close()
 		assert.Error(t, err)
 		assert.Equal(t, "write error", err.Error())
 	})
@@ -616,9 +678,11 @@ func TestStreamError(t *testing.T) {
 	t.Run("stream encoder close with writer error", func(t *testing.T) {
 		errorWriter := mock.NewErrorWriteCloser(assert.AnError)
 		encoder := NewStreamEncoder(errorWriter)
-		_, err := encoder.Write([]byte("test"))
+		// Write a single byte that will be buffered (not immediately encoded)
+		_, err := encoder.Write([]byte("t"))
 		assert.NoError(t, err)
 
+		// Close should fail when trying to encode the buffered byte
 		err = encoder.Close()
 		assert.Equal(t, assert.AnError, err)
 	})

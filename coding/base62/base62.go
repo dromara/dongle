@@ -211,11 +211,11 @@ func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
 }
 
 // StreamEncoder represents a streaming base62 encoder that implements io.WriteCloser.
-// It provides efficient encoding for large data streams by buffering data
-// and encoding it when Close() is called, reducing memory usage for large inputs.
+// It provides efficient encoding for large data streams by processing data
+// in chunks and writing encoded output immediately.
 type StreamEncoder struct {
 	writer   io.Writer   // Underlying writer for encoded output
-	buffer   []byte      // Buffer for accumulating data before encoding
+	buffer   []byte      // Buffer for accumulating partial bytes (0-7 bytes)
 	alphabet string      // The alphabet used for encoding
 	encoder  *StdEncoder // Reuse encoder instance
 	Error    error       // Error field for storing encoding errors
@@ -228,33 +228,74 @@ func NewStreamEncoder(w io.Writer) io.WriteCloser {
 		writer:   w,
 		alphabet: StdAlphabet,
 		encoder:  NewStdEncoder(),
+		buffer:   make([]byte, 0, 0), // Initialize buffer as empty slice
 	}
 }
 
 // Write implements the io.Writer interface for streaming base62 encoding.
-// Accumulates data in the internal buffer without immediate encoding.
-// The actual encoding occurs when Close() is called.
+// Processes data in chunks while maintaining minimal state for cross-Write calls.
+// This is true streaming - processes data immediately without accumulating large buffers.
 func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	if e.Error != nil {
 		return 0, e.Error
 	}
-	e.buffer = append(e.buffer, p...)
+
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	// Combine any leftover bytes from previous write with new data
+	// This is necessary for true streaming across multiple Write calls
+	data := append(e.buffer, p...)
+	e.buffer = nil // Clear buffer after combining
+
+	// Process data in chunks of 8 bytes (optimal for base62 encoding)
+	// Base62 encoding typically produces ~1.37x the input size
+	chunkSize := 8
+	chunks := len(data) / chunkSize
+
+	for i := 0; i < chunks*chunkSize; i += chunkSize {
+		chunk := data[i : i+chunkSize]
+		encoded := e.encoder.Encode(chunk)
+		if e.encoder.Error != nil {
+			return len(p), e.encoder.Error
+		}
+		_, writeErr := e.writer.Write(encoded)
+		if writeErr != nil {
+			return len(p), writeErr
+		}
+	}
+
+	// Buffer remaining 0-7 bytes for next write or close
+	remainder := len(data) % chunkSize
+	if remainder > 0 {
+		e.buffer = data[len(data)-remainder:]
+	}
+
 	return len(p), nil
 }
 
 // Close implements the io.Closer interface for streaming base62 encoding.
-// Encodes all buffered data and writes it to the underlying writer.
-// This method must be called to complete the encoding process.
+// Encodes any remaining buffered bytes from the last Write call.
+// This is the only place where we handle cross-Write state.
 func (e *StreamEncoder) Close() error {
 	if e.Error != nil {
 		return e.Error
 	}
+
+	// Encode any remaining bytes (1-7 bytes) from the last Write
 	if len(e.buffer) > 0 {
-		// Reuse the encoder instance instead of creating a new one
 		encoded := e.encoder.Encode(e.buffer)
+		if e.encoder.Error != nil {
+			return e.encoder.Error
+		}
 		_, err := e.writer.Write(encoded)
-		return err
+		if err != nil {
+			return err
+		}
+		e.buffer = nil
 	}
+
 	return nil
 }
 
@@ -288,36 +329,37 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, d.Error
 	}
 
-	// Check if we have buffered data to return
+	// Return buffered data if available
 	if d.pos < len(d.buffer) {
 		n = copy(p, d.buffer[d.pos:])
 		d.pos += n
 		return n, nil
 	}
 
-	// Read more data from the underlying reader
-	buf := make([]byte, 1024)
-	bufN, err := d.reader.Read(buf)
+	// Read encoded data in chunks
+	readBuf := make([]byte, 1024) // Pre-allocate read buffer
+	nn, err := d.reader.Read(readBuf)
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
 
-	if bufN > 0 {
-		// Decode the data we just read using the reused decoder
-		decoded, decodeErr := d.decoder.Decode(buf[:bufN])
-		if decodeErr != nil {
-			return 0, decodeErr
-		}
-
-		// Copy decoded data to output
-		n = copy(p, decoded)
-		if n < len(decoded) {
-			// Buffer the remaining decoded data
-			d.buffer = decoded[n:]
-			d.pos = 0
-		}
-		return n, nil
+	if nn == 0 {
+		return 0, io.EOF
 	}
 
-	return 0, io.EOF
+	// Decode the data using the configured decoder
+	decoded, decodeErr := d.decoder.Decode(readBuf[:nn])
+	if decodeErr != nil {
+		return 0, decodeErr
+	}
+
+	// Copy decoded data to the provided buffer
+	copied := copy(p, decoded)
+	if copied < len(decoded) {
+		// Buffer remaining data for next read
+		d.buffer = decoded[copied:]
+		d.pos = 0
+	}
+
+	return copied, nil
 }
