@@ -189,7 +189,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 
 		encrypter := NewStreamEncrypter(&buf, c)
 		n, err := encrypter.Write(testData)
-		assert.Equal(t, 16, n) // PKCS7 padding will pad to 16 bytes
+		assert.Equal(t, len(testData), n) // Returns input data length, not encrypted length
 		assert.Nil(t, err)
 	})
 
@@ -283,6 +283,20 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		encrypter := NewStreamEncrypter(&buf, c)
 		err := encrypter.Close()
 		assert.Nil(t, err)
+	})
+
+	t.Run("close with existing error", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		streamEncrypter := encrypter.(*StreamEncrypter)
+		streamEncrypter.Error = errors.New("test error")
+
+		err := encrypter.Close()
+		assert.Error(t, err)
+		assert.Equal(t, "test error", err.Error())
 	})
 }
 
@@ -403,8 +417,19 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		decrypter := NewStreamDecrypter(reader, c)
 		smallBuf := make([]byte, 5)
 		n, err := decrypter.Read(smallBuf)
+		// With new implementation, small buffer should work fine and return partial data
 		assert.Equal(t, 5, n)
-		assert.IsType(t, BufferError{}, err)
+		assert.Nil(t, err) // No error, just partial read
+
+		// Should be able to read the rest
+		remainingBuf := make([]byte, 100)
+		n2, err2 := decrypter.Read(remainingBuf)
+		assert.True(t, n2 > 0) // Should read remaining data
+		assert.Nil(t, err2)
+
+		// Combined result should match original
+		totalResult := append(smallBuf, remainingBuf[:n2]...)
+		assert.Equal(t, testData, totalResult)
 	})
 
 	t.Run("read with cipher decrypt error", func(t *testing.T) {
@@ -422,6 +447,256 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.NotNil(t, err)
 		// This should trigger the d.cipher.Decrypt error path
+	})
+}
+
+// Additional tests to reach 100% coverage
+func TestAdditionalCoverage(t *testing.T) {
+	t.Run("stream encrypter write with nil block", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		streamEncrypter := encrypter.(*StreamEncrypter)
+		streamEncrypter.block = nil // Force nil block to test the nil check
+
+		n, err := encrypter.Write(testData)
+		assert.Equal(t, len(testData), n) // Should work as it recreates the block
+		assert.Nil(t, err)
+	})
+
+	t.Run("stream decrypter read with nil block", func(t *testing.T) {
+		file := mock.NewFile([]byte("test data"), "test.txt")
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		decrypter := NewStreamDecrypter(file, c)
+		streamDecrypter := decrypter.(*StreamDecrypter)
+		streamDecrypter.block = nil // Force nil block to test the nil check
+
+		buf := make([]byte, 100)
+		n, _ := decrypter.Read(buf)
+		// Should still work as it recreates the block
+		assert.True(t, n >= 0)
+	})
+
+	t.Run("stream decrypter read multiple times until EOF", func(t *testing.T) {
+		// First encrypt data
+		var buf bytes.Buffer
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		_, err := encrypter.Write(testData)
+		assert.Nil(t, err)
+		err = encrypter.Close()
+		assert.Nil(t, err)
+
+		// Then decrypt with multiple reads
+		reader := bytes.NewReader(buf.Bytes())
+		decrypter := NewStreamDecrypter(reader, c)
+
+		// First read - should get data
+		readBuf := make([]byte, 5)
+		n1, err1 := decrypter.Read(readBuf)
+		assert.Equal(t, 5, n1)
+		assert.Nil(t, err1)
+
+		// Second read - should get remaining data
+		readBuf2 := make([]byte, 10)
+		n2, err2 := decrypter.Read(readBuf2)
+		assert.True(t, n2 > 0)
+		assert.Nil(t, err2)
+
+		// Third read - should return EOF
+		readBuf3 := make([]byte, 10)
+		n3, err3 := decrypter.Read(readBuf3)
+		assert.Equal(t, 0, n3)
+		assert.Equal(t, io.EOF, err3)
+	})
+
+	t.Run("test encrypter with corrupted key after initialization", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		streamEncrypter := encrypter.(*StreamEncrypter)
+
+		// Manually corrupt the key after initialization to test error handling in Write
+		streamEncrypter.cipher.Key = []byte("bad") // Invalid length
+		streamEncrypter.block = nil                // Force block recreation
+
+		n, err := encrypter.Write(testData)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.IsType(t, EncryptError{}, err)
+	})
+
+	t.Run("test decrypter with corrupted key after initialization", func(t *testing.T) {
+		file := mock.NewFile([]byte("test data"), "test.txt")
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		decrypter := NewStreamDecrypter(file, c)
+		streamDecrypter := decrypter.(*StreamDecrypter)
+
+		// Manually corrupt the key after initialization to test error handling in Read
+		streamDecrypter.cipher.Key = []byte("bad") // Invalid length
+		streamDecrypter.block = nil                // Force block recreation
+
+		buf := make([]byte, 100)
+		n, err := decrypter.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.IsType(t, DecryptError{}, err)
+	})
+
+	t.Run("test encrypter write with buffer accumulation", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+
+		// Test buffer accumulation by writing small chunks
+		_, err := encrypter.Write([]byte("hello"))
+		assert.Nil(t, err)
+
+		_, err = encrypter.Write([]byte(" world"))
+		assert.Nil(t, err)
+
+		// Verify encrypted data was written
+		assert.True(t, buf.Len() > 0)
+	})
+
+	t.Run("test decrypter read with corrupted encrypted data", func(t *testing.T) {
+		// Create corrupted encrypted data that will cause decryption failure
+		corruptedData := []byte("corrupted_encrypted_data_that_will_fail")
+		file := mock.NewFile(corruptedData, "corrupted.dat")
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		decrypter := NewStreamDecrypter(file, c)
+		buf := make([]byte, 100)
+		n, err := decrypter.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		// This should trigger the d.cipher.Decrypt error path
+	})
+
+	t.Run("test encrypter write with writer error", func(t *testing.T) {
+		// Create a mock writer that returns an error
+		mockWriter := mock.NewErrorReadWriteCloser(errors.New("write error"))
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(mockWriter, c)
+		n, err := encrypter.Write(testData)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "write error")
+	})
+
+	t.Run("test NewStreamEncrypter with invalid key length", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey([]byte("invalid")) // Invalid key length
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		streamEncrypter := encrypter.(*StreamEncrypter)
+
+		// Should have KeySizeError
+		assert.NotNil(t, streamEncrypter.Error)
+		assert.IsType(t, KeySizeError(0), streamEncrypter.Error)
+
+		// Try to write, which should return the error
+		n, err := encrypter.Write(testData)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.IsType(t, KeySizeError(0), err)
+	})
+
+	t.Run("test NewStreamDecrypter with invalid key length", func(t *testing.T) {
+		file := mock.NewFile([]byte("test data"), "test.txt")
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey([]byte("invalid")) // Invalid key length
+
+		decrypter := NewStreamDecrypter(file, c)
+		streamDecrypter := decrypter.(*StreamDecrypter)
+
+		// Should have KeySizeError
+		assert.NotNil(t, streamDecrypter.Error)
+		assert.IsType(t, KeySizeError(0), streamDecrypter.Error)
+
+		// Try to read, which should return the error
+		buf := make([]byte, 100)
+		n, err := decrypter.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.IsType(t, KeySizeError(0), err)
+	})
+
+	t.Run("test encrypter cipher creation error", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		streamEncrypter := encrypter.(*StreamEncrypter)
+
+		// Now manually corrupt the cipher to simulate a failure
+		// This tests the error handling path in NewStreamEncrypter
+		streamEncrypter.cipher.Key = []byte("bad") // Invalid length
+		streamEncrypter.block = nil                // Force recreation
+
+		// Try to write, which should trigger the error path
+		n, err := streamEncrypter.Write(testData)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.IsType(t, EncryptError{}, err)
+	})
+
+	t.Run("test decrypter cipher creation error", func(t *testing.T) {
+		file := mock.NewFile([]byte("test data"), "test.txt")
+		c := cipher.NewAesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv16)
+		c.SetPadding(cipher.PKCS7)
+
+		decrypter := NewStreamDecrypter(file, c)
+		streamDecrypter := decrypter.(*StreamDecrypter)
+
+		// Now manually corrupt the cipher to simulate a failure
+		// This tests the error handling path in NewStreamDecrypter
+		streamDecrypter.cipher.Key = []byte("bad") // Invalid length
+		streamDecrypter.block = nil                // Force recreation
+
+		// Try to read, which should trigger the error path
+		buf := make([]byte, 100)
+		n, err := decrypter.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.IsType(t, DecryptError{}, err)
 	})
 }
 

@@ -318,6 +318,40 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		// Should get a cipher-related error
 		assert.NotNil(t, err)
 	})
+
+	t.Run("write with nil block", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c).(*StreamEncrypter)
+		// Set block to nil to test the recovery path
+		encrypter.block = nil
+
+		n, err := encrypter.Write(testData)
+		assert.Equal(t, 16, n) // Should still work as it recreates the block
+		assert.Nil(t, err)
+	})
+
+	t.Run("write with nil block and bad key", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c).(*StreamEncrypter)
+		// Set block to nil and corrupt the key
+		encrypter.block = nil
+		encrypter.cipher.Key = nil // This will cause blowfish.NewCipher to fail
+
+		n, err := encrypter.Write(testData)
+		assert.Equal(t, 0, n)
+		assert.NotNil(t, err)
+		assert.IsType(t, EncryptError{}, err)
+	})
 }
 
 func TestStreamEncrypter_Close(t *testing.T) {
@@ -339,6 +373,17 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		encrypter := NewStreamEncrypter(&buf, c)
 		err := encrypter.Close()
 		assert.Nil(t, err)
+	})
+
+	t.Run("close with existing error", func(t *testing.T) {
+		var buf bytes.Buffer
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey([]byte("123")) // Invalid key to cause error
+
+		encrypter := NewStreamEncrypter(&buf, c).(*StreamEncrypter)
+		err := encrypter.Close()
+		assert.NotNil(t, err)
+		assert.IsType(t, KeySizeError(0), err)
 	})
 }
 
@@ -457,13 +502,17 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		encrypter.Write(testData)
 		encrypter.Close()
 
-		// Then decrypt with small buffer
+		// Then decrypt with small buffer - should work with multiple reads
 		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
 		decrypter := NewStreamDecrypter(file, c)
 		smallBuf := make([]byte, 5)
 		n, err := decrypter.Read(smallBuf)
 		assert.Equal(t, 5, n)
-		assert.IsType(t, BufferError{}, err)
+		assert.Nil(t, err)
+
+		// Should be able to read more data
+		n2, err2 := decrypter.Read(smallBuf)
+		assert.True(t, n2 > 0 || err2 == io.EOF)
 	})
 
 	t.Run("read with decrypt error", func(t *testing.T) {
@@ -515,6 +564,80 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.NotNil(t, err)
 		// This should trigger the d.cipher.Decrypt error path
+	})
+
+	t.Run("read with nil block", func(t *testing.T) {
+		// First encrypt some data
+		var buf bytes.Buffer
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		encrypter.Write(testData)
+		encrypter.Close()
+
+		// Then decrypt with nil block
+		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		decrypter := NewStreamDecrypter(file, c).(*StreamDecrypter)
+		decrypter.block = nil // Set block to nil to test recovery path
+
+		readBuf := make([]byte, 100)
+		n, err := decrypter.Read(readBuf)
+		assert.Equal(t, len(testData), n)
+		assert.Nil(t, err)
+		assert.Equal(t, testData, readBuf[:n])
+	})
+
+	t.Run("read with nil block and bad key", func(t *testing.T) {
+		// Create data to read
+		file := mock.NewFile([]byte("some data"), "test.dat")
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		decrypter := NewStreamDecrypter(file, c).(*StreamDecrypter)
+		// Set block to nil and corrupt the key
+		decrypter.block = nil
+		decrypter.cipher.Key = nil // This will cause blowfish.NewCipher to fail
+
+		readBuf := make([]byte, 100)
+		n, err := decrypter.Read(readBuf)
+		assert.Equal(t, 0, n)
+		assert.NotNil(t, err)
+		assert.IsType(t, DecryptError{}, err)
+	})
+
+	t.Run("read multiple times until EOF", func(t *testing.T) {
+		// First encrypt some data
+		var buf bytes.Buffer
+		c := cipher.NewBlowfishCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStreamEncrypter(&buf, c)
+		encrypter.Write(testData)
+		encrypter.Close()
+
+		// Then decrypt by reading multiple times
+		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		decrypter := NewStreamDecrypter(file, c)
+
+		// First read - should return data
+		readBuf1 := make([]byte, 100)
+		n1, err1 := decrypter.Read(readBuf1)
+		assert.Equal(t, len(testData), n1)
+		assert.Nil(t, err1)
+		assert.Equal(t, testData, readBuf1[:n1])
+
+		// Second read - should return EOF since all data was consumed
+		readBuf2 := make([]byte, 100)
+		n2, err2 := decrypter.Read(readBuf2)
+		assert.Equal(t, 0, n2)
+		assert.Equal(t, io.EOF, err2)
 	})
 }
 

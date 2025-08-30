@@ -37,15 +37,29 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 		return
 	}
 	pubKey, err := e.keypair.ParsePublicKey()
+	if err != nil {
+		e.Error = KeyPairError{Err: err}
+		return nil, e.Error
+	}
+
 	if e.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		dst, err = rsa.EncryptPKCS1v15(rand.Reader, pubKey, src)
+		if err != nil {
+			e.Error = EncryptError{Err: err}
+			return nil, e.Error
+		}
 	}
 	if e.keypair.Format == keypair.PKCS8 {
 		// Use OAEP padding for PKCS8 format (more secure)
 		dst, err = rsa.EncryptOAEP(e.keypair.Hash.New(), rand.Reader, pubKey, src, nil)
+		if err != nil {
+			e.Error = EncryptError{Err: err}
+			return nil, e.Error
+		}
 	}
-	return
+
+	return dst, nil
 }
 
 type StdDecrypter struct {
@@ -79,19 +93,30 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 
 	// Parse the private key from PEM format
 	priKey, err := d.keypair.ParsePrivateKey()
+	if err != nil {
+		d.Error = KeyPairError{Err: err}
+		return nil, d.Error
+	}
+
 	// Decrypt using appropriate padding based on key format
 	if d.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		dst, err = rsa.DecryptPKCS1v15(rand.Reader, priKey, src)
+		if err != nil {
+			d.Error = DecryptError{Err: err}
+			return nil, d.Error
+		}
 	}
 	if d.keypair.Format == keypair.PKCS8 {
 		// Use OAEP padding for PKCS8 format
 		dst, err = rsa.DecryptOAEP(d.keypair.Hash.New(), rand.Reader, priKey, src, nil)
+		if err != nil {
+			d.Error = DecryptError{Err: err}
+			return nil, d.Error
+		}
 	}
-	if err != nil {
-		err = DecryptError{Err: err}
-	}
-	return
+
+	return dst, nil
 }
 
 type StreamEncrypter struct {
@@ -125,15 +150,11 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 		return
 	}
 
-	pubKey, err := e.keypair.ParsePublicKey()
-	var encrypted []byte
-	if e.keypair.Format == keypair.PKCS1 {
-		// Use PKCS1v15 padding for PKCS1 format
-		encrypted, err = rsa.EncryptPKCS1v15(rand.Reader, pubKey, p)
-	}
-	if e.keypair.Format == keypair.PKCS8 {
-		// Use OAEP padding for PKCS8 format (more secure)
-		encrypted, err = rsa.EncryptOAEP(e.keypair.Hash.New(), rand.Reader, pubKey, p, nil)
+	// For compatibility with existing stream method, encrypt immediately
+	// This maintains the expected behavior while still providing streaming benefits
+	encrypted, err := e.Encrypt(p)
+	if err != nil {
+		return 0, err
 	}
 
 	// Write encrypted data to the underlying writer
@@ -141,27 +162,69 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	if writeErr != nil {
 		return 0, writeErr
 	}
-	// Return the number of input bytes processed, not output bytes written
+
 	return len(p), nil
 }
 
 func (e *StreamEncrypter) Close() error {
+	if e.Error != nil {
+		return e.Error
+	}
+
+	// Close the underlying writer if it implements io.Closer
 	if closer, ok := e.writer.(io.Closer); ok {
 		return closer.Close()
 	}
+
 	return nil
 }
 
+func (e *StreamEncrypter) Encrypt(data []byte) (encrypted []byte, err error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
+
+	pubKey, err := e.keypair.ParsePublicKey()
+	if err != nil {
+		e.Error = KeyPairError{Err: err}
+		return nil, e.Error
+	}
+
+	if e.keypair.Format == keypair.PKCS1 {
+		// Use PKCS1v15 padding for PKCS1 format
+		encrypted, err = rsa.EncryptPKCS1v15(rand.Reader, pubKey, data)
+		if err != nil {
+			e.Error = EncryptError{Err: err}
+			return nil, e.Error
+		}
+	}
+	if e.keypair.Format == keypair.PKCS8 {
+		// Use OAEP padding for PKCS8 format (more secure)
+		encrypted, err = rsa.EncryptOAEP(e.keypair.Hash.New(), rand.Reader, pubKey, data, nil)
+		if err != nil {
+			e.Error = EncryptError{Err: err}
+			return nil, e.Error
+		}
+	}
+	return encrypted, nil
+}
+
 type StreamDecrypter struct {
-	reader  io.Reader // Underlying reader for encrypted input
-	keypair *keypair.RsaKeyPair
-	Error   error // Error field for storing decryption errors
+	reader    io.Reader           // Underlying reader for encrypted input
+	keypair   *keypair.RsaKeyPair // The key pair containing private key and format
+	buffer    []byte              // Buffer to accumulate encrypted data
+	decrypted []byte              // Buffer for decrypted data
+	pos       int                 // Current position in decrypted buffer
+	Error     error               // Error field for storing decryption errors
 }
 
 func NewStreamDecrypter(r io.Reader, kp *keypair.RsaKeyPair) io.Reader {
 	d := &StreamDecrypter{
-		reader:  r,
-		keypair: kp,
+		reader:    r,
+		keypair:   kp,
+		buffer:    make([]byte, 0),
+		decrypted: make([]byte, 0),
+		pos:       0,
 	}
 	if kp == nil {
 		d.Error = NilKeyPairError{}
@@ -180,36 +243,62 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 		return
 	}
 
-	// Read encrypted data from the underlying reader
-	// For RSA, we need to read the entire encrypted block
-	encrypted, err := io.ReadAll(d.reader)
-	if err != nil {
-		err = ReadError{Err: err}
-		return
+	// If we have decrypted data available, return it
+	if d.pos < len(d.decrypted) {
+		n = copy(p, d.decrypted[d.pos:])
+		d.pos += n
+		return n, nil
 	}
 
-	if len(encrypted) == 0 {
-		return 0, io.EOF
+	// If we've exhausted all decrypted data, try to read more
+	if d.pos >= len(d.decrypted) {
+		// Read encrypted data from the underlying reader
+		// For RSA, we need to read the entire encrypted block
+		encrypted, err := io.ReadAll(d.reader)
+		if err != nil {
+			d.Error = ReadError{Err: err}
+			return 0, d.Error
+		}
+
+		if len(encrypted) == 0 {
+			return 0, io.EOF
+		}
+
+		// Parse the private key
+		priKey, err := d.keypair.ParsePrivateKey()
+		if err != nil {
+			d.Error = KeyPairError{Err: err}
+			return 0, d.Error
+		}
+
+		// Decrypt using appropriate padding based on key format
+		if d.keypair.Format == keypair.PKCS1 {
+			// Use PKCS1v15 padding for PKCS1 format
+			d.decrypted, err = rsa.DecryptPKCS1v15(rand.Reader, priKey, encrypted)
+			if err != nil {
+				d.Error = DecryptError{Err: err}
+				return 0, d.Error
+			}
+		}
+		if d.keypair.Format == keypair.PKCS8 {
+			// Use OAEP padding for PKCS8 format
+			d.decrypted, err = rsa.DecryptOAEP(d.keypair.Hash.New(), rand.Reader, priKey, encrypted, nil)
+			if err != nil {
+				d.Error = DecryptError{Err: err}
+				return 0, d.Error
+			}
+		}
+
+		// Reset position and try to read again
+		d.pos = 0
+		if len(d.decrypted) > 0 {
+			n = copy(p, d.decrypted)
+			d.pos += n
+			return n, nil
+		}
 	}
 
-	// Parse the private key
-	priKey, err := d.keypair.ParsePrivateKey()
-	var decrypted []byte
-	if d.keypair.Format == keypair.PKCS1 {
-		// Use PKCS1v15 padding for PKCS1 format
-		decrypted, err = rsa.DecryptPKCS1v15(rand.Reader, priKey, encrypted)
-	}
-	if d.keypair.Format == keypair.PKCS8 {
-		// Use OAEP padding for PKCS8 format
-		decrypted, err = rsa.DecryptOAEP(d.keypair.Hash.New(), rand.Reader, priKey, encrypted, nil)
-	}
-	if err != nil {
-		return 0, DecryptError{Err: err}
-	}
-
-	// Copy decrypted data to the provided buffer
-	n = copy(p, decrypted)
-	return
+	return 0, io.EOF
 }
 
 type StdSigner struct {
@@ -244,6 +333,10 @@ func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
 
 	// Parse the private key from PEM format
 	priKey, err := s.keypair.ParsePrivateKey()
+	if err != nil {
+		s.Error = KeyPairError{Err: err}
+		return nil, s.Error
+	}
 
 	hasher := s.keypair.Hash.New()
 	hasher.Write(src)
@@ -253,13 +346,22 @@ func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
 	if s.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		sign, err = rsa.SignPKCS1v15(rand.Reader, priKey, s.keypair.Hash, hashed)
+		if err != nil {
+			s.Error = SignError{Err: err}
+			return nil, s.Error
+		}
 	}
 	if s.keypair.Format == keypair.PKCS8 {
 		// Use PSS padding for PKCS8 format (more secure)
 		sign, err = rsa.SignPSS(rand.Reader, priKey, s.keypair.Hash, hashed, nil)
+		if err != nil {
+			s.Error = SignError{Err: err}
+			return nil, s.Error
+		}
 	}
+
 	s.keypair.Sign = sign
-	return
+	return sign, nil
 }
 
 type StdVerifier struct {
@@ -292,6 +394,10 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	}
 
 	pubKey, err := v.keypair.ParsePublicKey()
+	if err != nil {
+		v.Error = KeyPairError{Err: err}
+		return false, v.Error
+	}
 
 	hasher := v.keypair.Hash.New()
 	hasher.Write(src)
@@ -301,18 +407,21 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	if v.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
 		err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, sign)
+		if err != nil {
+			v.Error = VerifyError{Err: err}
+			return false, v.Error
+		}
 	}
 	if v.keypair.Format == keypair.PKCS8 {
 		// Use PSS padding for PKCS8 format
 		err = rsa.VerifyPSS(pubKey, v.keypair.Hash, hashed, sign, nil)
+		if err != nil {
+			v.Error = VerifyError{Err: err}
+			return false, v.Error
+		}
 	}
 
-	if err != nil {
-		err = VerifyError{Err: err}
-	} else {
-		valid = true
-	}
-	return
+	return true, nil
 }
 
 type StreamSigner struct {
@@ -366,6 +475,9 @@ func (s *StreamSigner) Close() error {
 
 	// Generate signature for the hashed data
 	signature, err := s.Sign(hashed)
+	if err != nil {
+		return err
+	}
 
 	// Write signature to the underlying writer
 	_, err = s.writer.Write(signature)
@@ -385,20 +497,28 @@ func (s *StreamSigner) Sign(hashed []byte) (signature []byte, err error) {
 	// Parse the private key from PEM format
 	priKey, err := s.keypair.ParsePrivateKey()
 	if err != nil {
-		err = KeyPairError{Err: err}
-		return
+		s.Error = KeyPairError{Err: err}
+		return nil, s.Error
 	}
 
 	// Use PKCS1v15 padding for PKCS1 format
 	if s.keypair.Format == keypair.PKCS1 {
 		signature, err = rsa.SignPKCS1v15(rand.Reader, priKey, s.keypair.Hash, hashed)
+		if err != nil {
+			s.Error = SignError{Err: err}
+			return nil, s.Error
+		}
 	}
-	// Use PSS padding for PKCS8 format (more secure)
 	if s.keypair.Format == keypair.PKCS8 {
+		// Use PSS padding for PKCS8 format (more secure)
 		signature, err = rsa.SignPSS(rand.Reader, priKey, s.keypair.Hash, hashed, nil)
+		if err != nil {
+			s.Error = SignError{Err: err}
+			return nil, s.Error
+		}
 	}
 
-	return
+	return signature, nil
 }
 
 type StreamVerifier struct {
@@ -490,20 +610,26 @@ func (v *StreamVerifier) Verify(hashed, signature []byte) (valid bool, err error
 	// Parse the public key from PEM format
 	pubKey, err := v.keypair.ParsePublicKey()
 	if err != nil {
-		err = KeyPairError{Err: err}
-		return
+		v.Error = KeyPairError{Err: err}
+		return false, v.Error
 	}
 
 	// Use PKCS1v15 padding for PKCS1 format
 	if v.keypair.Format == keypair.PKCS1 {
 		err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, signature)
+		if err != nil {
+			v.Error = VerifyError{Err: err}
+			return false, v.Error
+		}
 	}
-	// Use PSS padding for PKCS8 format
 	if v.keypair.Format == keypair.PKCS8 {
+		// Use PSS padding for PKCS8 format
 		err = rsa.VerifyPSS(pubKey, v.keypair.Hash, hashed, signature, nil)
+		if err != nil {
+			v.Error = VerifyError{Err: err}
+			return false, v.Error
+		}
 	}
-	if err == nil {
-		valid = true
-	}
-	return
+
+	return true, nil
 }

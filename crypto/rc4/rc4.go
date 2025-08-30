@@ -2,14 +2,17 @@
 package rc4
 
 import (
+	stdCipher "crypto/cipher"
 	"crypto/rc4"
+	"fmt"
 	"io"
 )
 
 // StdEncrypter represents an RC4 encrypter
 type StdEncrypter struct {
-	key   []byte
-	Error error
+	key    []byte
+	cipher stdCipher.Stream // Pre-created cipher for reuse
+	Error  error
 }
 
 // NewStdEncrypter returns a new RC4 encrypter
@@ -17,6 +20,11 @@ func NewStdEncrypter(key []byte) *StdEncrypter {
 	e := &StdEncrypter{key: key}
 	if len(key) == 0 || len(key) > 256 {
 		e.Error = KeySizeError(len(key))
+		return e
+	}
+	cipher, err := rc4.NewCipher(key)
+	if err == nil {
+		e.cipher = cipher
 	}
 	return e
 }
@@ -30,18 +38,24 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	cipher, err := rc4.NewCipher(e.key)
-	if err == nil {
-		dst = make([]byte, len(src))
-		cipher.XORKeyStream(dst, src)
+	// Use pre-created cipher for better performance
+	if e.cipher == nil {
+		// Fallback: create cipher if not available
+		cipher, err := rc4.NewCipher(e.key)
+		if err == nil {
+			e.cipher = cipher
+		}
 	}
+	dst = make([]byte, len(src))
+	e.cipher.XORKeyStream(dst, src)
 	return
 }
 
 // StdDecrypter represents an RC4 decrypter
 type StdDecrypter struct {
-	key   []byte
-	Error error
+	key    []byte
+	cipher stdCipher.Stream // Pre-created cipher for reuse
+	Error  error
 }
 
 // NewStdDecrypter returns a new RC4 decrypter
@@ -49,6 +63,12 @@ func NewStdDecrypter(key []byte) *StdDecrypter {
 	d := &StdDecrypter{key: key}
 	if len(key) == 0 || len(key) > 256 {
 		d.Error = KeySizeError(len(key))
+		return d
+	}
+	// Pre-create cipher for better performance
+	cipher, err := rc4.NewCipher(key)
+	if err == nil {
+		d.cipher = cipher
 	}
 	return d
 }
@@ -63,18 +83,23 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	cipher, err := rc4.NewCipher(d.key)
-	if err == nil {
-		dst = make([]byte, len(src))
-		cipher.XORKeyStream(dst, src)
+	// Use pre-created cipher for better performance
+	if d.cipher == nil {
+		// Fallback: create cipher if not available
+		cipher, err := rc4.NewCipher(d.key)
+		if err == nil {
+			d.cipher = cipher
+		}
 	}
+	dst = make([]byte, len(src))
+	d.cipher.XORKeyStream(dst, src)
 	return
 }
 
 // StreamEncrypter implements io.WriteCloser interface for streaming RC4 encryption
 type StreamEncrypter struct {
 	writer io.Writer
-	cipher *rc4.Cipher
+	cipher stdCipher.Stream // Reused cipher stream for better performance
 	Error  error
 }
 
@@ -85,27 +110,31 @@ func NewStreamEncrypter(w io.Writer, key []byte) io.WriteCloser {
 		e.Error = KeySizeError(len(key))
 		return e
 	}
-	e.cipher, e.Error = rc4.NewCipher(key)
+	// Pre-create cipher for reuse
+	cipher, err := rc4.NewCipher(key)
+	if err == nil {
+		e.cipher = cipher
+	}
 	return e
 }
 
 // Write implements io.Writer interface
 func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	if e.Error != nil {
-		err = e.Error
-		return
+		return 0, e.Error
 	}
 	if e.cipher == nil {
-		return
+		return 0, WriteError{Err: fmt.Errorf("cipher not initialized")}
 	}
 
+	// For stream cipher, we can encrypt in-place but we need a copy for output
 	encrypted := make([]byte, len(p))
 	e.cipher.XORKeyStream(encrypted, p)
 	n, writeErr := e.writer.Write(encrypted)
 	if writeErr != nil {
-		err = WriteError{Err: writeErr}
+		return n, WriteError{Err: writeErr}
 	}
-	return n, err
+	return n, nil
 }
 
 // Close implements io.Closer interface
@@ -119,7 +148,7 @@ func (e *StreamEncrypter) Close() error {
 // StreamDecrypter implements io.Reader interface for streaming RC4 decryption
 type StreamDecrypter struct {
 	reader io.Reader
-	cipher *rc4.Cipher
+	cipher stdCipher.Stream // Reused cipher stream for better performance
 	Error  error
 }
 
@@ -130,25 +159,27 @@ func NewStreamDecrypter(r io.Reader, key []byte) io.Reader {
 		d.Error = KeySizeError(len(key))
 		return d
 	}
-	d.cipher, d.Error = rc4.NewCipher(key)
+	// Pre-create cipher for reuse
+	cipher, err := rc4.NewCipher(key)
+	if err == nil {
+		d.cipher = cipher
+	}
 	return d
 }
 
 // Read implements io.Reader interface
 func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	if d.Error != nil {
-		err = d.Error
-		return
+		return 0, d.Error
 	}
 	n, readErr := d.reader.Read(p)
 	if readErr != nil {
-		err = ReadError{Err: readErr}
-		return n, err
+		return n, ReadError{Err: readErr}
 	}
 	if n > 0 {
-		decrypted := make([]byte, n)
-		d.cipher.XORKeyStream(decrypted, p[:n])
-		copy(p, decrypted)
+		// RC4 is a stream cipher, we can decrypt in-place
+		// This avoids creating a temporary buffer, improving performance
+		d.cipher.XORKeyStream(p[:n], p[:n])
 	}
-	return n, err
+	return n, nil
 }

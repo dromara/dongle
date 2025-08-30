@@ -557,3 +557,145 @@ func TestStreamDecrypter_Read_ErrorCases(t *testing.T) {
 		assert.Equal(t, 8, n)
 	})
 }
+
+// Test cases to achieve 100% coverage
+func TestCoverageCompleteness(t *testing.T) {
+	t.Run("encrypt with nil block and empty data", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		encrypter := NewStdEncrypter(c)
+		// Set block to nil to test fallback
+		encrypter.block = nil
+
+		result, err := encrypter.Encrypt([]byte{})
+		assert.Nil(t, err)
+		assert.Equal(t, 0, len(result))
+	})
+
+	t.Run("decrypt with nil block and empty data", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		decrypter := NewStdDecrypter(c)
+		// Set block to nil to test fallback
+		decrypter.block = nil
+
+		result, err := decrypter.Decrypt([]byte{})
+		assert.Nil(t, err)
+		assert.Equal(t, 0, len(result))
+	})
+
+	t.Run("stream encrypter close with buffered data", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		writer := &bytes.Buffer{}
+		streamEncrypter := NewStreamEncrypter(writer, c)
+		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
+
+		// Manually add data to buffer to simulate incomplete block
+		streamEncrypter.(*StreamEncrypter).buffer = []byte("123")
+
+		// Close should return error due to incomplete block
+		err := streamEncrypter.Close()
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "invalid data size 3")
+	})
+
+	t.Run("stream encrypter close with error", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		writer := &bytes.Buffer{}
+		streamEncrypter := NewStreamEncrypter(writer, c)
+
+		// Set an existing error
+		streamEncrypter.(*StreamEncrypter).Error = assert.AnError
+
+		// Close should return the existing error
+		err := streamEncrypter.Close()
+		assert.Equal(t, assert.AnError, err)
+	})
+
+	t.Run("stream decrypter with nil block", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		// First encrypt some data normally
+		encrypter := NewStdEncrypter(c)
+		encrypted, err := encrypter.Encrypt(testdata8Tea)
+		assert.Nil(t, err)
+
+		// Create decrypter and set block to nil to test fallback
+		file := mock.NewFile(encrypted, "test.dat")
+		streamDecrypter := NewStreamDecrypter(file, c)
+		streamDecrypter.(*StreamDecrypter).block = nil
+
+		// Read should work using fallback cipher creation
+		buffer := make([]byte, 8)
+		n, err := streamDecrypter.Read(buffer)
+		assert.Nil(t, err)
+		assert.Equal(t, 8, n)
+		assert.Equal(t, testdata8Tea, buffer)
+	})
+
+	t.Run("stream encrypter write with nil block fallback", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		writer := &bytes.Buffer{}
+		streamEncrypter := NewStreamEncrypter(writer, c)
+
+		// Set block to nil to test fallback path
+		streamEncrypter.(*StreamEncrypter).block = nil
+
+		// Write should work using fallback cipher creation
+		n, err := streamEncrypter.Write(testdata8Tea)
+		assert.Nil(t, err)
+		assert.Equal(t, 8, n)
+		assert.NotNil(t, streamEncrypter.(*StreamEncrypter).block)
+	})
+
+	t.Run("stream encrypter buffering behavior", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		writer := &bytes.Buffer{}
+		streamEncrypter := NewStreamEncrypter(writer, c)
+
+		// Add some partial data to buffer first
+		streamEncrypter.(*StreamEncrypter).buffer = []byte("1234")
+
+		// Write more data that will combine with buffer to form complete blocks
+		n, err := streamEncrypter.Write([]byte("5678ABCD"))
+		assert.Nil(t, err)
+		assert.Equal(t, 8, n)                                              // Should return length of new data written
+		assert.Equal(t, 4, len(streamEncrypter.(*StreamEncrypter).buffer)) // Remaining bytes
+	})
+
+	t.Run("stream decrypter multiple reads until EOF", func(t *testing.T) {
+		c := cipher.NewTeaCipher()
+		c.SetKey(key16Tea)
+
+		// First encrypt some data
+		encrypter := NewStdEncrypter(c)
+		encrypted, err := encrypter.Encrypt(testdata8Tea)
+		assert.Nil(t, err)
+
+		// Create decrypter
+		file := mock.NewFile(encrypted, "test.dat")
+		streamDecrypter := NewStreamDecrypter(file, c)
+
+		// Read once to get all data
+		buffer := make([]byte, 8)
+		n, err := streamDecrypter.Read(buffer)
+		assert.Nil(t, err)
+		assert.Equal(t, 8, n)
+
+		// Read again should return EOF
+		n, err = streamDecrypter.Read(buffer)
+		assert.Equal(t, io.EOF, err)
+		assert.Equal(t, 0, n)
+	})
+}
