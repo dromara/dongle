@@ -188,7 +188,7 @@ func TestEncrypter_By3Des(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 		encrypter := NewEncrypter().FromBytes([]byte{}).By3Des(c)
 		assert.Nil(t, encrypter.Error)
-		assert.NotNil(t, encrypter.dst)
+		assert.Empty(t, encrypter.dst)
 	})
 
 	t.Run("encryption with nil data", func(t *testing.T) {
@@ -198,7 +198,7 @@ func TestEncrypter_By3Des(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 		encrypter := NewEncrypter().FromBytes(nil).By3Des(c)
 		assert.Nil(t, encrypter.Error)
-		assert.NotNil(t, encrypter.dst)
+		assert.Empty(t, encrypter.dst)
 	})
 
 	t.Run("encryption with missing IV for CBC", func(t *testing.T) {

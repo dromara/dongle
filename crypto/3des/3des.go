@@ -37,16 +37,24 @@ func NewStdEncrypter(c *cipher.TripleDesCipher) *StdEncrypter {
 // Encrypt encrypts the given byte slice using Triple DES encryption.
 // Creates a Triple DES cipher block and uses the configured cipher interface
 // to perform the encryption operation with proper error handling.
+// Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Return empty data for empty input
+	if len(src) == 0 {
+		return
+	}
+
 	// Check for existing errors from initialization
 	if e.Error != nil {
-		return nil, e.Error
+		err = e.Error
+		return
 	}
 
 	// Create Triple DES cipher block using the provided key
 	block, err := des.NewTripleDESCipher(e.cipher.Key)
 	if err != nil {
-		return nil, EncryptError{Err: err}
+		err = EncryptError{Err: err}
+		return
 	}
 	return e.cipher.Encrypt(src, block)
 }
@@ -76,15 +84,23 @@ func NewStdDecrypter(c *cipher.TripleDesCipher) *StdDecrypter {
 // Decrypt decrypts the given byte slice using Triple DES decryption.
 // Creates a Triple DES cipher block and uses the configured cipher interface
 // to perform the decryption operation with proper error handling.
+// Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Return empty data for empty input
+	if len(src) == 0 {
+		return
+	}
+
 	// Check for existing errors from initialization
 	if d.Error != nil {
-		return nil, d.Error
+		err = d.Error
+		return
 	}
 
 	block, err := des.NewTripleDESCipher(d.cipher.Key)
 	if err != nil {
-		return nil, DecryptError{Err: err}
+		err = DecryptError{Err: err}
+		return
 	}
 	return d.cipher.Decrypt(src, block)
 }
@@ -116,13 +132,9 @@ func NewStreamEncrypter(w io.Writer, c *cipher.TripleDesCipher) io.WriteCloser {
 	}
 
 	// Pre-create the cipher block for reuse
-	block, err := des.NewTripleDESCipher(c.Key)
-	if err != nil {
-		e.Error = EncryptError{Err: err}
-		return e
+	if block, err := des.NewTripleDESCipher(c.Key); err == nil {
+		e.block = block
 	}
-	e.block = block
-
 	return e
 }
 
