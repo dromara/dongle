@@ -131,5 +131,9 @@ func (d *Decrypter) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
 		}
 	}()
 	// Read all decrypted data
-	return io.ReadAll(pr)
+	result, err := io.ReadAll(pr)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
