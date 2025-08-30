@@ -66,14 +66,6 @@ func TestStdEncoder_Encode(t *testing.T) {
 		assert.Nil(t, encoder.Error)
 	})
 
-	t.Run("encode with space error", func(t *testing.T) {
-		encoder := NewStdEncoder()
-		result := encoder.Encode([]byte("hello world"))
-		assert.Nil(t, result)
-		assert.NotNil(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "input cannot contain spaces")
-	})
-
 	t.Run("encode large data", func(t *testing.T) {
 		encoder := NewStdEncoder()
 		largeData := strings.Repeat("hello", 100)
@@ -91,17 +83,19 @@ func TestStdEncoder_Encode(t *testing.T) {
 		encoder := NewStdEncoder()
 		original := []byte("hello@world")
 		encoded := encoder.Encode(original)
-		// Should encode known characters and skip unknown ones
-		assert.Equal(t, []byte(".... . .-.. .-.. --- .-- --- .-. .-.. -.."), encoded)
+		// Should encode all known characters including @
+		assert.Equal(t, []byte(".... . .-.. .-.. --- .--.-. .-- --- .-. .-.. -.."), encoded)
 		assert.Nil(t, encoder.Error)
 	})
 
-	t.Run("encode with all unknown characters", func(t *testing.T) {
+	t.Run("encode with extended characters", func(t *testing.T) {
 		encoder := NewStdEncoder()
 		original := []byte("@#$%^&*()")
 		encoded := encoder.Encode(original)
-		// Should return empty result when all characters are unknown
-		assert.Equal(t, []byte{}, encoded)
+		// Should encode all supported extended characters
+		expected := ".--.-. ..-..- ...-..- ..---. .-.--.-"
+		expected += " .-... .-..- -.--. -.--.-"
+		assert.Equal(t, []byte(expected), encoded)
 		assert.Nil(t, encoder.Error)
 	})
 
@@ -110,6 +104,15 @@ func TestStdEncoder_Encode(t *testing.T) {
 		result := encoder.Encode([]byte("hello"))
 		assert.Nil(t, result)
 		assert.Equal(t, "test error", encoder.Error.Error())
+	})
+
+	t.Run("encode with unsupported characters", func(t *testing.T) {
+		encoder := NewStdEncoder()
+		original := []byte("hello测试") // Contains unsupported Chinese characters
+		encoded := encoder.Encode(original)
+		assert.Nil(t, encoded)
+		assert.NotNil(t, encoder.Error)
+		assert.IsType(t, InvalidInputError{}, encoder.Error)
 	})
 
 	t.Run("encode with punctuation marks", func(t *testing.T) {
@@ -177,7 +180,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 		encoded = []byte("-.-.-- ..--..")
 		decoded, err = decoder.Decode(encoded)
 		assert.Nil(t, err)
-		assert.Equal(t, []byte("!?"), decoded)
+		assert.Equal(t, []byte("!?"), decoded) // ? is the character mapped to ..--.. in our alphabet
 
 		// Test mixed
 		encoded = []byte(".- .---- -.-.--")
@@ -217,18 +220,20 @@ func TestStdDecoder_Decode(t *testing.T) {
 		decoder := NewStdDecoder()
 		encoded := []byte(".... . .-.. .-.. --- INVALID .-- --- .-. .-.. -..")
 		decoded, err := decoder.Decode(encoded)
-		assert.NotNil(t, err)
+		// Should return error for invalid morse code
+		assert.Error(t, err)
 		assert.Nil(t, decoded)
-		assert.Contains(t, err.Error(), "unknown character")
+		assert.IsType(t, InvalidCharacterError{}, err)
 	})
 
 	t.Run("decode with invalid morse code", func(t *testing.T) {
 		decoder := NewStdDecoder()
 		encoded := []byte(".... . .-.. .-.. --- .-- --- .-. .-.. -.. INVALID")
 		decoded, err := decoder.Decode(encoded)
-		assert.NotNil(t, err)
+		// Should return error for invalid morse code
+		assert.Error(t, err)
 		assert.Nil(t, decoded)
-		assert.Contains(t, err.Error(), "unknown character")
+		assert.IsType(t, InvalidCharacterError{}, err)
 	})
 
 	t.Run("decode with existing error", func(t *testing.T) {
@@ -321,17 +326,17 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, "write error", err.Error())
 	})
 
-	t.Run("write with encoding error", func(t *testing.T) {
+	t.Run("write with encoding spaces", func(t *testing.T) {
 		var buf bytes.Buffer
 		encoder := NewStreamEncoder(&buf)
 
-		// Write data with spaces to trigger encoding error
+		// Write data with spaces - should now be supported
 		data := []byte("hello world") // contains space
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 11, n)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "input cannot contain spaces")
+		assert.Nil(t, err) // No error expected
+		assert.Equal(t, ".... . .-.. .-.. --- / .-- --- .-. .-.. -..", buf.String())
 	})
 
 	t.Run("write with encoder error", func(t *testing.T) {
@@ -351,17 +356,14 @@ func TestStreamEncoder_Write(t *testing.T) {
 		var buf bytes.Buffer
 		encoder := NewStreamEncoder(&buf)
 
-		// Write data with unknown character to test buffering logic
-		n, err := encoder.Write([]byte("ab@"))
-		assert.Equal(t, 3, n)
-		assert.Nil(t, err)
+		// Write data with Chinese character (unsupported) to test error handling
+		n, err := encoder.Write([]byte("ab测"))
+		assert.Equal(t, 5, n) // 5 bytes for "ab测" (Chinese is 3 bytes UTF-8)
+		assert.Error(t, err)
+		assert.IsType(t, InvalidInputError{}, err)
 
-		// Should encode "ab" and buffer "@"
-		assert.Equal(t, ".- -...", buf.String())
-
-		// Check that "@" is buffered
-		streamEncoder := encoder.(*StreamEncoder)
-		assert.Equal(t, []byte("@"), streamEncoder.buffer)
+		// Should have no output due to error
+		assert.Equal(t, "", buf.String())
 	})
 }
 
@@ -409,17 +411,17 @@ func TestStreamEncoder_Close(t *testing.T) {
 		assert.Equal(t, ".- -... -.-.", buf.String())
 	})
 
-	t.Run("close with buffered data and space error", func(t *testing.T) {
+	t.Run("close with buffered data and spaces", func(t *testing.T) {
 		var buf bytes.Buffer
 		encoder := NewStreamEncoder(&buf)
 
-		// Manually set buffer with space character
+		// Manually set buffer with space character - should now be supported
 		streamEncoder := encoder.(*StreamEncoder)
 		streamEncoder.buffer = []byte("a b")
 
 		err := encoder.Close()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "input cannot contain spaces")
+		assert.Nil(t, err)                         // No error expected
+		assert.Equal(t, ".- / -...", buf.String()) // Should encode space as /
 	})
 
 	t.Run("close with buffered data and write error", func(t *testing.T) {
@@ -522,12 +524,13 @@ func TestStreamDecoder_Read(t *testing.T) {
 		reader := bytes.NewReader(invalidData)
 		decoder := NewStreamDecoder(reader)
 
-		buffer := make([]byte, 10)
+		buffer := make([]byte, 20)
 		n, err := decoder.Read(buffer)
 
+		// Should return error for invalid morse codes
 		assert.Equal(t, 0, n)
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "unknown character")
+		assert.Error(t, err)
+		assert.IsType(t, InvalidCharacterError{}, err)
 	})
 
 	t.Run("read with reader error", func(t *testing.T) {
@@ -559,27 +562,28 @@ func TestStdError(t *testing.T) {
 		decoder := NewStdDecoder()
 		encoded := []byte(".... . .-.. .-.. --- INVALID")
 		decoded, err := decoder.Decode(encoded)
-		assert.NotNil(t, err)
+		// Should return error for invalid morse code
+		assert.Error(t, err)
 		assert.Nil(t, decoded)
-		assert.Contains(t, err.Error(), "unknown character INVALID")
+		assert.IsType(t, InvalidCharacterError{}, err)
 	})
 
-	t.Run("encoder with space error", func(t *testing.T) {
+	t.Run("encoder with space support", func(t *testing.T) {
 		encoder := NewStdEncoder()
 		result := encoder.Encode([]byte("hello world"))
-		assert.Nil(t, result)
-		assert.NotNil(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "input cannot contain spaces")
+		// Should now support spaces
+		assert.Equal(t, []byte(".... . .-.. .-.. --- / .-- --- .-. .-.. -.."), result)
+		assert.Nil(t, encoder.Error)
 	})
 
 	t.Run("invalid character error message", func(t *testing.T) {
 		err := InvalidCharacterError{Char: "INVALID"}
-		assert.Equal(t, "coding/morse: unknown character INVALID", err.Error())
+		assert.Equal(t, "coding/morse: unsupported character INVALID", err.Error())
 	})
 
 	t.Run("invalid input error message", func(t *testing.T) {
 		err := InvalidInputError{}
-		assert.Equal(t, "coding/morse: input cannot contain spaces", err.Error())
+		assert.Equal(t, "coding/morse: invalid input", err.Error())
 	})
 }
 
@@ -616,12 +620,13 @@ func TestStreamError(t *testing.T) {
 		reader := bytes.NewReader(invalidData)
 		decoder := NewStreamDecoder(reader)
 
-		buffer := make([]byte, 10)
+		buffer := make([]byte, 20)
 		n, err := decoder.Read(buffer)
 
+		// Should return error for invalid morse codes
 		assert.Equal(t, 0, n)
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "unknown character")
+		assert.Error(t, err)
+		assert.IsType(t, InvalidCharacterError{}, err)
 	})
 
 	t.Run("stream encoder with existing error", func(t *testing.T) {
@@ -650,5 +655,63 @@ func TestStreamError(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.NotNil(t, err)
 		assert.Equal(t, "existing error", err.Error())
+	})
+}
+
+func TestMissingCoverage(t *testing.T) {
+	t.Run("encode with unsupported character", func(t *testing.T) {
+		encoder := NewStdEncoder()
+		original := []byte("hello测试") // Contains unsupported Chinese characters
+		encoded := encoder.Encode(original)
+		assert.Nil(t, encoded)
+		assert.NotNil(t, encoder.Error)
+		assert.IsType(t, InvalidInputError{}, encoder.Error)
+	})
+
+	t.Run("decode with empty parts", func(t *testing.T) {
+		decoder := NewStdDecoder()
+		// Test with multiple spaces that create empty parts
+		encoded := []byte(".-  -...  -.-.")
+		decoded, err := decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("abc"), decoded)
+	})
+
+	t.Run("decode with tilde marker", func(t *testing.T) {
+		decoder := NewStdDecoder()
+		// Test with ~ character which is handled as unknown character marker
+		encoded := []byte(".- ~ -...")
+		decoded, err := decoder.Decode(encoded)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("a?b"), decoded)
+	})
+
+	t.Run("close with buffered invalid character", func(t *testing.T) {
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf)
+
+		// Manually set buffer with unsupported character
+		streamEncoder := encoder.(*StreamEncoder)
+		streamEncoder.buffer = []byte{0xFF} // Invalid UTF-8 byte
+
+		err := encoder.Close()
+		assert.Error(t, err)
+		assert.IsType(t, InvalidInputError{}, err)
+	})
+
+	t.Run("read with decoder error in decode", func(t *testing.T) {
+		reader := bytes.NewReader([]byte(".... . .-.. .-.. ---"))
+		decoder := NewStreamDecoder(reader)
+
+		// Set decoder error before reading
+		streamDecoder := decoder.(*StreamDecoder)
+		streamDecoder.decoder.Error = errors.New("decode error")
+
+		buffer := make([]byte, 10)
+		n, err := streamDecoder.Read(buffer)
+
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Equal(t, "decode error", err.Error())
 	})
 }

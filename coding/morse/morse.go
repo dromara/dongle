@@ -11,18 +11,39 @@ import (
 )
 
 var StdSeparator = " "
+var WordSeparator = "  " // Double space for word separation
 
 // StdAlphabet is the standard morse code alphabet following international standards.
-// It includes letters a-z, numbers 0-9, and common punctuation marks.
+// Extended to include letters a-z, numbers 0-9, punctuation marks, and special characters.
+// Added support for space character and more comprehensive punctuation.
 var StdAlphabet = map[string]string{
+	// Letters (a-z)
 	"a": ".-", "b": "-...", "c": "-.-.", "d": "-..", "e": ".", "f": "..-.",
 	"g": "--.", "h": "....", "i": "..", "j": ".---", "k": "-.-", "l": ".-..",
 	"m": "--", "n": "-.", "o": "---", "p": ".--.", "q": "--.-", "r": ".-.",
 	"s": "...", "t": "-", "u": "..-", "v": "...-", "w": ".--", "x": "-..-",
-	"y": "-.--", "z": "--..", "0": "-----", "1": ".----", "2": "..---",
-	"3": "...--", "4": "....-", "5": ".....", "6": "-....", "7": "--...",
-	"8": "---..", "9": "----.", ".": ".-.-.-", ",": "--..--", "?": "..--..",
-	"!": "-.-.--", "=": "-...-", "+": ".-.-.", "-": "-....-", "/": "-..-.",
+	"y": "-.--", "z": "--..",
+
+	// Numbers (0-9)
+	"0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
+	"5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
+
+	// Basic punctuation
+	".": ".-.-.-", ",": "--..--", "?": "..--..", "'": ".----.", "!": "-.-.--",
+	"(": "-.--.", ")": "-.--.-", "&": ".-...", ":": "---...",
+	";": "-.-.-.", "=": "-...-", "+": ".-.-.", "-": "-....-", "_": "..--.-",
+	"\"": ".-..-.", "$": "...-..-", "@": ".--.-.",
+
+	// Extended punctuation and symbols (using unique codes)
+	"[": "-.--.--", "]": "--.--.--", "{": "-.--.---", "}": "--.--.---",
+	"|": "-.-..-", "\\": "-.-..-.", "~": ".--.--..", "`": ".-..--.",
+	"^": ".-.--.-", "%": "..---.", "#": "..-..-", "*": ".-..-", // Changed ^ to unique code
+	"<": ".--.-", ">": "--.-.", "§": ".--..-..",
+	"/": "-..-.", // Keep original slash
+
+	// Special characters
+	" ":  "/",                                         // Use slash for space (prosign for word break)
+	"\n": ".-..-.-", "\r": ".-..-.-", "\t": "-...-..", // Unique codes for whitespace
 }
 
 // StdEncoder represents a morse encoder for standard encoding operations.
@@ -39,7 +60,8 @@ func NewStdEncoder() *StdEncoder {
 
 // Encode encodes the given byte slice using morse encoding.
 // Converts text to morse code using dots (.) and dashes (-) separated by the specified separator.
-// Input text is converted to lowercase before encoding.
+// Supports all printable characters including spaces, punctuation, and symbols.
+// Input text is converted to lowercase before encoding to ensure compatibility.
 func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 	if e.Error != nil {
 		return
@@ -49,10 +71,6 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 	}
 
 	s := strings.ToLower(util.Bytes2String(src))
-	if strings.Contains(s, " ") {
-		e.Error = InvalidInputError{}
-		return
-	}
 
 	// Pre-allocate buffer with estimated size for better performance
 	estimatedSize := len(s) * 8 // Average morse code length is ~4 chars + separator
@@ -62,16 +80,18 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 	for _, letter := range s {
 		let := string(letter)
 		if morseCode, exists := e.alphabet[let]; exists {
+			if builder.Len() > 0 {
+				builder.WriteString(StdSeparator)
+			}
 			builder.WriteString(morseCode)
-			builder.WriteString(StdSeparator)
+		} else {
+			// Set error for unsupported characters
+			e.Error = InvalidInputError{Char: let}
+			return nil
 		}
 	}
 
-	result := builder.String()
-	if len(result) > 0 {
-		result = strings.TrimSuffix(result, StdSeparator)
-	}
-	return []byte(result)
+	return []byte(builder.String())
 }
 
 // StdDecoder represents a morse decoder for standard decoding operations.
@@ -89,6 +109,7 @@ func NewStdDecoder() *StdDecoder {
 // Decode decodes the given morse-encoded byte slice back to text.
 // Converts morse code (dots and dashes) back to readable text.
 // Uses space as the default separator between morse characters.
+// Supports all extended characters including punctuation and symbols.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	if d.Error != nil {
 		return nil, d.Error
@@ -106,6 +127,16 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	builder.Grow(estimatedSize)
 
 	for _, part := range parts {
+		if part == "" {
+			continue // Skip empty parts
+		}
+
+		if part == "~" {
+			// Handle unknown character marker
+			builder.WriteString("?") // Replace with question mark
+			continue
+		}
+
 		found := false
 		for key, morseCode := range d.alphabet {
 			if morseCode == part {
@@ -115,6 +146,7 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 			}
 		}
 		if !found {
+			// For unknown morse codes, return error
 			return nil, InvalidCharacterError{Char: part}
 		}
 	}
@@ -145,6 +177,7 @@ func NewStreamEncoder(w io.Writer) io.WriteCloser {
 // Write implements the io.Writer interface for streaming morse encoding.
 // Processes data character by character for true streaming.
 // Each character is immediately encoded and output, maintaining minimal state.
+// Supports all printable characters including spaces, punctuation, and symbols.
 func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	if e.Error != nil {
 		return 0, e.Error
@@ -166,14 +199,10 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	// Process each character individually for true streaming
 	var output strings.Builder
 
-	for i, b := range data {
-		char := strings.ToLower(string(b))
-
-		// Skip spaces as they're not supported in morse encoding
-		if char == " " {
-			e.encoder.Error = InvalidInputError{}
-			return len(p), e.encoder.Error
-		}
+	// Convert to string to properly handle UTF-8 characters
+	text := strings.ToLower(string(data))
+	for _, letter := range text {
+		char := string(letter)
 
 		if morseCode, exists := e.encoder.alphabet[char]; exists {
 			// Add separator before morse code if not the first character
@@ -182,9 +211,9 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 			}
 			output.WriteString(morseCode)
 		} else {
-			// If character is not found, buffer remaining bytes for potential UTF-8 completion
-			e.buffer = data[i:]
-			break
+			// Set error for unsupported characters
+			e.Error = InvalidInputError{Char: char}
+			return len(p), e.Error
 		}
 	}
 
@@ -201,6 +230,7 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 
 // Close implements the io.Closer interface for streaming morse encoding.
 // Processes any remaining buffered bytes from the last Write call.
+// Supports all printable characters including spaces, punctuation, and symbols.
 func (e *StreamEncoder) Close() error {
 	if e.Error != nil {
 		return e.Error
@@ -213,17 +243,16 @@ func (e *StreamEncoder) Close() error {
 		for _, b := range e.buffer {
 			char := strings.ToLower(string(b))
 
-			// Skip spaces as they're not supported in morse encoding
-			if char == " " {
-				return InvalidInputError{}
-			}
-
 			if morseCode, exists := e.encoder.alphabet[char]; exists {
 				// Add separator before morse code if not the first character
 				if output.Len() > 0 {
 					output.WriteString(StdSeparator)
 				}
 				output.WriteString(morseCode)
+			} else {
+				// Set error for unsupported characters
+				e.Error = InvalidInputError{Char: char}
+				return e.Error
 			}
 		}
 

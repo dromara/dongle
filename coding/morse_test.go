@@ -72,12 +72,6 @@ func TestEncoder_ByMorse(t *testing.T) {
 		assert.Equal(t, errors.New("existing error"), result.Error)
 	})
 
-	t.Run("encode with space error", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello world").ByMorse()
-		assert.Error(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "cannot contain spaces")
-	})
-
 	t.Run("encode numbers", func(t *testing.T) {
 		encoder := NewEncoder().FromString("123").ByMorse()
 		assert.Nil(t, encoder.Error)
@@ -97,13 +91,6 @@ func TestEncoder_ByMorse(t *testing.T) {
 		assert.Nil(t, encoder.Error)
 		// Morse encoding of "a1!" = ".- .---- -.-.--"
 		assert.Equal(t, []byte(".- .---- -.-.--"), encoder.dst)
-	})
-
-	t.Run("encode with unknown characters", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello@world").ByMorse()
-		assert.Nil(t, encoder.Error)
-		// Should encode known characters and skip unknown ones
-		assert.Equal(t, []byte(".... . .-.. .-.. --- .-- --- .-. .-.. -.."), encoder.dst)
 	})
 
 	t.Run("encode large data", func(t *testing.T) {
@@ -210,7 +197,7 @@ func TestDecoder_ByMorse(t *testing.T) {
 	t.Run("decode invalid morse", func(t *testing.T) {
 		decoder := NewDecoder().FromString("invalid morse").ByMorse()
 		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "unknown character")
+		assert.Contains(t, decoder.Error.Error(), "unsupported character")
 	})
 
 	t.Run("decode numbers", func(t *testing.T) {
@@ -271,13 +258,13 @@ func TestDecoder_ByMorse(t *testing.T) {
 	t.Run("decode with unknown character", func(t *testing.T) {
 		decoder := NewDecoder().FromString(".... invalid .-..").ByMorse()
 		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "unknown character")
+		assert.Contains(t, decoder.Error.Error(), "unsupported character")
 	})
 
 	t.Run("decode with invalid morse code", func(t *testing.T) {
 		decoder := NewDecoder().FromString(".... . .-.. .-.. --- invalid").ByMorse()
 		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "unknown character")
+		assert.Contains(t, decoder.Error.Error(), "unsupported character")
 	})
 
 }
@@ -303,8 +290,9 @@ func TestError_ByMorse(t *testing.T) {
 
 	t.Run("encoder space error", func(t *testing.T) {
 		encoder := NewEncoder().FromString("hello world").ByMorse()
-		assert.Error(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "cannot contain spaces")
+		assert.Nil(t, encoder.Error)
+		// Spaces are now supported in morse encoding, encoded as "/"
+		assert.Contains(t, string(encoder.dst), "/")
 	})
 
 	t.Run("decoder invalid character", func(t *testing.T) {
@@ -312,7 +300,7 @@ func TestError_ByMorse(t *testing.T) {
 		invalidData := []byte(".... invalid .-..") // 'invalid' is not a valid morse code
 		decoder := NewDecoder().FromBytes(invalidData).ByMorse()
 		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "unknown character")
+		assert.Contains(t, decoder.Error.Error(), "unsupported character")
 	})
 
 	t.Run("decoder with error file", func(t *testing.T) {
@@ -351,5 +339,43 @@ func TestError_ByMorse(t *testing.T) {
 		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, []byte(original), decoder.dst)
+	})
+
+	t.Run("encode with unsupported character", func(t *testing.T) {
+		encoder := NewEncoder().FromString("hello\u00FF").ByMorse()
+		assert.Error(t, encoder.Error)
+		assert.Contains(t, encoder.Error.Error(), "invalid input")
+	})
+
+	t.Run("encode with encoder error propagation", func(t *testing.T) {
+		encoder := NewEncoder().FromString("hello").ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		// Simulate encoder error by encoding unsupported character
+		encoder2 := NewEncoder().FromString("hello\u00FF").ByMorse()
+		assert.Error(t, encoder2.Error)
+		assert.Contains(t, encoder2.Error.Error(), "invalid input")
+	})
+
+	t.Run("streaming encoder with valid data", func(t *testing.T) {
+		encoder := NewEncoder()
+		encoder.reader = strings.NewReader("hello")
+		result := encoder.ByMorse()
+		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.dst)
+	})
+
+	t.Run("streaming decoder with valid data", func(t *testing.T) {
+		// First encode some data
+		encoder := NewEncoder().FromString("hello").ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		// Create a reader with encoded data
+		reader := strings.NewReader(string(encoder.dst))
+		decoder := NewDecoder()
+		decoder.reader = reader
+		result := decoder.ByMorse()
+		assert.Nil(t, result.Error)
+		assert.Equal(t, []byte("hello"), result.dst)
 	})
 }
