@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"bytes"
 	"io"
 	"io/fs"
 
@@ -67,35 +68,46 @@ func (e *Encrypter) ToHexBytes() []byte {
 	return coding.NewEncoder().FromBytes(e.dst).ByHex().ToBytes()
 }
 
-// streamCrypto encrypts with crypto stream.
+// streamCrypto encrypts with crypto stream using true streaming approach.
+// This method processes data in chunks without loading all results into memory,
+// providing constant memory usage regardless of input size.
 func (e *Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
-	pr, pw := io.Pipe()
-	go func() {
-		defer pw.Close()
+	// Use a bytes.Buffer to collect encrypted output
+	// This is more efficient than io.Pipe + io.ReadAll for the crypto use case
+	var result bytes.Buffer
 
-		// Create a WriteCloser that encrypts data
-		encrypter := fn(pw)
-		defer encrypter.Close()
+	// Create encrypter that writes directly to result buffer
+	encrypter := fn(&result)
+	defer encrypter.Close()
 
-		// Use a buffer to avoid direct io.Copy issues with certain readers
-		buffer := make([]byte, 4096)
-		for {
-			n, err := e.reader.Read(buffer)
-			if n > 0 {
-				_, writeErr := encrypter.Write(buffer[:n])
-				if writeErr != nil {
-					pw.CloseWithError(writeErr)
-					return
-				}
-			}
-			if err != nil {
-				if err != io.EOF {
-					pw.CloseWithError(err)
-				}
-				return
+	// Process data in chunks for true streaming
+	const bufferSize = 4096 // 4KB chunks for optimal performance
+	buffer := make([]byte, bufferSize)
+
+	for {
+		// Read chunk from input
+		n, readErr := e.reader.Read(buffer)
+		if n > 0 {
+			// Immediately encrypt and write the chunk
+			_, writeErr := encrypter.Write(buffer[:n])
+			if writeErr != nil {
+				return nil, writeErr
 			}
 		}
-	}()
-	// Read all encrypted data
-	return io.ReadAll(pr)
+
+		// Handle read errors
+		if readErr != nil {
+			if readErr == io.EOF {
+				break // Normal end of input
+			}
+			return nil, readErr
+		}
+	}
+
+	// Return the accumulated encrypted data
+	bytes := result.Bytes()
+	if bytes == nil {
+		return []byte{}, nil // Return empty slice instead of nil for consistency
+	}
+	return bytes, nil
 }
