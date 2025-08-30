@@ -68,6 +68,18 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		assert.NotEqual(t, testData, result)
 	})
 
+	t.Run("encrypt empty data", func(t *testing.T) {
+		c := cipher.NewDesCipher(cipher.CBC)
+		c.SetKey(key8)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStdEncrypter(c)
+		result, err := encrypter.Encrypt([]byte{})
+		assert.Empty(t, result)
+		assert.Nil(t, err)
+	})
+
 	t.Run("encryption with invalid key", func(t *testing.T) {
 		c := cipher.NewDesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
@@ -132,6 +144,18 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, testData, result)
+	})
+
+	t.Run("decrypt empty data", func(t *testing.T) {
+		c := cipher.NewDesCipher(cipher.CBC)
+		c.SetKey(key8)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		decrypter := NewStdDecrypter(c)
+		result, err := decrypter.Decrypt([]byte{})
+		assert.Empty(t, result)
+		assert.Nil(t, err)
 	})
 
 	t.Run("decryption with invalid key", func(t *testing.T) {

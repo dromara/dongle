@@ -37,10 +37,17 @@ func NewStdEncrypter(c *cipher.DesCipher) *StdEncrypter {
 // Encrypt encrypts the given byte slice using DES encryption.
 // Creates a DES cipher block and uses the configured cipher interface
 // to perform the encryption operation with proper error handling.
+// Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Return empty data for empty input
+	if len(src) == 0 {
+		return
+	}
+
 	block, err := des.NewCipher(e.cipher.Key)
 	if err != nil {
-		return nil, EncryptError{Err: err}
+		err = EncryptError{Err: err}
+		return
 	}
 	return e.cipher.Encrypt(src, block)
 }
@@ -71,10 +78,17 @@ func NewStdDecrypter(c *cipher.DesCipher) *StdDecrypter {
 // Decrypt decrypts the given byte slice using DES decryption.
 // Creates a DES cipher block and uses the configured cipher interface
 // to perform the decryption operation with proper error handling.
+// Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Return empty data for empty input
+	if len(src) == 0 {
+		return
+	}
+
 	block, err := des.NewCipher(d.cipher.Key)
 	if err != nil {
-		return nil, DecryptError{Err: err}
+		err = DecryptError{Err: err}
+		return
 	}
 	return d.cipher.Decrypt(src, block)
 }
