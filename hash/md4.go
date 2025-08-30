@@ -15,14 +15,14 @@ func (h *Hasher) ByMd4() *Hasher {
 	if len(h.key) > 0 {
 		return h.hmac(hasher)
 	}
-	hashFunc := hasher()
 	if h.reader != nil {
 		h.dst, h.Error = h.stream(func() hash.Hash {
-			return hashFunc
+			return hasher()
 		})
 		return h
 	}
 	if len(h.src) > 0 {
+		hashFunc := hasher()
 		hashFunc.Write(h.src)
 		h.dst = hashFunc.Sum(nil)
 	}

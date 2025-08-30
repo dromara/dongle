@@ -521,3 +521,103 @@ func TestSM3WriteAfterSumMultiple(t *testing.T) {
 	assert.NotEqual(t, hash1, hash3, "Hash should change after writing additional data")
 	assert.NotEqual(t, hash2, hash3, "Hash should change after writing additional data")
 }
+
+// TestSM3ProcessBlocksDirectly tests the processBlocks method directly
+func TestSM3ProcessBlocksDirectly(t *testing.T) {
+	// Create a digest instance to test processBlocks directly
+	d := &digest{}
+	d.Reset()
+
+	// Test with returnFinal=false (this should update the digest state)
+	testData := make([]byte, BlockSize)
+	for i := range testData {
+		testData[i] = byte(i % 256)
+	}
+
+	// Call processBlocks with returnFinal=false
+	result := d.processBlocks(testData, false)
+
+	// Should return empty array when returnFinal=false
+	assert.Equal(t, [8]uint32{}, result, "processBlocks should return empty array when returnFinal=false")
+
+	// The digest state should have been updated
+	// We can verify this by checking that the hash values are not the initial values
+	initialHash := [8]uint32{
+		0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600,
+		0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e,
+	}
+
+	// At least one hash value should be different from initial
+	hasChanged := false
+	for i := 0; i < 8; i++ {
+		if d.h[i] != initialHash[i] {
+			hasChanged = true
+			break
+		}
+	}
+	assert.True(t, hasChanged, "Digest state should have been updated after processBlocks")
+}
+
+// TestSM3ProcessBlocksReturnFinalTrue tests the processBlocks method with returnFinal=true
+func TestSM3ProcessBlocksReturnFinalTrue(t *testing.T) {
+	// Create a digest instance to test processBlocks directly
+	d := &digest{}
+	d.Reset()
+
+	// Test with returnFinal=true (this should return the final hash)
+	testData := make([]byte, BlockSize)
+	for i := range testData {
+		testData[i] = byte(i % 256)
+	}
+
+	// Call processBlocks with returnFinal=true
+	result := d.processBlocks(testData, true)
+
+	// Should return a non-empty array when returnFinal=true
+	assert.NotEqual(t, [8]uint32{}, result, "processBlocks should return non-empty array when returnFinal=true")
+	assert.Equal(t, 8, len(result), "processBlocks should return array of length 8")
+
+	// The digest state should NOT have been updated when returnFinal=true
+	initialHash := [8]uint32{
+		0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600,
+		0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e,
+	}
+
+	// All hash values should remain the same as initial
+	for i := 0; i < 8; i++ {
+		assert.Equal(t, initialHash[i], d.h[i], "Digest state should not be updated when returnFinal=true")
+	}
+}
+
+// TestSM3ProcessBlocksEmptyMessage tests processBlocks with empty message
+func TestSM3ProcessBlocksEmptyMessage(t *testing.T) {
+	// Create a digest instance to test processBlocks directly
+	d := &digest{}
+	d.Reset()
+
+	// Test with empty message and returnFinal=false
+	result := d.processBlocks([]byte{}, false)
+
+	// Should return empty array
+	assert.Equal(t, [8]uint32{}, result, "processBlocks should return empty array for empty message")
+
+	// Digest state should remain unchanged
+	initialHash := [8]uint32{
+		0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600,
+		0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e,
+	}
+
+	for i := 0; i < 8; i++ {
+		assert.Equal(t, initialHash[i], d.h[i], "Digest state should remain unchanged for empty message")
+	}
+
+	// Test with empty message and returnFinal=true
+	result = d.processBlocks([]byte{}, true)
+
+	// Should return initial hash values
+	expected := [8]uint32{
+		0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600,
+		0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e,
+	}
+	assert.Equal(t, expected, result, "processBlocks should return initial hash values for empty message")
+}

@@ -73,6 +73,12 @@ func TestHasher_ByMd2(t *testing.T) {
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, []byte{}, hasher.dst) // Empty file returns empty slice
 	})
+
+	t.Run("no data no reader no key", func(t *testing.T) {
+		hasher := NewHasher().ByMd2()
+		assert.Nil(t, hasher.Error)
+		assert.Nil(t, hasher.dst) // No data, no reader, no key returns nil
+	})
 }
 
 func TestHasher_ByMd2_HMAC(t *testing.T) {

@@ -2,10 +2,12 @@ package hash
 
 import (
 	"errors"
+	"hash"
 	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/hash/md2"
+
 	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -269,6 +271,22 @@ func TestHasher_stream(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Equal(t, 16, len(result))
 	})
+
+	t.Run("stream with hasher write error", func(t *testing.T) {
+		// Create a mock reader that returns data
+		file := mock.NewFile([]byte("hello"), "test.txt")
+		hasher := &Hasher{reader: file}
+
+		// Create a custom hash function that returns an error on Write
+		errorHash := func() hash.Hash {
+			return mock.NewErrorHasher(errors.New("mock write error"))
+		}
+
+		result, err := hasher.stream(errorHash)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "hasher write error")
+		assert.Nil(t, result)
+	})
 }
 
 func TestHasher_hmac(t *testing.T) {
@@ -315,6 +333,129 @@ func TestHasher_hmac(t *testing.T) {
 		assert.Equal(t, []byte{}, result.dst)
 	})
 
+	t.Run("hmac with seeker reader", func(t *testing.T) {
+		// Create a mock file that implements io.Seeker
+		file := mock.NewFile([]byte("hello"), "test.txt")
+		hasher := &Hasher{
+			reader: file,
+			key:    []byte("secret"),
+		}
+
+		result := hasher.hmac(md2.New)
+		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.dst)
+		assert.Equal(t, 16, len(result.dst))
+	})
+
+	t.Run("hmac with large data stream", func(t *testing.T) {
+		// Create a large data stream to test buffer handling
+		largeData := strings.Repeat("abcdefghijklmnopqrstuvwxyz", 1000) // ~26KB
+		file := mock.NewFile([]byte(largeData), "large.txt")
+		hasher := &Hasher{
+			reader: file,
+			key:    []byte("secret"),
+		}
+
+		result := hasher.hmac(md2.New)
+		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.dst)
+		assert.Equal(t, 16, len(result.dst))
+	})
+
+	t.Run("hmac with multiple reads", func(t *testing.T) {
+		// Create data that will require multiple buffer reads
+		data := strings.Repeat("test", 20000) // ~80KB, will need multiple 64KB reads
+		file := mock.NewFile([]byte(data), "multiread.txt")
+		hasher := &Hasher{
+			reader: file,
+			key:    []byte("secret"),
+		}
+
+		result := hasher.hmac(md2.New)
+		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.dst)
+		assert.Equal(t, 16, len(result.dst))
+	})
+
+	t.Run("hmac with exact buffer size data", func(t *testing.T) {
+		// Create data that is exactly the buffer size (64KB)
+		data := strings.Repeat("x", 64*1024)
+		file := mock.NewFile([]byte(data), "exact_buffer.txt")
+		hasher := &Hasher{
+			reader: file,
+			key:    []byte("secret"),
+		}
+
+		result := hasher.hmac(md2.New)
+		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.dst)
+		assert.Equal(t, 16, len(result.dst))
+	})
+
+	t.Run("hmac with data smaller than buffer", func(t *testing.T) {
+		// Create data smaller than the 64KB buffer
+		data := strings.Repeat("small", 1000) // ~5KB
+		file := mock.NewFile([]byte(data), "small.txt")
+		hasher := &Hasher{
+			reader: file,
+			key:    []byte("secret"),
+		}
+
+		result := hasher.hmac(md2.New)
+		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.dst)
+		assert.Equal(t, 16, len(result.dst))
+	})
+
+	t.Run("hmac with binary data", func(t *testing.T) {
+		// Test with binary data that might trigger edge cases
+		binaryData := make([]byte, 1000)
+		for i := range binaryData {
+			binaryData[i] = byte(i % 256)
+		}
+		file := mock.NewFile(binaryData, "binary.txt")
+		hasher := &Hasher{
+			reader: file,
+			key:    []byte("secret"),
+		}
+
+		result := hasher.hmac(md2.New)
+		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.dst)
+		assert.Equal(t, 16, len(result.dst))
+	})
+
+	t.Run("hmac with hasher write error", func(t *testing.T) {
+		file := mock.NewFile([]byte("hello"), "test.txt")
+		hasher := &Hasher{
+			reader: file,
+			key:    []byte("secret"),
+		}
+
+		// Create a custom hash function that returns an error on Write
+		errorHash := func() hash.Hash {
+			return mock.NewErrorHasher(errors.New("mock write error"))
+		}
+
+		result := hasher.hmac(errorHash)
+		assert.NotNil(t, result.Error)
+		assert.Contains(t, result.Error.Error(), "hmac hasher write error")
+		assert.Nil(t, result.dst)
+	})
+
+	t.Run("hmac with read error", func(t *testing.T) {
+		// Use mock.ErrorFile to simulate read errors
+		errorFile := mock.NewErrorFile(errors.New("read error"))
+		hasher := &Hasher{
+			reader: errorFile,
+			key:    []byte("secret"),
+		}
+
+		result := hasher.hmac(md2.New)
+		assert.NotNil(t, result.Error)
+		assert.Contains(t, result.Error.Error(), "hmac stream read error")
+		assert.Nil(t, result.dst)
+	})
 }
 
 func TestHasher_Error(t *testing.T) {

@@ -81,19 +81,48 @@ func (h *Hasher) ToHexBytes() []byte {
 	return coding.NewEncoder().FromBytes(h.dst).ByHex().ToBytes()
 }
 
-// stream encrypts with stream.
+// stream encrypts with stream using true streaming processing.
 func (h *Hasher) stream(fn func() hash.Hash) ([]byte, error) {
 	hasher := fn()
 	defer hasher.Reset()
 
-	// Read all data from reader and hash it
-	n, err := io.Copy(hasher, h.reader)
-	if err != nil {
-		return nil, err
+	// Use a fixed buffer size for streaming (64KB is a good balance)
+	const bufferSize = 64 * 1024
+	buffer := make([]byte, bufferSize)
+
+	var totalBytes int64
+	var hasData bool
+
+	// Stream process data in chunks
+	for {
+		// Read a chunk of data
+		n, err := h.reader.Read(buffer)
+
+		// Handle read errors
+		if err != nil && err != io.EOF {
+			return nil, fmt.Errorf("stream read error: %w", err)
+		}
+
+		// If we read some data, process it immediately
+		if n > 0 {
+			hasData = true
+			totalBytes += int64(n)
+
+			// Write the chunk to the hasher for immediate processing
+			_, writeErr := hasher.Write(buffer[:n])
+			if writeErr != nil {
+				return nil, fmt.Errorf("hasher write error: %w", writeErr)
+			}
+		}
+
+		// If we've reached EOF, break the loop
+		if err == io.EOF {
+			break
+		}
 	}
 
 	// If no data was read, return empty result
-	if n == 0 {
+	if !hasData {
 		return []byte{}, nil
 	}
 
@@ -129,10 +158,45 @@ func (h *Hasher) hmac(fn func() hash.Hash) *Hasher {
 			seeker.Seek(0, io.SeekStart)
 		}
 
-		// Now read from the reader
-		n, _ := io.Copy(hasher, h.reader)
+		// Use true streaming processing instead of io.Copy
+		const bufferSize = 64 * 1024
+		buffer := make([]byte, bufferSize)
+
+		var totalBytes int64
+		var hasData bool
+
+		// Stream process data in chunks
+		for {
+			// Read a chunk of data
+			n, err := h.reader.Read(buffer)
+
+			// Handle read errors
+			if err != nil && err != io.EOF {
+				h.Error = fmt.Errorf("hmac stream read error: %w", err)
+				return h
+			}
+
+			// If we read some data, process it immediately
+			if n > 0 {
+				hasData = true
+				totalBytes += int64(n)
+
+				// Write the chunk to the hasher for immediate processing
+				_, writeErr := hasher.Write(buffer[:n])
+				if writeErr != nil {
+					h.Error = fmt.Errorf("hmac hasher write error: %w", writeErr)
+					return h
+				}
+			}
+
+			// If we've reached EOF, break the loop
+			if err == io.EOF {
+				break
+			}
+		}
+
 		// If no data was read, return empty result
-		if n == 0 {
+		if !hasData {
 			h.dst = []byte{}
 			return h
 		}

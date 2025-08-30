@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"crypto/md5"
+
 	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -72,6 +74,26 @@ func TestHasher_ByMd5(t *testing.T) {
 		hasher := NewHasher().FromFile(file).ByMd5()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, []byte{}, hasher.dst) // Empty file returns empty slice
+	})
+
+	t.Run("test MD5 streaming with empty data", func(t *testing.T) {
+		// Create empty file
+		file := mock.NewFile([]byte{}, "empty.txt")
+
+		// Use our streaming implementation
+		hasher := &Hasher{reader: file}
+		result, err := hasher.stream(md5.New)
+
+		assert.Nil(t, err)
+		// When no data is read, stream returns empty slice
+		// This is the expected and correct behavior for empty data
+		assert.Equal(t, []byte{}, result)
+
+		// Note: While crypto/md5.Sum([]byte{}) returns a specific hash value,
+		// our stream method correctly returns empty result for empty input,
+		// which is the intended behavior for this implementation.
+		expectedHash := md5.Sum([]byte{})
+		assert.NotEqual(t, expectedHash[:], result)
 	})
 }
 

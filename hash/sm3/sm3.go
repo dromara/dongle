@@ -31,9 +31,10 @@ var (
 
 // digest represents the partial evaluation of an SM3 checksum.
 type digest struct {
-	h      [8]uint32 // hash values
-	length uint64    // length of the message in bits
-	data   []byte    // unprocessed message data
+	h      [8]uint32       // hash values
+	length uint64          // length of the message in bits
+	nx     uint8           // number of bytes in buffer
+	x      [BlockSize]byte // buffer for unprocessed data
 }
 
 // New returns a new hash.Hash computing the SM3 checksum.
@@ -47,7 +48,8 @@ func New() hash.Hash {
 func (d *digest) Reset() {
 	copy(d.h[:], initialHash[:])
 	d.length = 0
-	d.data = d.data[:0] // Reuse slice to avoid allocation
+	d.nx = 0
+	d.x = [BlockSize]byte{} // Clear buffer
 }
 
 // Size returns the number of bytes Sum will return.
@@ -57,20 +59,44 @@ func (d *digest) Size() int { return Size }
 func (d *digest) BlockSize() int { return BlockSize }
 
 // Write adds more data to the running hash.
-func (d *digest) Write(p []byte) (int, error) {
+func (d *digest) Write(p []byte) (n int, err error) {
 	toWrite := len(p)
 	d.length += uint64(len(p) * 8)
-	data := append(d.data, p...)
-	d.update(data)
-	// Update unprocessed data
-	d.data = data[len(data)/BlockSize*BlockSize:]
+
+	// If there's data in the buffer, fill it up and process
+	if d.nx > 0 {
+		copied := copy(d.x[d.nx:], p)
+		d.nx += uint8(copied)
+		p = p[copied:]
+
+		// If we have a complete block, process it
+		if d.nx == BlockSize {
+			d.block(d.x[:])
+			d.nx = 0
+		}
+	}
+
+	// Process complete blocks from the input
+	m := len(p) / BlockSize
+	for i := 0; i < m; i++ {
+		d.block(p[:BlockSize])
+		p = p[BlockSize:]
+	}
+
+	// Buffer any remaining data
+	if len(p) > 0 {
+		d.nx = uint8(copy(d.x[:], p))
+	}
+
 	return toWrite, nil
 }
 
 // Sum appends the current hash to b and returns the resulting slice.
 func (d *digest) Sum(in []byte) []byte {
-	_, _ = d.Write(in)
-	data := d.update2(d.pad())
+	// Create a copy of the current state
+	d2 := *d
+	// Pad the data and get the final hash
+	data := d2.update2(d2.pad())
 
 	// Save hash to output slice
 	needed := d.Size()
@@ -88,14 +114,20 @@ func (d *digest) Sum(in []byte) []byte {
 
 // pad performs message padding according to SM3 standard.
 func (d *digest) pad() []byte {
+	// Create a copy of the current state for padding
+	d2 := *d
+
 	// Pre-allocate with estimated capacity to reduce allocations
-	estimatedSize := len(d.data) + 1 + 8 // data + 0x80 + length
-	if len(d.data)%BlockSize >= 56 {
-		estimatedSize += BlockSize - (len(d.data) % BlockSize)
+	estimatedSize := int(d2.nx) + 1 + 8 // buffered data + 0x80 + length
+	if int(d2.nx)%BlockSize >= 56 {
+		estimatedSize += BlockSize - (int(d2.nx) % BlockSize)
 	}
 
 	data := make([]byte, 0, estimatedSize)
-	data = append(data, d.data...)
+	// Add buffered data
+	if d2.nx > 0 {
+		data = append(data, d2.x[:d2.nx]...)
+	}
 	data = append(data, 0x80) // Append '1' bit
 
 	for len(data)%BlockSize != 56 {
@@ -104,15 +136,10 @@ func (d *digest) pad() []byte {
 
 	// Append message length in bits (big-endian)
 	lengthBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(lengthBytes, d.length)
+	binary.BigEndian.PutUint64(lengthBytes, d2.length)
 	data = append(data, lengthBytes...)
 
 	return data
-}
-
-// update processes message blocks and updates the digest.
-func (d *digest) update(msg []byte) {
-	d.processBlocks(msg, false)
 }
 
 // update2 processes message blocks and returns the final digest.
@@ -235,4 +262,72 @@ func p0(x uint32) uint32 {
 // p1 implements the P1 function.
 func p1(x uint32) uint32 {
 	return x ^ leftRotate(x, 15) ^ leftRotate(x, 23)
+}
+
+// block processes a single 64-byte block and updates the digest.
+func (d *digest) block(p []byte) {
+	var w [68]uint32
+	var w1 [64]uint32
+
+	a, b, c, dd, e, f, g, h := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7]
+
+	// Convert bytes to words
+	for i := 0; i < 16; i++ {
+		w[i] = binary.BigEndian.Uint32(p[4*i : 4*(i+1)])
+	}
+
+	// Message expansion
+	for i := 16; i < 68; i++ {
+		w[i] = p1(w[i-16]^w[i-9]^leftRotate(w[i-3], 15)) ^ leftRotate(w[i-13], 7) ^ w[i-6]
+	}
+
+	// Calculate W1 array
+	for i := 0; i < 64; i++ {
+		w1[i] = w[i] ^ w[i+4]
+	}
+
+	// Initialize working variables
+	A, B, C, D, E, F, G, H := a, b, c, dd, e, f, g, h
+
+	// First 16 rounds
+	for i := 0; i < 16; i++ {
+		SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(tj0, uint32(i)), 7)
+		SS2 := SS1 ^ leftRotate(A, 12)
+		TT1 := ff0(A, B, C) + D + SS2 + w1[i]
+		TT2 := gg0(E, F, G) + H + SS1 + w[i]
+		D = C
+		C = leftRotate(B, 9)
+		B = A
+		A = TT1
+		H = G
+		G = leftRotate(F, 19)
+		F = E
+		E = p0(TT2)
+	}
+
+	// Last 48 rounds
+	for i := 16; i < 64; i++ {
+		SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(tj1, uint32(i)), 7)
+		SS2 := SS1 ^ leftRotate(A, 12)
+		TT1 := ff1(A, B, C) + D + SS2 + w1[i]
+		TT2 := gg1(E, F, G) + H + SS1 + w[i]
+		D = C
+		C = leftRotate(B, 9)
+		B = A
+		A = TT1
+		H = G
+		G = leftRotate(F, 19)
+		F = E
+		E = p0(TT2)
+	}
+
+	// Update digest using XOR
+	d.h[0] ^= A
+	d.h[1] ^= B
+	d.h[2] ^= C
+	d.h[3] ^= D
+	d.h[4] ^= E
+	d.h[5] ^= F
+	d.h[6] ^= G
+	d.h[7] ^= H
 }

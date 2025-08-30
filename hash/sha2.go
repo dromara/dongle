@@ -30,7 +30,9 @@ func (h *Hasher) BySha2(size int) *Hasher {
 		return h.hmac(hasher)
 	}
 	if h.reader != nil {
-		h.dst, h.Error = h.stream(hasher)
+		h.dst, h.Error = h.stream(func() hash.Hash {
+			return hasher()
+		})
 		return h
 	}
 	if len(h.src) > 0 {
