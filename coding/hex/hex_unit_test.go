@@ -327,7 +327,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoder := NewStdEncoder()
 		encoded := encoder.Encode([]byte("hello"))
 
-		reader := bytes.NewReader(encoded)
+		reader := mock.NewFile(encoded, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -342,7 +342,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoder := NewStdEncoder()
 		encoded := encoder.Encode([]byte("hello world"))
 
-		reader := bytes.NewReader(encoded)
+		reader := mock.NewFile(encoded, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 20)
@@ -357,7 +357,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoder := NewStdEncoder()
 		encoded := encoder.Encode([]byte("hello world"))
 
-		reader := bytes.NewReader(encoded)
+		reader := mock.NewFile(encoded, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		// Read with small buffer
@@ -376,7 +376,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	})
 
 	t.Run("read from empty reader", func(t *testing.T) {
-		reader := bytes.NewReader([]byte{})
+		reader := mock.NewFile([]byte{}, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -391,7 +391,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoder.Write([]byte("hello world"))
 		encoder.Close()
 
-		reader := bytes.NewReader(encodeBuf.Bytes())
+		reader := mock.NewFile(encodeBuf.Bytes(), "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 20)
@@ -458,7 +458,7 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
-		reader := bytes.NewReader([]byte("invalid!"))
+		reader := mock.NewFile([]byte("invalid!"), "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -488,7 +488,7 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream decoder with error state", func(t *testing.T) {
-		reader := bytes.NewReader([]byte("68656c6c6f"))
+		reader := mock.NewFile([]byte("68656c6c6f"), "test.bin")
 		decoder := NewStreamDecoder(reader).(*StreamDecoder)
 		decoder.Error = io.ErrUnexpectedEOF
 

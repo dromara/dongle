@@ -1,7 +1,6 @@
 package crypto
 
 import (
-	"bytes"
 	"io"
 	"testing"
 
@@ -368,7 +367,7 @@ func TestEncrypter_Stream(t *testing.T) {
 		}
 
 		encrypter := NewEncrypter()
-		encrypter.reader = bytes.NewReader(largeData)
+		encrypter.reader = mock.NewFile(largeData, "test.bin")
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)

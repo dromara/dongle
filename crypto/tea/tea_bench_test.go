@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/mock"
 )
 
 // Benchmark data for various sizes
@@ -144,7 +145,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encrypted)
+			reader := mock.NewFile(encrypted, "test.bin")
 			dec := NewStreamDecrypter(reader, c)
 
 			// Read all data
@@ -214,7 +215,7 @@ func BenchmarkStreamDecryptOptimization(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encrypted)
+			reader := mock.NewFile(encrypted, "test.bin")
 
 			// Simulate old block-by-block reading approach
 			var result []byte
@@ -242,7 +243,7 @@ func BenchmarkStreamDecryptOptimization(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encrypted)
+			reader := mock.NewFile(encrypted, "test.bin")
 			dec := NewStreamDecrypter(reader, c)
 
 			// New behavior: decrypt all at once, serve in chunks
@@ -302,7 +303,7 @@ func BenchmarkMemoryEfficiency(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encrypted)
+			reader := mock.NewFile(encrypted, "test.bin")
 			dec := NewStreamDecrypter(reader, c)
 
 			// Read in small chunks to test the serving mechanism

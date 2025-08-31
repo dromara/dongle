@@ -359,7 +359,7 @@ func TestError_ByMorse(t *testing.T) {
 
 	t.Run("streaming encoder with valid data", func(t *testing.T) {
 		encoder := NewEncoder()
-		encoder.reader = strings.NewReader("hello")
+		encoder.reader = mock.NewFile([]byte("hello"), "test.txt")
 		result := encoder.ByMorse()
 		assert.Nil(t, result.Error)
 		assert.NotNil(t, result.dst)
@@ -371,7 +371,7 @@ func TestError_ByMorse(t *testing.T) {
 		assert.Nil(t, encoder.Error)
 
 		// Create a reader with encoded data
-		reader := strings.NewReader(string(encoder.dst))
+		reader := mock.NewFile([]byte(string(encoder.dst)), "test.txt")
 		decoder := NewDecoder()
 		decoder.reader = reader
 		result := decoder.ByMorse()

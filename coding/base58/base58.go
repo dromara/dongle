@@ -224,7 +224,7 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	// Base58 encoding typically produces ~1.37x the input size
 	chunkSize := 8
 	chunks := len(data) / chunkSize
-
+	
 	for i := 0; i < chunks*chunkSize; i += chunkSize {
 		chunk := data[i : i+chunkSize]
 		encoded := e.encoder.Encode(chunk)

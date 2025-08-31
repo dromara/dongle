@@ -3,6 +3,8 @@ package base32
 import (
 	"bytes"
 	"testing"
+
+	"github.com/dromara/dongle/mock"
 )
 
 // BenchmarkStdEncoder_Encode benchmarks the standard base32 encoder with small data
@@ -221,7 +223,7 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 	encoded := encoder.Encode(original)
 
 	// Create a reader from the encoded data
-	reader := bytes.NewReader(encoded)
+	reader := mock.NewFile(encoded, "test.bin")
 	decoder := NewStreamDecoder(reader, StdAlphabet)
 
 	// Buffer to read into
@@ -242,7 +244,7 @@ func BenchmarkStreamDecoder_ReadLarge(b *testing.B) {
 	encoded := encoder.Encode(original)
 
 	// Create a reader from the encoded data
-	reader := bytes.NewReader(encoded)
+	reader := mock.NewFile(encoded, "test.bin")
 	decoder := NewStreamDecoder(reader, StdAlphabet)
 
 	// Buffer to read into

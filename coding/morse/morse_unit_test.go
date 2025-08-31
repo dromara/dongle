@@ -445,7 +445,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello"))
 
 		// Create reader with encoded data
-		reader := bytes.NewReader(encoded)
+		reader := mock.NewFile(encoded, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		// Read decoded data
@@ -461,7 +461,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoder := NewStdEncoder()
 		encoded := encoder.Encode([]byte("hello"))
 
-		reader := bytes.NewReader(encoded)
+		reader := mock.NewFile(encoded, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buffer := make([]byte, 100)
@@ -476,7 +476,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoder := NewStdEncoder()
 		encoded := encoder.Encode([]byte("hello"))
 
-		reader := bytes.NewReader(encoded)
+		reader := mock.NewFile(encoded, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buffer := make([]byte, 3)
@@ -521,7 +521,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	t.Run("read with decode error", func(t *testing.T) {
 		// Create invalid morse data
 		invalidData := []byte("invalid morse code")
-		reader := bytes.NewReader(invalidData)
+		reader := mock.NewFile(invalidData, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buffer := make([]byte, 20)
@@ -546,7 +546,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	})
 
 	t.Run("read eof", func(t *testing.T) {
-		reader := bytes.NewReader([]byte{})
+		reader := mock.NewFile([]byte{}, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buffer := make([]byte, 10)
@@ -617,7 +617,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
 		invalidData := []byte("invalid morse code")
-		reader := bytes.NewReader(invalidData)
+		reader := mock.NewFile(invalidData, "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buffer := make([]byte, 20)
@@ -700,7 +700,7 @@ func TestMissingCoverage(t *testing.T) {
 	})
 
 	t.Run("read with decoder error in decode", func(t *testing.T) {
-		reader := bytes.NewReader([]byte(".... . .-.. .-.. ---"))
+		reader := mock.NewFile([]byte(".... . .-.. .-.. ---"), "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		// Set decoder error before reading

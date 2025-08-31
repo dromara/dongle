@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/keypair"
+	"github.com/dromara/dongle/mock"
 )
 
 // BenchmarkStdEncrypter tests the performance of standard encryption
@@ -113,7 +114,7 @@ func BenchmarkStreamDecrypter(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		reader := bytes.NewReader(encryptedData)
+		reader := mock.NewFile(encryptedData, "test.bin")
 		dec := NewStreamDecrypter(reader, kp)
 		result := make([]byte, 100)
 		_, err := dec.Read(result)

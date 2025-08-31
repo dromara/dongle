@@ -11,6 +11,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Test helper: Reader that implements io.ReadCloser but Close returns error
+type readerWithCloseError struct {
+	data []byte
+	pos  int
+	err  error
+}
+
+func newReaderWithCloseError(data []byte, closeErr error) *readerWithCloseError {
+	return &readerWithCloseError{data: data, pos: 0, err: closeErr}
+}
+
+func (r *readerWithCloseError) Read(p []byte) (int, error) {
+	if r.pos >= len(r.data) {
+		return 0, io.EOF
+	}
+	n := copy(p, r.data[r.pos:])
+	r.pos += n
+	return n, nil
+}
+
+func (r *readerWithCloseError) Close() error {
+	return r.err
+}
+
 func TestNewStdEncrypter(t *testing.T) {
 	t.Run("valid key pair", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
@@ -2431,7 +2455,7 @@ func TestStreamVerifier_Close(t *testing.T) {
 		signer.Close()
 
 		// Now verify the signature
-		sigReader := bytes.NewReader(sigBuf.Bytes())
+		sigReader := mock.NewFile(sigBuf.Bytes(), "test.bin")
 		verifier := NewStreamVerifier(sigReader, kp).(*StreamVerifier)
 		verifier.Write(data)
 
@@ -2486,13 +2510,38 @@ func TestStreamVerifier_Close(t *testing.T) {
 
 	t.Run("close_with_closer", func(t *testing.T) {
 		// Test that the closer interface is correctly handled
-		sigReader := bytes.NewReader([]byte{}) // Empty signature
+		sigReader := mock.NewFile([]byte{}, "test.bin") // Empty signature
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		verifier := NewStreamVerifier(sigReader, kp).(*StreamVerifier)
 
 		err := verifier.Close()
 		assert.Nil(t, err) // Should succeed with empty signature
+	})
+
+	t.Run("close_with_reader_closer_error", func(t *testing.T) {
+		// Test the case where the reader implements io.Closer and Close() returns error
+		var sigBuf bytes.Buffer
+		kp := keypair.NewRsaKeyPair()
+		kp.GenKeyPair(2048)
+		kp.SetFormat(keypair.PKCS1)
+		kp.SetHash(crypto.SHA256)
+
+		// Create a signature first
+		signer := NewStreamSigner(&sigBuf, kp).(*StreamSigner)
+		signer.Write([]byte("test data"))
+		signer.Close()
+
+		// Use ErrorReadWriteCloser with nil read error but close error
+		// First set up a regular reader with the signature data
+		mockReader := mock.NewErrorReadWriteCloser(assert.AnError)
+
+		verifier := NewStreamVerifier(mockReader, kp).(*StreamVerifier)
+		verifier.Write([]byte("test data"))
+
+		// This should trigger the reader close error since io.ReadAll will fail first
+		err := verifier.Close()
+		assert.IsType(t, ReadError{}, err)
 	})
 }
 
@@ -2540,9 +2589,8 @@ func TestStreamVerifierEdgeCases(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("close_with_reader_closer_error", func(t *testing.T) {
-		// Test the case where the reader implements io.Closer and Close() returns error
-		// Create a signature that will trigger the closer path
+	t.Run("close_with_reader_closer_success", func(t *testing.T) {
+		// Test successful close path where reader implements io.Closer and succeeds
 		var sigBuf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2554,14 +2602,62 @@ func TestStreamVerifierEdgeCases(t *testing.T) {
 		signer.Write([]byte("test data"))
 		signer.Close()
 
-		// Create a mock file with the signature data
+		// Create a File that implements io.Closer (mock.File implements Close)
 		sigFile := mock.NewFile(sigBuf.Bytes(), "signature.dat")
 
 		verifier := NewStreamVerifier(sigFile, kp).(*StreamVerifier)
 		verifier.Write([]byte("test data"))
 
-		// This test is actually testing successful verification, not close error
-		// Let's modify to test the successful case where signature is valid
+		// This should trigger the reader closer success path (line 583-584)
+		err := verifier.Close()
+		assert.Nil(t, err)
+		assert.True(t, verifier.verified)
+	})
+
+	t.Run("close_with_reader_closer_error", func(t *testing.T) {
+		// Test the case where reader implements io.Closer and returns error
+		var sigBuf bytes.Buffer
+		kp := keypair.NewRsaKeyPair()
+		kp.GenKeyPair(2048)
+		kp.SetFormat(keypair.PKCS1)
+		kp.SetHash(crypto.SHA256)
+
+		// Create a signature first
+		signer := NewStreamSigner(&sigBuf, kp).(*StreamSigner)
+		signer.Write([]byte("test data"))
+		signer.Close()
+
+		// Use our custom reader that fails on close
+		readerWithError := newReaderWithCloseError(sigBuf.Bytes(), assert.AnError)
+		verifier := NewStreamVerifier(readerWithError, kp).(*StreamVerifier)
+		verifier.Write([]byte("test data"))
+
+		// This should trigger the reader closer error path (line 583-584)
+		err := verifier.Close()
+		assert.Equal(t, assert.AnError, err)
+		assert.True(t, verifier.verified) // Verification should still succeed before close error
+	})
+
+	t.Run("close_without_closer_interface", func(t *testing.T) {
+		// Test the case where reader does NOT implement io.Closer
+		// This should execute the final return nil statement (line 587)
+		var sigBuf bytes.Buffer
+		kp := keypair.NewRsaKeyPair()
+		kp.GenKeyPair(2048)
+		kp.SetFormat(keypair.PKCS1)
+		kp.SetHash(crypto.SHA256)
+
+		// Create a signature first
+		signer := NewStreamSigner(&sigBuf, kp).(*StreamSigner)
+		signer.Write([]byte("test data"))
+		signer.Close()
+
+		// Use bytes.Reader which does NOT implement io.Closer
+		reader := bytes.NewReader(sigBuf.Bytes())
+		verifier := NewStreamVerifier(reader, kp).(*StreamVerifier)
+		verifier.Write([]byte("test data"))
+
+		// This should execute the final return nil (line 587) since bytes.Reader doesn't implement io.Closer
 		err := verifier.Close()
 		assert.Nil(t, err)
 		assert.True(t, verifier.verified)

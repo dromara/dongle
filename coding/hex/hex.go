@@ -65,9 +65,9 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // It provides efficient encoding for large data streams by processing data
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
-	writer io.Writer // Underlying writer for encoded output
-	buffer []byte    // Buffer for accumulating partial bytes (0-1 bytes)
-	Error  error     // Error field for storing encoding errors
+	writer  io.Writer // Underlying writer for encoded output
+	buffer  []byte    // Buffer for accumulating partial bytes (0-1 bytes)
+	Error   error     // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming hex encoder that writes encoded data
@@ -99,7 +99,7 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	// Hex encoding converts 1 byte to 2 characters
 	chunkSize := 2
 	chunks := len(data) / chunkSize
-
+	
 	for i := 0; i < chunks*chunkSize; i += chunkSize {
 		chunk := data[i : i+chunkSize]
 		encoded := make([]byte, hex.EncodedLen(len(chunk)))
@@ -145,10 +145,10 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader io.Reader // Underlying reader for encoded input
-	buffer []byte    // Buffer for decoded data not yet read
-	pos    int       // Current position in the decoded buffer
-	Error  error     // Error field for storing decoding errors
+	reader  io.Reader // Underlying reader for encoded input
+	buffer  []byte    // Buffer for decoded data not yet read
+	pos     int       // Current position in the decoded buffer
+	Error   error     // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming hex decoder that reads encoded data

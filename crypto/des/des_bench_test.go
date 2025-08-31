@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/mock"
 )
 
 // Benchmark data for various sizes
@@ -123,7 +124,7 @@ func BenchmarkStreamDecrypter_Read(b *testing.B) {
 
 	for name, encrypted := range encryptedData {
 		b.Run(name, func(b *testing.B) {
-			decrypter := NewStreamDecrypter(bytes.NewReader(encrypted), c)
+			decrypter := NewStreamDecrypter(mock.NewFile(encrypted, "test.bin"), c)
 			buf := make([]byte, 1024)
 			b.ResetTimer()
 			b.ReportAllocs()
@@ -235,7 +236,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 	})
 
 	b.Run("streaming_decrypt", func(b *testing.B) {
-		decrypter := NewStreamDecrypter(bytes.NewReader(encrypted), c)
+		decrypter := NewStreamDecrypter(mock.NewFile(encrypted, "test.bin"), c)
 		buf := make([]byte, 1024)
 		b.ResetTimer()
 		b.ReportAllocs()
@@ -294,7 +295,7 @@ func BenchmarkMemoryAllocation(b *testing.B) {
 	})
 
 	b.Run("stream_decrypt_alloc", func(b *testing.B) {
-		decrypter := NewStreamDecrypter(bytes.NewReader(encrypted), c)
+		decrypter := NewStreamDecrypter(mock.NewFile(encrypted, "test.bin"), c)
 		buf := make([]byte, 1024)
 		b.ResetTimer()
 		b.ReportAllocs()

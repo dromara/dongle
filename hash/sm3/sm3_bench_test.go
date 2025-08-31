@@ -1,11 +1,12 @@
 package sm3
 
 import (
-	"bytes"
 	"crypto/rand"
 	"fmt"
 	"io"
 	"testing"
+
+	"github.com/dromara/dongle/mock"
 )
 
 // Benchmark data sizes
@@ -147,7 +148,7 @@ func BenchmarkSM3WithReader(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		h := New()
-		reader := bytes.NewReader(data)
+		reader := mock.NewFile(data, "test.bin")
 		io.Copy(h, reader)
 		h.Sum(nil)
 	}

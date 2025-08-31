@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/keypair"
+	"github.com/dromara/dongle/mock"
 )
 
 // Benchmark data sizes for testing
@@ -115,7 +116,7 @@ func BenchmarkStreamVerifier(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				// Create a reader with signature data
-				sigReader := bytes.NewReader(signature)
+				sigReader := mock.NewFile(signature, "test.bin")
 				verifier := NewStreamVerifier(sigReader, kp)
 				_, err := verifier.Write(data)
 				if err != nil {

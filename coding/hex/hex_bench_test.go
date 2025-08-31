@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"testing"
+
+	"github.com/dromara/dongle/mock"
 )
 
 // Benchmark data sizes
@@ -290,7 +292,7 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 		b.Run(fmt.Sprintf("%d_bytes", size), func(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				reader := bytes.NewReader(encoded)
+				reader := mock.NewFile(encoded, "test.bin")
 				decoder := NewStreamDecoder(reader)
 
 				// Read all data
@@ -316,7 +318,7 @@ func BenchmarkStreamDecoder_ReadLarge(b *testing.B) {
 		b.Run(fmt.Sprintf("%d_bytes", size), func(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				reader := bytes.NewReader(encoded)
+				reader := mock.NewFile(encoded, "test.bin")
 				decoder := NewStreamDecoder(reader)
 
 				// Read data in chunks
@@ -346,7 +348,7 @@ func BenchmarkStreamDecoder_ReadChunked(b *testing.B) {
 		b.Run(fmt.Sprintf("%d_bytes", size), func(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				reader := bytes.NewReader(encoded)
+				reader := mock.NewFile(encoded, "test.bin")
 				decoder := NewStreamDecoder(reader)
 
 				// Read data in chunks
@@ -521,7 +523,7 @@ func BenchmarkStreamingMemoryAllocation(b *testing.B) {
 				encoder.Close()
 
 				// Decode
-				decoder := NewStreamDecoder(bytes.NewReader(encodeBuf.Bytes()))
+				decoder := NewStreamDecoder(mock.NewFile(encodeBuf.Bytes(), "test.bin"))
 				io.Copy(io.Discard, decoder)
 			}
 		})
@@ -636,7 +638,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 	b.Run("streaming_decoder", func(b *testing.B) {
 		encoder := NewStdEncoder()
 		encoded := encoder.Encode(data)
-		reader := bytes.NewReader(encoded)
+		reader := mock.NewFile(encoded, "test.bin")
 		decoder := NewStreamDecoder(reader)
 		b.ResetTimer()
 		b.ReportAllocs()
@@ -671,7 +673,7 @@ func BenchmarkLargeFileStreaming(b *testing.B) {
 
 		b.Run(fmt.Sprintf("decode_%dKB", size/1024), func(b *testing.B) {
 			encoded := NewStdEncoder().Encode(data)
-			reader := bytes.NewReader(encoded)
+			reader := mock.NewFile(encoded, "test.bin")
 			decoder := NewStreamDecoder(reader)
 			b.ResetTimer()
 			b.ReportAllocs()

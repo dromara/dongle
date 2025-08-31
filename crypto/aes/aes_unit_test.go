@@ -361,7 +361,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		encrypter.Close()
 
 		// Then decrypt
-		reader := bytes.NewReader(buf.Bytes())
+		reader := mock.NewFile(buf.Bytes(), "test.bin")
 		decrypter := NewStreamDecrypter(reader, c)
 		resultBuf := make([]byte, 20)
 		n, err := decrypter.Read(resultBuf)
@@ -437,7 +437,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		encrypter.Close()
 
 		// Then decrypt with small buffer
-		reader := bytes.NewReader(buf.Bytes())
+		reader := mock.NewFile(buf.Bytes(), "test.bin")
 		decrypter := NewStreamDecrypter(reader, c)
 		smallBuf := make([]byte, 5)
 		n, err := decrypter.Read(smallBuf)
@@ -459,7 +459,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 	t.Run("read with cipher decrypt error", func(t *testing.T) {
 		// Create invalid encrypted data that will cause decryption error
 		invalidData := []byte("invalid_encrypted_data_that_cannot_be_decrypted")
-		reader := bytes.NewReader(invalidData)
+		reader := mock.NewFile(invalidData, "test.bin")
 		c := cipher.NewAesCipher(cipher.CBC)
 		c.SetKey(key16)
 		c.SetIV(iv16)
@@ -524,7 +524,7 @@ func TestAdditionalCoverage(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Then decrypt with multiple reads
-		reader := bytes.NewReader(buf.Bytes())
+		reader := mock.NewFile(buf.Bytes(), "test.bin")
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// First read - should get data

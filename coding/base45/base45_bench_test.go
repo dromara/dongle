@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"testing"
+
+	"github.com/dromara/dongle/mock"
 )
 
 func BenchmarkStdEncoder_Encode(b *testing.B) {
@@ -101,13 +103,15 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 	encoder := NewStdEncoder()
 	original := []byte("Hello, World! This is a test string for streaming base45 decoding benchmark.")
 	encoded := encoder.Encode(original)
-	reader := bytes.NewReader(encoded)
+	reader := mock.NewFile(encoded, "test.bin")
 	decoder := NewStreamDecoder(reader)
 
 	buffer := make([]byte, 1024)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		reader.Reset(encoded)
+		reader.Reset()
+		reader = mock.NewFile(encoded, "test.bin")
+		decoder = NewStreamDecoder(reader)
 		decoder.Read(buffer)
 	}
 }
@@ -170,7 +174,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encoded)
+			reader := mock.NewFile(encoded, "test.bin")
 			decoder := NewStreamDecoder(reader)
 			decoder.Read(buf)
 		}
@@ -234,7 +238,7 @@ func BenchmarkLargeFileStreaming(b *testing.B) {
 			b.ResetTimer()
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
-				reader := bytes.NewReader(encoded)
+				reader := mock.NewFile(encoded, "test.bin")
 				decoder := NewStreamDecoder(reader)
 				decoder.Read(buf)
 			}
@@ -260,7 +264,7 @@ func BenchmarkStreamingBufferSizes(b *testing.B) {
 			b.ResetTimer()
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
-				reader := bytes.NewReader(encoded)
+				reader := mock.NewFile(encoded, "test.bin")
 				decoder := NewStreamDecoder(reader)
 				decoder.Read(buf)
 			}

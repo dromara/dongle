@@ -493,7 +493,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 func TestStreamDecoder_Read(t *testing.T) {
 	t.Run("read decoded data", func(t *testing.T) {
 		encoded := "7tQLFHz"
-		reader := strings.NewReader(encoded)
+		reader := mock.NewFile([]byte(encoded), "test.txt")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -506,7 +506,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read with large buffer", func(t *testing.T) {
 		encoded := "7tQLFHz"
-		reader := strings.NewReader(encoded)
+		reader := mock.NewFile([]byte(encoded), "test.txt")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 100)
@@ -519,7 +519,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read with small buffer", func(t *testing.T) {
 		encoded := "7tQLFHz"
-		reader := strings.NewReader(encoded)
+		reader := mock.NewFile([]byte(encoded), "test.txt")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 3)
@@ -562,7 +562,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	})
 
 	t.Run("read with decode error", func(t *testing.T) {
-		reader := strings.NewReader("invalid!")
+		reader := mock.NewFile([]byte("invalid!"), "test.txt")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -586,7 +586,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	})
 
 	t.Run("read eof", func(t *testing.T) {
-		reader := strings.NewReader("")
+		reader := mock.NewFile([]byte(""), "test.txt")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -673,7 +673,7 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
-		reader := bytes.NewReader([]byte("invalid!"))
+		reader := mock.NewFile([]byte("invalid!"), "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -693,7 +693,7 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("read with invalid data", func(t *testing.T) {
-		reader := bytes.NewReader([]byte("invalid!"))
+		reader := mock.NewFile([]byte("invalid!"), "test.bin")
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -722,7 +722,7 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream decoder with existing error", func(t *testing.T) {
-		reader := bytes.NewReader([]byte("test"))
+		reader := mock.NewFile([]byte("test"), "test.bin")
 		decoder := NewStreamDecoder(reader)
 		decoder.(*StreamDecoder).Error = assert.AnError
 

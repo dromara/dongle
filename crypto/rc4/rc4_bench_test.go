@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"io"
 	"testing"
+
+	"github.com/dromara/dongle/mock"
 )
 
 // Benchmark data for various sizes
@@ -103,7 +105,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encrypted)
+			reader := mock.NewFile(encrypted, "test.bin")
 			dec := NewStreamDecrypter(reader, testKey)
 
 			// Read all data
@@ -154,7 +156,7 @@ func BenchmarkMemoryEfficiency(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encrypted)
+			reader := mock.NewFile(encrypted, "test.bin")
 			dec := NewStreamDecrypter(reader, testKey)
 
 			// Simulate old behavior with temporary buffer allocation
@@ -179,7 +181,7 @@ func BenchmarkMemoryEfficiency(b *testing.B) {
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			reader := bytes.NewReader(encrypted)
+			reader := mock.NewFile(encrypted, "test.bin")
 			dec := NewStreamDecrypter(reader, testKey)
 
 			// New behavior: decrypt in-place
