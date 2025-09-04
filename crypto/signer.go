@@ -79,8 +79,7 @@ func (s *Signer) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	signer := fn(&bf)
 
 	// Process data in chunks for true streaming
-	const bufferSize = 4096 // 4KB chunks for optimal performance
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, BufferSize)
 
 	for {
 		// Read chunk from input
@@ -110,9 +109,9 @@ func (s *Signer) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	_ = signer.Close()
 
 	// Return the accumulated signature data
-	bytes := bf.Bytes()
-	if bytes == nil {
+	data := bf.Bytes()
+	if data == nil {
 		return []byte{}, nil // Return empty slice instead of nil for consistency
 	}
-	return bytes, nil
+	return data, nil
 }

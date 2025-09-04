@@ -58,8 +58,7 @@ func (v *Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	verifier := fn(&bf)
 
 	// Process data in chunks for true streaming
-	const bufferSize = 4096 // 4KB chunks for optimal performance
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, BufferSize)
 
 	for {
 		// Read chunk from input
