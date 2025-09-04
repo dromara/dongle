@@ -11,6 +11,9 @@ import (
 	"github.com/dromara/dongle/util"
 )
 
+// BufferSize buffer size for streaming (64KB is a good balance)
+var BufferSize = 64 * 1024
+
 type Hasher struct {
 	src    []byte
 	dst    []byte
@@ -86,9 +89,7 @@ func (h *Hasher) stream(fn func() hash.Hash) ([]byte, error) {
 	hasher := fn()
 	defer hasher.Reset()
 
-	// Use a fixed buffer size for streaming (64KB is a good balance)
-	const bufferSize = 64 * 1024
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, BufferSize)
 
 	var totalBytes int64
 	var hasData bool
@@ -149,18 +150,12 @@ func (h *Hasher) hmac(fn func() hash.Hash) *Hasher {
 		// Use source data for HMAC (non-streaming)
 		hasher.Write(h.src)
 	} else if h.reader != nil {
-		// For streaming data, we need to read from the reader
-		// Since the reader might have been consumed by previous operations,
-		// we need to reset the position if it's a seeker
-
 		// Try to reset the reader position if it's a seeker
 		if seeker, ok := h.reader.(io.Seeker); ok {
 			seeker.Seek(0, io.SeekStart)
 		}
 
-		// Use true streaming processing instead of io.Copy
-		const bufferSize = 64 * 1024
-		buffer := make([]byte, bufferSize)
+		buffer := make([]byte, BufferSize)
 
 		var totalBytes int64
 		var hasData bool
