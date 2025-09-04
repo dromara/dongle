@@ -24,9 +24,9 @@ func (h *Hasher) ByRipemd160() *Hasher {
 		return h
 	}
 	if len(h.src) > 0 {
-		hash := hasher()
-		hash.Write(h.src)
-		h.dst = hash.Sum(nil)
+		hashFunc := hasher()
+		hashFunc.Write(h.src)
+		h.dst = hashFunc.Sum(nil)
 	}
 	return h
 }
