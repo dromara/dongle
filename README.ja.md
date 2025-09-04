@@ -1,4 +1,4 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/ja" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
@@ -49,7 +49,7 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ```
 
 ### 使用例
-エンコード・デコード
+エンコード・デコード(`Base64`を例に)
 ```go
 import "github.com/dromara/dongle"
 
@@ -57,7 +57,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-ハッシュアルゴリズム
+ハッシュアルゴリズム(`Md5`を例に)
 ```go
 import "github.com/dromara/dongle"
 
@@ -65,7 +65,7 @@ dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eee
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
 ```
 
-HMAC アルゴリズム
+HMAC アルゴリズム(`Md5`を例に)
 ```go
 import "github.com/dromara/dongle"
 
@@ -73,7 +73,7 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexStr
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
 ```
 
-対称暗号化・復号化
+対称暗号化・復号化(`AES`を例に)
 ```go
 import (
 	"github.com/dromara/dongle"
@@ -91,16 +91,16 @@ c.SetPadding(cipher.PKCS7)
 
 // 文字列平文を暗号化し、16進文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByAes(c).ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// 16進文字列暗号文を復号化し、文字列平文を返す
-dongle.Decrypt.FromHexString("48c6bc076e1da2946e1c0e59e9c91ae9").ByAes(c).ToString() // hello world
-
 // 文字列平文を暗号化し、base64エンコード文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+
+// 16進文字列暗号文を復号化し、文字列平文を返す
+dongle.Decrypt.FromHexString("48c6bc076e1da2946e1c0e59e9c91ae9").ByAes(c).ToString() // hello world
 // base64エンコード文字列暗号文を復号化し、文字列平文を返す
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
 ```
 
-非対称暗号化・復号化
+非対称暗号化・復号化(`RSA`を例に)
 ```go
 import (
 	"crypto"
@@ -114,18 +114,18 @@ kp := keypair.NewRsaKeyPair()
 kp.SetFormat(keypair.PKCS8)
 // ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256）
 kp.SetHash(crypto.SHA256)   
+
 // 公開鍵を設定
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
-// 秘密鍵を設定
-kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
-
 // 公開鍵で文字列平文を暗号化し、16進文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40...
-// 秘密鍵で16進文字列暗号文を復号化し、文字列平文を返す
-dongle.Decrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
-
 // 公開鍵で文字列平文を暗号化し、base64エンコード文字列暗号文を返す
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==...
+
+// 秘密鍵を設定
+kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
+// 秘密鍵で16進文字列暗号文を復号化し、文字列平文を返す
+dongle.Decrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
 // 秘密鍵でbase64エンコード文字列暗号文を復号化し、文字列平文を返す
 dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
 ```

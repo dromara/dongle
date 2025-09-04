@@ -51,7 +51,7 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ```
 
 ### Example Usage
-Encode&Decode
+Encode&Decode(using `Base64` as an example)
 ```go
 import "github.com/dromara/dongle"
 
@@ -59,7 +59,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString()      // aGVsbG8gd2
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-Hash Algorithm
+Hash Algorithm(using `Md5` as an example)
 ```go
 import "github.com/dromara/dongle"
 
@@ -67,7 +67,7 @@ dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eee
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
 ```
 
-Hmac Algorithm
+Hmac Algorithm(using `Md5` as an example)
 ```go
 import "github.com/dromara/dongle"
 
@@ -75,7 +75,7 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexStr
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
 ```
 
-Symmetric Encryption&Decryption
+Symmetric Encryption&Decryption(using `AES` as an example)
 ```go
 import (
 	"github.com/dromara/dongle"
@@ -93,16 +93,16 @@ c.SetPadding(cipher.PKCS7)
 
 // Encrypt string plaintext, return hex string ciphertext
 dongle.Encrypt.FromString("hello world").ByAes(c).ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Decrypt hex string ciphertext, return string plaintext
-dongle.Decrypt.FromHexString("48c6bc076e1da2946e1c0e59e9c91ae9").ByAes(c).ToString() // hello world
-
 // Encrypt string plaintext, return base64 encoded string ciphertext
 dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+
+// Decrypt hex string ciphertext, return string plaintext
+dongle.Decrypt.FromHexString("48c6bc076e1da2946e1c0e59e9c91ae9").ByAes(c).ToString() // hello world
 // Decrypt base64 encoded string ciphertext, return string plaintext
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
 ```
 
-Asymmetric Encryption&Decryption
+Asymmetric Encryption&Decryption(using `RSA` as an example)
 ```go
 import (
 	"crypto"
@@ -116,20 +116,20 @@ kp := keypair.NewRsaKeyPair()
 kp.SetFormat(keypair.PKCS8)
 // Set hash algorithm (optional, default is SHA256)
 kp.SetHash(crypto.SHA256)   
+
 // Set public key
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
-// Set private key
-kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
-
 // Encrypt string plaintext by public key, return hex string ciphertext
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40...
-// Decrypt hex string ciphertext by private key, return string plaintext
-dongle.Encrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
-
 // Encrypt string plaintext by public key, return base64 encoded string ciphertext
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==...
+
+// Set private key
+kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
+// Decrypt hex string ciphertext by private key, return string plaintext
+dongle.Decrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
 // Decrypt base64 encoded string ciphertext by private key, return string plaintext
-dongle.Encrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
+dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
 ```
 
 For more usage examples, please refer to <a href="https://dongle.go-pkg.com" target="_blank">official document</a>.
