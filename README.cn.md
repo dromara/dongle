@@ -54,7 +54,7 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ```
 
 ### 用法示例
-编码、解码
+编码、解码(以 `Base64` 为例)
 ```go
 import "github.com/dromara/dongle"
 
@@ -62,7 +62,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-Hash 算法
+Hash 算法(以 `Md5` 为例)
 ```go
 import "github.com/dromara/dongle"
 
@@ -70,7 +70,7 @@ dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eee
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
 ```
 
-Hmac 算法
+Hmac 算法(以 `Md5` 为例)
 ```go
 import "github.com/dromara/dongle"
 
@@ -78,7 +78,7 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexStr
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
 ```
 
-对称加密
+对称加密(以 `AES` 为例)
 ```go
 import (
 	"github.com/dromara/dongle"
@@ -105,7 +105,7 @@ dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dop
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
 ```
 
-非对称加密
+非对称加密(以 `RSA` 为例)
 ```go
 import (
 	"crypto"

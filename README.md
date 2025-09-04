@@ -51,7 +51,7 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ```
 
 ### Example Usage
-Encode&Decode
+Encode&Decode(using `Base64` as an example)
 ```go
 import "github.com/dromara/dongle"
 
@@ -59,7 +59,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString()      // aGVsbG8gd2
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-Hash Algorithm
+Hash Algorithm(using `Md5` as an example)
 ```go
 import "github.com/dromara/dongle"
 
@@ -67,7 +67,7 @@ dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eee
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
 ```
 
-Hmac Algorithm
+Hmac Algorithm(using `Md5` as an example)
 ```go
 import "github.com/dromara/dongle"
 
@@ -75,7 +75,7 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexStr
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
 ```
 
-Symmetric Encryption&Decryption
+Symmetric Encryption&Decryption(using `AES` as an example)
 ```go
 import (
 	"github.com/dromara/dongle"
@@ -102,7 +102,7 @@ dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dop
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
 ```
 
-Asymmetric Encryption&Decryption
+Asymmetric Encryption&Decryption(using `RSA` as an example)
 ```go
 import (
 	"crypto"

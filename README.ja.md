@@ -49,7 +49,7 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ```
 
 ### 使用例
-エンコード・デコード
+エンコード・デコード(`Base64`を例に)
 ```go
 import "github.com/dromara/dongle"
 
@@ -57,7 +57,7 @@ dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
 ```
 
-ハッシュアルゴリズム
+ハッシュアルゴリズム(`Md5`を例に)
 ```go
 import "github.com/dromara/dongle"
 
@@ -65,7 +65,7 @@ dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eee
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
 ```
 
-HMAC アルゴリズム
+HMAC アルゴリズム(`Md5`を例に)
 ```go
 import "github.com/dromara/dongle"
 
@@ -73,7 +73,7 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexStr
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
 ```
 
-対称暗号化・復号化
+対称暗号化・復号化(`AES`を例に)
 ```go
 import (
 	"github.com/dromara/dongle"
@@ -100,7 +100,7 @@ dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dop
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
 ```
 
-非対称暗号化・復号化
+非対称暗号化・復号化(`RSA`を例に)
 ```go
 import (
 	"crypto"
