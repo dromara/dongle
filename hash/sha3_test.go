@@ -220,7 +220,7 @@ func TestHasher_BySha3_Error(t *testing.T) {
 	t.Run("unsupported size", func(t *testing.T) {
 		hasher := NewHasher().FromString("hello").BySha3(128)
 		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "unsupported SHA3 size: 128")
+		assert.Contains(t, hasher.Error.Error(), "unsupported size: 128")
 		assert.Contains(t, hasher.Error.Error(), "supported sizes are 224, 256, 384, 512")
 	})
 

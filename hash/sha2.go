@@ -23,7 +23,7 @@ func (h *Hasher) BySha2(size int) *Hasher {
 	case 512:
 		hasher = sha512.New
 	default:
-		h.Error = fmt.Errorf("unsupported SHA2 size: %d, supported sizes are 224, 256, 384, 512", size)
+		h.Error = fmt.Errorf("hash/sha2: unsupported size: %d, supported sizes are 224, 256, 384, 512", size)
 		return h
 	}
 	if len(h.key) > 0 {
