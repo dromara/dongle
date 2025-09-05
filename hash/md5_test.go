@@ -1,14 +1,14 @@
 package hash
 
 import (
+	"crypto/md5"
 	"errors"
 	"strings"
 	"testing"
 
-	"crypto/md5"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/dromara/dongle/mock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestHasher_ByMd5(t *testing.T) {
