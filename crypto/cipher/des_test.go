@@ -125,7 +125,7 @@ func TestDesCipher_SetAAD(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				cipher := NewDesCipher(GCM)
 				cipher.SetAAD(tc.aad)
-				assert.Equal(t, tc.aad, cipher.Aad)
+				assert.Equal(t, tc.aad, cipher.AAD)
 			})
 		}
 	})
