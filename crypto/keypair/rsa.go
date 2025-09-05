@@ -11,7 +11,6 @@ import (
 	"io"
 	"io/fs"
 
-	"github.com/dromara/dongle/coding"
 	"github.com/dromara/dongle/util"
 )
 
@@ -145,24 +144,6 @@ func (k *RsaKeyPair) SetFormat(format KeyFormat) {
 // This is particularly important for PKCS8 format keys that use OAEP padding.
 func (k *RsaKeyPair) SetHash(hash crypto.Hash) {
 	k.Hash = hash
-}
-
-// SetRawSign sets the signature in raw byte format.
-// This method directly assigns the signature bytes without any decoding or conversion.
-func (k *RsaKeyPair) SetRawSign(sign []byte) {
-	k.Sign = sign
-}
-
-// SetHexSign sets the signature in hexadecimal format.
-// This method decodes the hex string to raw bytes before setting the signature.
-func (k *RsaKeyPair) SetHexSign(sign []byte) {
-	k.Sign = coding.NewDecoder().FromBytes(sign).ByHex().ToBytes()
-}
-
-// SetBase64Sign sets the signature in Base64 format.
-// This method decodes the Base64 string to raw bytes before setting the signature.
-func (k *RsaKeyPair) SetBase64Sign(sign []byte) {
-	k.Sign = coding.NewDecoder().FromBytes(sign).ByBase64().ToBytes()
 }
 
 // ParsePublicKey parses the public key from PEM format and returns a Go crypto/rsa.PublicKey.
