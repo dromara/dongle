@@ -51,7 +51,9 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ### 使用例
 エンコード・デコード(`Base64`を例に)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ=
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
@@ -59,7 +61,9 @@ dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello worl
 
 ハッシュアルゴリズム(`Md5`を例に)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eeed093cb22bb8f5acdc3
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
@@ -67,7 +71,9 @@ dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyy
 
 HMAC アルゴリズム(`Md5`を例に)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexString()    // 4790626a275f776956386e5a3ea7b726
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
