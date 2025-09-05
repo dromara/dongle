@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dromara/dongle/hash/md2"
-
-	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/dromara/dongle/hash/md2"
+	"github.com/dromara/dongle/mock"
 )
 
 func TestHasher_FromString(t *testing.T) {

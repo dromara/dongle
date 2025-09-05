@@ -91,7 +91,6 @@ func (h *Hasher) stream(fn func() hash.Hash) ([]byte, error) {
 
 	buffer := make([]byte, BufferSize)
 
-	var totalBytes int64
 	var hasData bool
 
 	// Stream process data in chunks
@@ -107,8 +106,6 @@ func (h *Hasher) stream(fn func() hash.Hash) ([]byte, error) {
 		// If we read some data, process it immediately
 		if n > 0 {
 			hasData = true
-			totalBytes += int64(n)
-
 			// Write the chunk to the hasher for immediate processing
 			_, writeErr := hasher.Write(buffer[:n])
 			if writeErr != nil {
