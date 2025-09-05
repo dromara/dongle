@@ -159,13 +159,10 @@ base64Bytes :=dongle.Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes() //
 
 // 设置公钥
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
-// 设置 Hex 编码签名
-kp.SetHexSign(hexBytes)
-// 设置 Base64 编码签名
-kp.SetBase64Sign(base64Bytes)
-// 通过公钥进行验签
-dongle.Verify.FromString("hello world").ByRsa(kp).ToBool()
-dongle.Verify.FromBytes([]byte("hello world")).ByRsa(kp).ToBool() 
+// 通过公钥对 Hex 编码签名进行验签
+dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
+// 通过公钥对 Base64 编码签名进行验签
+dongle.Verify.FromString("hello world").WithBase64Sign(hexBytes).ByRsa(kp).ToBool()
 ```
 
 更多用法示例请查看 <a href="https://dongle.go-pkg.com/zh" target="_blank">官方文档</a>
