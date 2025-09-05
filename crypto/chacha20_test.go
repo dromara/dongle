@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dromara/dongle/crypto/cipher"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 // Test data constants

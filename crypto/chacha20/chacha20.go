@@ -4,8 +4,9 @@ import (
 	stdCipher "crypto/cipher"
 	"io"
 
-	"github.com/dromara/dongle/crypto/cipher"
 	"golang.org/x/crypto/chacha20"
+
+	"github.com/dromara/dongle/crypto/cipher"
 )
 
 // StdEncrypter represents a ChaCha20 encrypter for standard encryption operations.

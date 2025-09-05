@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"bytes"
+	"github.com/dromara/dongle/coding"
 	"io"
 	"io/fs"
 
@@ -31,6 +32,21 @@ func (v *Verifier) FromBytes(b []byte) *Verifier {
 
 func (v *Verifier) FromFile(f fs.File) *Verifier {
 	v.reader = f
+	return v
+}
+
+func (v *Verifier) WithHexSign(s []byte) *Verifier {
+	v.sign = coding.NewDecoder().FromBytes(s).ByHex().ToBytes()
+	return v
+}
+
+func (v *Verifier) WithBase64Sign(s []byte) *Verifier {
+	v.sign = coding.NewDecoder().FromBytes(s).ByBase64().ToBytes()
+	return v
+}
+
+func (v *Verifier) WithRawSign(s []byte) *Verifier {
+	v.sign = s
 	return v
 }
 

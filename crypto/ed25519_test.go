@@ -4,9 +4,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/mock"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestSignerByEd25519 tests the ByEd25519 method of Signer

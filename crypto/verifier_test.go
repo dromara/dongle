@@ -5,8 +5,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/dromara/dongle/mock"
 )
 
 func TestNewVerifier(t *testing.T) {
@@ -306,5 +307,117 @@ func TestVerifier_stream(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("hello world"), result)
+	})
+}
+
+func TestVerifier_WithHexSign(t *testing.T) {
+	t.Run("with valid hex signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		hexSignature := []byte("74657374207369676e6174757265") // "test signature" in hex
+		result := verifier.WithHexSign(hexSignature)
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, []byte("test signature"), verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with empty hex signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		result := verifier.WithHexSign([]byte{})
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, []byte{}, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with nil hex signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		result := verifier.WithHexSign(nil)
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, []byte{}, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with invalid hex signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		invalidHex := []byte("invalid_hex_string")
+		result := verifier.WithHexSign(invalidHex)
+
+		assert.Equal(t, verifier, result)
+		// Invalid hex will result in empty bytes from the decoder
+		assert.Equal(t, []byte{}, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+}
+
+func TestVerifier_WithBase64Sign(t *testing.T) {
+	t.Run("with valid base64 signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		base64Signature := []byte("dGVzdCBzaWduYXR1cmU=") // "test signature" in base64
+		result := verifier.WithBase64Sign(base64Signature)
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, []byte("test signature"), verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with empty base64 signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		result := verifier.WithBase64Sign([]byte{})
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, []byte{}, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with nil base64 signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		result := verifier.WithBase64Sign(nil)
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, []byte{}, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with invalid base64 signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		invalidBase64 := []byte("invalid_base64!")
+		result := verifier.WithBase64Sign(invalidBase64)
+
+		assert.Equal(t, verifier, result)
+		// Invalid base64 will result in empty bytes from the decoder
+		assert.Equal(t, []byte{}, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+}
+
+func TestVerifier_WithRawSign(t *testing.T) {
+	t.Run("with valid raw signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		rawSignature := []byte("test signature")
+		result := verifier.WithRawSign(rawSignature)
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, rawSignature, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with empty raw signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		result := verifier.WithRawSign([]byte{})
+
+		assert.Equal(t, verifier, result)
+		assert.Equal(t, []byte{}, verifier.sign)
+		assert.Nil(t, verifier.Error)
+	})
+
+	t.Run("with nil raw signature", func(t *testing.T) {
+		verifier := NewVerifier()
+		result := verifier.WithRawSign(nil)
+
+		assert.Equal(t, verifier, result)
+		assert.Nil(t, verifier.sign)
+		assert.Nil(t, verifier.Error)
 	})
 }
