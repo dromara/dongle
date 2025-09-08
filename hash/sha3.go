@@ -23,7 +23,7 @@ func (h *Hasher) BySha3(size int) *Hasher {
 	case 512:
 		hasher = sha3.New512
 	default:
-		h.Error = fmt.Errorf("unsupported SHA3 size: %d, supported sizes are 224, 256, 384, 512", size)
+		h.Error = fmt.Errorf("hash/sha3: unsupported size: %d, supported sizes are 224, 256, 384, 512", size)
 		return h
 	}
 	if len(h.key) > 0 {

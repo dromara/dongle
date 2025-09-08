@@ -53,9 +53,7 @@ func (d *Decoder) ToBytes() []byte {
 
 // stream decodes with stream using true streaming processing.
 func (d *Decoder) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
-	// Use a fixed buffer size for streaming (64KB is a good balance)
-	const bufferSize = 64 * 1024
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, BufferSize)
 
 	// Create a buffer to collect decoded data
 	var result bytes.Buffer

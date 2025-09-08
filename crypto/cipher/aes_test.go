@@ -128,7 +128,7 @@ func TestAesCipher_SetAAD(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				cipher := NewAesCipher(GCM)
 				cipher.SetAAD(tc.aad)
-				assert.Equal(t, tc.aad, cipher.Aad)
+				assert.Equal(t, tc.aad, cipher.AAD)
 			})
 		}
 	})

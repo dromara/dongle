@@ -52,9 +52,7 @@ func (e *Encoder) ToBytes() []byte {
 
 // stream encodes with stream using true streaming processing.
 func (e *Encoder) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
-	// Use a fixed buffer size for streaming (64KB is a good balance)
-	const bufferSize = 64 * 1024
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, BufferSize)
 
 	// Create a buffer to collect encoded data
 	var result bytes.Buffer

@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"bytes"
+	"github.com/dromara/dongle/coding"
 	"io"
 	"io/fs"
 
@@ -34,6 +35,21 @@ func (v *Verifier) FromFile(f fs.File) *Verifier {
 	return v
 }
 
+func (v *Verifier) WithHexSign(s []byte) *Verifier {
+	v.sign = coding.NewDecoder().FromBytes(s).ByHex().ToBytes()
+	return v
+}
+
+func (v *Verifier) WithBase64Sign(s []byte) *Verifier {
+	v.sign = coding.NewDecoder().FromBytes(s).ByBase64().ToBytes()
+	return v
+}
+
+func (v *Verifier) WithRawSign(s []byte) *Verifier {
+	v.sign = s
+	return v
+}
+
 func (v *Verifier) ToBool() bool {
 	if len(v.data) == 0 || len(v.sign) == 0 {
 		return false
@@ -58,8 +74,7 @@ func (v *Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	verifier := fn(&bf)
 
 	// Process data in chunks for true streaming
-	const bufferSize = 4096 // 4KB chunks for optimal performance
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, BufferSize)
 
 	for {
 		// Read chunk from input

@@ -14,7 +14,7 @@ type blockCipher struct {
 	baseCipher
 	IV      []byte
 	Nonce   []byte
-	Aad     []byte
+	AAD     []byte
 	Block   BlockMode
 	Padding PaddingMode
 }
@@ -32,7 +32,7 @@ func (c *blockCipher) SetNonce(nonce []byte) {
 }
 
 func (c *blockCipher) SetAAD(aad []byte) {
-	c.Aad = aad
+	c.AAD = aad
 }
 
 func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err error) {
@@ -65,7 +65,7 @@ func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err e
 	case CTR:
 		return newCTREncrypter(src, c.IV, block)
 	case GCM:
-		return newGCMEncrypter(src, c.Nonce, c.Aad, block)
+		return newGCMEncrypter(src, c.Nonce, c.AAD, block)
 	case CFB:
 		return newCFBEncrypter(src, c.IV, block)
 	case OFB:
@@ -84,7 +84,7 @@ func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err e
 	case ECB:
 		decrypted, err = newECBDecrypter(src, block)
 	case GCM:
-		decrypted, err = newGCMDecrypter(src, c.Nonce, c.Aad, block)
+		decrypted, err = newGCMDecrypter(src, c.Nonce, c.AAD, block)
 	case CFB:
 		decrypted, err = newCFBDecrypter(src, c.IV, block)
 	case OFB:

@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/dromara/dongle/mock"
 )
 
 func TestHasher_BySha1(t *testing.T) {

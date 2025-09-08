@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/crypto/rsa"
 	"github.com/dromara/dongle/mock"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestEncrypterByRsa tests the Encrypter.ByRsa method
@@ -304,8 +305,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
-		verifier := NewVerifier().FromString(data).ByRsa(kp)
+		verifier := NewVerifier().FromString(data).WithRawSign(signer.ToRawBytes()).ByRsa(kp)
 		// Check if verification was successful using ToBool()
 		assert.True(t, verifier.ToBool())
 	})
@@ -322,9 +322,8 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming
-		kp.SetRawSign(signer.ToRawBytes())
 		file := mock.NewFile([]byte(data), "test.txt")
-		verifier := NewVerifier()
+		verifier := NewVerifier().WithRawSign(signer.ToRawBytes())
 		verifier.reader = file
 		verifier.data = []byte(data)
 		verifier.ByRsa(kp)
@@ -346,7 +345,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with empty data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		file := mock.NewFile([]byte(data), "test.txt")
 		verifier := NewVerifier()
 		verifier.reader = file
@@ -370,7 +369,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		file := mock.NewFile([]byte(data), "test.txt")
 		verifier := NewVerifier()
 		verifier.reader = file
@@ -434,7 +433,7 @@ func TestVerifierByRsa(t *testing.T) {
 		kp.SetHash(crypto.SHA256)
 		kp.SetPublicKey([]byte("invalid key"))
 		// Set a dummy signature so the test reaches the actual verification step
-		kp.SetRawSign([]byte("dummy signature"))
+		kp.Sign = []byte("dummy signature")
 
 		verifier := NewVerifier().FromString("hello world").ByRsa(kp)
 		// With the new implementation, invalid keys cause KeyPairError
@@ -470,8 +469,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
-		verifier := NewVerifier().FromString(data).ByRsa(kp)
+		verifier := NewVerifier().FromString(data).WithRawSign(signer.ToRawBytes()).ByRsa(kp)
 		// Check if verification was successful using ToBool()
 		assert.True(t, verifier.ToBool())
 	})
@@ -483,7 +481,7 @@ func TestVerifierByRsa(t *testing.T) {
 		kp.GenKeyPair(1024)
 
 		// Try to verify with invalid signature
-		kp.SetRawSign([]byte("invalid"))
+		kp.Sign = []byte("invalid")
 		verifier := NewVerifier().FromString("hello world").ByRsa(kp)
 		assert.NotNil(t, verifier.Error)
 	})
@@ -500,7 +498,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify with different data (should fail)
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromString("different data").ByRsa(kp)
 		assert.NotNil(t, verifier.Error)
 	})
@@ -530,7 +528,7 @@ func TestVerifierByRsa(t *testing.T) {
 
 		// Set wrong signature (should cause verification to fail)
 		wrongSignature := []byte("wrong signature data")
-		kp.SetRawSign(wrongSignature)
+		kp.Sign = wrongSignature
 		verifier := NewVerifier().FromString(data).ByRsa(kp)
 		assert.NotNil(t, verifier.Error)
 	})
@@ -547,7 +545,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Set correct signature but verify with different data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromString("different data").ByRsa(kp)
 		// This should fail verification and set an error
 		assert.NotNil(t, verifier.Error)
@@ -568,7 +566,7 @@ func TestVerifierByRsa(t *testing.T) {
 
 		// Verify signature
 		signature := signer.ToRawBytes()
-		kp.SetRawSign(signature)
+		kp.Sign = signature
 		verifier := NewVerifier().FromString(data).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -589,7 +587,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromString("").ByRsa(kp)
 		// Empty data verification may fail due to implementation details
 		// Just check that it completes without panic
@@ -609,7 +607,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature with nil data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier()
 		verifier.data = nil
 		verifier.ByRsa(kp)
@@ -636,7 +634,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(largeData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -656,7 +654,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(binaryData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -676,7 +674,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromString(unicodeData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -694,7 +692,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with nil reader
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier()
 		verifier.reader = nil // Nil reader
 		verifier.data = []byte(data)
@@ -716,7 +714,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with empty reader
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		file := mock.NewFile([]byte{}, "empty.txt") // Empty file
 		verifier := NewVerifier()
 		verifier.reader = file
@@ -739,7 +737,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with zero length data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		file := mock.NewFile([]byte(data), "test.txt")
 		verifier := NewVerifier()
 		verifier.reader = file
@@ -762,7 +760,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with nil data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		file := mock.NewFile([]byte(data), "test.txt")
 		verifier := NewVerifier()
 		verifier.reader = file
@@ -793,7 +791,7 @@ func TestVerifierByRsa(t *testing.T) {
 		}
 
 		// Try to verify with corrupted signature
-		kp.SetRawSign(corruptedSignature)
+		kp.Sign = corruptedSignature
 		verifier := NewVerifier().FromString(data).ByRsa(kp)
 		// Should fail verification
 		assert.NotNil(t, verifier.Error)
@@ -818,7 +816,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Try to verify with second key pair (should fail)
-		kp2.SetRawSign(signer.ToRawBytes())
+		kp2.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromString(data).ByRsa(kp2)
 		// Should fail verification due to key mismatch
 		assert.NotNil(t, verifier.Error)
@@ -839,8 +837,7 @@ func TestVerifierByRsa(t *testing.T) {
 		kp.SetHash(crypto.SHA512)
 
 		// Try to verify with different hash (should fail)
-		kp.SetRawSign(signer.ToRawBytes())
-		verifier := NewVerifier().FromString(data).ByRsa(kp)
+		verifier := NewVerifier().FromString(data).WithRawSign(signer.ToRawBytes()).ByRsa(kp)
 		// Should fail verification due to hash mismatch
 		assert.NotNil(t, verifier.Error)
 	})
@@ -857,9 +854,8 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming
-		kp.SetRawSign(signer.ToRawBytes())
 		file := mock.NewFile([]byte(data), "test.txt")
-		verifier := NewVerifier()
+		verifier := NewVerifier().WithRawSign(signer.ToRawBytes())
 		verifier.reader = file
 		verifier.data = []byte(data)
 		verifier.ByRsa(kp)
@@ -885,7 +881,7 @@ func TestVerifierByRsa(t *testing.T) {
 		// Create a signature that will cause verification to return false
 		// We'll use a completely different signature
 		fakeSignature := []byte("fake signature that will fail verification")
-		kp.SetRawSign(fakeSignature)
+		kp.Sign = fakeSignature
 		verifier := NewVerifier().FromString(data).ByRsa(kp)
 		// Should fail verification
 		assert.NotNil(t, verifier.Error)
@@ -910,7 +906,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(largeData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -928,7 +924,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(singleByteData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -946,7 +942,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(zeroData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -967,7 +963,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(oneData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -985,7 +981,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with very small data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		file := mock.NewFile([]byte(data), "test.txt")
 		verifier := NewVerifier()
 		verifier.reader = file
@@ -1008,7 +1004,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature using streaming with exactly one byte data
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		file := mock.NewFile([]byte(data), "test.txt")
 		verifier := NewVerifier()
 		verifier.reader = file
@@ -1042,7 +1038,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(mixedData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -1065,7 +1061,7 @@ func TestVerifierByRsa(t *testing.T) {
 		assert.Nil(t, signer.Error)
 
 		// Verify signature
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(patternData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -1085,7 +1081,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer1 := NewSigner().FromBytes(data1).ByRsa(kp)
 		assert.Nil(t, signer1.Error)
 
-		kp.SetRawSign(signer1.ToRawBytes())
+		kp.Sign = signer1.ToRawBytes()
 		verifier1 := NewVerifier().FromBytes(data1).ByRsa(kp)
 		assert.Nil(t, verifier1.Error)
 		assert.True(t, verifier1.ToBool())
@@ -1095,7 +1091,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer2 := NewSigner().FromBytes(data2).ByRsa(kp)
 		assert.Nil(t, signer2.Error)
 
-		kp.SetRawSign(signer2.ToRawBytes())
+		kp.Sign = signer2.ToRawBytes()
 		file := mock.NewFile(data2, "edge_case.txt")
 		verifier2 := NewVerifier()
 		verifier2.reader = file
@@ -1110,7 +1106,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer3 := NewSigner().FromBytes(data3).ByRsa(kp)
 		assert.Nil(t, signer3.Error)
 
-		kp.SetRawSign(signer3.ToRawBytes())
+		kp.Sign = signer3.ToRawBytes()
 		verifier3 := NewVerifier().FromBytes(data3).ByRsa(kp)
 		assert.Nil(t, verifier3.Error)
 		assert.True(t, verifier3.ToBool())
@@ -1125,7 +1121,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer4 := NewSigner().FromBytes(largeData).ByRsa(kp)
 		assert.Nil(t, signer4.Error)
 
-		kp.SetRawSign(signer4.ToRawBytes())
+		kp.Sign = signer4.ToRawBytes()
 		verifier4 := NewVerifier().FromBytes(largeData).ByRsa(kp)
 		assert.Nil(t, verifier4.Error)
 		assert.True(t, verifier4.ToBool())
@@ -1152,7 +1148,7 @@ func TestVerifierByRsa(t *testing.T) {
 			assert.Nil(t, signer.Error)
 
 			// Verify signature
-			kp.SetRawSign(signer.ToRawBytes())
+			kp.Sign = signer.ToRawBytes()
 			verifier := NewVerifier().FromBytes(testData).ByRsa(kp)
 			assert.Nil(t, verifier.Error)
 			assert.True(t, verifier.ToBool())
@@ -1174,7 +1170,7 @@ func TestVerifierByRsa(t *testing.T) {
 			assert.Nil(t, signer.Error)
 
 			// Verify signature
-			kp.SetRawSign(signer.ToRawBytes())
+			kp.Sign = signer.ToRawBytes()
 			verifier := NewVerifier().FromBytes(pattern).ByRsa(kp)
 			assert.Nil(t, verifier.Error)
 			assert.True(t, verifier.ToBool())
@@ -1185,7 +1181,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer := NewSigner().FromBytes(streamData).ByRsa(kp)
 		assert.Nil(t, signer.Error)
 
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 
 		// Test with different reader sizes
 		for size := 1; size <= len(streamData); size += 5 {
@@ -1220,7 +1216,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer := NewSigner().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, signer.Error)
 
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -1230,7 +1226,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer2 := NewSigner().FromBytes(streamSpecificData).ByRsa(kp)
 		assert.Nil(t, signer2.Error)
 
-		kp.SetRawSign(signer2.ToRawBytes())
+		kp.Sign = signer2.ToRawBytes()
 		file := mock.NewFile(streamSpecificData, "specific_stream.txt")
 		verifier2 := NewVerifier()
 		verifier2.reader = file
@@ -1254,7 +1250,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer3 := NewSigner().FromBytes(alternatingData).ByRsa(kp)
 		assert.Nil(t, signer3.Error)
 
-		kp.SetRawSign(signer3.ToRawBytes())
+		kp.Sign = signer3.ToRawBytes()
 		verifier3 := NewVerifier().FromBytes(alternatingData).ByRsa(kp)
 		assert.Nil(t, verifier3.Error)
 		assert.True(t, verifier3.ToBool())
@@ -1265,7 +1261,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer4 := NewSigner().FromBytes(edgeData).ByRsa(kp)
 		assert.Nil(t, signer4.Error)
 
-		kp.SetRawSign(signer4.ToRawBytes())
+		kp.Sign = signer4.ToRawBytes()
 		verifier4 := NewVerifier().FromBytes(edgeData).ByRsa(kp)
 		assert.Nil(t, verifier4.Error)
 		assert.True(t, verifier4.ToBool())
@@ -1276,7 +1272,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer5 := NewSigner().FromBytes(edgeStreamData).ByRsa(kp)
 		assert.Nil(t, signer5.Error)
 
-		kp.SetRawSign(signer5.ToRawBytes())
+		kp.Sign = signer5.ToRawBytes()
 		file2 := mock.NewFile(edgeStreamData, "edge_stream.txt")
 		verifier5 := NewVerifier()
 		verifier5.reader = file2
@@ -1302,7 +1298,7 @@ func TestVerifierByRsa(t *testing.T) {
 		verifier.data = []byte{0x42, 0x43, 0x44, 0x45}
 
 		// Set signature directly
-		kp.SetRawSign([]byte{0x01, 0x02, 0x03, 0x04})
+		kp.Sign = []byte{0x01, 0x02, 0x03, 0x04}
 
 		// Call ByRsa with manipulated fields
 		verifier.ByRsa(kp)
@@ -1317,7 +1313,7 @@ func TestVerifierByRsa(t *testing.T) {
 		// Create a valid signature first
 		signer := NewSigner().FromString("test").ByRsa(kp)
 		assert.Nil(t, signer.Error)
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 
 		verifier2.ByRsa(kp)
 		// Should fail due to nil data
@@ -1358,7 +1354,7 @@ func TestVerifierByRsa(t *testing.T) {
 		// Create a valid signature for this data
 		signer := NewSigner().FromBytes(verifier.data).ByRsa(kp)
 		assert.Nil(t, signer.Error)
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 
 		verifier.ByRsa(kp)
 		// Should succeed
@@ -1373,7 +1369,7 @@ func TestVerifierByRsa(t *testing.T) {
 		// Create a valid signature for this data
 		signer2 := NewSigner().FromBytes(verifier2.data).ByRsa(kp)
 		assert.Nil(t, signer2.Error)
-		kp.SetRawSign(signer2.ToRawBytes())
+		kp.Sign = signer2.ToRawBytes()
 
 		verifier2.ByRsa(kp)
 		// Should complete
@@ -1395,7 +1391,7 @@ func TestVerifierByRsa(t *testing.T) {
 			// Create a valid signature for this pattern
 			signer := NewSigner().FromBytes(pattern).ByRsa(kp)
 			assert.Nil(t, signer.Error)
-			kp.SetRawSign(signer.ToRawBytes())
+			kp.Sign = signer.ToRawBytes()
 
 			verifier.ByRsa(kp)
 			// Should succeed
@@ -1433,7 +1429,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer := NewSigner().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, signer.Error)
 
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -1447,7 +1443,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer2 := NewSigner().FromBytes(streamData).ByRsa(kp)
 		assert.Nil(t, signer2.Error)
 
-		kp.SetRawSign(signer2.ToRawBytes())
+		kp.Sign = signer2.ToRawBytes()
 		file := mock.NewFile(streamData, "math_pattern.txt")
 		verifier2 := NewVerifier()
 		verifier2.reader = file
@@ -1471,7 +1467,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer3 := NewSigner().FromBytes(alternatingData).ByRsa(kp)
 		assert.Nil(t, signer3.Error)
 
-		kp.SetRawSign(signer3.ToRawBytes())
+		kp.Sign = signer3.ToRawBytes()
 		verifier3 := NewVerifier().FromBytes(alternatingData).ByRsa(kp)
 		assert.Nil(t, verifier3.Error)
 		assert.True(t, verifier3.ToBool())
@@ -1482,7 +1478,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer4 := NewSigner().FromBytes(edgeData).ByRsa(kp)
 		assert.Nil(t, signer4.Error)
 
-		kp.SetRawSign(signer4.ToRawBytes())
+		kp.Sign = signer4.ToRawBytes()
 		verifier4 := NewVerifier().FromBytes(edgeData).ByRsa(kp)
 		assert.Nil(t, verifier4.Error)
 		assert.True(t, verifier4.ToBool())
@@ -1493,7 +1489,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer5 := NewSigner().FromBytes(edgeStreamData).ByRsa(kp)
 		assert.Nil(t, signer5.Error)
 
-		kp.SetRawSign(signer5.ToRawBytes())
+		kp.Sign = signer5.ToRawBytes()
 		file2 := mock.NewFile(edgeStreamData, "edge_stream.txt")
 		verifier5 := NewVerifier()
 		verifier5.reader = file2
@@ -1520,7 +1516,7 @@ func TestVerifierByRsa(t *testing.T) {
 			signer := NewSigner().FromBytes(singleByteData).ByRsa(kp)
 			assert.Nil(t, signer.Error)
 
-			kp.SetRawSign(signer.ToRawBytes())
+			kp.Sign = signer.ToRawBytes()
 			verifier := NewVerifier().FromBytes(singleByteData).ByRsa(kp)
 			assert.Nil(t, verifier.Error)
 			assert.True(t, verifier.ToBool())
@@ -1537,7 +1533,7 @@ func TestVerifierByRsa(t *testing.T) {
 			signer := NewSigner().FromBytes(testData).ByRsa(kp)
 			assert.Nil(t, signer.Error)
 
-			kp.SetRawSign(signer.ToRawBytes())
+			kp.Sign = signer.ToRawBytes()
 			verifier := NewVerifier().FromBytes(testData).ByRsa(kp)
 			assert.Nil(t, verifier.Error)
 			assert.True(t, verifier.ToBool())
@@ -1557,7 +1553,7 @@ func TestVerifierByRsa(t *testing.T) {
 			signer := NewSigner().FromBytes(pattern).ByRsa(kp)
 			assert.Nil(t, signer.Error)
 
-			kp.SetRawSign(signer.ToRawBytes())
+			kp.Sign = signer.ToRawBytes()
 			verifier := NewVerifier().FromBytes(pattern).ByRsa(kp)
 			assert.Nil(t, verifier.Error)
 			assert.True(t, verifier.ToBool())
@@ -1575,7 +1571,7 @@ func TestVerifierByRsa(t *testing.T) {
 			signer := NewSigner().FromBytes(pattern).ByRsa(kp)
 			assert.Nil(t, signer.Error)
 
-			kp.SetRawSign(signer.ToRawBytes())
+			kp.Sign = signer.ToRawBytes()
 			file := mock.NewFile(pattern, fmt.Sprintf("last_resort_%d.txt", i))
 			verifier := NewVerifier()
 			verifier.reader = file
@@ -1606,7 +1602,7 @@ func TestVerifierByRsa(t *testing.T) {
 		// Create a valid signature
 		signer := NewSigner().FromBytes(verifier.data).ByRsa(kp)
 		assert.Nil(t, signer.Error)
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 
 		// Call ByRsa with all fields set
 		verifier.ByRsa(kp)
@@ -1622,7 +1618,7 @@ func TestVerifierByRsa(t *testing.T) {
 		// Create a valid signature
 		signer2 := NewSigner().FromBytes(verifier2.data).ByRsa(kp)
 		assert.Nil(t, signer2.Error)
-		kp.SetRawSign(signer2.ToRawBytes())
+		kp.Sign = signer2.ToRawBytes()
 
 		verifier2.ByRsa(kp)
 		// Should succeed
@@ -1639,7 +1635,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer3 := NewSigner().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, signer3.Error)
 
-		kp.SetRawSign(signer3.ToRawBytes())
+		kp.Sign = signer3.ToRawBytes()
 		verifier3 := NewVerifier().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, verifier3.Error)
 		assert.True(t, verifier3.ToBool())
@@ -1653,7 +1649,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer4 := NewSigner().FromBytes(streamData).ByRsa(kp)
 		assert.Nil(t, signer4.Error)
 
-		kp.SetRawSign(signer4.ToRawBytes())
+		kp.Sign = signer4.ToRawBytes()
 		file := mock.NewFile(streamData, "final_stream.txt")
 		verifier4 := NewVerifier()
 		verifier4.reader = file
@@ -1683,7 +1679,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer := NewSigner().FromBytes(allBytesData).ByRsa(kp)
 		assert.Nil(t, signer.Error)
 
-		kp.SetRawSign(signer.ToRawBytes())
+		kp.Sign = signer.ToRawBytes()
 		verifier := NewVerifier().FromBytes(allBytesData).ByRsa(kp)
 		assert.Nil(t, verifier.Error)
 		assert.True(t, verifier.ToBool())
@@ -1698,7 +1694,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer2 := NewSigner().FromBytes(patternData).ByRsa(kp)
 		assert.Nil(t, signer2.Error)
 
-		kp.SetRawSign(signer2.ToRawBytes())
+		kp.Sign = signer2.ToRawBytes()
 		file := mock.NewFile(patternData, "ultimate_pattern.txt")
 		verifier2 := NewVerifier()
 		verifier2.reader = file
@@ -1720,7 +1716,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer3 := NewSigner().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, signer3.Error)
 
-		kp.SetRawSign(signer3.ToRawBytes())
+		kp.Sign = signer3.ToRawBytes()
 		verifier3 := NewVerifier().FromBytes(specificData).ByRsa(kp)
 		assert.Nil(t, verifier3.Error)
 		assert.True(t, verifier3.ToBool())
@@ -1732,7 +1728,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer4 := NewSigner().FromBytes(edgeData).ByRsa(kp)
 		assert.Nil(t, signer4.Error)
 
-		kp.SetRawSign(signer4.ToRawBytes())
+		kp.Sign = signer4.ToRawBytes()
 		verifier4 := NewVerifier().FromBytes(edgeData).ByRsa(kp)
 		assert.Nil(t, verifier4.Error)
 		assert.True(t, verifier4.ToBool())
@@ -1743,7 +1739,7 @@ func TestVerifierByRsa(t *testing.T) {
 		signer5 := NewSigner().FromBytes(edgeStreamData).ByRsa(kp)
 		assert.Nil(t, signer5.Error)
 
-		kp.SetRawSign(signer5.ToRawBytes())
+		kp.Sign = signer5.ToRawBytes()
 		file2 := mock.NewFile(edgeStreamData, "ultimate_edge.txt")
 		verifier5 := NewVerifier()
 		verifier5.reader = file2

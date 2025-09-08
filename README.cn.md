@@ -56,7 +56,9 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ### 用法示例
 编码、解码(以 `Base64` 为例)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ=
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
@@ -64,7 +66,9 @@ dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello worl
 
 Hash 算法(以 `Md5` 为例)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eeed093cb22bb8f5acdc3
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
@@ -72,7 +76,9 @@ dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyy
 
 Hmac 算法(以 `Md5` 为例)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexString()    // 4790626a275f776956386e5a3ea7b726
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
@@ -94,12 +100,12 @@ c.SetIV([]byte("1234567890123456"))
 // 设置填充模式（可选，默认为 PKCS7）
 c.SetPadding(cipher.PKCS7)
 
-// 对字符串明文进行加密, 返回十六进制字符串密文
+// 对字符串明文进行加密, 返回 hex 编码字符串密文
 dongle.Encrypt.FromString("hello world").ByAes(c).ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // 对字符串明文进行加密, 返回 base64 编码字符串密文
 dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 
-// 对十六进制字符串密文进行解密, 返回字符串明文
+// 对hex 编码字符串密文进行解密, 返回字符串明文
 dongle.Decrypt.FromHexString("48c6bc076e1da2946e1c0e59e9c91ae9").ByAes(c).ToString() // hello world
 // 对 base64 编码字符串密文进行解密, 返回字符串明文
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
@@ -122,17 +128,47 @@ kp.SetHash(crypto.SHA256)
 
 // 设置公钥
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
-// 通过公钥对字符串明文进行加密, 返回十六进制字符串密文
+// 通过公钥对字符串明文进行加密, 返回hex 编码字符串密文
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40...
 // 通过公钥对字符串明文进行加密, 返回 base64 编码字符串密文
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==...
 
 // 设置私钥
 kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
-// 通过私钥对十六进制字符串密文进行解密, 返回字符串明文
+// 通过私钥对 hex 编码字符串密文进行解密, 返回字符串明文
 dongle.Decrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
 // 通过私钥对 base64 编码字符串密文进行解密, 返回字符串明文
 dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
+```
+
+数字签名、验证(以 `RSA` 为例)
+```go
+import (
+	"crypto"
+	"github.com/dromara/dongle"
+	"github.com/dromara/dongle/crypto/keypair"
+)
+
+// 创建密钥对
+kp := keypair.NewRsaKeyPair()
+// 设置密钥格式（可选，默认为 PKCS8）
+kp.SetFormat(keypair.PKCS8)
+// 设置哈希算法（可选，默认为 SHA256）
+kp.SetHash(crypto.SHA256)   
+
+// 设置私钥
+kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
+// 通过私钥对字符串进行签名, 返回 hex 编码字节切片签名
+hexBytes := dongle.Sign.FromString("hello world").ByRsa(kp).ToHexBytes() // 7fae94fd1a8b880d8d5454dd8df30c40...
+// 通过私钥对字符串明文进行签名, 返回 base64 编码字节切片签名
+base64Bytes :=dongle.Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes() // f66U/RqLiA2NVFTdjfMMQA==...
+
+// 设置公钥
+kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
+// 通过公钥对 Hex 编码签名进行验签
+dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
+// 通过公钥对 Base64 编码签名进行验签
+dongle.Verify.FromString("hello world").WithBase64Sign(hexBytes).ByRsa(kp).ToBool()
 ```
 
 更多用法示例请查看 <a href="https://dongle.go-pkg.com/zh" target="_blank">官方文档</a>

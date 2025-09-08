@@ -74,15 +74,13 @@ func (e *Encrypter) ToHexBytes() []byte {
 func (e *Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	// Use a bytes.Buffer to collect encrypted output
 	// This is more efficient than io.Pipe + io.ReadAll for the crypto use case
-	var result bytes.Buffer
+	var bb bytes.Buffer
 
 	// Create encrypter that writes directly to result buffer
-	encrypter := fn(&result)
+	encrypter := fn(&bb)
 	defer encrypter.Close()
 
-	// Process data in chunks for true streaming
-	const bufferSize = 4096 // 4KB chunks for optimal performance
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, BufferSize)
 
 	for {
 		// Read chunk from input
@@ -105,9 +103,9 @@ func (e *Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	}
 
 	// Return the accumulated encrypted data
-	bytes := result.Bytes()
-	if bytes == nil {
+	data := bb.Bytes()
+	if data == nil {
 		return []byte{}, nil // Return empty slice instead of nil for consistency
 	}
-	return bytes, nil
+	return data, nil
 }

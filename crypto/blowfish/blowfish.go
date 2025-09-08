@@ -126,7 +126,6 @@ func NewStreamEncrypter(w io.Writer, c *cipher.BlowfishCipher) io.WriteCloser {
 	if err == nil {
 		e.block = block
 	}
-	e.block = block
 	return e
 }
 

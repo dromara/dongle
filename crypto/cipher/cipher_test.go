@@ -114,7 +114,7 @@ func TestBlockCipher_SetAAD(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				cipher := &blockCipher{}
 				cipher.SetAAD(tc.aad)
-				assert.Equal(t, tc.aad, cipher.Aad)
+				assert.Equal(t, tc.aad, cipher.AAD)
 			})
 		}
 	})
@@ -164,7 +164,7 @@ func TestBlockCipher_Encrypt(t *testing.T) {
 			Block:   GCM,
 			Padding: PKCS7,
 			Nonce:   []byte("123456789012"),
-			Aad:     testAAD,
+			AAD:     testAAD,
 		}
 
 		block := &mockBlock{
@@ -450,7 +450,7 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 			Block:   GCM,
 			Padding: PKCS7,
 			Nonce:   []byte("123456789012"),
-			Aad:     testAAD,
+			AAD:     testAAD,
 		}
 
 		block := &mockBlock{
@@ -736,7 +736,7 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 				switch mode {
 				case GCM:
 					cipher.Nonce = []byte("123456789012")
-					cipher.Aad = testAAD
+					cipher.AAD = testAAD
 				case ECB:
 					// ECB doesn't need IV
 				default:

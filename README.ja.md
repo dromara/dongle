@@ -51,7 +51,9 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ### 使用例
 エンコード・デコード(`Base64`を例に)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Encode.FromString("hello world").ByBase64().ToString() // aGVsbG8gd29ybGQ=
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
@@ -59,7 +61,9 @@ dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello worl
 
 ハッシュアルゴリズム(`Md5`を例に)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eeed093cb22bb8f5acdc3
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
@@ -67,7 +71,9 @@ dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyy
 
 HMAC アルゴリズム(`Md5`を例に)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexString()    // 4790626a275f776956386e5a3ea7b726
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
@@ -128,6 +134,36 @@ kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r
 dongle.Decrypt.FromHexString("7fae94fd1a8b880d8d5454dd8df30c40...").ByRsa(kp).ToString() // hello world
 // 秘密鍵でbase64エンコード文字列暗号文を復号化し、文字列平文を返す
 dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToString() // hello world
+```
+
+デジタル署名・検証(`RSA`を例に)
+```go
+import (
+	"crypto"
+	"github.com/dromara/dongle"
+	"github.com/dromara/dongle/crypto/keypair"
+)
+
+// キーペアを作成
+kp := keypair.NewRsaKeyPair()
+// キー形式を設定（オプション、デフォルトは PKCS8）
+kp.SetFormat(keypair.PKCS8)
+// ハッシュアルゴリズムを設定（オプション、デフォルトは SHA256）
+kp.SetHash(crypto.SHA256)   
+
+// 秘密鍵を設定
+kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
+// 秘密鍵で文字列に署名、hex エンコードバイト配列の署名を返す
+hexBytes := dongle.Sign.FromString("hello world").ByRsa(kp).ToHexBytes() // 7fae94fd1a8b880d8d5454dd8df30c40...
+// 秘密鍵で文字列に署名、base64 エンコードバイト配列の署名を返す
+base64Bytes :=dongle.Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes() // f66U/RqLiA2NVFTdjfMMQA==...
+
+// 公開鍵を設定
+kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
+// 公開鍵で Hex エンコード署名を検証
+dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
+// 公開鍵で Base64 エンコード署名を検証
+dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).ToBool()
 ```
 
 より多くの使用例については、<a href="https://dongle.go-pkg.com/ja" target="_blank">公式ドキュメント</a>をご覧ください。
