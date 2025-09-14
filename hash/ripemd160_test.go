@@ -5,9 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHasher_ByRipemd160(t *testing.T) {
