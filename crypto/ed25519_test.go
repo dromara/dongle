@@ -4,10 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestSignerByEd25519 tests the ByEd25519 method of Signer
@@ -254,7 +253,7 @@ func TestVerifierByEd25519Stream(t *testing.T) {
 		file := mock.NewFile([]byte("test data"), "test.txt")
 		defer file.Close()
 
-		// Create verifier but simulate pre-loaded data that will cause write error
+		// Create verifier but simulate preloaded data that will cause write error
 		// We need to create a StreamVerifier that will fail on Write
 		// Let's create one with invalid key pair that causes initialization error
 		badKp := &keypair.Ed25519KeyPair{
@@ -272,7 +271,7 @@ func TestVerifierByEd25519Stream(t *testing.T) {
 		// Should have an error due to bad key pair
 		if result.Error == nil {
 			// If no error, try a different approach
-			// Create a verifier that already has pre-loaded data
+			// Create a verifier that already has preloaded data
 			verifier2 := &Verifier{
 				reader: file,
 				data:   []byte("test data"), // This will trigger the Write path

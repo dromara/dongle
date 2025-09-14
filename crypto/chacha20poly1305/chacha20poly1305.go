@@ -1,26 +1,25 @@
 package chacha20poly1305
 
 import (
-	"crypto/cipher"
+	stdCipher "crypto/cipher"
 	"io"
 
+	"github.com/dromara/dongle/crypto/cipher"
 	"golang.org/x/crypto/chacha20poly1305"
-
-	dongeCipher "github.com/dromara/dongle/crypto/cipher"
 )
 
 // StdEncrypter represents a ChaCha20-Poly1305 encrypter for standard encryption operations.
 // It implements ChaCha20-Poly1305 AEAD (Authenticated Encryption with Associated Data) encryption
 // using the standard ChaCha20-Poly1305 algorithm with authentication.
 type StdEncrypter struct {
-	cipher *dongeCipher.ChaCha20Poly1305Cipher
+	cipher *cipher.ChaCha20Poly1305Cipher
 	Error  error
 }
 
 // NewStdEncrypter creates a new ChaCha20-Poly1305 encrypter with the specified cipher and key.
 // Validates the key length and initializes the encrypter for ChaCha20-Poly1305 encryption operations.
 // The key must be exactly 32 bytes (256 bits) and nonce must be 12 bytes.
-func NewStdEncrypter(c *dongeCipher.ChaCha20Poly1305Cipher) *StdEncrypter {
+func NewStdEncrypter(c *cipher.ChaCha20Poly1305Cipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
 	}
@@ -41,13 +40,14 @@ func NewStdEncrypter(c *dongeCipher.ChaCha20Poly1305Cipher) *StdEncrypter {
 // Encrypt encrypts the given byte slice using ChaCha20-Poly1305 encryption.
 // ChaCha20-Poly1305 provides authenticated encryption, returning ciphertext with authentication tag.
 // The output includes both encrypted data and authentication tag for integrity verification.
+// Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	if e.Error != nil {
 		return nil, e.Error
 	}
 
 	if len(src) == 0 {
-		return []byte{}, nil
+		return
 	}
 
 	aead, err := chacha20poly1305.New(e.cipher.Key)
@@ -63,14 +63,14 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements ChaCha20-Poly1305 AEAD decryption using the standard ChaCha20-Poly1305 algorithm
 // with authentication verification.
 type StdDecrypter struct {
-	cipher *dongeCipher.ChaCha20Poly1305Cipher
+	cipher *cipher.ChaCha20Poly1305Cipher
 	Error  error
 }
 
 // NewStdDecrypter creates a new ChaCha20-Poly1305 decrypter with the specified cipher and key.
 // Validates the key length and initializes the decrypter for ChaCha20-Poly1305 decryption operations.
 // The key must be exactly 32 bytes (256 bits) and nonce must be 12 bytes.
-func NewStdDecrypter(c *dongeCipher.ChaCha20Poly1305Cipher) *StdDecrypter {
+func NewStdDecrypter(c *cipher.ChaCha20Poly1305Cipher) *StdDecrypter {
 	d := &StdDecrypter{
 		cipher: c,
 	}
@@ -91,13 +91,14 @@ func NewStdDecrypter(c *dongeCipher.ChaCha20Poly1305Cipher) *StdDecrypter {
 // Decrypt decrypts the given byte slice using ChaCha20-Poly1305 decryption.
 // ChaCha20-Poly1305 provides authenticated decryption, verifying both encryption and authentication.
 // The input must include both encrypted data and authentication tag for successful decryption.
+// Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	if d.Error != nil {
 		return nil, d.Error
 	}
 
 	if len(src) == 0 {
-		return []byte{}, nil
+		return
 	}
 
 	aead, err := chacha20poly1305.New(d.cipher.Key)
@@ -115,8 +116,8 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // For true streaming, each chunk is encrypted independently with its own authentication tag.
 type StreamEncrypter struct {
 	writer    io.Writer
-	cipher    *dongeCipher.ChaCha20Poly1305Cipher
-	aead      cipher.AEAD
+	cipher    *cipher.ChaCha20Poly1305Cipher
+	aead      stdCipher.AEAD
 	chunkSize int
 	Error     error
 }
@@ -125,7 +126,7 @@ type StreamEncrypter struct {
 // to the provided io.Writer. The encrypter uses the specified cipher interface
 // and validates the key and nonce lengths for proper ChaCha20-Poly1305 encryption.
 // Each chunk is encrypted independently with authentication for true stream processing.
-func NewStreamEncrypter(w io.Writer, c *dongeCipher.ChaCha20Poly1305Cipher) io.WriteCloser {
+func NewStreamEncrypter(w io.Writer, c *cipher.ChaCha20Poly1305Cipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer:    w,
 		cipher:    c,
@@ -204,15 +205,15 @@ func (e *StreamEncrypter) Close() error {
 // or use fixed-size chunks to properly separate authenticated blocks.
 type StreamDecrypter struct {
 	reader io.Reader
-	cipher *dongeCipher.ChaCha20Poly1305Cipher
-	aead   cipher.AEAD
+	cipher *cipher.ChaCha20Poly1305Cipher
+	aead   stdCipher.AEAD
 	Error  error
 }
 
 // NewStreamDecrypter creates a new streaming ChaCha20-Poly1305 decrypter that reads encrypted data
 // from the provided io.Reader. The decrypter uses the specified cipher interface
 // and validates the key and nonce lengths for proper ChaCha20-Poly1305 decryption.
-func NewStreamDecrypter(r io.Reader, c *dongeCipher.ChaCha20Poly1305Cipher) io.Reader {
+func NewStreamDecrypter(r io.Reader, c *cipher.ChaCha20Poly1305Cipher) io.Reader {
 	d := &StreamDecrypter{
 		reader: r,
 		cipher: c,

@@ -11,7 +11,6 @@ import (
 )
 
 var StdSeparator = " "
-var WordSeparator = "  " // Double space for word separation
 
 // StdAlphabet is the standard morse code alphabet following international standards.
 // Extended to include letters a-z, numbers 0-9, punctuation marks, and special characters.

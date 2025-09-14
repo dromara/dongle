@@ -24,14 +24,6 @@ var benchmarkData = map[string][]byte{
 }
 
 // Test keys and IVs are defined in blowfish_unit_test.go
-func init() {
-	// Initialize random data
-	rand.Read(benchmarkData["large"])
-	rand.Read(benchmarkData["very_large"])
-	rand.Read(benchmarkData["random_small"])
-	rand.Read(benchmarkData["random_medium"])
-	rand.Read(benchmarkData["random_large"])
-}
 
 // BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
 func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
@@ -39,6 +31,13 @@ func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 	c.SetKey([]byte("1234567890123456")) // 16 bytes key
 	c.SetIV([]byte("12345678"))          // 8 bytes IV
 	c.SetPadding(cipher.PKCS7)
+
+	// Initialize random data for benchmarks
+	rand.Read(benchmarkData["large"])
+	rand.Read(benchmarkData["very_large"])
+	rand.Read(benchmarkData["random_small"])
+	rand.Read(benchmarkData["random_medium"])
+	rand.Read(benchmarkData["random_large"])
 
 	for name, data := range benchmarkData {
 		b.Run(name, func(b *testing.B) {

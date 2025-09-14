@@ -103,7 +103,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		ciphertext, err := encrypter.Encrypt([]byte{})
 
 		assert.Nil(t, err)
-		assert.Equal(t, []byte{}, ciphertext)
+		assert.Nil(t, ciphertext)
 	})
 
 	t.Run("encrypter_with_error", func(t *testing.T) {
@@ -142,7 +142,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		plaintext, err := decrypter.Decrypt([]byte{})
 
 		assert.Nil(t, err)
-		assert.Equal(t, []byte{}, plaintext)
+		assert.Nil(t, plaintext)
 	})
 
 	t.Run("tampered_ciphertext", func(t *testing.T) {

@@ -20,8 +20,9 @@ type StdEncrypter struct {
 }
 
 // NewStdEncrypter creates a new DES encrypter with the specified cipher.
-// Validates the key length and initializes the encrypter for DES encryption operations.
+// Validates the key length and cipher mode, then initializes the encrypter for DES encryption operations.
 // The key must be exactly 8 bytes for DES encryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdEncrypter(c *cipher.DesCipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
@@ -29,6 +30,13 @@ func NewStdEncrypter(c *cipher.DesCipher) *StdEncrypter {
 
 	if len(c.Key) != 8 {
 		e.Error = KeySizeError(len(c.Key))
+		return e
+	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
+		return e
 	}
 
 	return e
@@ -61,8 +69,9 @@ type StdDecrypter struct {
 }
 
 // NewStdDecrypter creates a new DES decrypter with the specified cipher.
-// Validates the key length and initializes the decrypter for DES decryption operations.
+// Validates the key length and cipher mode, then initializes the decrypter for DES decryption operations.
 // The key must be exactly 8 bytes for DES decryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdDecrypter(c *cipher.DesCipher) *StdDecrypter {
 	d := &StdDecrypter{
 		cipher: c,
@@ -70,6 +79,14 @@ func NewStdDecrypter(c *cipher.DesCipher) *StdDecrypter {
 
 	if len(c.Key) != 8 {
 		d.Error = KeySizeError(len(c.Key))
+		return d
+	}
+
+	// Check for unsupported cipher modes
+	switch c.Block {
+	case cipher.GCM:
+		d.Error = UnsupportedModeError{Mode: "GCM"}
+		return d
 	}
 
 	return d
@@ -105,8 +122,9 @@ type StreamEncrypter struct {
 }
 
 // NewStreamEncrypter creates a new DES stream encrypter with the specified writer and cipher.
-// Validates the key length and initializes the encrypter for DES streaming encryption operations.
+// Validates the key length and cipher mode, then initializes the encrypter for DES streaming encryption operations.
 // The key must be exactly 8 bytes for DES encryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStreamEncrypter(w io.Writer, c *cipher.DesCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
@@ -116,6 +134,12 @@ func NewStreamEncrypter(w io.Writer, c *cipher.DesCipher) io.WriteCloser {
 
 	if len(c.Key) != 8 {
 		e.Error = KeySizeError(len(c.Key))
+		return e
+	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
 		return e
 	}
 
@@ -200,8 +224,9 @@ type StreamDecrypter struct {
 }
 
 // NewStreamDecrypter creates a new DES stream decrypter with the specified reader and cipher.
-// Validates the key length and initializes the decrypter for DES streaming decryption operations.
+// Validates the key length and cipher mode, then initializes the decrypter for DES streaming decryption operations.
 // The key must be exactly 8 bytes for DES decryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStreamDecrypter(r io.Reader, c *cipher.DesCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:    r,
@@ -212,6 +237,13 @@ func NewStreamDecrypter(r io.Reader, c *cipher.DesCipher) io.Reader {
 
 	if len(c.Key) != 8 {
 		d.Error = KeySizeError(len(c.Key))
+		return d
+	}
+
+	// Check for unsupported cipher modes
+	switch c.Block {
+	case cipher.GCM:
+		d.Error = UnsupportedModeError{Mode: "GCM"}
 		return d
 	}
 

@@ -64,3 +64,16 @@ type BufferError struct {
 func (e BufferError) Error() string {
 	return fmt.Sprintf("crypto/des: buffer size %d is too small for data size %d", e.bufferSize, e.dataSize)
 }
+
+// UnsupportedModeError represents an error when an unsupported cipher mode is used.
+// This error occurs when trying to use cipher modes that are not supported by DES,
+// such as GCM mode which requires 128-bit block size while DES only has 64-bit block size.
+type UnsupportedModeError struct {
+	Mode string // The unsupported mode name
+}
+
+// Error returns a formatted error message describing the unsupported mode.
+// The message includes the mode name and explains why it's not supported.
+func (e UnsupportedModeError) Error() string {
+	return fmt.Sprintf("crypto/des: unsupported cipher mode '%s', DES only supports CBC, CTR, ECB, CFB, and OFB modes", e.Mode)
+}

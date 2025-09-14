@@ -5,10 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/crypto/cipher"
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 // Test data and common setup

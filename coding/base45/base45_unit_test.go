@@ -172,7 +172,7 @@ func TestStdEncoder_Encode(t *testing.T) {
 	t.Run("getOutputSize function direct test", func(t *testing.T) {
 		encoder := NewStdEncoder()
 
-		// Test with zero length (this branch is logically unreachable but we test it for coverage)
+		// Test with zero length (this branch is logically unreachable, but we test it for coverage)
 		// Since getOutputSize is a private method, we can't call it directly
 		// Instead, let's test the edge case by creating a very specific scenario
 
@@ -320,7 +320,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 
 	t.Run("decode with unicode character", func(t *testing.T) {
 		decoder := NewStdDecoder()
-		// Create input with unicode character > 255
+		// Create input with Unicode character > 255
 		// Use a character that is definitely > 255 (e.g., 0x100 = 256)
 		// Create a byte slice with a character > 255
 		unicodeInput := make([]byte, 3)

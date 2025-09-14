@@ -3,10 +3,9 @@ package crypto
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/crypto/cipher"
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestRc4InputTypes tests RC4 encryption with various input types

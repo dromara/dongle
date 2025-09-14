@@ -98,7 +98,7 @@ func BenchmarkMD2Reset(b *testing.B) {
 
 // BenchmarkMD2Empty benchmarks the MD2 hash function with empty data
 func BenchmarkMD2Empty(b *testing.B) {
-	data := []byte{}
+	var data []byte
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

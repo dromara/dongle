@@ -372,7 +372,7 @@ func TestError_ByMorse(t *testing.T) {
 		assert.Nil(t, encoder.Error)
 
 		// Create a reader with encoded data
-		reader := mock.NewFile([]byte(string(encoder.dst)), "test.txt")
+		reader := mock.NewFile(encoder.dst, "test.txt")
 		decoder := NewDecoder()
 		decoder.reader = reader
 		result := decoder.ByMorse()

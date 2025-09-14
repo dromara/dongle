@@ -12,7 +12,8 @@ import (
 )
 
 // Test case 1: Basic RC4 encryption with 16-byte key
-// Key size: 16 bytes
+//
+//	size: 16 bytes
 var basicEncryption16byteKey = struct {
 	key        string
 	plaintext  string

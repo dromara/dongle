@@ -1,3 +1,6 @@
+// Package keypair provides cryptographic key pair management functionality.
+// It supports key generation, formatting, parsing, and manipulation for various
+// cryptographic algorithms with different key formats.
 package keypair
 
 // KeyFormat represents the format of RSA keys.

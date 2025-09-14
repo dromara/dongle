@@ -20,8 +20,9 @@ type StdEncrypter struct {
 }
 
 // NewStdEncrypter creates a new Blowfish encrypter with the specified cipher and key.
-// Validates the key length and initializes the encrypter for Blowfish encryption operations.
+// Validates the key length and cipher mode, then initializes the encrypter for Blowfish encryption operations.
 // The key must be between 32 and 448 bits (4 to 56 bytes).
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdEncrypter(c *cipher.BlowfishCipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
@@ -29,6 +30,13 @@ func NewStdEncrypter(c *cipher.BlowfishCipher) *StdEncrypter {
 
 	if len(c.Key) < 4 || len(c.Key) > 56 {
 		e.Error = KeySizeError(len(c.Key))
+		return e
+	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
+		return e
 	}
 
 	return e
@@ -62,8 +70,9 @@ type StdDecrypter struct {
 }
 
 // NewStdDecrypter creates a new Blowfish decrypter with the specified cipher and key.
-// Validates the key length and initializes the decrypter for Blowfish decryption operations.
+// Validates the key length and cipher mode, then initializes the decrypter for Blowfish decryption operations.
 // The key must be between 32 and 448 bits (4 to 56 bytes).
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdDecrypter(c *cipher.BlowfishCipher) *StdDecrypter {
 	d := &StdDecrypter{
 		cipher: c,
@@ -71,7 +80,15 @@ func NewStdDecrypter(c *cipher.BlowfishCipher) *StdDecrypter {
 
 	if len(c.Key) < 4 || len(c.Key) > 56 {
 		d.Error = KeySizeError(len(c.Key))
+		return d
 	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		d.Error = UnsupportedModeError{Mode: "GCM"}
+		return d
+	}
+
 	return d
 }
 
@@ -108,7 +125,8 @@ type StreamEncrypter struct {
 
 // NewStreamEncrypter creates a new streaming Blowfish encrypter that writes encrypted data
 // to the provided io.Writer. The encrypter uses the specified cipher interface
-// and validates the key length for proper Blowfish encryption.
+// and validates the key length and cipher mode for proper Blowfish encryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStreamEncrypter(w io.Writer, c *cipher.BlowfishCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
@@ -118,6 +136,12 @@ func NewStreamEncrypter(w io.Writer, c *cipher.BlowfishCipher) io.WriteCloser {
 
 	if len(c.Key) < 4 || len(c.Key) > 56 {
 		e.Error = KeySizeError(len(c.Key))
+		return e
+	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
 		return e
 	}
 
@@ -149,11 +173,9 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	// Check if cipher block is available (might be nil if key was invalid)
 	if e.block == nil {
 		// Try to create cipher block if it wasn't created during initialization
-		block, err := blowfish.NewCipher(e.cipher.Key)
-		if err != nil {
-			return 0, EncryptError{Err: err}
+		if block, err := blowfish.NewCipher(e.cipher.Key); err == nil {
+			e.block = block
 		}
-		e.block = block
 	}
 
 	// Use the cipher interface to encrypt data (maintains compatibility with tests)
@@ -203,7 +225,8 @@ type StreamDecrypter struct {
 
 // NewStreamDecrypter creates a new streaming Blowfish decrypter that reads encrypted data
 // from the provided io.Reader. The decrypter uses the specified cipher interface
-// and validates the key length for proper Blowfish decryption.
+// and validates the key length and cipher mode for proper Blowfish decryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStreamDecrypter(r io.Reader, c *cipher.BlowfishCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:    r,
@@ -214,6 +237,12 @@ func NewStreamDecrypter(r io.Reader, c *cipher.BlowfishCipher) io.Reader {
 
 	if len(c.Key) < 4 || len(c.Key) > 56 {
 		d.Error = KeySizeError(len(c.Key))
+		return d
+	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		d.Error = UnsupportedModeError{Mode: "GCM"}
 		return d
 	}
 
@@ -250,11 +279,9 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 		// Check if cipher block is available
 		if d.block == nil {
 			// Try to create cipher block if it wasn't created during initialization
-			block, err := blowfish.NewCipher(d.cipher.Key)
-			if err != nil {
-				return 0, DecryptError{Err: err}
+			if block, err := blowfish.NewCipher(d.cipher.Key); err == nil {
+				d.block = block
 			}
-			d.block = block
 		}
 
 		// Decrypt all the data at once using the cipher interface

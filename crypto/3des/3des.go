@@ -20,8 +20,9 @@ type StdEncrypter struct {
 }
 
 // NewStdEncrypter creates a new Triple DES encrypter with the specified cipher and key.
-// Validates the key length and initializes the encrypter for Triple DES encryption operations.
+// Validates the key length and cipher mode, then initializes the encrypter for Triple DES encryption operations.
 // The key must be 16 or 24 bytes for Triple DES encryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdEncrypter(c *cipher.TripleDesCipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
@@ -29,6 +30,13 @@ func NewStdEncrypter(c *cipher.TripleDesCipher) *StdEncrypter {
 
 	if len(c.Key) != 16 && len(c.Key) != 24 {
 		e.Error = KeySizeError(len(c.Key))
+		return e
+	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
+		return e
 	}
 
 	return e
@@ -50,8 +58,11 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 		return
 	}
 
-	// Create Triple DES cipher block using the provided key
-	block, err := des.NewTripleDESCipher(e.cipher.Key)
+	// Prepare the key for Triple DES cipher block
+	key := expandKey(e.cipher.Key)
+
+	// Create Triple DES cipher block using the prepared key
+	block, err := des.NewTripleDESCipher(key)
 	if err != nil {
 		err = EncryptError{Err: err}
 		return
@@ -68,8 +79,9 @@ type StdDecrypter struct {
 }
 
 // NewStdDecrypter creates a new Triple DES decrypter with the specified cipher and key.
-// Validates the key length and initializes the decrypter for Triple DES decryption operations.
+// Validates the key length and cipher mode, then initializes the decrypter for Triple DES decryption operations.
 // The key must be 16 or 24 bytes for Triple DES decryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdDecrypter(c *cipher.TripleDesCipher) *StdDecrypter {
 	d := &StdDecrypter{
 		cipher: c,
@@ -77,7 +89,15 @@ func NewStdDecrypter(c *cipher.TripleDesCipher) *StdDecrypter {
 
 	if len(c.Key) != 16 && len(c.Key) != 24 {
 		d.Error = KeySizeError(len(c.Key))
+		return d
 	}
+
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		d.Error = UnsupportedModeError{Mode: "GCM"}
+		return d
+	}
+
 	return d
 }
 
@@ -97,7 +117,10 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 		return
 	}
 
-	block, err := des.NewTripleDESCipher(d.cipher.Key)
+	// Prepare the key for Triple DES cipher block
+	key := expandKey(d.cipher.Key)
+
+	block, err := des.NewTripleDESCipher(key)
 	if err != nil {
 		err = DecryptError{Err: err}
 		return
@@ -118,7 +141,8 @@ type StreamEncrypter struct {
 
 // NewStreamEncrypter creates a new streaming Triple DES encrypter that writes encrypted data
 // to the provided io.Writer. The encrypter uses the specified cipher interface
-// and validates the key length for proper Triple DES encryption.
+// and validates the key length and cipher mode for proper Triple DES encryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStreamEncrypter(w io.Writer, c *cipher.TripleDesCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
@@ -131,8 +155,15 @@ func NewStreamEncrypter(w io.Writer, c *cipher.TripleDesCipher) io.WriteCloser {
 		return e
 	}
 
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
+		return e
+	}
+
 	// Pre-create the cipher block for reuse
-	if block, err := des.NewTripleDESCipher(c.Key); err == nil {
+	key := expandKey(c.Key)
+	if block, err := des.NewTripleDESCipher(key); err == nil {
 		e.block = block
 	}
 	return e
@@ -158,11 +189,11 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	// Check if cipher block is available (might be nil if key was invalid)
 	if e.block == nil {
 		// Try to create cipher block if it wasn't created during initialization
-		block, err := des.NewTripleDESCipher(e.cipher.Key)
-		if err != nil {
-			return 0, EncryptError{Err: err}
+		key := expandKey(e.cipher.Key)
+		if block, err := des.NewTripleDESCipher(key); err == nil {
+			e.block = block
 		}
-		e.block = block
+
 	}
 
 	// Use the cipher interface to encrypt data (maintains compatibility with tests)
@@ -211,7 +242,8 @@ type StreamDecrypter struct {
 
 // NewStreamDecrypter creates a new streaming Triple DES decrypter that reads encrypted data
 // from the provided io.Reader. The decrypter uses the specified cipher interface
-// and validates the key length for proper Triple DES decryption.
+// and validates the key length and cipher mode for proper Triple DES decryption.
+// Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStreamDecrypter(r io.Reader, c *cipher.TripleDesCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:    r,
@@ -225,14 +257,17 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TripleDesCipher) io.Reader {
 		return d
 	}
 
-	// Pre-create the cipher block for reuse
-	block, err := des.NewTripleDESCipher(c.Key)
-	if err != nil {
-		d.Error = DecryptError{Err: err}
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		d.Error = UnsupportedModeError{Mode: "GCM"}
 		return d
 	}
-	d.block = block
 
+	// Pre-create the cipher block for reuse
+	key := expandKey(c.Key)
+	if block, err := des.NewTripleDESCipher(key); err == nil {
+		d.block = block
+	}
 	return d
 }
 
@@ -261,11 +296,10 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 		// Check if cipher block is available
 		if d.block == nil {
 			// Try to create cipher block if it wasn't created during initialization
-			block, err := des.NewTripleDESCipher(d.cipher.Key)
-			if err != nil {
-				return 0, DecryptError{Err: err}
+			key := expandKey(d.cipher.Key)
+			if block, err := des.NewTripleDESCipher(key); err == nil {
+				d.block = block
 			}
-			d.block = block
 		}
 
 		// Decrypt all the data at once using the cipher interface
@@ -290,4 +324,14 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	d.pos += copied
 
 	return copied, nil
+}
+
+// expandKey expands a 16-byte key to 24-byte key for Triple DES using key1 + key2 + key1 pattern.
+// For 24-byte keys, returns the original key unchanged.
+func expandKey(key []byte) []byte {
+	if len(key) == 16 {
+		// Expand 16-byte key to 24-byte key using key1 + key2 + key1 pattern
+		return append(key, key[:8]...)
+	}
+	return key
 }

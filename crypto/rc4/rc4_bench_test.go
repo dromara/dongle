@@ -19,7 +19,7 @@ var benchmarkData = map[string][]byte{
 
 var testKey = []byte("test-rc4-key-for-benchmark")
 
-func init() {
+func initBenchData() {
 	// Initialize random data
 	for _, data := range benchmarkData {
 		rand.Read(data)
@@ -28,6 +28,7 @@ func init() {
 
 // BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data sizes
 func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
+	initBenchData()
 	for name, data := range benchmarkData {
 		b.Run(name, func(b *testing.B) {
 			enc := NewStdEncrypter(testKey)
@@ -42,6 +43,7 @@ func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 
 // BenchmarkStdDecrypter_Decrypt benchmarks the standard decrypter for various data sizes
 func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
+	initBenchData()
 	// Pre-encrypt all test data
 	encryptedData := make(map[string][]byte)
 	enc := NewStdEncrypter(testKey)
@@ -64,6 +66,7 @@ func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 
 // BenchmarkStreamingVsStandard compares streaming vs standard operations for large data
 func BenchmarkStreamingVsStandard(b *testing.B) {
+	initBenchData()
 	data := make([]byte, 32768) // 32KB for better streaming comparison
 	rand.Read(data)
 
@@ -120,6 +123,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 
 // BenchmarkCipherReuse compares cipher creation vs reuse performance
 func BenchmarkCipherReuse(b *testing.B) {
+	initBenchData()
 	data := make([]byte, 1024)
 	rand.Read(data)
 
@@ -145,6 +149,7 @@ func BenchmarkCipherReuse(b *testing.B) {
 
 // BenchmarkMemoryEfficiency tests memory allocation efficiency
 func BenchmarkMemoryEfficiency(b *testing.B) {
+	initBenchData()
 	data := make([]byte, 4096)
 	rand.Read(data)
 
