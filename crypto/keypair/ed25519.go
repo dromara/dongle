@@ -1,5 +1,3 @@
-// Package keypair provides ED25519 key pair management functionality.
-// It supports key generation, formatting, parsing, and manipulation for PKCS8 format.
 package keypair
 
 import (

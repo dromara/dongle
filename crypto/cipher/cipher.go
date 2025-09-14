@@ -1,3 +1,6 @@
+// Package cipher provides cryptographic cipher configuration and base functionality.
+// It supports various symmetric encryption algorithms with different block modes,
+// padding schemes, and streaming capabilities for secure data encryption and decryption.
 package cipher
 
 import "crypto/cipher"

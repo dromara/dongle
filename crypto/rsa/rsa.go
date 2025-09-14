@@ -1,3 +1,6 @@
+// Package rsa implements RSA encryption, decryption, signing, and verification with streaming support.
+// It provides RSA operations using the standard RSA algorithm with support
+// for different key sizes and various padding schemes.
 package rsa
 
 import (
