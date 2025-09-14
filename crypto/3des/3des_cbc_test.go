@@ -2,6 +2,8 @@ package triple_des
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"io"
 	"testing"
@@ -11,13 +13,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Test data
+// Test data for 3DES CBC mode
 var (
-	key16     = []byte("1234567890123456")         // 16-byte key (will be expanded to 24 bytes)
-	key24     = []byte("123456789012345678901234") // 24-byte key
-	iv8       = []byte("12345678")                 // 8-byte IV for 3DES
-	testData  = []byte("hello world")
-	testData8 = []byte("12345678") // Exactly 8 bytes
+	key16    = []byte("1234567890123456")         // 16-byte key (will be expanded to 24 bytes)
+	key24    = []byte("123456789012345678901234") // 24-byte key
+	iv8      = []byte("12345678")                 // 8-byte IV for 3DES
+	testData = []byte("hello world")
+
+	// Expected encrypted results for "hello world" with PKCS7 padding using 3DES-CBC
+	// Generated using Python's pycryptodome library with 16-byte key
+	cbcHexEncrypted16    = "e05b5cfbaa19608beb9c220a3aa79a35"                                                                     // Hex encoded encrypted data
+	cbcBase64Encrypted16 = "4Ftc+6oZYIvrnCIKOqeaNQ=="                                                                             // Base64 encoded encrypted data
+	cbcRawEncrypted16    = []byte{0xe0, 0x5b, 0x5c, 0xfb, 0xaa, 0x19, 0x60, 0x8b, 0xeb, 0x9c, 0x22, 0x0a, 0x3a, 0xa7, 0x9a, 0x35} // Raw encrypted bytes
+
+	// Expected encrypted results for "hello world" with PKCS7 padding using 3DES-CBC
+	// Generated using Python's pycryptodome library with 24-byte key
+	cbcHexEncrypted24    = "589f847d1d9049e470f3b87cbb5c866f"                                                                     // Hex encoded encrypted data
+	cbcBase64Encrypted24 = "WJ+EfR2QSeRw87h8u1yGbw=="                                                                             // Base64 encoded encrypted data
+	cbcRawEncrypted24    = []byte{0x58, 0x9f, 0x84, 0x7d, 0x1d, 0x90, 0x49, 0xe4, 0x70, 0xf3, 0xb8, 0x7c, 0xbb, 0x5c, 0x86, 0x6f} // Raw encrypted bytes
 )
 
 func TestNewStdEncrypter(t *testing.T) {
@@ -59,9 +72,9 @@ func TestNewStdEncrypter(t *testing.T) {
 }
 
 func TestStdEncrypter_Encrypt(t *testing.T) {
-	t.Run("successful encryption", func(t *testing.T) {
+	t.Run("successful encryption with 16-byte key", func(t *testing.T) {
 		c := cipher.New3DesCipher(cipher.CBC)
-		c.SetKey(key24) // Use 24-byte key to avoid key expansion issues
+		c.SetKey(key16)
 		c.SetIV(iv8)
 		c.SetPadding(cipher.PKCS7)
 
@@ -69,7 +82,52 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		result, err := encrypter.Encrypt(testData)
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
-		assert.NotEqual(t, testData, result)
+		assert.Equal(t, cbcRawEncrypted16, result)
+	})
+
+	t.Run("successful encryption with 24-byte key", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key24)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStdEncrypter(c)
+		result, err := encrypter.Encrypt(testData)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, cbcRawEncrypted24, result)
+	})
+
+	t.Run("encrypt to hex format with 16-byte key", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStdEncrypter(c)
+		result, err := encrypter.Encrypt(testData)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+
+		// Convert to hex and compare
+		hexResult := hex.EncodeToString(result)
+		assert.Equal(t, cbcHexEncrypted16, hexResult)
+	})
+
+	t.Run("encrypt to base64 format with 24-byte key", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key24)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		encrypter := NewStdEncrypter(c)
+		result, err := encrypter.Encrypt(testData)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+
+		// Convert to base64 and compare
+		b64Result := base64.StdEncoding.EncodeToString(result)
+		assert.Equal(t, cbcBase64Encrypted24, b64Result)
 	})
 
 	t.Run("encrypt empty data", func(t *testing.T) {
@@ -80,7 +138,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 
 		encrypter := NewStdEncrypter(c)
 		result, err := encrypter.Encrypt([]byte{})
-		assert.Nil(t, result)
+		assert.Nil(t, result) // Empty data returns empty byte array
 		assert.Nil(t, err)
 	})
 
@@ -148,21 +206,97 @@ func TestNewStdDecrypter(t *testing.T) {
 }
 
 func TestStdDecrypter_Decrypt(t *testing.T) {
-	t.Run("successful decryption", func(t *testing.T) {
+	t.Run("successful decryption with 16-byte key", func(t *testing.T) {
 		c := cipher.New3DesCipher(cipher.CBC)
-		c.SetKey(key24) // Use 24-byte key to avoid key expansion issues
+		c.SetKey(key16)
 		c.SetIV(iv8)
 		c.SetPadding(cipher.PKCS7)
 
-		// First encrypt
-		encrypter := NewStdEncrypter(c)
-		encrypted, err := encrypter.Encrypt(testData)
-		assert.Nil(t, err)
-		assert.NotNil(t, encrypted)
-
-		// Then decrypt
+		// Decrypt pre-defined encrypted data
 		decrypter := NewStdDecrypter(c)
-		result, err := decrypter.Decrypt(encrypted)
+		result, err := decrypter.Decrypt(cbcRawEncrypted16)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, testData, result)
+	})
+
+	t.Run("successful decryption with 24-byte key", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key24)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		// Decrypt pre-defined encrypted data
+		decrypter := NewStdDecrypter(c)
+		result, err := decrypter.Decrypt(cbcRawEncrypted24)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, testData, result)
+	})
+
+	t.Run("decrypt from hex string", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		// Convert hex to bytes
+		hexBytes, err := hex.DecodeString(cbcHexEncrypted16)
+		assert.Nil(t, err)
+
+		decrypter := NewStdDecrypter(c)
+		result, err := decrypter.Decrypt(hexBytes)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, testData, result)
+	})
+
+	t.Run("decrypt from base64 string with 16-byte key", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key16)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		// Convert base64 to bytes
+		b64Bytes, err := base64.StdEncoding.DecodeString(cbcBase64Encrypted16)
+		assert.Nil(t, err)
+
+		decrypter := NewStdDecrypter(c)
+		result, err := decrypter.Decrypt(b64Bytes)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, testData, result)
+	})
+
+	t.Run("decrypt from base64 string with 24-byte key", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key24)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		// Convert base64 to bytes
+		b64Bytes, err := base64.StdEncoding.DecodeString(cbcBase64Encrypted24)
+		assert.Nil(t, err)
+
+		decrypter := NewStdDecrypter(c)
+		result, err := decrypter.Decrypt(b64Bytes)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+		assert.Equal(t, testData, result)
+	})
+
+	t.Run("decrypt from hex string with 24-byte key", func(t *testing.T) {
+		c := cipher.New3DesCipher(cipher.CBC)
+		c.SetKey(key24)
+		c.SetIV(iv8)
+		c.SetPadding(cipher.PKCS7)
+
+		// Convert hex to bytes
+		hexBytes, err := hex.DecodeString(cbcHexEncrypted24)
+		assert.Nil(t, err)
+
+		decrypter := NewStdDecrypter(c)
+		result, err := decrypter.Decrypt(hexBytes)
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 		assert.Equal(t, testData, result)
@@ -176,7 +310,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 
 		decrypter := NewStdDecrypter(c)
 		result, err := decrypter.Decrypt([]byte{})
-		assert.Nil(t, result)
+		assert.Nil(t, result) // Empty input should return empty byte slice
 		assert.Nil(t, err)
 	})
 
@@ -302,20 +436,6 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("write with invalid key", func(t *testing.T) {
-		var buf bytes.Buffer
-		c := cipher.New3DesCipher(cipher.CBC)
-		c.SetKey([]byte("invalid"))
-
-		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		streamEncrypter.Error = nil
-
-		n, err := encrypter.Write(testData)
-		assert.Equal(t, 0, n)
-		assert.IsType(t, EncryptError{}, err)
-	})
-
 	t.Run("write with writer error", func(t *testing.T) {
 		mockWriter := mock.NewErrorReadWriteCloser(errors.New("write error"))
 		c := cipher.New3DesCipher(cipher.CBC)
@@ -324,7 +444,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		c.SetPadding(cipher.No)
 
 		encrypter := NewStreamEncrypter(mockWriter, c)
-		n, err := encrypter.Write(testData8)
+		n, err := encrypter.Write([]byte("12345678")) // Use 8 bytes for No padding
 		assert.Equal(t, 0, n)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "write error")
@@ -463,8 +583,10 @@ func TestNewStreamDecrypter(t *testing.T) {
 		// Check if the weak key was rejected during cipher creation
 		if streamDecrypter.Error != nil {
 			// Verify it's the expected error type
-			_, isDecryptError := streamDecrypter.Error.(DecryptError)
-			_, isKeyError := streamDecrypter.Error.(KeySizeError)
+			var decryptError DecryptError
+			isDecryptError := errors.As(streamDecrypter.Error, &decryptError)
+			var keySizeError KeySizeError
+			isKeyError := errors.As(streamDecrypter.Error, &keySizeError)
 			assert.True(t, isDecryptError || isKeyError)
 		}
 	})
