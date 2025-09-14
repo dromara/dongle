@@ -9,6 +9,11 @@ import (
 	"github.com/dromara/dongle/mock"
 )
 
+var (
+	tripleDesKey = []byte("0123456789abcdef0123456789abcdef") // 24 bytes for 3DES
+	tripleDesIV  = []byte("12345678")
+)
+
 // Benchmark data for various sizes
 var benchmarkData = map[string][]byte{
 	"empty":            {},
@@ -23,21 +28,19 @@ var benchmarkData = map[string][]byte{
 	"repeated_pattern": bytes.Repeat([]byte("12345678"), 128), // 1024 bytes
 }
 
-func init() {
-	// Initialize random data
+// BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
+func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
+	c := cipher.New3DesCipher(cipher.CBC)
+	c.SetKey(tripleDesKey)
+	c.SetIV(tripleDesIV)
+	c.SetPadding(cipher.PKCS7)
+
+	// Initialize random data for benchmarks
 	rand.Read(benchmarkData["large"])
 	rand.Read(benchmarkData["very_large"])
 	rand.Read(benchmarkData["random_small"])
 	rand.Read(benchmarkData["random_medium"])
 	rand.Read(benchmarkData["random_large"])
-}
-
-// BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
-func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
-	c := cipher.New3DesCipher(cipher.CBC)
-	c.SetKey(key24)
-	c.SetIV(iv8)
-	c.SetPadding(cipher.PKCS7)
 
 	for name, data := range benchmarkData {
 		b.Run(name, func(b *testing.B) {
@@ -54,8 +57,8 @@ func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 // BenchmarkStdDecrypter_Decrypt benchmarks the standard decrypter for various data types
 func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 	c := cipher.New3DesCipher(cipher.CBC)
-	c.SetKey(key24)
-	c.SetIV(iv8)
+	c.SetKey(tripleDesKey)
+	c.SetIV(tripleDesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	// First encrypt data to get encrypted bytes for decryption
@@ -84,8 +87,8 @@ func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 // BenchmarkStreamEncrypter_Write benchmarks the streaming encrypter for various data types
 func BenchmarkStreamEncrypter_Write(b *testing.B) {
 	c := cipher.New3DesCipher(cipher.CBC)
-	c.SetKey(key24)
-	c.SetIV(iv8)
+	c.SetKey(tripleDesKey)
+	c.SetIV(tripleDesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	for name, data := range benchmarkData {
@@ -106,8 +109,8 @@ func BenchmarkStreamEncrypter_Write(b *testing.B) {
 // BenchmarkStreamDecrypter_Read benchmarks the streaming decrypter for various data types
 func BenchmarkStreamDecrypter_Read(b *testing.B) {
 	c := cipher.New3DesCipher(cipher.CBC)
-	c.SetKey(key24)
-	c.SetIV(iv8)
+	c.SetKey(tripleDesKey)
+	c.SetIV(tripleDesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	// First encrypt data to get encrypted bytes for decryption
@@ -139,8 +142,8 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 	rand.Read(data)
 
 	c := cipher.New3DesCipher(cipher.CBC)
-	c.SetKey(key24)
-	c.SetIV(iv8)
+	c.SetKey(tripleDesKey)
+	c.SetIV(tripleDesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	b.Run("standard_encrypt", func(b *testing.B) {
