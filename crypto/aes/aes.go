@@ -142,11 +142,9 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	// Check if cipher block is available (might be nil if key was invalid)
 	if e.block == nil {
 		// Try to create cipher block if it wasn't created during initialization
-		block, err := aes.NewCipher(e.cipher.Key)
-		if err != nil {
-			return 0, EncryptError{Err: err}
+		if block, err := aes.NewCipher(e.cipher.Key); err == nil {
+			e.block = block
 		}
-		e.block = block
 	}
 
 	// Use the cipher interface to encrypt data (maintains compatibility with tests)
@@ -210,8 +208,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.AesCipher) io.Reader {
 	}
 
 	// Pre-create the cipher block for reuse
-	block, err := aes.NewCipher(d.cipher.Key)
-	if err == nil {
+	if block, err := aes.NewCipher(d.cipher.Key); err == nil {
 		d.block = block
 	}
 	return d
@@ -242,11 +239,9 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 		// Check if cipher block is available
 		if d.block == nil {
 			// Try to create cipher block if it wasn't created during initialization
-			block, err := aes.NewCipher(d.cipher.Key)
-			if err != nil {
-				return 0, DecryptError{Err: err}
+			if block, err := aes.NewCipher(d.cipher.Key); err == nil {
+				d.block = block
 			}
-			d.block = block
 		}
 
 		// Decrypt all the data at once using the cipher interface
