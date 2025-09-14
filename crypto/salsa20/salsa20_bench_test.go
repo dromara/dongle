@@ -17,7 +17,7 @@ var (
 	benchData1M = make([]byte, 1024*1024)
 )
 
-func init() {
+func initBenchData() {
 	// Initialize benchmark data
 	rand.Read(benchKey32)
 	rand.Read(benchNonce8)
@@ -26,6 +26,7 @@ func init() {
 }
 
 func BenchmarkStdEncrypter_Encrypt_1K(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -42,6 +43,7 @@ func BenchmarkStdEncrypter_Encrypt_1K(b *testing.B) {
 }
 
 func BenchmarkStdEncrypter_Encrypt_1M(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -58,6 +60,7 @@ func BenchmarkStdEncrypter_Encrypt_1M(b *testing.B) {
 }
 
 func BenchmarkStdDecrypter_Decrypt_1K(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -81,6 +84,7 @@ func BenchmarkStdDecrypter_Decrypt_1K(b *testing.B) {
 }
 
 func BenchmarkStdDecrypter_Decrypt_1M(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -104,6 +108,7 @@ func BenchmarkStdDecrypter_Decrypt_1M(b *testing.B) {
 }
 
 func BenchmarkStreamEncrypter_Write_1K(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -122,6 +127,7 @@ func BenchmarkStreamEncrypter_Write_1K(b *testing.B) {
 }
 
 func BenchmarkStreamEncrypter_Write_1M(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -140,6 +146,7 @@ func BenchmarkStreamEncrypter_Write_1M(b *testing.B) {
 }
 
 func BenchmarkStreamDecrypter_Read_1K(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -165,6 +172,7 @@ func BenchmarkStreamDecrypter_Read_1K(b *testing.B) {
 }
 
 func BenchmarkStreamDecrypter_Read_1M(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -190,6 +198,7 @@ func BenchmarkStreamDecrypter_Read_1M(b *testing.B) {
 }
 
 func BenchmarkSalsa20_EncryptDecrypt_1K(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -214,6 +223,7 @@ func BenchmarkSalsa20_EncryptDecrypt_1K(b *testing.B) {
 }
 
 func BenchmarkSalsa20_EncryptDecrypt_1M(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -238,6 +248,7 @@ func BenchmarkSalsa20_EncryptDecrypt_1M(b *testing.B) {
 }
 
 func BenchmarkSalsa20_Stream_1K(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)
@@ -265,6 +276,7 @@ func BenchmarkSalsa20_Stream_1K(b *testing.B) {
 }
 
 func BenchmarkSalsa20_Stream_1M(b *testing.B) {
+	initBenchData()
 	c := cipher.NewSalsa20Cipher()
 	c.SetKey(benchKey32)
 	c.SetNonce(benchNonce8)

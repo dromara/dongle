@@ -20,7 +20,7 @@ var benchmarkData = map[string][]byte{
 
 var testKey = []byte("dongle-tea-key16") // 16 bytes for TEA
 
-func init() {
+func initBenchData() {
 	// Initialize random data, ensuring block alignment for TEA (8-byte blocks)
 	for name, data := range benchmarkData {
 		rand.Read(data)
@@ -33,6 +33,7 @@ func init() {
 
 // BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data sizes
 func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
+	initBenchData()
 	c := cipher.NewTeaCipher()
 	c.SetKey(testKey)
 
@@ -53,6 +54,7 @@ func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 
 // BenchmarkStdDecrypter_Decrypt benchmarks the standard decrypter for various data sizes
 func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
+	initBenchData()
 	c := cipher.NewTeaCipher()
 	c.SetKey(testKey)
 
@@ -84,6 +86,7 @@ func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 
 // BenchmarkStreamingVsStandard compares streaming vs standard operations for large data
 func BenchmarkStreamingVsStandard(b *testing.B) {
+	initBenchData()
 	c := cipher.NewTeaCipher()
 	c.SetKey(testKey)
 
@@ -160,6 +163,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 
 // BenchmarkCipherReuse compares cipher creation vs reuse performance
 func BenchmarkCipherReuse(b *testing.B) {
+	initBenchData()
 	c := cipher.NewTeaCipher()
 	c.SetKey(testKey)
 
@@ -196,6 +200,7 @@ func BenchmarkCipherReuse(b *testing.B) {
 
 // BenchmarkStreamDecryptOptimization tests streaming decryption improvements
 func BenchmarkStreamDecryptOptimization(b *testing.B) {
+	initBenchData()
 	c := cipher.NewTeaCipher()
 	c.SetKey(testKey)
 
@@ -258,6 +263,7 @@ func BenchmarkStreamDecryptOptimization(b *testing.B) {
 
 // BenchmarkMemoryEfficiency tests memory allocation efficiency
 func BenchmarkMemoryEfficiency(b *testing.B) {
+	initBenchData()
 	c := cipher.NewTeaCipher()
 	c.SetKey(testKey)
 

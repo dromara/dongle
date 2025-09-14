@@ -21,7 +21,7 @@ var benchmarkData = map[string][]byte{
 var testKey = []byte("dongle1234567890abcdef123456789x") // 32 bytes for ChaCha20
 var testNonce = []byte("123456789012")                   // 12 bytes for ChaCha20
 
-func init() {
+func initBenchData() {
 	// Initialize random data for benchmarking
 	for name, data := range benchmarkData {
 		rand.Read(data)
@@ -31,6 +31,7 @@ func init() {
 
 // BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data sizes
 func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
+	initBenchData()
 	c := cipher.NewChaCha20Cipher()
 	c.SetKey(testKey)
 	c.SetNonce(testNonce)
@@ -52,6 +53,7 @@ func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 
 // BenchmarkStdDecrypter_Decrypt benchmarks the standard decrypter for various data sizes
 func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
+	initBenchData()
 	c := cipher.NewChaCha20Cipher()
 	c.SetKey(testKey)
 	c.SetNonce(testNonce)
@@ -88,6 +90,7 @@ func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 
 // BenchmarkStreamingVsStandard compares streaming vs standard operations for large data
 func BenchmarkStreamingVsStandard(b *testing.B) {
+	initBenchData()
 	c := cipher.NewChaCha20Cipher()
 	c.SetKey(testKey)
 	c.SetNonce(testNonce)
@@ -172,6 +175,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 
 // BenchmarkCipherReuse compares cipher creation vs reuse performance
 func BenchmarkCipherReuse(b *testing.B) {
+	initBenchData()
 	c := cipher.NewChaCha20Cipher()
 	c.SetKey(testKey)
 	c.SetNonce(testNonce)
@@ -207,6 +211,7 @@ func BenchmarkCipherReuse(b *testing.B) {
 
 // BenchmarkMemoryEfficiency tests memory allocation efficiency
 func BenchmarkMemoryEfficiency(b *testing.B) {
+	initBenchData()
 	c := cipher.NewChaCha20Cipher()
 	c.SetKey(testKey)
 	c.SetNonce(testNonce)

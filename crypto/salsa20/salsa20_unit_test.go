@@ -384,6 +384,84 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, 0, n)
 	})
+
+	t.Run("read_multiple_chunks", func(t *testing.T) {
+		// First encrypt some data
+		c := cipher.NewSalsa20Cipher()
+		c.SetKey(key32Salsa20)
+		c.SetNonce(nonce8Salsa20)
+
+		encrypter := NewStdEncrypter(c)
+		encrypted, err := encrypter.Encrypt(testdataSalsa20)
+		assert.NoError(t, err)
+
+		// Then decrypt it using stream decrypter with multiple reads
+		reader := bytes.NewReader(encrypted)
+		decrypter := NewStreamDecrypter(reader, c)
+
+		// Read in small chunks
+		chunkSize := 3
+		var result []byte
+		for {
+			buf := make([]byte, chunkSize)
+			n, err := decrypter.Read(buf)
+			if err == io.EOF {
+				break
+			}
+			assert.NoError(t, err)
+			result = append(result, buf[:n]...)
+		}
+		assert.Equal(t, testdataSalsa20, result)
+	})
+
+	t.Run("read_after_eof", func(t *testing.T) {
+		// First encrypt some data
+		c := cipher.NewSalsa20Cipher()
+		c.SetKey(key32Salsa20)
+		c.SetNonce(nonce8Salsa20)
+
+		encrypter := NewStdEncrypter(c)
+		encrypted, err := encrypter.Encrypt(testdataSalsa20)
+		assert.NoError(t, err)
+
+		// Then decrypt it using stream decrypter
+		reader := bytes.NewReader(encrypted)
+		decrypter := NewStreamDecrypter(reader, c)
+
+		// Read all data first
+		buf := make([]byte, len(testdataSalsa20))
+		n, err := decrypter.Read(buf)
+		assert.NoError(t, err)
+		assert.Equal(t, len(testdataSalsa20), n)
+		assert.Equal(t, testdataSalsa20, buf)
+
+		// Try to read again after EOF
+		buf2 := make([]byte, 10)
+		n2, err2 := decrypter.Read(buf2)
+		assert.Equal(t, io.EOF, err2)
+		assert.Equal(t, 0, n2)
+	})
+
+	t.Run("read_with_zero_buffer", func(t *testing.T) {
+		// First encrypt some data
+		c := cipher.NewSalsa20Cipher()
+		c.SetKey(key32Salsa20)
+		c.SetNonce(nonce8Salsa20)
+
+		encrypter := NewStdEncrypter(c)
+		encrypted, err := encrypter.Encrypt(testdataSalsa20)
+		assert.NoError(t, err)
+
+		// Then decrypt it using stream decrypter with zero buffer
+		reader := bytes.NewReader(encrypted)
+		decrypter := NewStreamDecrypter(reader, c)
+
+		// Read with zero buffer
+		buf := make([]byte, 0)
+		n, err := decrypter.Read(buf)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, n)
+	})
 }
 
 func TestErrorTypes(t *testing.T) {
