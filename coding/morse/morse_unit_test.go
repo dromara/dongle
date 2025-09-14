@@ -180,7 +180,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 		encoded = []byte("-.-.-- ..--..")
 		decoded, err = decoder.Decode(encoded)
 		assert.Nil(t, err)
-		assert.Equal(t, []byte("!?"), decoded) // ? is the character mapped to ..--.. in our alphabet
+		assert.Equal(t, []byte("!?"), decoded)
 
 		// Test mixed
 		encoded = []byte(".- .---- -.-.--")
@@ -308,7 +308,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 		var buf bytes.Buffer
 		encoder := NewStreamEncoder(&buf)
 
-		data := []byte{}
+		var data []byte
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 0, n)

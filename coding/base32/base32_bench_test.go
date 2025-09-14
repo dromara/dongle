@@ -47,7 +47,7 @@ func BenchmarkStdEncoder_EncodeBinary(b *testing.B) {
 
 // BenchmarkStdEncoder_EncodeEmpty benchmarks the standard base32 encoder with empty data
 func BenchmarkStdEncoder_EncodeEmpty(b *testing.B) {
-	data := []byte{}
+	var data []byte
 	encoder := NewStdEncoder(StdAlphabet)
 
 	b.ResetTimer()
@@ -140,7 +140,7 @@ func BenchmarkStdDecoder_DecodeBinary(b *testing.B) {
 
 // BenchmarkStdDecoder_DecodeEmpty benchmarks the standard base32 decoder with empty data
 func BenchmarkStdDecoder_DecodeEmpty(b *testing.B) {
-	data := []byte{}
+	var data []byte
 	decoder := NewStdDecoder(StdAlphabet)
 
 	b.ResetTimer()
@@ -280,7 +280,7 @@ func BenchmarkStdDecoder_DecodeWithError(b *testing.B) {
 	}
 }
 
-// BenchmarkStdEncoder_EncodeUnicode benchmarks the standard base32 encoder with unicode data
+// BenchmarkStdEncoder_EncodeUnicode benchmarks the standard base32 encoder with Unicode data
 func BenchmarkStdEncoder_EncodeUnicode(b *testing.B) {
 	data := []byte("你好世界，这是一个包含中文的测试字符串")
 	encoder := NewStdEncoder(StdAlphabet)

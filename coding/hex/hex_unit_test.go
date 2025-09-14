@@ -92,7 +92,6 @@ func TestStdEncoder_Encode(t *testing.T) {
 		encoder := NewStdEncoder()
 		original := bytes.Repeat([]byte("Hello, World! "), 100)
 		encoded := encoder.Encode(original)
-		// Python: (b"Hello, World! " * 100).hex()
 		expected := bytes.Repeat([]byte("48656c6c6f2c20576f726c642120"), 100)
 		assert.Equal(t, expected, encoded)
 		assert.Nil(t, encoder.Error)

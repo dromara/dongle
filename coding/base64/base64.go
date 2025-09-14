@@ -99,7 +99,7 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		// Try to determine the position of the error
 		pos := int64(0)
 		if len(src) > 0 {
-			// For base64 errors, the position is usually at the beginning
+			// For base64 errors, the position is usually at the beginning,
 			// but we can't easily determine the exact position from std library
 			pos = 0
 		}
