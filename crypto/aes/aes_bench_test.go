@@ -10,6 +10,11 @@ import (
 	"github.com/dromara/dongle/mock"
 )
 
+var (
+	aesKey = []byte("1234567890123456")
+	aesIV  = []byte("1234567890123456")
+)
+
 // Benchmark data for various sizes
 var benchmarkData = map[string][]byte{
 	"empty":            {},
@@ -25,21 +30,20 @@ var benchmarkData = map[string][]byte{
 }
 
 // Test keys and IVs are defined in aes_unit_test.go
-func init() {
-	// Initialize random data
+
+// BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
+func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
+	c := cipher.NewAesCipher(cipher.CBC)
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
+	c.SetPadding(cipher.PKCS7)
+
+	// Initialize random data for benchmarks
 	rand.Read(benchmarkData["large"])
 	rand.Read(benchmarkData["very_large"])
 	rand.Read(benchmarkData["random_small"])
 	rand.Read(benchmarkData["random_medium"])
 	rand.Read(benchmarkData["random_large"])
-}
-
-// BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
-func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
-	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
-	c.SetPadding(cipher.PKCS7)
 
 	for name, data := range benchmarkData {
 		b.Run(name, func(b *testing.B) {
@@ -56,8 +60,8 @@ func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 // BenchmarkStdDecrypter_Decrypt benchmarks the standard decrypter for various data types
 func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	// First encrypt data to get encrypted bytes for decryption
@@ -86,8 +90,8 @@ func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 // BenchmarkStreamEncrypter_Write benchmarks the streaming encrypter for various data types
 func BenchmarkStreamEncrypter_Write(b *testing.B) {
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	for name, data := range benchmarkData {
@@ -108,8 +112,8 @@ func BenchmarkStreamEncrypter_Write(b *testing.B) {
 // BenchmarkStreamDecrypter_Read benchmarks the streaming decrypter for various data types
 func BenchmarkStreamDecrypter_Read(b *testing.B) {
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	// First encrypt data to get encrypted bytes for decryption
@@ -138,8 +142,8 @@ func BenchmarkStreamDecrypter_Read(b *testing.B) {
 // BenchmarkEncryptionSizes benchmarks encryption performance for different data sizes
 func BenchmarkEncryptionSizes(b *testing.B) {
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	sizes := []int{64, 128, 256, 512, 1024, 2048, 4096, 8192}
@@ -161,8 +165,8 @@ func BenchmarkEncryptionSizes(b *testing.B) {
 // BenchmarkDecryptionSizes benchmarks decryption performance for different data sizes
 func BenchmarkDecryptionSizes(b *testing.B) {
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	sizes := []int{64, 128, 256, 512, 1024, 2048, 4096, 8192}
@@ -202,7 +206,7 @@ func BenchmarkKeySizes(b *testing.B) {
 	for keyName, key := range keySizes {
 		c := cipher.NewAesCipher(cipher.CBC)
 		c.SetKey(key)
-		c.SetIV([]byte("1234567890123456")) // 16 bytes IV
+		c.SetIV(aesIV)
 		c.SetPadding(cipher.PKCS7)
 
 		b.Run(fmt.Sprintf("encrypt_%s", keyName), func(b *testing.B) {
@@ -239,12 +243,12 @@ func BenchmarkCipherModes(b *testing.B) {
 	modes := []cipher.BlockMode{cipher.CBC, cipher.ECB, cipher.CFB, cipher.OFB, cipher.CTR, cipher.GCM}
 	for _, mode := range modes {
 		c := cipher.NewAesCipher(mode)
-		c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
+		c.SetKey(aesKey)
 
 		// Set appropriate parameters for each mode
 		switch mode {
 		case cipher.CBC, cipher.CFB, cipher.OFB:
-			c.SetIV([]byte("1234567890123456")) // 16 bytes IV
+			c.SetIV(aesIV)
 		case cipher.CTR:
 			c.SetIV([]byte("123456789012")) // 12 bytes nonce for CTR
 		case cipher.GCM:
@@ -288,8 +292,8 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 	rand.Read(data)
 
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	b.Run("standard_encrypt", func(b *testing.B) {
@@ -343,8 +347,8 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 // BenchmarkMemoryAllocation measures memory allocation patterns
 func BenchmarkMemoryAllocation(b *testing.B) {
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	data := make([]byte, 1024)
@@ -404,8 +408,8 @@ func BenchmarkLargeFileStreaming(b *testing.B) {
 	fileSizes := []int{1024, 10240, 102400, 1048576} // 1KB, 10KB, 100KB, 1MB
 
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	for _, size := range fileSizes {
@@ -471,8 +475,8 @@ func BenchmarkStreamingBufferSizes(b *testing.B) {
 	rand.Read(data)
 
 	c := cipher.NewAesCipher(cipher.CBC)
-	c.SetKey([]byte("1234567890123456")) // 16 bytes for AES-128
-	c.SetIV([]byte("1234567890123456"))  // 16 bytes IV
+	c.SetKey(aesKey)
+	c.SetIV(aesIV)
 	c.SetPadding(cipher.PKCS7)
 
 	// Encrypt data first
