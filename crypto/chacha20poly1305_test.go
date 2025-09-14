@@ -5,9 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/stretchr/testify/assert"
 )
 
 var chaCha20Poly1305Data = []byte("hello world from chacha20poly1305")

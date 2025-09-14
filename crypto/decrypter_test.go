@@ -4,9 +4,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDecrypter_FromRawString(t *testing.T) {

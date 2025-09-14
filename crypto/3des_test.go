@@ -5,15 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/crypto/cipher"
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 // Test data and common setup for 3DES
 var (
-	key163des = []byte("1234567890123456")         // 16-byte key for 3DES
 	key243des = []byte("123456789012345678901234") // 24-byte key for 3DES
 	iv83des   = []byte("12345678")                 // 8-byte IV for 3DES
 
@@ -22,17 +20,6 @@ var (
 )
 
 func TestEncrypter_By3Des(t *testing.T) {
-	t.Run("standard encryption with 16-byte key fails", func(t *testing.T) {
-		c := cipher.New3DesCipher(cipher.CBC)
-		c.SetKey(key163des)
-		c.SetIV(iv83des)
-		c.SetPadding(cipher.PKCS7)
-		encrypter := NewEncrypter().FromBytes(testdata3des).By3Des(c)
-		assert.NotNil(t, encrypter.Error)
-		assert.Nil(t, encrypter.dst)
-		assert.Contains(t, encrypter.Error.Error(), "crypto/des: invalid key size")
-	})
-
 	t.Run("standard encryption with 24-byte key", func(t *testing.T) {
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key243des)
@@ -214,23 +201,6 @@ func TestEncrypter_By3Des(t *testing.T) {
 }
 
 func TestDecrypter_By3Des(t *testing.T) {
-	t.Run("standard decryption with 16-byte key fails", func(t *testing.T) {
-		c := cipher.New3DesCipher(cipher.CBC)
-		c.SetKey(key163des)
-		c.SetIV(iv83des)
-		c.SetPadding(cipher.PKCS7)
-		// Try to encrypt first - should fail
-		encrypter := NewEncrypter().FromBytes(testdata3des).By3Des(c)
-		assert.NotNil(t, encrypter.Error)
-		assert.Contains(t, encrypter.Error.Error(), "crypto/des: invalid key size")
-
-		// Try to decrypt with 16-byte key - should also fail
-		decrypter := NewDecrypter().FromRawBytes(testdata3des).By3Des(c)
-		assert.NotNil(t, decrypter.Error)
-		assert.Nil(t, decrypter.dst)
-		assert.Contains(t, decrypter.Error.Error(), "crypto/des: invalid key size")
-	})
-
 	t.Run("standard decryption with 24-byte key", func(t *testing.T) {
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key243des)

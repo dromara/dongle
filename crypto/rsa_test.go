@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/crypto/rsa"
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestEncrypterByRsa tests the Encrypter.ByRsa method
