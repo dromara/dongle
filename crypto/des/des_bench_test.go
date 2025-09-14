@@ -9,6 +9,11 @@ import (
 	"github.com/dromara/dongle/mock"
 )
 
+var (
+	desKey = []byte("12345678") // DES key (8 bytes)
+	desIV  = []byte("87654321") // 8-byte IV for CFB
+)
+
 // Benchmark data for various sizes
 var benchmarkData = map[string][]byte{
 	"empty":            {},
@@ -25,20 +30,18 @@ var benchmarkData = map[string][]byte{
 
 // Test keys and IVs are defined in des_unit_test.go
 
-func init() {
+// BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
+func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 	// Initialize random data
 	rand.Read(benchmarkData["large"])
 	rand.Read(benchmarkData["very_large"])
 	rand.Read(benchmarkData["random_small"])
 	rand.Read(benchmarkData["random_medium"])
 	rand.Read(benchmarkData["random_large"])
-}
 
-// BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
-func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	for name, data := range benchmarkData {
@@ -55,9 +58,16 @@ func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 
 // BenchmarkStdDecrypter_Decrypt benchmarks the standard decrypter for various data types
 func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
+	// Initialize random data
+	rand.Read(benchmarkData["large"])
+	rand.Read(benchmarkData["very_large"])
+	rand.Read(benchmarkData["random_small"])
+	rand.Read(benchmarkData["random_medium"])
+	rand.Read(benchmarkData["random_large"])
+
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	// First encrypt data to get encrypted bytes for decryption
@@ -85,9 +95,16 @@ func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
 
 // BenchmarkStreamEncrypter_Write benchmarks the streaming encrypter for various data types
 func BenchmarkStreamEncrypter_Write(b *testing.B) {
+	// Initialize random data
+	rand.Read(benchmarkData["large"])
+	rand.Read(benchmarkData["very_large"])
+	rand.Read(benchmarkData["random_small"])
+	rand.Read(benchmarkData["random_medium"])
+	rand.Read(benchmarkData["random_large"])
+
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	for name, data := range benchmarkData {
@@ -107,9 +124,16 @@ func BenchmarkStreamEncrypter_Write(b *testing.B) {
 
 // BenchmarkStreamDecrypter_Read benchmarks the streaming decrypter for various data types
 func BenchmarkStreamDecrypter_Read(b *testing.B) {
+	// Initialize random data
+	rand.Read(benchmarkData["large"])
+	rand.Read(benchmarkData["very_large"])
+	rand.Read(benchmarkData["random_small"])
+	rand.Read(benchmarkData["random_medium"])
+	rand.Read(benchmarkData["random_large"])
+
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	// First encrypt data to get encrypted bytes for decryption
@@ -138,8 +162,8 @@ func BenchmarkStreamDecrypter_Read(b *testing.B) {
 // BenchmarkEncryptionSizes benchmarks encryption performance for different data sizes
 func BenchmarkEncryptionSizes(b *testing.B) {
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	sizes := []int{64, 128, 256, 512, 1024, 2048, 4096, 8192}
@@ -161,8 +185,8 @@ func BenchmarkEncryptionSizes(b *testing.B) {
 // BenchmarkDecryptionSizes benchmarks decryption performance for different data sizes
 func BenchmarkDecryptionSizes(b *testing.B) {
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	sizes := []int{64, 128, 256, 512, 1024, 2048, 4096, 8192}
@@ -194,8 +218,8 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 	rand.Read(data)
 
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	b.Run("standard_encrypt", func(b *testing.B) {
@@ -249,8 +273,8 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 // BenchmarkMemoryAllocation measures memory allocation patterns
 func BenchmarkMemoryAllocation(b *testing.B) {
 	c := cipher.NewDesCipher(cipher.CBC)
-	c.SetKey(key8)
-	c.SetIV(iv8)
+	c.SetKey(desKey)
+	c.SetIV(desIV)
 	c.SetPadding(cipher.PKCS7)
 
 	data := make([]byte, 1024)
