@@ -4,9 +4,8 @@ import (
 	stdCipher "crypto/cipher"
 	"io"
 
-	"golang.org/x/crypto/chacha20"
-
 	"github.com/dromara/dongle/crypto/cipher"
+	"golang.org/x/crypto/chacha20"
 )
 
 // StdEncrypter represents a ChaCha20 encrypter for standard encryption operations.
@@ -39,22 +38,23 @@ func NewStdEncrypter(c *cipher.ChaCha20Cipher) *StdEncrypter {
 
 // Encrypt encrypts the given byte slice using ChaCha20 encryption.
 // ChaCha20 is a stream cipher and can encrypt any amount of data.
+// Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	if e.Error != nil {
 		return nil, e.Error
 	}
 
 	if len(src) == 0 {
-		return []byte{}, nil
+		return
 	}
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(e.cipher.Key, e.cipher.Nonce)
+	c, err := chacha20.NewUnauthenticatedCipher(e.cipher.Key, e.cipher.Nonce)
 	if err != nil {
 		return nil, EncryptError{Err: err}
 	}
 
 	dst = make([]byte, len(src))
-	cipher.XORKeyStream(dst, src)
+	c.XORKeyStream(dst, src)
 
 	return dst, nil
 }
@@ -89,22 +89,23 @@ func NewStdDecrypter(c *cipher.ChaCha20Cipher) *StdDecrypter {
 
 // Decrypt decrypts the given byte slice using ChaCha20 decryption.
 // ChaCha20 is a stream cipher and can decrypt any amount of data.
+// Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	if d.Error != nil {
 		return nil, d.Error
 	}
 
 	if len(src) == 0 {
-		return []byte{}, nil
+		return
 	}
 
-	cipher, err := chacha20.NewUnauthenticatedCipher(d.cipher.Key, d.cipher.Nonce)
+	c, err := chacha20.NewUnauthenticatedCipher(d.cipher.Key, d.cipher.Nonce)
 	if err != nil {
 		return nil, DecryptError{Err: err}
 	}
 
 	dst = make([]byte, len(src))
-	cipher.XORKeyStream(dst, src)
+	c.XORKeyStream(dst, src)
 
 	return dst, nil
 }
