@@ -1,0 +1,52 @@
+---
+head:
+  - - meta
+    - name: description
+      content: HMAC-SM3 Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+  - - meta
+    - name: keywords
+      content: HMAC-SM3
+---
+
+# Hmac-Sm3
+
+`Hmac-Sm3` is a message authentication code algorithm based on `sm3`. `dongle` supports the standard `sm3` message authentication code algorithm and provides multiple output formats.
+
+> Note: The `WithKey` method must be called before `BySm3`
+
+## Input Data
+
+```go
+// Input string
+hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).BySm3()
+// Input byte slice
+hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).BySm3()
+// Input file stream
+file, _ := os.Open("test.txt")
+hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).BySm3()
+
+// Check HMAC error
+if hasher.Error != nil {
+	fmt.Printf("HMAC error: %v\n", hasher.Error)
+	return
+}
+```
+
+## Output Data
+
+```go
+// Output hex-encoded string
+hasher.ToHexString() // 8c733aae1d553c466a08c3e9e5daac3e99ae220181c7c1bc8c2564961de751b3
+// Output hex-encoded byte slice
+hasher.ToHexBytes()  // []byte("8c733aae1d553c466a08c3e9e5daac3e99ae220181c7c1bc8c2564961de751b3")
+
+// Output base64-encoded string
+hasher.ToBase64String() // jHM6rh1VPEZqCMPp5dqsPpmuIgGBx8G8jCVklh3nUbM=
+// Output base64-encoded byte slice
+hasher.ToBase64Bytes()  // []byte("jHM6rh1VPEZqCMPp5dqsPpmuIgGBx8G8jCVklh3nUbM=")
+
+// Output raw string
+hasher.ToRawString()
+// Output raw byte slice
+hasher.ToRawBytes()
+```

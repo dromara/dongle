@@ -1,0 +1,211 @@
+import {type DefaultTheme, defineConfig} from 'vitepress'
+
+export const ja = defineConfig({
+    lang: 'japanese',
+    title: 'dongle',
+    description: '軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ',
+    head: [
+        ['meta', { name: 'keywords', content: 'golang, dongle, エンコード, デコード, ハッシュ, hash, hamc, 対称暗号化, 対称復号化, 非対称暗号化, 非対称復号化' }],
+    ],
+    themeConfig: {
+        nav: nav(),
+
+        sidebar: {
+            '/ja/': { base: '/ja/',items: sidebarGuide() },
+        },
+
+        editLink: {
+            pattern: 'https://github.com/dromara/dongle/edit/docs/src/:path',
+            text: 'GitHubでこのページを編集する'
+        },
+
+        footer: {
+            message: 'MITライセンスに基づいて公開されており、許可なく複製することは禁止されています',
+            copyright: `無断転載を禁じます © 2020-${new Date().getFullYear()} dongle team`
+        },
+
+        docFooter: {
+            prev: '前のページ',
+            next: '次のページ'
+        },
+
+        outline: {
+            level: [2, 6],
+            label: '現在のディレクトリ'
+        },
+
+        lastUpdated: {
+            text: '最終更新日',
+            formatOptions: {
+                dateStyle: 'short',
+                timeStyle: 'medium'
+            }
+        },
+
+        langMenuLabel: '多言語',
+        returnToTopLabel: 'トップに戻る',
+        sidebarMenuLabel: 'メニュー',
+        darkModeSwitchLabel: 'トピック＃トピック＃',
+        lightModeSwitchTitle: 'ライトモードに切り替え',
+        darkModeSwitchTitle: 'ダークカラーモードに切り替え'
+    }
+})
+
+function nav(): DefaultTheme.NavItem[] {
+    return [
+        {
+            text: 'ホーム',
+            link: '/ja'
+        },
+        {
+            text: '使用ドキュメント',
+            link: '/ja/overview',
+            activeMatch: '/ja/overview'
+        },
+        {
+            text: '更新ログ',
+            link: '/ja/change-log',
+            activeMatch: '/ja/change-log'
+        },
+        {
+            text: 'スポンサーサポート',
+            link: '/ja/sponsor',
+            activeMatch: '/ja/sponsor'
+        },
+		{
+            text: 'Carbon',
+            link: 'https://carbon.go-pkg.com/ja',
+            activeMatch: 'https://carbon.go-pkg.com/ja'
+        },
+    ]
+}
+
+function sidebarGuide(): DefaultTheme.SidebarItem[] {
+    return [
+        {
+            text: '入門ガイド',
+            collapsed: false,
+            items: [
+                {text: 'プロジェクト紹介', link: 'overview',},
+                {text: 'クイックスタート', link: 'getting-started',},
+            ]
+        },
+        {
+            text: 'エンコード/デコード',
+            collapsed: false,
+            items: [
+                {text: 'Base16/Hex', link: 'coding/hex'},
+                {text: 'Base32', link: 'coding/base32'},
+                {text: 'Base45', link: 'coding/base45'},
+                {text: 'Base58', link: 'coding/base58'},
+                {text: 'Base62', link: 'coding/base62'},
+                {text: 'Base64', link: 'coding/base64'},
+                {text: 'Base85', link: 'coding/base85'},
+                {text: 'Base91', link: 'coding/base91'},
+                {text: 'Base100', link: 'coding/base100'},
+                {text: 'Morse', link: 'coding/morse'},
+            ]
+        },
+        {
+            text: 'Hash アルゴリズム',
+            collapsed: false,
+            items: [
+                {text: 'Hash-Blake2b', link: 'hash/blake2b'},
+                {text: 'Hash-Blake2s', link: 'hash/blake2s'},
+                {text: 'Hash-Md2', link: 'hash/md2'},
+                {text: 'Hash-Md4', link: 'hash/md4'},
+                {text: 'Hash-Md5', link: 'hash/md5'},
+                {text: 'Hash-Sha1', link: 'hash/sha1'},
+                {text: 'Hash-Sha2', link: 'hash/sha2'},
+                {text: 'Hash-Sha3', link: 'hash/sha3'},
+                {text: 'Hash-Sm3', link: 'hash/sm3'},
+                {text: 'Hash-Ripemd160', link: 'hash/ripemd160'},
+            ]
+        },
+        {
+            text: 'Hmac アルゴリズム',
+            collapsed: false,
+            items: [
+                {text: 'Hmac-Blake2b', link: 'hmac/blake2b'},
+                {text: 'Hmac-Blake2s', link: 'hmac/blake2s'},
+                {text: 'Hmac-Md2', link: 'hmac/md2'},
+                {text: 'Hmac-Md4', link: 'hmac/md4'},
+                {text: 'Hmac-Md5', link: 'hmac/md5'},
+                {text: 'Hmac-Sha1', link: 'hmac/sha1'},
+                {text: 'Hmac-Sha2', link: 'hmac/sha2'},
+                {text: 'Hmac-Sha3', link: 'hmac/sha3'},
+                {text: 'Hmac-Sm3', link: 'hmac/sm3'},
+                {text: 'Hmac-Ripemd160', link: 'hmac/ripemd160'},
+            ]
+        },
+        {
+            text: '対称暗号化アルゴリズム',
+            collapsed: false,
+            items: [
+                {text: 'Aes', link: 'crypto/aes'},
+                {text: 'Blowfish', link: 'crypto/blowfish'},
+                {text: 'Des', link: 'crypto/des'},
+                {text: '3Des', link: 'crypto/3des'},
+				{text: 'Rc4', link: 'crypto/rc4'},
+				{text: 'Tea', link: 'crypto/tea'},
+                {text: 'ChaCha20', link: 'crypto/chacha20'},
+                {text: 'ChaCha20Poly1305', link: 'crypto/chacha20-poly1305'},
+                {text: 'Salsa20', link: 'crypto/salsa20'},
+            ]
+        },
+        {
+            text: '非対称暗号化アルゴリズム',
+            collapsed: false,
+            items: [
+                {text: 'Rsa', link: 'crypto/rsa'},
+            ]
+        },
+        {
+            text: 'デジタル署名/検証',
+            collapsed: false,
+            items: [
+                {text: 'Rsa', link: 'signature/rsa'},
+                {text: 'Ed25519', link: 'signature/ed25519'},
+            ]
+        },
+    ]
+}
+
+export const search: DefaultTheme.AlgoliaSearchOptions['locales'] = {
+    ja: {
+        placeholder: 'ドキュメントを検索',
+        translations: {
+            button: {
+                buttonText: 'ドキュメントを検索',
+                buttonAriaLabel: 'ドキュメントを検索'
+            },
+            modal: {
+                searchBox: {
+                },
+                startScreen: {
+                    recentSearchesTitle: '検索履歴',
+                    noRecentSearchesText: '検索履歴がありません',
+                    saveRecentSearchButtonTitle: '検索履歴に保存',
+                    removeRecentSearchButtonTitle: '検索履歴から削除',
+                    favoriteSearchesTitle: 'お気に入り',
+                    removeFavoriteSearchButtonTitle: 'お気に入りから削除'
+                },
+                errorScreen: {
+                    titleText: '結果を取得できません',
+                    helpText: 'ネットワーク接続を確認してください'
+                },
+                footer: {
+                    selectText: '選択',
+                    navigateText: '切り替え',
+                    closeText: '閉じる',
+                },
+                noResultsScreen: {
+                    noResultsText: '関連する結果が見つかりません',
+                    suggestedQueryText: '以下のクエリを試してください',
+                    reportMissingResultsText: 'このクエリに結果があると思いますか？',
+                    reportMissingResultsLinkText: 'フィードバックを送信'
+                }
+            }
+        }
+    }
+}
