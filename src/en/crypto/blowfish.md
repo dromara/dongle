@@ -8,7 +8,7 @@ head:
       content: blowfish, encryption, decryption, symmetric encryption, block cipher
 ---
 
-# BLOWFISH
+# Blowfish
 
 Blowfish is a symmetric encryption algorithm that supports variable-length keys, with key lengths from `1` to `56` bytes. `dongle` supports standard `Blowfish` encryption and provides multiple block modes, padding modes, and output formats.
 

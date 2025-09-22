@@ -8,7 +8,7 @@ head:
       content: twofish, 加密, 解密, 对称加密, 分组密码
 ---
 
-# TWOFISH
+# Twofish
 
 Twofish 是一种对称加密算法，支持固定长度的密钥，密钥长度为 `16`、`24` 或 `32` 字节。`dongle` 支持标准 `Twofish` 加密，提供多种分组模式、填充模式和输出格式。
 

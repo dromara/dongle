@@ -8,7 +8,7 @@ head:
       content: blowfish, 加密, 解密, 对称加密, 分组密码
 ---
 
-# BLOWFISH
+# Blowfish
 
 Blowfish 是一种对称加密算法，支持可变长度的密钥，密钥长度为 `1` 到 `56` 字节。`dongle` 支持标准 `Blowfish` 加密，提供多种分组模式、填充模式和输出格式。
 

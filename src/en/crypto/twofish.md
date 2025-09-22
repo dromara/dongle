@@ -8,7 +8,7 @@ head:
       content: twofish, encryption, decryption, symmetric encryption, block cipher
 ---
 
-# TWOFISH
+# Twofish
 
 Twofish is a symmetric encryption algorithm that supports fixed-length keys with key sizes of `16`, `24`, or `32` bytes. `dongle` supports standard `Twofish` encryption with multiple block modes, padding modes, and output formats.
 
