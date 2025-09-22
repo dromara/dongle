@@ -16,42 +16,42 @@ type Encoder struct {
 }
 
 // NewEncoder returns a new Encoder instance.
-func NewEncoder() *Encoder {
-	return &Encoder{}
+func NewEncoder() Encoder {
+	return Encoder{}
 }
 
 // FromString encodes from string.
-func (e *Encoder) FromString(s string) *Encoder {
+func (e Encoder) FromString(s string) Encoder {
 	e.src = util.String2Bytes(s)
 	return e
 }
 
 // FromBytes encodes from byte slice.
-func (e *Encoder) FromBytes(b []byte) *Encoder {
+func (e Encoder) FromBytes(b []byte) Encoder {
 	e.src = b
 	return e
 }
 
-func (e *Encoder) FromFile(f fs.File) *Encoder {
+func (e Encoder) FromFile(f fs.File) Encoder {
 	e.reader = f
 	return e
 }
 
 // ToString outputs as string.
-func (e *Encoder) ToString() string {
+func (e Encoder) ToString() string {
 	return util.Bytes2String(e.dst)
 }
 
 // ToBytes outputs as byte slice.
-func (e *Encoder) ToBytes() []byte {
+func (e Encoder) ToBytes() []byte {
 	if len(e.dst) == 0 {
-		return []byte("")
+		return []byte{}
 	}
 	return e.dst
 }
 
 // stream encodes with stream using true streaming processing.
-func (e *Encoder) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
+func (e Encoder) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	buffer := make([]byte, BufferSize)
 
 	// Create a buffer to collect encoded data

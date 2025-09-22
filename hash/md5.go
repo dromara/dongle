@@ -6,7 +6,7 @@ import (
 )
 
 // ByMd5 encrypts by MD5 or HMAC-MD5 based on whether key is set.
-func (h *Hasher) ByMd5() *Hasher {
+func (h Hasher) ByMd5() Hasher {
 	if h.Error != nil {
 		return h
 	}

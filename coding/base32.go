@@ -7,7 +7,7 @@ import (
 )
 
 // ByBase32 Encoders by base32.
-func (e *Encoder) ByBase32() *Encoder {
+func (e Encoder) ByBase32() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -24,7 +24,7 @@ func (e *Encoder) ByBase32() *Encoder {
 }
 
 // ByBase32 decodes by base32.
-func (d *Decoder) ByBase32() *Decoder {
+func (d Decoder) ByBase32() Decoder {
 	if d.Error != nil {
 		return d
 	}
@@ -41,7 +41,7 @@ func (d *Decoder) ByBase32() *Decoder {
 }
 
 // ByBase32Hex Encoders by base32hex.
-func (e *Encoder) ByBase32Hex() *Encoder {
+func (e Encoder) ByBase32Hex() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -58,7 +58,7 @@ func (e *Encoder) ByBase32Hex() *Encoder {
 }
 
 // ByBase32Hex decodes by base32hex.
-func (d *Decoder) ByBase32Hex() *Decoder {
+func (d Decoder) ByBase32Hex() Decoder {
 	if d.Error != nil {
 		return d
 	}

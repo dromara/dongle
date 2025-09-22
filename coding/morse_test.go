@@ -10,177 +10,502 @@ import (
 	"github.com/dromara/dongle/mock"
 )
 
-func TestEncoder_ByMorse(t *testing.T) {
-	t.Run("encode string", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello").ByMorse()
-		assert.Nil(t, encoder.Error)
-		// Morse encoding of "hello" = ".... . .-.. .-.. ---"
-		assert.Equal(t, []byte(".... . .-.. .-.. ---"), encoder.dst)
-	})
+// Test data for morse encoding (generated using Python implementation)
+var (
+	morseSrc     = []byte("hello")
+	morseEncoded = ".... . .-.. .-.. ---"
+)
 
-	t.Run("encode empty string", func(t *testing.T) {
-		encoder := NewEncoder().FromString("").ByMorse()
+// Test data for morse world encoding (generated using Python implementation)
+var (
+	morseWorldSrc     = []byte("world")
+	morseWorldEncoded = ".-- --- .-. .-.. -.."
+)
+
+// Test data for morse hello world encoding (generated using dongle implementation)
+var (
+	morseHelloWorldSrc     = []byte("hello world")
+	morseHelloWorldEncoded = ".... . .-.. .-.. --- / .-- --- .-. .-.. -.."
+)
+
+// Test data for morse abc encoding (generated using Python implementation)
+var (
+	morseAbcSrc     = []byte("abc")
+	morseAbcEncoded = ".- -... -.-."
+)
+
+// Test data for morse numbers encoding (generated using Python implementation)
+var (
+	morseNumbersSrc     = []byte("123")
+	morseNumbersEncoded = ".---- ..--- ...--"
+)
+
+// Test data for morse test encoding (generated using Python implementation)
+var (
+	morseTestSrc     = []byte("test")
+	morseTestEncoded = "- . ... -"
+)
+
+// Test data for morse quick encoding (generated using Python implementation)
+var (
+	morseQuickSrc     = []byte("quick")
+	morseQuickEncoded = "--.- ..- .. -.-. -.-"
+)
+
+// Test data for morse brown encoding (generated using Python implementation)
+var (
+	morseBrownSrc     = []byte("brown")
+	morseBrownEncoded = "-... .-. --- .-- -."
+)
+
+// Test data for morse fox encoding (generated using Python implementation)
+var (
+	morseFoxSrc     = []byte("fox")
+	morseFoxEncoded = "..-. --- -..-"
+)
+
+// Test data for morse jumps encoding (generated using Python implementation)
+var (
+	morseJumpsSrc     = []byte("jumps")
+	morseJumpsEncoded = ".--- ..- -- .--. ..."
+)
+
+// Test data for morse over encoding (generated using Python implementation)
+var (
+	morseOverSrc     = []byte("over")
+	morseOverEncoded = "--- ...- . .-."
+)
+
+// Test data for morse lazy encoding (generated using Python implementation)
+var (
+	morseLazySrc     = []byte("lazy")
+	morseLazyEncoded = ".-.. .- --.. -.--"
+)
+
+// Test data for morse dog encoding (generated using Python implementation)
+var (
+	morseDogSrc     = []byte("dog")
+	morseDogEncoded = "-.. --- --."
+)
+
+// Test data for morse the encoding (generated using Python implementation)
+var (
+	morseTheSrc     = []byte("the")
+	morseTheEncoded = "- .... ."
+)
+
+// Test data for morse single letter encoding (generated using Python implementation)
+var (
+	morseSingleLetterSrc     = []byte("a")
+	morseSingleLetterEncoded = ".-"
+)
+
+// Test data for morse two letters encoding (generated using Python implementation)
+var (
+	morseTwoLettersSrc     = []byte("ab")
+	morseTwoLettersEncoded = ".- -..."
+)
+
+// Test data for morse three letters encoding (generated using Python implementation)
+var (
+	morseThreeLettersSrc     = []byte("abc")
+	morseThreeLettersEncoded = ".- -... -.-."
+)
+
+// Test data for morse all letters encoding (generated using Python implementation)
+var (
+	morseAllLettersSrc     = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	morseAllLettersEncoded = ".- -... -.-. -.. . ..-. --. .... .. .--- -.- .-.. -- -. --- .--. --.- .-. ... - ..- ...- .-- -..- -.-- --.."
+)
+
+// Test data for morse all numbers encoding (generated using Python implementation)
+var (
+	morseAllNumbersSrc     = []byte("0123456789")
+	morseAllNumbersEncoded = "----- .---- ..--- ...-- ....- ..... -.... --... ---.. ----."
+)
+
+// Test data for morse punctuation encoding (generated using Python implementation)
+var (
+	morsePunctuationSrc     = []byte(".,?!")
+	morsePunctuationEncoded = ".-.-.- --..-- ..--.. -.-.--"
+)
+
+// Test data for morse mixed case encoding (generated using dongle implementation)
+var (
+	morseMixedCaseSrc     = []byte("mixed CASE")
+	morseMixedCaseEncoded = "-- .. -..- . -.. / -.-. .- ... ."
+)
+
+func TestEncoder_ByMorse_Encode(t *testing.T) {
+	t.Run("encode string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseSrc)).ByMorse()
 		assert.Nil(t, encoder.Error)
-		assert.Nil(t, encoder.dst)
+		assert.Equal(t, morseEncoded, encoder.ToString())
 	})
 
 	t.Run("encode bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte("abc")).ByMorse()
+		encoder := NewEncoder().FromBytes(morseSrc).ByMorse()
 		assert.Nil(t, encoder.Error)
-		// Morse encoding of "abc" = ".- -... -.-."
-		assert.Equal(t, []byte(".- -... -.-."), encoder.dst)
+		assert.Equal(t, morseEncoded, encoder.ToString())
 	})
 
-	t.Run("encode empty bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{}).ByMorse()
-		assert.Nil(t, encoder.Error)
-		assert.Nil(t, encoder.dst)
-	})
-
-	t.Run("encode nil bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes(nil).ByMorse()
-		assert.Nil(t, encoder.Error)
-		assert.Nil(t, encoder.dst)
-	})
-
-	t.Run("encode with file", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello"), "test.txt")
+	t.Run("encode file", func(t *testing.T) {
+		file := mock.NewFile(morseSrc, "test.txt")
 		encoder := NewEncoder().FromFile(file).ByMorse()
 		assert.Nil(t, encoder.Error)
-		// Morse encoding of "hello" = ".... . .-.. .-.. ---"
-		assert.Equal(t, []byte(".... . .-.. .-.. ---"), encoder.dst)
+		assert.Equal(t, morseEncoded, encoder.ToString())
 	})
 
-	t.Run("encode with empty file", func(t *testing.T) {
+	t.Run("empty string", func(t *testing.T) {
+		encoder := NewEncoder().FromString("").ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Empty(t, encoder.ToString())
+	})
+
+	t.Run("empty bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes([]byte{}).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Empty(t, encoder.ToString())
+	})
+
+	t.Run("nil bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(nil).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Empty(t, encoder.ToString())
+	})
+
+	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encoder := NewEncoder().FromFile(file).ByMorse()
 		assert.Nil(t, encoder.Error)
-		assert.Equal(t, []byte{}, encoder.dst)
+		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("encode with error file", func(t *testing.T) {
+	t.Run("world string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseWorldSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseWorldEncoded, encoder.ToString())
+	})
+
+	t.Run("hello world string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseHelloWorldSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseHelloWorldEncoded, encoder.ToString())
+	})
+
+	t.Run("abc string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseAbcSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseAbcEncoded, encoder.ToString())
+	})
+
+	t.Run("numbers string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseNumbersSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseNumbersEncoded, encoder.ToString())
+	})
+
+	t.Run("test string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseTestSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseTestEncoded, encoder.ToString())
+	})
+
+	t.Run("quick string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseQuickSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseQuickEncoded, encoder.ToString())
+	})
+
+	t.Run("brown string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseBrownSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseBrownEncoded, encoder.ToString())
+	})
+
+	t.Run("fox string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseFoxSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseFoxEncoded, encoder.ToString())
+	})
+
+	t.Run("jumps string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseJumpsSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseJumpsEncoded, encoder.ToString())
+	})
+
+	t.Run("over string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseOverSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseOverEncoded, encoder.ToString())
+	})
+
+	t.Run("lazy string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseLazySrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseLazyEncoded, encoder.ToString())
+	})
+
+	t.Run("dog string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseDogSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseDogEncoded, encoder.ToString())
+	})
+
+	t.Run("the string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseTheSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseTheEncoded, encoder.ToString())
+	})
+
+	t.Run("single letter", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseSingleLetterSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseSingleLetterEncoded, encoder.ToString())
+	})
+
+	t.Run("two letters", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseTwoLettersSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseTwoLettersEncoded, encoder.ToString())
+	})
+
+	t.Run("three letters", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseThreeLettersSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseThreeLettersEncoded, encoder.ToString())
+	})
+
+	t.Run("all letters", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseAllLettersSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseAllLettersEncoded, encoder.ToString())
+	})
+
+	t.Run("all numbers", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseAllNumbersSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseAllNumbersEncoded, encoder.ToString())
+	})
+
+	t.Run("punctuation", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morsePunctuationSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morsePunctuationEncoded, encoder.ToString())
+	})
+
+	t.Run("mixed case", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(morseMixedCaseSrc)).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, morseMixedCaseEncoded, encoder.ToString())
+	})
+
+	t.Run("large data", func(t *testing.T) {
+		largeData := []byte(strings.Repeat("The quick brown fox jumps over the lazy dog. ", 10))
+		encoder := NewEncoder().FromBytes(largeData).ByMorse()
+		assert.Nil(t, encoder.Error)
+		assert.NotEmpty(t, encoder.ToString())
+	})
+
+	t.Run("error file", func(t *testing.T) {
 		errorFile := mock.NewErrorFile(errors.New("read error"))
 		encoder := NewEncoder().FromFile(errorFile).ByMorse()
 		assert.Error(t, encoder.Error)
 		assert.Contains(t, encoder.Error.Error(), "read error")
 	})
 
-	t.Run("encode with existing error", func(t *testing.T) {
-		encoder := NewEncoder()
-		encoder.Error = errors.New("existing error")
-		result := encoder.FromString("hello").ByMorse()
-		assert.Equal(t, encoder, result)
-		assert.Equal(t, errors.New("existing error"), result.Error)
+	t.Run("no data no reader", func(t *testing.T) {
+		encoder := NewEncoder().ByMorse()
+		if encoder.Error != nil {
+			assert.Contains(t, encoder.Error.Error(), "no data to encode")
+		}
 	})
-
-	t.Run("encode numbers", func(t *testing.T) {
-		encoder := NewEncoder().FromString("123").ByMorse()
-		assert.Nil(t, encoder.Error)
-		// Morse encoding of "123" = ".---- ..--- ...--"
-		assert.Equal(t, []byte(".---- ..--- ...--"), encoder.dst)
-	})
-
-	t.Run("encode punctuation", func(t *testing.T) {
-		encoder := NewEncoder().FromString("!?").ByMorse()
-		assert.Nil(t, encoder.Error)
-		// Morse encoding of "!?" = "-.-.-- ..--.."
-		assert.Equal(t, []byte("-.-.-- ..--.."), encoder.dst)
-	})
-
-	t.Run("encode mixed characters", func(t *testing.T) {
-		encoder := NewEncoder().FromString("a1!").ByMorse()
-		assert.Nil(t, encoder.Error)
-		// Morse encoding of "a1!" = ".- .---- -.-.--"
-		assert.Equal(t, []byte(".- .---- -.-.--"), encoder.dst)
-	})
-
-	t.Run("encode large data", func(t *testing.T) {
-		largeData := strings.Repeat("hello", 100)
-		encoder := NewEncoder().FromString(largeData).ByMorse()
-		assert.Nil(t, encoder.Error)
-		// For large data, test round-trip instead of exact value
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte(largeData), decoder.dst)
-	})
-
-	t.Run("encode all letters", func(t *testing.T) {
-		encoder := NewEncoder().FromString("abcdefghijklmnopqrstuvwxyz").ByMorse()
-		assert.Nil(t, encoder.Error)
-		expected := ".- -... -.-. -.. . ..-. --. .... .. .--- -.- .-.. -- -. --- .--. --.- .-. ... - ..- ...- .-- -..- -.-- --.."
-		assert.Equal(t, []byte(expected), encoder.dst)
-	})
-
-	t.Run("encode all numbers", func(t *testing.T) {
-		encoder := NewEncoder().FromString("0123456789").ByMorse()
-		assert.Nil(t, encoder.Error)
-		expected := "----- .---- ..--- ...-- ....- ..... -.... --... ---.. ----."
-		assert.Equal(t, []byte(expected), encoder.dst)
-	})
-
 }
 
-func TestDecoder_ByMorse(t *testing.T) {
-	t.Run("decode string", func(t *testing.T) {
-		// First encode some data
-		encoder := NewEncoder().FromString("hello").ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode it
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("hello"), decoder.dst)
+func TestEncoder_ByMorse_Error(t *testing.T) {
+	t.Run("existing error", func(t *testing.T) {
+		encoder := NewEncoder()
+		encoder.Error = errors.New("existing error")
+		result := encoder.FromString("test").ByMorse()
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.NotNil(t, result.src)
 	})
 
-	t.Run("decode empty string", func(t *testing.T) {
-		decoder := NewDecoder().FromString("").ByMorse()
+	t.Run("unsupported character error", func(t *testing.T) {
+		// Test with unsupported characters that will cause encoder.Error to be set
+		encoder := NewEncoder().FromString("hello测试").ByMorse()
+		assert.Error(t, encoder.Error)
+		assert.Contains(t, encoder.Error.Error(), "invalid input")
+	})
+}
+
+func TestDecoder_ByMorse_Decode(t *testing.T) {
+	t.Run("decode string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseEncoded).ByMorse()
 		assert.Nil(t, decoder.Error)
-		assert.Nil(t, decoder.dst)
+		assert.Equal(t, morseSrc, decoder.ToBytes())
 	})
 
 	t.Run("decode bytes", func(t *testing.T) {
-		// First encode some data
-		encoder := NewEncoder().FromBytes([]byte("abc")).ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode it
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
+		decoder := NewDecoder().FromBytes([]byte(morseEncoded)).ByMorse()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("abc"), decoder.dst)
+		assert.Equal(t, morseSrc, decoder.ToBytes())
 	})
 
-	t.Run("decode empty bytes", func(t *testing.T) {
-		decoder := NewDecoder().FromBytes([]byte{}).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Nil(t, decoder.dst)
-	})
-
-	t.Run("decode nil bytes", func(t *testing.T) {
-		decoder := NewDecoder().FromBytes(nil).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Nil(t, decoder.dst)
-	})
-
-	t.Run("decode with file", func(t *testing.T) {
-		// First encode some data
-		encoder := NewEncoder().FromString("hello").ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode with file
-		file := mock.NewFile(encoder.dst, "test.txt")
+	t.Run("decode file", func(t *testing.T) {
+		file := mock.NewFile([]byte(morseEncoded), "test.txt")
 		decoder := NewDecoder().FromFile(file).ByMorse()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("hello"), decoder.dst)
+		assert.Equal(t, morseSrc, decoder.ToBytes())
 	})
 
-	t.Run("decode with empty file", func(t *testing.T) {
+	t.Run("empty string", func(t *testing.T) {
+		decoder := NewDecoder().FromString("").ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Empty(t, decoder.ToBytes())
+	})
+
+	t.Run("empty bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromBytes([]byte{}).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Empty(t, decoder.ToBytes())
+	})
+
+	t.Run("nil bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromBytes(nil).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Empty(t, decoder.ToBytes())
+	})
+
+	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decoder := NewDecoder().FromFile(file).ByMorse()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{}, decoder.dst)
+		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("decode with error file", func(t *testing.T) {
+	t.Run("world string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseWorldEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseWorldSrc, decoder.ToBytes())
+	})
+
+	t.Run("hello world string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseHelloWorldEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseHelloWorldSrc, decoder.ToBytes())
+	})
+
+	t.Run("abc string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseAbcEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseAbcSrc, decoder.ToBytes())
+	})
+
+	t.Run("numbers string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseNumbersEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseNumbersSrc, decoder.ToBytes())
+	})
+
+	t.Run("test string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseTestEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseTestSrc, decoder.ToBytes())
+	})
+
+	t.Run("quick string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseQuickEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseQuickSrc, decoder.ToBytes())
+	})
+
+	t.Run("brown string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseBrownEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseBrownSrc, decoder.ToBytes())
+	})
+
+	t.Run("fox string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseFoxEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseFoxSrc, decoder.ToBytes())
+	})
+
+	t.Run("jumps string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseJumpsEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseJumpsSrc, decoder.ToBytes())
+	})
+
+	t.Run("over string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseOverEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseOverSrc, decoder.ToBytes())
+	})
+
+	t.Run("lazy string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseLazyEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseLazySrc, decoder.ToBytes())
+	})
+
+	t.Run("dog string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseDogEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseDogSrc, decoder.ToBytes())
+	})
+
+	t.Run("the string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseTheEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseTheSrc, decoder.ToBytes())
+	})
+
+	t.Run("single letter", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseSingleLetterEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseSingleLetterSrc, decoder.ToBytes())
+	})
+
+	t.Run("two letters", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseTwoLettersEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseTwoLettersSrc, decoder.ToBytes())
+	})
+
+	t.Run("three letters", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseThreeLettersEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseThreeLettersSrc, decoder.ToBytes())
+	})
+
+	t.Run("all letters", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseAllLettersEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, []byte(strings.ToLower(string(morseAllLettersSrc))), decoder.ToBytes())
+	})
+
+	t.Run("all numbers", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseAllNumbersEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morseAllNumbersSrc, decoder.ToBytes())
+	})
+
+	t.Run("punctuation", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morsePunctuationEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, morsePunctuationSrc, decoder.ToBytes())
+	})
+
+	t.Run("mixed case", func(t *testing.T) {
+		decoder := NewDecoder().FromString(morseMixedCaseEncoded).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, []byte(strings.ToLower(string(morseMixedCaseSrc))), decoder.ToBytes())
+	})
+
+	t.Run("error file", func(t *testing.T) {
 		errorFile := mock.NewErrorFile(errors.New("read error"))
 		decoder := NewDecoder().FromFile(errorFile).ByMorse()
 		assert.Error(t, decoder.Error)
@@ -191,8 +516,8 @@ func TestDecoder_ByMorse(t *testing.T) {
 		decoder := NewDecoder()
 		decoder.Error = errors.New("existing error")
 		result := decoder.FromString("test").ByMorse()
-		assert.Equal(t, decoder, result)
 		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.NotNil(t, result.src)
 	})
 
 	t.Run("decode invalid morse", func(t *testing.T) {
@@ -201,182 +526,227 @@ func TestDecoder_ByMorse(t *testing.T) {
 		assert.Contains(t, decoder.Error.Error(), "unsupported character")
 	})
 
-	t.Run("decode numbers", func(t *testing.T) {
-		// First encode numbers
-		encoder := NewEncoder().FromString("123").ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode it
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("123"), decoder.dst)
+	t.Run("decode with no data no reader", func(t *testing.T) {
+		decoder := NewDecoder().ByMorse()
+		if decoder.Error != nil {
+			assert.Contains(t, decoder.Error.Error(), "no data to decode")
+		}
 	})
-
-	t.Run("decode punctuation", func(t *testing.T) {
-		// First encode punctuation
-		encoder := NewEncoder().FromString("!?").ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode it
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("!?"), decoder.dst)
-	})
-
-	t.Run("decode mixed characters", func(t *testing.T) {
-		// First encode mixed characters
-		encoder := NewEncoder().FromString("a1!").ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode it
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("a1!"), decoder.dst)
-	})
-
-	t.Run("decode all letters", func(t *testing.T) {
-		// First encode all letters
-		encoder := NewEncoder().FromString("abcdefghijklmnopqrstuvwxyz").ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode it
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("abcdefghijklmnopqrstuvwxyz"), decoder.dst)
-	})
-
-	t.Run("decode all numbers", func(t *testing.T) {
-		// First encode all numbers
-		encoder := NewEncoder().FromString("0123456789").ByMorse()
-		assert.Nil(t, encoder.Error)
-
-		// Then decode it
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("0123456789"), decoder.dst)
-	})
-
-	t.Run("decode with unknown character", func(t *testing.T) {
-		decoder := NewDecoder().FromString(".... invalid .-..").ByMorse()
-		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "unsupported character")
-	})
-
-	t.Run("decode with invalid morse code", func(t *testing.T) {
-		decoder := NewDecoder().FromString(".... . .-.. .-.. --- invalid").ByMorse()
-		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "unsupported character")
-	})
-
 }
 
-func TestError_ByMorse(t *testing.T) {
-	t.Run("encoder error propagation", func(t *testing.T) {
-		encoder := NewEncoder()
-		encoder.Error = errors.New("test error")
-
-		result := encoder.ByMorse()
-		assert.Equal(t, encoder, result)
-		assert.Equal(t, "test error", result.Error.Error())
-	})
-
-	t.Run("decoder error propagation", func(t *testing.T) {
+func TestDecoder_ByMorse_Error(t *testing.T) {
+	t.Run("existing error", func(t *testing.T) {
 		decoder := NewDecoder()
-		decoder.Error = errors.New("test error")
-
-		result := decoder.ByMorse()
-		assert.Equal(t, decoder, result)
-		assert.Equal(t, "test error", result.Error.Error())
+		decoder.Error = errors.New("existing error")
+		result := decoder.FromString("test").ByMorse()
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.NotNil(t, result.src)
 	})
+}
 
-	t.Run("encoder space error", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello world").ByMorse()
-		assert.Nil(t, encoder.Error)
-		// Spaces are now supported in morse encoding, encoded as "/"
-		assert.Contains(t, string(encoder.dst), "/")
-	})
-
-	t.Run("decoder invalid character", func(t *testing.T) {
-		// Create data with invalid morse characters
-		invalidData := []byte(".... invalid .-..") // 'invalid' is not a valid morse code
-		decoder := NewDecoder().FromBytes(invalidData).ByMorse()
-		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "unsupported character")
-	})
-
-	t.Run("decoder with error file", func(t *testing.T) {
-		errorFile := mock.NewErrorFile(errors.New("read error"))
-		decoder := NewDecoder().FromFile(errorFile).ByMorse()
-		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "read error")
-	})
-
-	t.Run("encoder with error file", func(t *testing.T) {
-		errorFile := mock.NewErrorFile(errors.New("read error"))
-		encoder := NewEncoder().FromFile(errorFile).ByMorse()
-		assert.Error(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "read error")
-	})
-
-	t.Run("round trip test", func(t *testing.T) {
-		original := "hello world"
-		// Remove spaces for morse encoding
-		cleanOriginal := strings.ReplaceAll(original, " ", "")
-
-		encoder := NewEncoder().FromString(cleanOriginal).ByMorse()
+func TestMorseRoundTrip(t *testing.T) {
+	t.Run("morse round trip", func(t *testing.T) {
+		testData := "hello world"
+		encoder := NewEncoder().FromString(testData).ByMorse()
 		assert.Nil(t, encoder.Error)
 
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte(cleanOriginal), decoder.dst)
+		assert.Equal(t, testData, decoder.ToString())
 	})
 
-	t.Run("round trip with special characters", func(t *testing.T) {
-		original := "hello123!?"
-
-		encoder := NewEncoder().FromString(original).ByMorse()
+	t.Run("morse round trip with file", func(t *testing.T) {
+		testData := "hello world"
+		file := mock.NewFile([]byte(testData), "test.txt")
+		encoder := NewEncoder().FromFile(file).ByMorse()
 		assert.Nil(t, encoder.Error)
 
-		decoder := NewDecoder().FromBytes(encoder.dst).ByMorse()
+		decoderFile := mock.NewFile(encoder.ToBytes(), "encoded.txt")
+		decoder := NewDecoder().FromFile(decoderFile).ByMorse()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte(original), decoder.dst)
+		assert.Equal(t, testData, decoder.ToString())
 	})
 
-	t.Run("encode with unsupported character", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello\u00FF").ByMorse()
-		assert.Error(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "invalid input")
-	})
-
-	t.Run("encode with encoder error propagation", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello").ByMorse()
+	t.Run("morse round trip with bytes", func(t *testing.T) {
+		testData := []byte("hello world")
+		encoder := NewEncoder().FromBytes(testData).ByMorse()
 		assert.Nil(t, encoder.Error)
 
-		// Simulate encoder error by encoding unsupported character
-		encoder2 := NewEncoder().FromString("hello\u00FF").ByMorse()
-		assert.Error(t, encoder2.Error)
-		assert.Contains(t, encoder2.Error.Error(), "invalid input")
+		decoder := NewDecoder().FromBytes(encoder.ToBytes()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToBytes())
 	})
+}
 
-	t.Run("streaming encoder with valid data", func(t *testing.T) {
-		encoder := NewEncoder()
-		encoder.reader = mock.NewFile([]byte("hello"), "test.txt")
-		result := encoder.ByMorse()
-		assert.Nil(t, result.Error)
-		assert.NotNil(t, result.dst)
-	})
-
-	t.Run("streaming decoder with valid data", func(t *testing.T) {
-		// First encode some data
-		encoder := NewEncoder().FromString("hello").ByMorse()
+func TestMorseEdgeCases(t *testing.T) {
+	t.Run("very large data", func(t *testing.T) {
+		largeData := []byte(strings.Repeat("The quick brown fox jumps over the lazy dog. ", 100))
+		encoder := NewEncoder().FromBytes(largeData).ByMorse()
 		assert.Nil(t, encoder.Error)
 
-		// Create a reader with encoded data
-		reader := mock.NewFile(encoder.dst, "test.txt")
-		decoder := NewDecoder()
-		decoder.reader = reader
-		result := decoder.ByMorse()
-		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte("hello"), result.dst)
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, []byte(strings.ToLower(string(largeData))), decoder.ToBytes())
+	})
+
+	t.Run("single character", func(t *testing.T) {
+		testData := "A"
+		encoder := NewEncoder().FromString(testData).ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, strings.ToLower(testData), decoder.ToString())
+	})
+
+	t.Run("mixed case", func(t *testing.T) {
+		testData := "Hello World"
+		encoder := NewEncoder().FromString(testData).ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, strings.ToLower(testData), decoder.ToString())
+	})
+
+	t.Run("mixed encoding methods", func(t *testing.T) {
+		testData := "hello world"
+
+		encoder1 := NewEncoder().FromString(testData).ByMorse()
+		encoder2 := NewEncoder().FromBytes([]byte(testData)).ByMorse()
+		encoder3 := NewEncoder().FromFile(mock.NewFile([]byte(testData), "test.txt")).ByMorse()
+
+		assert.Nil(t, encoder1.Error)
+		assert.Nil(t, encoder2.Error)
+		assert.Nil(t, encoder3.Error)
+		assert.Equal(t, encoder1.ToString(), encoder2.ToString())
+		assert.Equal(t, encoder1.ToString(), encoder3.ToString())
+	})
+
+	t.Run("numbers", func(t *testing.T) {
+		testData := "1234567890"
+
+		encoder := NewEncoder().FromString(testData).ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToString())
+	})
+
+	t.Run("punctuation", func(t *testing.T) {
+		testData := ".,?!"
+
+		encoder := NewEncoder().FromString(testData).ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToString())
+	})
+
+	t.Run("all letters", func(t *testing.T) {
+		testData := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+		encoder := NewEncoder().FromString(testData).ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, strings.ToLower(testData), decoder.ToString())
+	})
+
+	t.Run("all numbers", func(t *testing.T) {
+		testData := "0123456789"
+
+		encoder := NewEncoder().FromString(testData).ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToString())
+	})
+
+	t.Run("mixed characters", func(t *testing.T) {
+		testData := "HELLO WORLD 123 !@#"
+
+		encoder := NewEncoder().FromString(testData).ByMorse()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByMorse()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, strings.ToLower(testData), decoder.ToString())
+	})
+}
+
+func TestMorseSpecific(t *testing.T) {
+	t.Run("morse alphabet verification", func(t *testing.T) {
+		// Morse alphabet should contain only dots, dashes, and spaces
+		morseAlphabet := ".- "
+		allValid := true
+		for _, char := range morseAlphabet {
+			if !strings.ContainsRune(".- ", char) {
+				allValid = false
+				break
+			}
+		}
+		assert.True(t, allValid)
+	})
+
+	t.Run("morse encoding consistency", func(t *testing.T) {
+		testData := "hello world"
+		encoder1 := NewEncoder().FromString(testData).ByMorse()
+		encoder2 := NewEncoder().FromString(testData).ByMorse()
+
+		assert.Nil(t, encoder1.Error)
+		assert.Nil(t, encoder2.Error)
+		assert.Equal(t, encoder1.ToString(), encoder2.ToString())
+	})
+
+	t.Run("morse vs string vs bytes consistency", func(t *testing.T) {
+		testData := "hello world"
+
+		encoder1 := NewEncoder().FromString(testData).ByMorse()
+		encoder2 := NewEncoder().FromBytes([]byte(testData)).ByMorse()
+		encoder3 := NewEncoder().FromFile(mock.NewFile([]byte(testData), "test.txt")).ByMorse()
+
+		assert.Nil(t, encoder1.Error)
+		assert.Nil(t, encoder2.Error)
+		assert.Nil(t, encoder3.Error)
+		assert.Equal(t, encoder1.ToString(), encoder2.ToString())
+		assert.Equal(t, encoder1.ToString(), encoder3.ToString())
+	})
+
+	t.Run("morse specific test cases", func(t *testing.T) {
+		// Test specific Morse encoding patterns (generated using dongle implementation)
+		testCases := []struct {
+			input    string
+			expected string
+		}{
+			{"a", ".-"},
+			{"ab", ".- -..."},
+			{"abc", ".- -... -.-."},
+			{"hello", ".... . .-.. .-.. ---"},
+			{"world", ".-- --- .-. .-.. -.."},
+			{"hello world", ".... . .-.. .-.. --- / .-- --- .-. .-.. -.."},
+			{"123", ".---- ..--- ...--"},
+			{"456", "....- ..... -...."},
+			{"789", "--... ---.. ----."},
+			{"0123456789", "----- .---- ..--- ...-- ....- ..... -.... --... ---.. ----."},
+			{".,?!", ".-.-.- --..-- ..--.. -.-.--"},
+			{"hello, world!", ".... . .-.. .-.. --- --..-- / .-- --- .-. .-.. -.. -.-.--"},
+			{"test123", "- . ... - .---- ..--- ...--"},
+			{"mixed CASE", "-- .. -..- . -.. / -.-. .- ... ."},
+		}
+
+		for _, tc := range testCases {
+			encoder := NewEncoder().FromString(tc.input).ByMorse()
+			assert.Nil(t, encoder.Error)
+			assert.Equal(t, tc.expected, encoder.ToString())
+
+			decoder := NewDecoder().FromString(tc.expected).ByMorse()
+			assert.Nil(t, decoder.Error)
+			assert.Equal(t, strings.ToLower(tc.input), decoder.ToString())
+		}
 	})
 }

@@ -7,7 +7,7 @@ import (
 )
 
 // ByMorse encodes by morse code.
-func (e *Encoder) ByMorse() *Encoder {
+func (e Encoder) ByMorse() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -31,7 +31,7 @@ func (e *Encoder) ByMorse() *Encoder {
 }
 
 // ByMorse decodes by morse code.
-func (d *Decoder) ByMorse() *Decoder {
+func (d Decoder) ByMorse() Decoder {
 	if d.Error != nil {
 		return d
 	}

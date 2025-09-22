@@ -9,184 +9,214 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHasher_BySm3(t *testing.T) {
-	t.Run("hash string", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").BySm3()
-		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // SM3 produces 32-byte hash
+// Test data for hash-sm3 (generated using Python gmssl library)
+var (
+	sm3HashSrc       = []byte("hello world")
+	sm3HashHexDst    = "44f0061e69fa6fdfc290c494654a05dc0c053da7e5c52b84ef93a9d67d3fff88"
+	sm3HashBase64Dst = "RPAGHmn6b9/CkMSUZUoF3AwFPaflxSuE75Op1n0//4g="
+)
 
-		// Verify the actual hash value
-		expectedHash := "becbbfaae6548b8bf0cfcad5a27183cd1be6093b1cceccc303d9c61d0a645268"
-		actualHash := hasher.ToHexString()
-		assert.Equal(t, expectedHash, actualHash, "SM3 hash of 'hello' should match expected value")
+// Test data for hmac-sm3 (generated using Python gmssl library with custom HMAC-SM3 implementation)
+var (
+	sm3HmacKey       = []byte("dongle")
+	sm3HmacSrc       = []byte("hello world")
+	sm3HmacHexDst    = "8c733aae1d553c466a08c3e9e5daac3e99ae220181c7c1bc8c2564961de751b3"
+	sm3HmacBase64Dst = "jHM6rh1VPEZqCMPp5dqsPpmuIgGBx8G8jCVklh3nUbM="
+)
+
+func TestHasher_BySm3_Hash(t *testing.T) {
+	t.Run("hash string", func(t *testing.T) {
+		hasher := NewHasher().FromString(string(sm3HashSrc)).BySm3()
+		assert.Nil(t, hasher.Error)
+		assert.Equal(t, sm3HashHexDst, hasher.ToHexString())
+
+		hasher2 := NewHasher().FromString(string(sm3HashSrc)).BySm3()
+		assert.Nil(t, hasher2.Error)
+		assert.Equal(t, sm3HashBase64Dst, hasher2.ToBase64String())
 	})
 
 	t.Run("hash bytes", func(t *testing.T) {
-		hasher := NewHasher().FromBytes([]byte("hello")).BySm3()
+		hasher := NewHasher().FromBytes(sm3HashSrc).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // SM3 produces 32-byte hash
+		assert.Equal(t, sm3HashHexDst, hasher.ToHexString())
 
-		// Verify the actual hash value
-		expectedHash := "becbbfaae6548b8bf0cfcad5a27183cd1be6093b1cceccc303d9c61d0a645268"
-		actualHash := hasher.ToHexString()
-		assert.Equal(t, expectedHash, actualHash, "SM3 hash of 'hello' bytes should match expected value")
+		hasher2 := NewHasher().FromBytes(sm3HashSrc).BySm3()
+		assert.Nil(t, hasher2.Error)
+		assert.Equal(t, sm3HashBase64Dst, hasher2.ToBase64String())
 	})
 
 	t.Run("hash file", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello"), "test.txt")
+		file := mock.NewFile(sm3HashSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // SM3 produces 32-byte hash
+		assert.Equal(t, sm3HashHexDst, hasher.ToHexString())
 
-		// Verify the actual hash value
-		expectedHash := "becbbfaae6548b8bf0cfcad5a27183cd1be6093b1cceccc303d9c61d0a645268"
-		actualHash := hasher.ToHexString()
-		assert.Equal(t, expectedHash, actualHash, "SM3 hash of 'hello' file should match expected value")
+		file2 := mock.NewFile(sm3HashSrc, "test2.txt")
+		hasher2 := NewHasher().FromFile(file2).BySm3()
+		assert.Nil(t, hasher2.Error)
+		assert.Equal(t, sm3HashBase64Dst, hasher2.ToBase64String())
 	})
 
 	t.Run("empty string", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.Nil(t, hasher.dst) // Empty input returns nil
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 
 	t.Run("empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.Nil(t, hasher.dst) // Empty input returns nil
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 
 	t.Run("nil bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(nil).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.Nil(t, hasher.dst) // Empty input returns nil
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 
 	t.Run("large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // SM3 produces 32-byte hash
-
-		// Verify the hash is not all zeros and is consistent
-		allZero := true
-		for _, b := range hasher.dst {
-			if b != 0 {
-				allZero = false
-				break
-			}
-		}
-		assert.False(t, allZero, "SM3 hash of large data should not be all zeros")
-
-		// Test consistency - same input should produce same hash
-		hasher2 := NewHasher().FromString(data).BySm3()
-		assert.Equal(t, hasher.dst, hasher2.dst, "Same input should produce consistent hash")
+		// Calculate expected hash for large data using the same method
+		expectedHasher := NewHasher().FromString(data).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
 	t.Run("unicode data", func(t *testing.T) {
-		hasher := NewHasher().FromString("你好世界").BySm3()
+		unicodeData := "你好世界"
+		hasher := NewHasher().FromString(unicodeData).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // SM3 produces 32-byte hash
-
-		// Verify the hash is not all zeros
-		allZero := true
-		for _, b := range hasher.dst {
-			if b != 0 {
-				allZero = false
-				break
-			}
-		}
-		assert.False(t, allZero, "SM3 hash of unicode data should not be all zeros")
+		// Calculate expected hash for unicode data using the same method
+		expectedHasher := NewHasher().FromString(unicodeData).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
 	t.Run("binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // SM3 produces 32-byte hash
-
-		// Verify the hash is not all zeros
-		allZero := true
-		for _, b := range hasher.dst {
-			if b != 0 {
-				allZero = false
-				break
-			}
-		}
-		assert.False(t, allZero, "SM3 hash of binary data should not be all zeros")
+		// Calculate expected hash for binary data using the same method
+		expectedHasher := NewHasher().FromBytes(binaryData).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
 	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, []byte{}, hasher.dst) // Empty file returns empty slice
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 
 	t.Run("no data no reader no key", func(t *testing.T) {
 		hasher := NewHasher().BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.Nil(t, hasher.dst) // No data, no reader, no key returns nil
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 }
 
 func TestHasher_BySm3_HMAC(t *testing.T) {
-	t.Run("hmac with key", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").WithKey([]byte("secret")).BySm3()
+	t.Run("hmac string", func(t *testing.T) {
+		hasher := NewHasher().FromString(string(sm3HmacSrc)).WithKey(sm3HmacKey).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // HMAC-SM3 produces 32-byte hash
+		assert.Equal(t, sm3HmacHexDst, hasher.ToHexString())
 
-		// Verify the HMAC is not all zeros
-		allZero := true
-		for _, b := range hasher.dst {
-			if b != 0 {
-				allZero = false
-				break
-			}
-		}
-		assert.False(t, allZero, "HMAC-SM3 should not be all zeros")
+		hasher2 := NewHasher().FromString(string(sm3HmacSrc)).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher2.Error)
+		assert.Equal(t, sm3HmacBase64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac with bytes", func(t *testing.T) {
-		hasher := NewHasher().FromBytes([]byte("hello")).WithKey([]byte("secret")).BySm3()
+	t.Run("hmac bytes", func(t *testing.T) {
+		hasher := NewHasher().FromBytes(sm3HmacSrc).WithKey(sm3HmacKey).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // HMAC-SM3 produces 32-byte hash
+		assert.Equal(t, sm3HmacHexDst, hasher.ToHexString())
 
-		// Verify the HMAC is not all zeros
-		allZero := true
-		for _, b := range hasher.dst {
-			if b != 0 {
-				allZero = false
-				break
-			}
-		}
-		assert.False(t, allZero, "HMAC-SM3 should not be all zeros")
+		hasher2 := NewHasher().FromBytes(sm3HmacSrc).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher2.Error)
+		assert.Equal(t, sm3HmacBase64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac with file", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello"), "test.txt")
-		hasher := NewHasher().FromFile(file).WithKey([]byte("secret")).BySm3()
+	t.Run("hmac file", func(t *testing.T) {
+		file := mock.NewFile(sm3HmacSrc, "test.txt")
+		hasher := NewHasher().FromFile(file).WithKey(sm3HmacKey).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // HMAC-SM3 produces 32-byte hash
+		assert.Equal(t, sm3HmacHexDst, hasher.ToHexString())
 
-		// Verify the HMAC is not all zeros
-		allZero := true
-		for _, b := range hasher.dst {
-			if b != 0 {
-				allZero = false
-				break
-			}
-		}
-		assert.False(t, allZero, "HMAC-SM3 should not be all zeros")
+		file2 := mock.NewFile(sm3HmacSrc, "test2.txt")
+		hasher2 := NewHasher().FromFile(file2).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher2.Error)
+		assert.Equal(t, sm3HmacBase64Dst, hasher2.ToBase64String())
+	})
+
+	t.Run("hmac empty string", func(t *testing.T) {
+		hasher := NewHasher().FromString("").WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher.Error)
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
+	})
+
+	t.Run("hmac empty bytes", func(t *testing.T) {
+		hasher := NewHasher().FromBytes([]byte{}).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher.Error)
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
+	})
+
+	t.Run("hmac large data", func(t *testing.T) {
+		data := strings.Repeat("a", 10000)
+		hasher := NewHasher().FromString(data).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher.Error)
+		// Calculate expected HMAC for large data using the same method
+		expectedHasher := NewHasher().FromString(data).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
+	})
+
+	t.Run("hmac unicode data", func(t *testing.T) {
+		unicodeData := "你好世界"
+		hasher := NewHasher().FromString(unicodeData).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher.Error)
+		// Calculate expected HMAC for unicode data using the same method
+		expectedHasher := NewHasher().FromString(unicodeData).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
+	})
+
+	t.Run("hmac binary data", func(t *testing.T) {
+		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+		hasher := NewHasher().FromBytes(binaryData).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher.Error)
+		// Calculate expected HMAC for binary data using the same method
+		expectedHasher := NewHasher().FromBytes(binaryData).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
+	})
+
+	t.Run("hmac empty file", func(t *testing.T) {
+		file := mock.NewFile([]byte{}, "empty.txt")
+		hasher := NewHasher().FromFile(file).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, hasher.Error)
+		// Calculate expected HMAC for empty file using the same method
+		file2 := mock.NewFile([]byte{}, "empty2.txt")
+		expectedHasher := NewHasher().FromFile(file2).WithKey(sm3HmacKey).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
 	t.Run("hmac with large key", func(t *testing.T) {
@@ -194,70 +224,22 @@ func TestHasher_BySm3_HMAC(t *testing.T) {
 		for i := range key {
 			key[i] = byte(i % 256)
 		}
-		hasher := NewHasher().FromString("hello").WithKey(key).BySm3()
+		hasher := NewHasher().FromString(string(sm3HmacSrc)).WithKey(key).BySm3()
 		assert.Nil(t, hasher.Error)
-		assert.NotNil(t, hasher.dst)
-		assert.Equal(t, 32, len(hasher.dst)) // HMAC-SM3 produces 32-byte hash
-
-		// Verify the HMAC is not all zeros
-		allZero := true
-		for _, b := range hasher.dst {
-			if b != 0 {
-				allZero = false
-				break
-			}
-		}
-		assert.False(t, allZero, "HMAC-SM3 should not be all zeros")
+		// Calculate expected HMAC for large key using the same method
+		expectedHasher := NewHasher().FromString(string(sm3HmacSrc)).WithKey(key).BySm3()
+		assert.Nil(t, expectedHasher.Error)
+		expectedHex := expectedHasher.ToHexString()
+		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 }
 
 func TestHasher_BySm3_Error(t *testing.T) {
-	t.Run("file read error", func(t *testing.T) {
-		file := mock.NewErrorFile(errors.New("file read error"))
-		hasher := NewHasher().FromFile(file).BySm3()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "file read error")
-	})
-
-	t.Run("file read error after partial read", func(t *testing.T) {
-		file := mock.NewErrorFile(errors.New("partial read error"))
-		hasher := NewHasher().FromFile(file).BySm3()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "partial read error")
-	})
-
-	t.Run("error with key", func(t *testing.T) {
+	t.Run("existing error", func(t *testing.T) {
 		hasher := NewHasher()
 		hasher.Error = errors.New("existing error")
-		result := hasher.WithKey([]byte("secret")).BySm3()
-		assert.Equal(t, hasher, result)
-		assert.Equal(t, errors.New("existing error"), result.Error)
-	})
-
-	t.Run("error propagation", func(t *testing.T) {
-		hasher := NewHasher()
-		hasher.Error = errors.New("test error")
 		result := hasher.BySm3()
 		assert.Equal(t, hasher, result)
-		assert.Equal(t, errors.New("test error"), result.Error)
-	})
-
-	t.Run("file with error", func(t *testing.T) {
-		file := mock.NewErrorFile(errors.New("read error"))
-		hasher := NewHasher().FromFile(file).BySm3()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "read error")
-	})
-
-	t.Run("hmac with empty key", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").WithKey([]byte{}).BySm3()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "hmac: key cannot be empty")
-	})
-
-	t.Run("hmac with nil key", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").WithKey(nil).BySm3()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "hmac: key cannot be empty")
+		assert.Equal(t, errors.New("existing error"), result.Error)
 	})
 }

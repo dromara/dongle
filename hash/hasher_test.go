@@ -15,7 +15,6 @@ func TestHasher_FromString(t *testing.T) {
 	t.Run("normal string", func(t *testing.T) {
 		hasher := NewHasher().FromString("hello")
 		assert.Equal(t, []byte("hello"), hasher.src)
-		assert.Equal(t, hasher, hasher.FromString("world"))
 	})
 
 	t.Run("empty string", func(t *testing.T) {
@@ -34,7 +33,6 @@ func TestHasher_FromBytes(t *testing.T) {
 		data := []byte("hello")
 		hasher := NewHasher().FromBytes(data)
 		assert.Equal(t, data, hasher.src)
-		assert.Equal(t, hasher, hasher.FromBytes([]byte("world")))
 	})
 
 	t.Run("empty bytes", func(t *testing.T) {
@@ -128,7 +126,7 @@ func TestHasher_ToRawBytes(t *testing.T) {
 	t.Run("nil data", func(t *testing.T) {
 		hasher := &Hasher{dst: nil}
 		result := hasher.ToRawBytes()
-		assert.Nil(t, result)
+		assert.Equal(t, []byte{}, result)
 	})
 
 	t.Run("binary data", func(t *testing.T) {
@@ -284,7 +282,7 @@ func TestHasher_stream(t *testing.T) {
 		result, err := hasher.stream(errorHash)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "hasher write error")
-		assert.Nil(t, result)
+		assert.Equal(t, []byte{}, result)
 	})
 }
 
@@ -484,7 +482,7 @@ func TestHasher_Error(t *testing.T) {
 		result, err := hasher.stream(md2.New)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "stream error")
-		assert.Nil(t, result)
+		assert.Equal(t, []byte{}, result)
 	})
 
 	t.Run("WithKey empty key", func(t *testing.T) {
@@ -507,7 +505,7 @@ func TestHasher_Error(t *testing.T) {
 		result, err := hasher.stream(md2.New)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "read error")
-		assert.Nil(t, result)
+		assert.Equal(t, []byte{}, result)
 	})
 
 	t.Run("hmac with empty key", func(t *testing.T) {

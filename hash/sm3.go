@@ -7,7 +7,7 @@ import (
 )
 
 // BySm3 encrypts by SM3 or HMAC-SM3 based on whether key is set.
-func (h *Hasher) BySm3() *Hasher {
+func (h Hasher) BySm3() Hasher {
 	if h.Error != nil {
 		return h
 	}

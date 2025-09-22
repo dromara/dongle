@@ -7,7 +7,7 @@ import (
 )
 
 // ByHex encodes by hex.
-func (e *Encoder) ByHex() *Encoder {
+func (e Encoder) ByHex() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -24,7 +24,7 @@ func (e *Encoder) ByHex() *Encoder {
 }
 
 // ByHex decodes by hex.
-func (d *Decoder) ByHex() *Decoder {
+func (d Decoder) ByHex() Decoder {
 	if d.Error != nil {
 		return d
 	}

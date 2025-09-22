@@ -7,7 +7,7 @@ import (
 )
 
 // ByMd2 encrypts by MD2 or HMAC-MD2 based on whether key is set.
-func (h *Hasher) ByMd2() *Hasher {
+func (h Hasher) ByMd2() Hasher {
 	if h.Error != nil {
 		return h
 	}

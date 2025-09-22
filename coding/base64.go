@@ -7,7 +7,7 @@ import (
 )
 
 // ByBase64 Encoders by base64.
-func (e *Encoder) ByBase64() *Encoder {
+func (e Encoder) ByBase64() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -24,7 +24,7 @@ func (e *Encoder) ByBase64() *Encoder {
 }
 
 // ByBase64 decodes by base64.
-func (d *Decoder) ByBase64() *Decoder {
+func (d Decoder) ByBase64() Decoder {
 	if d.Error != nil {
 		return d
 	}
@@ -41,7 +41,7 @@ func (d *Decoder) ByBase64() *Decoder {
 }
 
 // ByBase64Url Encoders by base64 url-safe.
-func (e *Encoder) ByBase64Url() *Encoder {
+func (e Encoder) ByBase64Url() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -58,7 +58,7 @@ func (e *Encoder) ByBase64Url() *Encoder {
 }
 
 // ByBase64Url decodes by base64 url-safe.
-func (d *Decoder) ByBase64Url() *Decoder {
+func (d Decoder) ByBase64Url() Decoder {
 	if d.Error != nil {
 		return d
 	}

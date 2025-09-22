@@ -7,7 +7,7 @@ import (
 )
 
 // ByRipemd160 encrypts by RIPEMD160 or HMAC-RIPEMD160 based on whether key is set.
-func (h *Hasher) ByRipemd160() *Hasher {
+func (h Hasher) ByRipemd160() Hasher {
 	if h.Error != nil {
 		return h
 	}
