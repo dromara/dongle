@@ -123,6 +123,3 @@ decrypter.ToString() // hello world
 // Output decrypted byte slice
 decrypter.ToBytes()  // []byte("hello world")
 ```
-
-
-

@@ -123,6 +123,3 @@ decrypter.ToString() // hello world
 // 復号化されたバイトスライス出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
-
-
-

@@ -151,6 +151,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 {text: 'ChaCha20', link: 'crypto/chacha20'},
                 {text: 'ChaCha20Poly1305', link: 'crypto/chacha20-poly1305'},
                 {text: 'Salsa20', link: 'crypto/salsa20'},
+                {text: 'Twofish', link: 'crypto/twofish'},
             ]
         },
         {
