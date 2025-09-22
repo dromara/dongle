@@ -7,7 +7,7 @@ import (
 )
 
 // ByBase91 Encoders by base91.
-func (e *Encoder) ByBase91() *Encoder {
+func (e Encoder) ByBase91() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -24,7 +24,7 @@ func (e *Encoder) ByBase91() *Encoder {
 }
 
 // ByBase91 decodes by base91.
-func (d *Decoder) ByBase91() *Decoder {
+func (d Decoder) ByBase91() Decoder {
 	if d.Error != nil {
 		return d
 	}

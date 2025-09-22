@@ -8,7 +8,7 @@ import (
 )
 
 // ByEd25519 signs the data using ED25519 digital signature
-func (s *Signer) ByEd25519(kp *keypair.Ed25519KeyPair) *Signer {
+func (s Signer) ByEd25519(kp *keypair.Ed25519KeyPair) Signer {
 	if s.Error != nil {
 		return s
 	}
@@ -38,7 +38,7 @@ func (s *Signer) ByEd25519(kp *keypair.Ed25519KeyPair) *Signer {
 }
 
 // ByEd25519 verifies the signature using ED25519 digital signature verification
-func (v *Verifier) ByEd25519(kp *keypair.Ed25519KeyPair) *Verifier {
+func (v Verifier) ByEd25519(kp *keypair.Ed25519KeyPair) Verifier {
 	if v.Error != nil {
 		return v
 	}

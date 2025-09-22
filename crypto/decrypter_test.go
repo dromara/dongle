@@ -12,30 +12,38 @@ func TestDecrypter_FromRawString(t *testing.T) {
 	t.Run("from raw string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawString("hello world")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("hello world"), decrypter.src)
+		assert.Equal(t, []byte("hello world"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from empty string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawString("")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from unicode string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawString("你好世界")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("你好世界"), decrypter.src)
+		assert.Equal(t, []byte("你好世界"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from large string", func(t *testing.T) {
 		largeString := string(make([]byte, 10000))
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawString(largeString)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte(largeString), decrypter.src)
+		assert.Equal(t, []byte(largeString), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 }
 
@@ -44,38 +52,48 @@ func TestDecrypter_FromRawBytes(t *testing.T) {
 		decrypter := NewDecrypter()
 		data := []byte("hello world")
 		result := decrypter.FromRawBytes(data)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, data, decrypter.src)
+		assert.Equal(t, data, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from empty bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawBytes([]byte{})
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from nil bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawBytes(nil)
-		assert.Equal(t, decrypter, result)
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from large bytes", func(t *testing.T) {
 		largeData := make([]byte, 10000)
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawBytes(largeData)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, largeData, decrypter.src)
+		assert.Equal(t, largeData, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawBytes(binaryData)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, binaryData, decrypter.src)
+		assert.Equal(t, binaryData, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 }
 
@@ -83,37 +101,47 @@ func TestDecrypter_FromBase64String(t *testing.T) {
 	t.Run("from base64 string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64String("aGVsbG8gd29ybGQ=")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("hello world"), decrypter.src)
+		assert.Equal(t, []byte("hello world"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from empty base64 string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64String("")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from unicode base64 string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64String("5L2g5aW95LiW55WM")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("你好世界"), decrypter.src)
+		assert.Equal(t, []byte("你好世界"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from invalid base64 string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64String("invalid base64!")
-		assert.Equal(t, decrypter, result)
 		// Should not change src when there's an error
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from binary base64 string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64String("AAECA//+/fw=")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, decrypter.src)
+		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 }
 
@@ -121,37 +149,47 @@ func TestDecrypter_FromBase64Bytes(t *testing.T) {
 	t.Run("from base64 bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64Bytes([]byte("aGVsbG8gd29ybGQ="))
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("hello world"), decrypter.src)
+		assert.Equal(t, []byte("hello world"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from empty base64 bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64Bytes([]byte{})
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from unicode base64 bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64Bytes([]byte("5L2g5aW95LiW55WM"))
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("你好世界"), decrypter.src)
+		assert.Equal(t, []byte("你好世界"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from invalid base64 bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64Bytes([]byte("invalid base64!"))
-		assert.Equal(t, decrypter, result)
 		// Should not change src when there's an error
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from binary base64 bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64Bytes([]byte("AAECA//+/fw="))
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, decrypter.src)
+		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 }
 
@@ -159,37 +197,47 @@ func TestDecrypter_FromHexString(t *testing.T) {
 	t.Run("from hex string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexString("68656c6c6f20776f726c64")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("hello world"), decrypter.src)
+		assert.Equal(t, []byte("hello world"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from empty hex string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexString("")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from unicode hex string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexString("e4bda0e5a5bde4b896e7958c")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("你好世界"), decrypter.src)
+		assert.Equal(t, []byte("你好世界"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from invalid hex string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexString("invalid hex!")
-		assert.Equal(t, decrypter, result)
 		// Should not change src when there's an error
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from binary hex string", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexString("00010203fffefdfc")
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, decrypter.src)
+		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 }
 
@@ -197,37 +245,47 @@ func TestDecrypter_FromHexBytes(t *testing.T) {
 	t.Run("from hex bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexBytes([]byte("68656c6c6f20776f726c64"))
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("hello world"), decrypter.src)
+		assert.Equal(t, []byte("hello world"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from empty hex bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexBytes([]byte{})
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from unicode hex bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexBytes([]byte("e4bda0e5a5bde4b896e7958c"))
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte("你好世界"), decrypter.src)
+		assert.Equal(t, []byte("你好世界"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from invalid hex bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexBytes([]byte("invalid hex!"))
-		assert.Equal(t, decrypter, result)
 		// Should not change src when there's an error
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from binary hex bytes", func(t *testing.T) {
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexBytes([]byte("00010203fffefdfc"))
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, decrypter.src)
+		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
+		assert.Nil(t, result.Error)
 	})
 }
 
@@ -381,8 +439,10 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawFile(file)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, file, decrypter.reader)
+		assert.Equal(t, file, result.reader)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from empty file", func(t *testing.T) {
@@ -391,8 +451,10 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawFile(file)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, file, decrypter.reader)
+		assert.Equal(t, file, result.reader)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("from large file", func(t *testing.T) {
@@ -404,8 +466,10 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawFile(file)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, file, decrypter.reader)
+		assert.Equal(t, file, result.reader)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.Error)
 	})
 
 	t.Run("with existing error", func(t *testing.T) {
@@ -416,9 +480,10 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 		decrypter.Error = assert.AnError
 		result := decrypter.FromRawFile(file)
 
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, assert.AnError, decrypter.Error)
-		assert.Equal(t, file, decrypter.reader) // FromRawFile always sets reader, regardless of existing error
+		assert.Equal(t, assert.AnError, result.Error)
+		assert.Equal(t, file, result.reader) // FromRawFile always sets reader, regardless of existing error
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
 	})
 }
 
@@ -429,9 +494,10 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte("hello world"), decrypter.src)
+		assert.Equal(t, []byte("hello world"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from empty base64 file", func(t *testing.T) {
@@ -440,9 +506,10 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from unicode base64 file", func(t *testing.T) {
@@ -451,9 +518,10 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte("你好世界"), decrypter.src)
+		assert.Equal(t, []byte("你好世界"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from invalid base64 file", func(t *testing.T) {
@@ -462,9 +530,10 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
-		assert.Equal(t, decrypter, result)
 		assert.NotNil(t, result.Error)
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from binary base64 file", func(t *testing.T) {
@@ -473,9 +542,10 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, decrypter.src)
+		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("with existing error", func(t *testing.T) {
@@ -486,9 +556,10 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 		decrypter.Error = assert.AnError
 		result := decrypter.FromBase64File(file)
 
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, assert.AnError, decrypter.Error)
-		assert.Nil(t, decrypter.src)
+		assert.Equal(t, assert.AnError, result.Error)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("with file read error", func(t *testing.T) {
@@ -496,9 +567,10 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(errorFile)
-		assert.Equal(t, decrypter, result)
 		assert.NotNil(t, result.Error)
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 }
 
@@ -509,9 +581,10 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte("hello world"), decrypter.src)
+		assert.Equal(t, []byte("hello world"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from empty hex file", func(t *testing.T) {
@@ -520,9 +593,10 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte{}, decrypter.src)
+		assert.Equal(t, []byte{}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from unicode hex file", func(t *testing.T) {
@@ -531,9 +605,10 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte("你好世界"), decrypter.src)
+		assert.Equal(t, []byte("你好世界"), result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from invalid hex file", func(t *testing.T) {
@@ -542,9 +617,10 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
-		assert.Equal(t, decrypter, result)
 		assert.NotNil(t, result.Error)
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("from binary hex file", func(t *testing.T) {
@@ -553,9 +629,10 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
-		assert.Equal(t, decrypter, result)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0xFF}, decrypter.src)
+		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0xFF}, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("with existing error", func(t *testing.T) {
@@ -566,9 +643,10 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 		decrypter.Error = assert.AnError
 		result := decrypter.FromHexFile(file)
 
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, assert.AnError, decrypter.Error)
-		assert.Nil(t, decrypter.src)
+		assert.Equal(t, assert.AnError, result.Error)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("with file read error", func(t *testing.T) {
@@ -576,8 +654,9 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(errorFile)
-		assert.Equal(t, decrypter, result)
 		assert.NotNil(t, result.Error)
-		assert.Nil(t, decrypter.src)
+		assert.Nil(t, result.src)
+		assert.Nil(t, result.dst)
+		assert.Nil(t, result.reader)
 	})
 }

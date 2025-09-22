@@ -6,7 +6,7 @@ import (
 )
 
 // BySha1 encrypts by SHA1 or HMAC-SHA1 based on whether key is set.
-func (h *Hasher) BySha1() *Hasher {
+func (h Hasher) BySha1() Hasher {
 	if h.Error != nil {
 		return h
 	}

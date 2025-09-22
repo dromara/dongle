@@ -7,7 +7,7 @@ import (
 )
 
 // ByBase62 Encoders by base62.
-func (e *Encoder) ByBase62() *Encoder {
+func (e Encoder) ByBase62() Encoder {
 	if e.Error != nil {
 		return e
 	}
@@ -24,7 +24,7 @@ func (e *Encoder) ByBase62() *Encoder {
 }
 
 // ByBase62 decodes by base62.
-func (d *Decoder) ByBase62() *Decoder {
+func (d Decoder) ByBase62() Decoder {
 	if d.Error != nil {
 		return d
 	}

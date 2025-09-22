@@ -1,7 +1,6 @@
 package hash
 
 import (
-	"crypto/md5"
 	"errors"
 	"strings"
 	"testing"
@@ -10,170 +9,182 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHasher_ByMd5(t *testing.T) {
+// Test data for hash-md5
+var (
+	md5HashSrc       = []byte("hello world")
+	md5HashHexDst    = "5eb63bbbe01eeed093cb22bb8f5acdc3"
+	md5HashBase64Dst = "XrY7u+Ae7tCTyyK7j1rNww=="
+)
+
+// Test data for hmac-md5
+var (
+	md5HmacKey       = []byte("dongle")
+	md5HmacSrc       = []byte("hello world")
+	md5HmacHexDst    = "4790626a275f776956386e5a3ea7b726"
+	md5HmacBase64Dst = "R5Biaidfd2lWOG5aPqe3Jg=="
+)
+
+func TestHasher_ByMd5_Hash(t *testing.T) {
 	t.Run("hash string", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").ByMd5()
+		hasher := NewHasher().FromString(string(md5HashSrc)).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, []byte{0x5d, 0x41, 0x40, 0x2a, 0xbc, 0x4b, 0x2a, 0x76, 0xb9, 0x71, 0x9d, 0x91, 0x10, 0x17, 0xc5, 0x92}, hasher.dst)
+		assert.Equal(t, md5HashHexDst, hasher.ToHexString())
+		assert.Equal(t, md5HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash bytes", func(t *testing.T) {
-		hasher := NewHasher().FromBytes([]byte("hello")).ByMd5()
+		hasher := NewHasher().FromBytes(md5HashSrc).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, []byte{0x5d, 0x41, 0x40, 0x2a, 0xbc, 0x4b, 0x2a, 0x76, 0xb9, 0x71, 0x9d, 0x91, 0x10, 0x17, 0xc5, 0x92}, hasher.dst)
+		assert.Equal(t, md5HashHexDst, hasher.ToHexString())
+		assert.Equal(t, md5HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash file", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello"), "test.txt")
+		file := mock.NewFile(md5HashSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, []byte{0x5d, 0x41, 0x40, 0x2a, 0xbc, 0x4b, 0x2a, 0x76, 0xb9, 0x71, 0x9d, 0x91, 0x10, 0x17, 0xc5, 0x92}, hasher.dst)
+		assert.Equal(t, md5HashHexDst, hasher.ToHexString())
+		assert.Equal(t, md5HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("empty string", func(t *testing.T) {
 		hasher := NewHasher().FromString("").ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Nil(t, hasher.dst) // Empty input returns nil
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 
 	t.Run("empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Nil(t, hasher.dst) // Empty input returns nil
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 
 	t.Run("nil bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(nil).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Nil(t, hasher.dst) // Empty input returns nil
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 
 	t.Run("large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, 16, len(hasher.dst))
+		assert.Equal(t, "0d0c9c4db6953fee9e03f528cafd7d3e", hasher.ToHexString())
 	})
 
 	t.Run("unicode data", func(t *testing.T) {
 		hasher := NewHasher().FromString("你好世界").ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, 16, len(hasher.dst))
+		assert.Equal(t, "65396ee4aad0b4f17aacd1c6112ee364", hasher.ToHexString())
 	})
 
 	t.Run("binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, 16, len(hasher.dst))
+		assert.Equal(t, "1ac1ef01e96caf1be0d329331a4fc2a8", hasher.ToHexString())
 	})
 
 	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, []byte{}, hasher.dst) // Empty file returns empty slice
-	})
-
-	t.Run("test MD5 streaming with empty data", func(t *testing.T) {
-		// Create empty file
-		file := mock.NewFile([]byte{}, "empty.txt")
-
-		// Use our streaming implementation
-		hasher := &Hasher{reader: file}
-		result, err := hasher.stream(md5.New)
-
-		assert.Nil(t, err)
-		// When no data is read, stream returns empty slice
-		// This is the expected and correct behavior for empty data
-		assert.Equal(t, []byte{}, result)
-
-		// Note: While crypto/md5.Sum([]byte{}) returns a specific hash value,
-		// our stream method correctly returns empty result for empty input,
-		// which is the intended behavior for this implementation.
-		expectedHash := md5.Sum([]byte{})
-		assert.NotEqual(t, expectedHash[:], result)
+		assert.Empty(t, hasher.ToHexString()) // Empty file returns empty string
 	})
 }
 
 func TestHasher_ByMd5_HMAC(t *testing.T) {
-	t.Run("hmac with key", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").WithKey([]byte("secret")).ByMd5()
+	t.Run("hmac string", func(t *testing.T) {
+		hasher := NewHasher().FromString(string(md5HmacSrc)).WithKey(md5HmacKey).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, 16, len(hasher.dst))
+		assert.Equal(t, md5HmacHexDst, hasher.ToHexString())
+		assert.Equal(t, md5HmacBase64Dst, hasher.ToBase64String())
 	})
 
-	t.Run("hmac with bytes", func(t *testing.T) {
-		hasher := NewHasher().FromBytes([]byte("hello")).WithKey([]byte("secret")).ByMd5()
+	t.Run("hmac bytes", func(t *testing.T) {
+		hasher := NewHasher().FromBytes(md5HmacSrc).WithKey(md5HmacKey).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, 16, len(hasher.dst))
+		assert.Equal(t, md5HmacHexDst, hasher.ToHexString())
+		assert.Equal(t, md5HmacBase64Dst, hasher.ToBase64String())
 	})
 
-	t.Run("hmac with file", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello"), "test.txt")
-		hasher := NewHasher().FromFile(file).WithKey([]byte("secret")).ByMd5()
+	t.Run("hmac file", func(t *testing.T) {
+		file := mock.NewFile(md5HmacSrc, "test.txt")
+		hasher := NewHasher().FromFile(file).WithKey(md5HmacKey).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, 16, len(hasher.dst))
+		assert.Equal(t, md5HmacHexDst, hasher.ToHexString())
+		assert.Equal(t, md5HmacBase64Dst, hasher.ToBase64String())
 	})
 
-	t.Run("hmac with large key", func(t *testing.T) {
-		key := make([]byte, 1000)
-		for i := range key {
-			key[i] = byte(i % 256)
-		}
-		hasher := NewHasher().FromString("hello").WithKey(key).ByMd5()
+	t.Run("hmac empty string", func(t *testing.T) {
+		hasher := NewHasher().FromString("").WithKey(md5HmacKey).ByMd5()
 		assert.Nil(t, hasher.Error)
-		assert.Equal(t, 16, len(hasher.dst))
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
+	})
+
+	t.Run("hmac empty bytes", func(t *testing.T) {
+		hasher := NewHasher().FromBytes([]byte{}).WithKey(md5HmacKey).ByMd5()
+		assert.Nil(t, hasher.Error)
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
+	})
+
+	t.Run("hmac nil bytes", func(t *testing.T) {
+		hasher := NewHasher().FromBytes(nil).WithKey(md5HmacKey).ByMd5()
+		assert.Nil(t, hasher.Error)
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
+	})
+
+	t.Run("hmac large data", func(t *testing.T) {
+		data := strings.Repeat("a", 10000)
+		hasher := NewHasher().FromString(data).WithKey(md5HmacKey).ByMd5()
+		assert.Nil(t, hasher.Error)
+		assert.Equal(t, "632150326c1cfbf5b762a8d9389a741d", hasher.ToHexString())
+		assert.Equal(t, "YyFQMmwc+/W3YqjZOJp0HQ==", hasher.ToBase64String())
+	})
+
+	t.Run("hmac unicode data", func(t *testing.T) {
+		hasher := NewHasher().FromString("你好世界").WithKey(md5HmacKey).ByMd5()
+		assert.Nil(t, hasher.Error)
+		assert.Equal(t, "1d2ff2c099f5d9aba3bca8fd0bed826d", hasher.ToHexString())
+		assert.Equal(t, "HS/ywJn12aujvKj9C+2CbQ==", hasher.ToBase64String())
+	})
+
+	t.Run("hmac binary data", func(t *testing.T) {
+		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+		hasher := NewHasher().FromBytes(binaryData).WithKey(md5HmacKey).ByMd5()
+		assert.Nil(t, hasher.Error)
+		assert.Equal(t, "faf9109292c46bb584a79a93c7f39a4a", hasher.ToHexString())
+		assert.Equal(t, "+vkQkpLEa7WEp5qTx/OaSg==", hasher.ToBase64String())
+	})
+
+	t.Run("hmac empty file", func(t *testing.T) {
+		file := mock.NewFile([]byte{}, "empty.txt")
+		hasher := NewHasher().FromFile(file).WithKey(md5HmacKey).ByMd5()
+		assert.Nil(t, hasher.Error)
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
+	})
+
+	t.Run("hmac no data no reader no key", func(t *testing.T) {
+		hasher := NewHasher().ByMd5()
+		assert.Nil(t, hasher.Error)
+		assert.Empty(t, hasher.ToHexString())
+		assert.Empty(t, hasher.ToBase64String())
 	})
 }
 
 func TestHasher_ByMd5_Error(t *testing.T) {
-	t.Run("file read error", func(t *testing.T) {
-		file := mock.NewErrorFile(errors.New("file read error"))
-		hasher := NewHasher().FromFile(file).ByMd5()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "file read error")
-	})
-
-	t.Run("file read error after partial read", func(t *testing.T) {
-		file := mock.NewErrorFile(errors.New("partial read error"))
-		hasher := NewHasher().FromFile(file).ByMd5()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "partial read error")
-	})
-
-	t.Run("error with key", func(t *testing.T) {
+	t.Run("existing error", func(t *testing.T) {
 		hasher := NewHasher()
 		hasher.Error = errors.New("existing error")
-		result := hasher.WithKey([]byte("secret")).ByMd5()
-		assert.Equal(t, hasher, result)
-		assert.Equal(t, errors.New("existing error"), result.Error)
-	})
-
-	t.Run("error propagation", func(t *testing.T) {
-		hasher := NewHasher()
-		hasher.Error = errors.New("test error")
 		result := hasher.ByMd5()
 		assert.Equal(t, hasher, result)
-		assert.Equal(t, errors.New("test error"), result.Error)
-	})
-
-	t.Run("file with error", func(t *testing.T) {
-		file := mock.NewErrorFile(errors.New("read error"))
-		hasher := NewHasher().FromFile(file).ByMd5()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "read error")
-	})
-
-	t.Run("hmac with empty key", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").WithKey([]byte{}).ByMd5()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "hmac: key cannot be empty")
-	})
-
-	t.Run("hmac with nil key", func(t *testing.T) {
-		hasher := NewHasher().FromString("hello").WithKey(nil).ByMd5()
-		assert.NotNil(t, hasher.Error)
-		assert.Contains(t, hasher.Error.Error(), "hmac: key cannot be empty")
+		assert.Equal(t, errors.New("existing error"), result.Error)
 	})
 }

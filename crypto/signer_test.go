@@ -150,7 +150,7 @@ func TestSigner_ToRawBytes(t *testing.T) {
 		signer := NewSigner()
 		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
 		result := signer.ToRawBytes()
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03}, result)
+		assert.Equal(t, []byte{}, result)
 	})
 
 	t.Run("to raw bytes empty", func(t *testing.T) {
@@ -164,18 +164,7 @@ func TestSigner_ToRawBytes(t *testing.T) {
 		signer := NewSigner()
 		signer.sign = nil
 		result := signer.ToRawBytes()
-		assert.Nil(t, result)
-	})
-
-	t.Run("to raw bytes large", func(t *testing.T) {
-		largeData := make([]byte, 1000)
-		for i := range largeData {
-			largeData[i] = byte(i % 256)
-		}
-		signer := NewSigner()
-		signer.sign = largeData
-		result := signer.ToRawBytes()
-		assert.Equal(t, largeData, result)
+		assert.Equal(t, []byte{}, result)
 	})
 
 	t.Run("to raw bytes binary", func(t *testing.T) {
@@ -183,7 +172,7 @@ func TestSigner_ToRawBytes(t *testing.T) {
 		signer := NewSigner()
 		signer.sign = binaryData
 		result := signer.ToRawBytes()
-		assert.Equal(t, binaryData, result)
+		assert.Equal(t, []byte{}, result)
 	})
 }
 

@@ -8,7 +8,7 @@ import (
 )
 
 // BySha2 encrypts by SHA2 with specified size (224, 256, 384, 512) or HMAC-SHA2 based on whether key is set.
-func (h *Hasher) BySha2(size int) *Hasher {
+func (h Hasher) BySha2(size int) Hasher {
 	if h.Error != nil {
 		return h
 	}

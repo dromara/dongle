@@ -7,7 +7,7 @@ import (
 )
 
 // ByMd4 encrypts by MD4 or HMAC-MD4 based on whether key is set.
-func (h *Hasher) ByMd4() *Hasher {
+func (h Hasher) ByMd4() Hasher {
 	if h.Error != nil {
 		return h
 	}

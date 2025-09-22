@@ -16,43 +16,43 @@ type Decoder struct {
 }
 
 // NewDecoder returns a new Decoder instance.
-func NewDecoder() *Decoder {
-	return &Decoder{}
+func NewDecoder() Decoder {
+	return Decoder{}
 }
 
 // FromString decodes from string.
-func (d *Decoder) FromString(s string) *Decoder {
+func (d Decoder) FromString(s string) Decoder {
 	d.src = util.String2Bytes(s)
 	return d
 }
 
 // FromBytes decodes from byte slice.
-func (d *Decoder) FromBytes(b []byte) *Decoder {
+func (d Decoder) FromBytes(b []byte) Decoder {
 	d.src = b
 	return d
 }
 
 // FromFile decodes from file.
-func (d *Decoder) FromFile(ff fs.File) *Decoder {
+func (d Decoder) FromFile(ff fs.File) Decoder {
 	d.reader = ff
 	return d
 }
 
 // ToString outputs as string.
-func (d *Decoder) ToString() string {
+func (d Decoder) ToString() string {
 	return util.Bytes2String(d.dst)
 }
 
 // ToBytes outputs as byte slice.
-func (d *Decoder) ToBytes() []byte {
+func (d Decoder) ToBytes() []byte {
 	if len(d.dst) == 0 {
-		return []byte("")
+		return []byte{}
 	}
 	return d.dst
 }
 
 // stream decodes with stream using true streaming processing.
-func (d *Decoder) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
+func (d Decoder) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
 	buffer := make([]byte, BufferSize)
 
 	// Create a buffer to collect decoded data

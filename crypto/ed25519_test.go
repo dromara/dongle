@@ -46,10 +46,12 @@ func TestSignerByEd25519(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
 		kp.GenKeyPair()
 
-		signer := &Signer{Error: errors.New("existing error")}
+		signer := Signer{Error: errors.New("existing error")}
 		result := signer.ByEd25519(kp)
-		assert.Equal(t, signer, result)
-		assert.Equal(t, "existing error", signer.Error.Error())
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.Nil(t, result.data)
+		assert.Nil(t, result.sign)
+		assert.Nil(t, result.reader)
 	})
 }
 
@@ -116,10 +118,12 @@ func TestVerifierByEd25519(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
 		kp.GenKeyPair()
 
-		verifier := &Verifier{Error: errors.New("existing error")}
+		verifier := Verifier{Error: errors.New("existing error")}
 		result := verifier.ByEd25519(kp)
-		assert.Equal(t, verifier, result)
-		assert.Equal(t, "existing error", verifier.Error.Error())
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.Nil(t, result.data)
+		assert.Nil(t, result.sign)
+		assert.Nil(t, result.reader)
 	})
 
 	t.Run("verify with invalid signature", func(t *testing.T) {

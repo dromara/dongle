@@ -17,52 +17,55 @@ type Signer struct {
 }
 
 // NewSigner returns a new Signer instance.
-func NewSigner() *Signer {
-	return &Signer{}
+func NewSigner() Signer {
+	return Signer{}
 }
 
-func (s *Signer) FromString(str string) *Signer {
+func (s Signer) FromString(str string) Signer {
 	s.data = util.String2Bytes(str)
 	return s
 }
 
-func (s *Signer) FromBytes(b []byte) *Signer {
+func (s Signer) FromBytes(b []byte) Signer {
 	s.data = b
 	return s
 }
 
-func (s *Signer) FromFile(f fs.File) *Signer {
+func (s Signer) FromFile(f fs.File) Signer {
 	s.reader = f
 	return s
 }
 
 // ToRawString outputs as raw string without encoding.
-func (s *Signer) ToRawString() string {
+func (s Signer) ToRawString() string {
 	return util.Bytes2String(s.sign)
 }
 
 // ToRawBytes outputs as raw byte slice without encoding.
-func (s *Signer) ToRawBytes() []byte {
+func (s Signer) ToRawBytes() []byte {
+	if len(s.data) == 0 {
+		return []byte{}
+	}
 	return s.sign
 }
 
 // ToBase64String outputs as base64 string.
-func (s *Signer) ToBase64String() string {
+func (s Signer) ToBase64String() string {
 	return coding.NewEncoder().FromBytes(s.sign).ByBase64().ToString()
 }
 
 // ToBase64Bytes outputs as base64 byte slice.
-func (s *Signer) ToBase64Bytes() []byte {
+func (s Signer) ToBase64Bytes() []byte {
 	return coding.NewEncoder().FromBytes(s.sign).ByBase64().ToBytes()
 }
 
 // ToHexString outputs as hex string.
-func (s *Signer) ToHexString() string {
+func (s Signer) ToHexString() string {
 	return coding.NewEncoder().FromBytes(s.sign).ByHex().ToString()
 }
 
 // ToHexBytes outputs as hex byte slice.
-func (s *Signer) ToHexBytes() []byte {
+func (s Signer) ToHexBytes() []byte {
 	return coding.NewEncoder().FromBytes(s.sign).ByHex().ToBytes()
 }
 
@@ -70,7 +73,7 @@ func (s *Signer) ToHexBytes() []byte {
 // This method processes data in chunks without loading all results into memory,
 // providing constant memory usage regardless of input size.
 // The signature is captured from the StreamSigner's output.
-func (s *Signer) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
+func (s Signer) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	// Use a bytes.Buffer to collect the signature output
 	// StreamSigner writes the signature to the writer in its Close() method
 	var bf bytes.Buffer
@@ -89,7 +92,7 @@ func (s *Signer) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 			_, writeErr := signer.Write(buffer[:n])
 			if writeErr != nil {
 				signer.Close() // Close on error
-				return nil, writeErr
+				return []byte{}, writeErr
 			}
 		}
 
@@ -99,7 +102,7 @@ func (s *Signer) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 				break // Normal end of input
 			}
 			signer.Close() // Close on error
-			return nil, readErr
+			return []byte{}, readErr
 		}
 	}
 

@@ -10,177 +10,279 @@ import (
 	"github.com/dromara/dongle/mock"
 )
 
-func TestEncoder_ByHex(t *testing.T) {
-	t.Run("encode string", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello world").ByHex()
-		assert.Nil(t, encoder.Error)
-		// Hex encoding of "hello world" = "68656c6c6f20776f726c64"
-		assert.Equal(t, []byte("68656c6c6f20776f726c64"), encoder.dst)
-	})
+// Test data for hex encoding (generated using Python binascii library)
+var (
+	hexSrc     = []byte("hello world")
+	hexEncoded = "68656c6c6f20776f726c64"
+)
 
-	t.Run("encode empty string", func(t *testing.T) {
-		encoder := NewEncoder().FromString("").ByHex()
+// Test data for hex unicode encoding (generated using Python binascii library)
+var (
+	hexUnicodeSrc     = []byte("你好世界")
+	hexUnicodeEncoded = "e4bda0e5a5bde4b896e7958c"
+)
+
+// Test data for hex binary encoding (generated using Python binascii library)
+var (
+	hexBinarySrc     = []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}
+	hexBinaryEncoded = "00010203fffefdfc"
+)
+
+// Test data for hex specific bytes (generated using Python binascii library)
+var (
+	hexSpecificBytesSrc     = []byte{0x00, 0x01, 0x02, 0x03}
+	hexSpecificBytesEncoded = "00010203"
+)
+
+// Test data for hex single byte (generated using Python binascii library)
+var (
+	hexSingleByteSrc     = []byte{0x41}
+	hexSingleByteEncoded = "41"
+)
+
+// Test data for hex two bytes (generated using Python binascii library)
+var (
+	hexTwoBytesSrc     = []byte{0x41, 0x42}
+	hexTwoBytesEncoded = "4142"
+)
+
+// Test data for hex three bytes (generated using Python binascii library)
+var (
+	hexThreeBytesSrc     = []byte{0x41, 0x42, 0x43}
+	hexThreeBytesEncoded = "414243"
+)
+
+// Test data for hex zero bytes (generated using Python binascii library)
+var (
+	hexZeroBytesSrc     = []byte{0x00, 0x00, 0x00, 0x00}
+	hexZeroBytesEncoded = "00000000"
+)
+
+// Test data for hex max bytes (generated using Python binascii library)
+var (
+	hexMaxBytesSrc     = []byte{0xFF, 0xFF, 0xFF, 0xFF}
+	hexMaxBytesEncoded = "ffffffff"
+)
+
+func TestEncoder_ByHex_Encode(t *testing.T) {
+	t.Run("encode string", func(t *testing.T) {
+		encoder := NewEncoder().FromString(string(hexSrc)).ByHex()
 		assert.Nil(t, encoder.Error)
-		assert.Nil(t, encoder.dst)
+		assert.Equal(t, hexEncoded, encoder.ToString())
 	})
 
 	t.Run("encode bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x00, 0x01, 0x02, 0x03}).ByHex()
+		encoder := NewEncoder().FromBytes(hexSrc).ByHex()
 		assert.Nil(t, encoder.Error)
-		// Hex encoding of [0x00, 0x01, 0x02, 0x03] = "00010203"
-		assert.Equal(t, []byte("00010203"), encoder.dst)
+		assert.Equal(t, hexEncoded, encoder.ToString())
 	})
 
-	t.Run("encode empty bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{}).ByHex()
-		assert.Nil(t, encoder.Error)
-		assert.Nil(t, encoder.dst)
-	})
-
-	t.Run("encode nil bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes(nil).ByHex()
-		assert.Nil(t, encoder.Error)
-		assert.Nil(t, encoder.dst)
-	})
-
-	t.Run("encode with file", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello world"), "test.txt")
+	t.Run("encode file", func(t *testing.T) {
+		file := mock.NewFile(hexSrc, "test.txt")
 		encoder := NewEncoder().FromFile(file).ByHex()
 		assert.Nil(t, encoder.Error)
-		// Hex encoding of "hello world" = "68656c6c6f20776f726c64"
-		assert.Equal(t, []byte("68656c6c6f20776f726c64"), encoder.dst)
+		assert.Equal(t, hexEncoded, encoder.ToString())
 	})
 
-	t.Run("encode with empty file", func(t *testing.T) {
+	t.Run("empty string", func(t *testing.T) {
+		encoder := NewEncoder().FromString("").ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Empty(t, encoder.ToString())
+	})
+
+	t.Run("empty bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes([]byte{}).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Empty(t, encoder.ToString())
+	})
+
+	t.Run("nil bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(nil).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Empty(t, encoder.ToString())
+	})
+
+	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encoder := NewEncoder().FromFile(file).ByHex()
 		assert.Nil(t, encoder.Error)
-		assert.Equal(t, []byte{}, encoder.dst)
+		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("encode with error file", func(t *testing.T) {
+	t.Run("unicode string", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexUnicodeSrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexUnicodeEncoded, encoder.ToString())
+	})
+
+	t.Run("binary data", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexBinarySrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexBinaryEncoded, encoder.ToString())
+	})
+
+	t.Run("large data", func(t *testing.T) {
+		largeData := []byte(strings.Repeat("The quick brown fox jumps over the lazy dog. ", 10))
+		encoder := NewEncoder().FromBytes(largeData).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.NotEmpty(t, encoder.ToString())
+	})
+
+	t.Run("single byte", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexSingleByteSrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexSingleByteEncoded, encoder.ToString())
+	})
+
+	t.Run("two bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexTwoBytesSrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexTwoBytesEncoded, encoder.ToString())
+	})
+
+	t.Run("three bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexThreeBytesSrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexThreeBytesEncoded, encoder.ToString())
+	})
+
+	t.Run("zero bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexZeroBytesSrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexZeroBytesEncoded, encoder.ToString())
+	})
+
+	t.Run("max bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexMaxBytesSrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexMaxBytesEncoded, encoder.ToString())
+	})
+
+	t.Run("specific bytes", func(t *testing.T) {
+		encoder := NewEncoder().FromBytes(hexSpecificBytesSrc).ByHex()
+		assert.Nil(t, encoder.Error)
+		assert.Equal(t, hexSpecificBytesEncoded, encoder.ToString())
+	})
+
+	t.Run("error file", func(t *testing.T) {
 		errorFile := mock.NewErrorFile(errors.New("read error"))
 		encoder := NewEncoder().FromFile(errorFile).ByHex()
 		assert.Error(t, encoder.Error)
 		assert.Contains(t, encoder.Error.Error(), "read error")
 	})
 
-	t.Run("encode with existing error", func(t *testing.T) {
-		encoder := NewEncoder()
-		encoder.Error = errors.New("existing error")
-		result := encoder.FromString("hello world").ByHex()
-		assert.Equal(t, encoder, result)
-		assert.Equal(t, "existing error", result.Error.Error())
-	})
-
-	t.Run("encode unicode string", func(t *testing.T) {
-		encoder := NewEncoder().FromString("你好世界").ByHex()
-		assert.Nil(t, encoder.Error)
-		// Hex encoding of "你好世界" = "e4bda0e5a5bde4b896e7958c"
-		assert.Equal(t, []byte("e4bda0e5a5bde4b896e7958c"), encoder.dst)
-	})
-
-	t.Run("encode large data", func(t *testing.T) {
-		largeData := strings.Repeat("Hello, World! ", 100)
-		encoder := NewEncoder().FromString(largeData).ByHex()
-		assert.Nil(t, encoder.Error)
-		// For large data, test round-trip instead of exact value
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte(largeData), decoder.dst)
-	})
-
-	t.Run("encode single byte", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x41}).ByHex()
-		assert.Nil(t, encoder.Error)
-		// Hex encoding of byte 0x41 = "41"
-		assert.Equal(t, []byte("41"), encoder.dst)
-	})
-
-	t.Run("encode two bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x41, 0x42}).ByHex()
-		assert.Nil(t, encoder.Error)
-		// Hex encoding of bytes [0x41, 0x42] = "4142"
-		assert.Equal(t, []byte("4142"), encoder.dst)
-	})
-
-	t.Run("encode three bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x41, 0x42, 0x43}).ByHex()
-		assert.Nil(t, encoder.Error)
-		// Hex encoding of bytes [0x41, 0x42, 0x43] = "414243"
-		assert.Equal(t, []byte("414243"), encoder.dst)
-	})
-
-	t.Run("encode zero bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x00, 0x00, 0x00, 0x00}).ByHex()
-		assert.Nil(t, encoder.Error)
-		// Hex encoding of zero bytes = "00000000"
-		assert.Equal(t, []byte("00000000"), encoder.dst)
-	})
-
-	t.Run("encode max bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0xFF, 0xFF, 0xFF, 0xFF}).ByHex()
-		assert.Nil(t, encoder.Error)
-		// Hex encoding of max bytes = "ffffffff"
-		assert.Equal(t, []byte("ffffffff"), encoder.dst)
+	t.Run("no data no reader", func(t *testing.T) {
+		encoder := NewEncoder().ByHex()
+		if encoder.Error != nil {
+			assert.Contains(t, encoder.Error.Error(), "no data to encode")
+		}
 	})
 }
 
-func TestDecoder_ByHex(t *testing.T) {
-	t.Run("decode string", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello world").ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("hello world"), decoder.dst)
+func TestEncoder_ByHex_Error(t *testing.T) {
+	t.Run("existing error", func(t *testing.T) {
+		encoder := NewEncoder()
+		encoder.Error = errors.New("existing error")
+		result := encoder.FromString("test").ByHex()
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.NotNil(t, result.src)
 	})
+}
 
-	t.Run("decode empty string", func(t *testing.T) {
-		decoder := NewDecoder().FromString("").ByHex()
+func TestDecoder_ByHex_Decode(t *testing.T) {
+	t.Run("decode string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexEncoded).ByHex()
 		assert.Nil(t, decoder.Error)
-		assert.Nil(t, decoder.dst)
+		assert.Equal(t, hexSrc, decoder.ToBytes())
 	})
 
 	t.Run("decode bytes", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x00, 0x01, 0x02, 0x03}).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
+		decoder := NewDecoder().FromBytes([]byte(hexEncoded)).ByHex()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03}, decoder.dst)
+		assert.Equal(t, hexSrc, decoder.ToBytes())
 	})
 
-	t.Run("decode empty bytes", func(t *testing.T) {
-		decoder := NewDecoder().FromBytes([]byte{}).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Nil(t, decoder.dst)
-	})
-
-	t.Run("decode nil bytes", func(t *testing.T) {
-		decoder := NewDecoder().FromBytes(nil).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Nil(t, decoder.dst)
-	})
-
-	t.Run("decode with file", func(t *testing.T) {
-		encoder := NewEncoder().FromString("hello world").ByHex()
-		assert.Nil(t, encoder.Error)
-
-		file := mock.NewFile(encoder.dst, "test.txt")
+	t.Run("decode file", func(t *testing.T) {
+		file := mock.NewFile([]byte(hexEncoded), "test.txt")
 		decoder := NewDecoder().FromFile(file).ByHex()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("hello world"), decoder.dst)
+		assert.Equal(t, hexSrc, decoder.ToBytes())
 	})
 
-	t.Run("decode with empty file", func(t *testing.T) {
+	t.Run("empty string", func(t *testing.T) {
+		decoder := NewDecoder().FromString("").ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Empty(t, decoder.ToBytes())
+	})
+
+	t.Run("empty bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromBytes([]byte{}).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Empty(t, decoder.ToBytes())
+	})
+
+	t.Run("nil bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromBytes(nil).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Empty(t, decoder.ToBytes())
+	})
+
+	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decoder := NewDecoder().FromFile(file).ByHex()
 		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{}, decoder.dst)
+		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("decode with error file", func(t *testing.T) {
+	t.Run("unicode string", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexUnicodeEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexUnicodeSrc, decoder.ToBytes())
+	})
+
+	t.Run("binary data", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexBinaryEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexBinarySrc, decoder.ToBytes())
+	})
+
+	t.Run("single byte", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexSingleByteEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexSingleByteSrc, decoder.ToBytes())
+	})
+
+	t.Run("two bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexTwoBytesEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexTwoBytesSrc, decoder.ToBytes())
+	})
+
+	t.Run("three bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexThreeBytesEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexThreeBytesSrc, decoder.ToBytes())
+	})
+
+	t.Run("zero bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexZeroBytesEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexZeroBytesSrc, decoder.ToBytes())
+	})
+
+	t.Run("max bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexMaxBytesEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexMaxBytesSrc, decoder.ToBytes())
+	})
+
+	t.Run("specific bytes", func(t *testing.T) {
+		decoder := NewDecoder().FromString(hexSpecificBytesEncoded).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, hexSpecificBytesSrc, decoder.ToBytes())
+	})
+
+	t.Run("error file", func(t *testing.T) {
 		errorFile := mock.NewErrorFile(errors.New("read error"))
 		decoder := NewDecoder().FromFile(errorFile).ByHex()
 		assert.Error(t, decoder.Error)
@@ -191,8 +293,8 @@ func TestDecoder_ByHex(t *testing.T) {
 		decoder := NewDecoder()
 		decoder.Error = errors.New("existing error")
 		result := decoder.FromString("test").ByHex()
-		assert.Equal(t, decoder, result)
-		assert.Equal(t, "existing error", result.Error.Error())
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.NotNil(t, result.src)
 	})
 
 	t.Run("decode invalid hex", func(t *testing.T) {
@@ -200,149 +302,200 @@ func TestDecoder_ByHex(t *testing.T) {
 		assert.Error(t, decoder.Error)
 	})
 
-	t.Run("decode unicode string", func(t *testing.T) {
-		encoder := NewEncoder().FromString("你好世界").ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte("你好世界"), decoder.dst)
-	})
-
-	t.Run("decode single byte encoded", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x41}).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{0x41}, decoder.dst)
-	})
-
-	t.Run("decode two bytes encoded", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x41, 0x42}).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{0x41, 0x42}, decoder.dst)
-	})
-
-	t.Run("decode three bytes encoded", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x41, 0x42, 0x43}).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{0x41, 0x42, 0x43}, decoder.dst)
-	})
-
-	t.Run("decode zero bytes encoded", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0x00, 0x00, 0x00, 0x00}).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{0x00, 0x00, 0x00, 0x00}, decoder.dst)
-	})
-
-	t.Run("decode max bytes encoded", func(t *testing.T) {
-		encoder := NewEncoder().FromBytes([]byte{0xFF, 0xFF, 0xFF, 0xFF}).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		decoder := NewDecoder().FromBytes(encoder.dst).ByHex()
-		assert.Nil(t, decoder.Error)
-		assert.Equal(t, []byte{0xFF, 0xFF, 0xFF, 0xFF}, decoder.dst)
+	t.Run("decode with no data no reader", func(t *testing.T) {
+		decoder := NewDecoder().ByHex()
+		if decoder.Error != nil {
+			assert.Contains(t, decoder.Error.Error(), "no data to decode")
+		}
 	})
 }
 
-func TestError_ByHex(t *testing.T) {
-	t.Run("encoder error propagation", func(t *testing.T) {
-		encoder := NewEncoder()
-		encoder.Error = errors.New("test error")
-
-		result := encoder.ByHex()
-		assert.Equal(t, encoder, result)
-		assert.Equal(t, "test error", result.Error.Error())
-	})
-
-	t.Run("decoder error propagation", func(t *testing.T) {
+func TestDecoder_ByHex_Error(t *testing.T) {
+	t.Run("existing error", func(t *testing.T) {
 		decoder := NewDecoder()
-		decoder.Error = errors.New("test error")
-
-		result := decoder.ByHex()
-		assert.Equal(t, decoder, result)
-		assert.Equal(t, "test error", result.Error.Error())
+		decoder.Error = errors.New("existing error")
+		result := decoder.FromString("test").ByHex()
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.NotNil(t, result.src)
 	})
+}
 
-	t.Run("decoder with error file", func(t *testing.T) {
-		errorFile := mock.NewErrorFile(errors.New("read error"))
-		decoder := NewDecoder().FromFile(errorFile).ByHex()
-		assert.Error(t, decoder.Error)
-		assert.Contains(t, decoder.Error.Error(), "read error")
-	})
-
-	t.Run("encoder with error file", func(t *testing.T) {
-		errorFile := mock.NewErrorFile(errors.New("read error"))
-		encoder := NewEncoder().FromFile(errorFile).ByHex()
-		assert.Error(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "read error")
-	})
-
-	t.Run("decoder invalid character", func(t *testing.T) {
-		invalidData := []byte("AB!CD")
-		decoder := NewDecoder().FromBytes(invalidData).ByHex()
-		assert.Error(t, decoder.Error)
-	})
-
-	t.Run("decoder odd length hex", func(t *testing.T) {
-		oddLengthData := []byte("ABC")
-		decoder := NewDecoder().FromBytes(oddLengthData).ByHex()
-		assert.Error(t, decoder.Error)
-	})
-
-	t.Run("decoder non-hex characters", func(t *testing.T) {
-		nonHexData := []byte("GHIJKL")
-		decoder := NewDecoder().FromBytes(nonHexData).ByHex()
-		assert.Error(t, decoder.Error)
-	})
-
-	t.Run("hex alphabet verification", func(t *testing.T) {
-		testData := []byte{0x00, 0x01, 0x02}
-		encoder := NewEncoder().FromBytes(testData).ByHex()
+func TestHexRoundTrip(t *testing.T) {
+	t.Run("hex round trip", func(t *testing.T) {
+		testData := "hello world"
+		encoder := NewEncoder().FromString(testData).ByHex()
 		assert.Nil(t, encoder.Error)
 
-		resultStr := string(encoder.dst)
-		for _, char := range resultStr {
-			assert.Contains(t, "0123456789abcdef", string(char))
-		}
-	})
-
-	t.Run("hex case sensitivity", func(t *testing.T) {
-		testData := []byte{0x41, 0x42, 0x43}
-
-		encoder := NewEncoder().FromBytes(testData).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		// Hex encoding should be lowercase
-		resultStr := string(encoder.dst)
-		assert.Equal(t, strings.ToLower(resultStr), resultStr)
-	})
-
-	t.Run("hex encoding efficiency", func(t *testing.T) {
-		testData := []byte{0x00, 0x01, 0x02, 0x03}
-		encoder := NewEncoder().FromBytes(testData).ByHex()
-		assert.Nil(t, encoder.Error)
-
-		// Hex encoding should double the size
-		assert.Equal(t, len(testData)*2, len(encoder.dst))
-	})
-
-	t.Run("hex decoding efficiency", func(t *testing.T) {
-		hexData := []byte("00010203")
-		decoder := NewDecoder().FromBytes(hexData).ByHex()
+		decoder := NewDecoder().FromString(encoder.ToString()).ByHex()
 		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToString())
+	})
 
-		// Hex decoding should halve the size
-		assert.Equal(t, len(hexData)/2, len(decoder.dst))
+	t.Run("hex round trip with file", func(t *testing.T) {
+		testData := "hello world"
+		file := mock.NewFile([]byte(testData), "test.txt")
+		encoder := NewEncoder().FromFile(file).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoderFile := mock.NewFile(encoder.ToBytes(), "encoded.txt")
+		decoder := NewDecoder().FromFile(decoderFile).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToString())
+	})
+
+	t.Run("hex round trip with bytes", func(t *testing.T) {
+		testData := []byte("hello world")
+		encoder := NewEncoder().FromBytes(testData).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromBytes(encoder.ToBytes()).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToBytes())
+	})
+}
+
+func TestHexEdgeCases(t *testing.T) {
+	t.Run("very large data", func(t *testing.T) {
+		largeData := []byte(strings.Repeat("The quick brown fox jumps over the lazy dog. ", 100))
+		encoder := NewEncoder().FromBytes(largeData).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, largeData, decoder.ToBytes())
+	})
+
+	t.Run("single character", func(t *testing.T) {
+		testData := "A"
+		encoder := NewEncoder().FromString(testData).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, testData, decoder.ToString())
+	})
+
+	t.Run("binary data", func(t *testing.T) {
+		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}
+		encoder := NewEncoder().FromBytes(binaryData).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, binaryData, decoder.ToBytes())
+	})
+
+	t.Run("mixed encoding methods", func(t *testing.T) {
+		testData := "hello world"
+
+		encoder1 := NewEncoder().FromString(testData).ByHex()
+		encoder2 := NewEncoder().FromBytes([]byte(testData)).ByHex()
+		encoder3 := NewEncoder().FromFile(mock.NewFile([]byte(testData), "test.txt")).ByHex()
+
+		assert.Nil(t, encoder1.Error)
+		assert.Nil(t, encoder2.Error)
+		assert.Nil(t, encoder3.Error)
+		assert.Equal(t, encoder1.ToString(), encoder2.ToString())
+		assert.Equal(t, encoder1.ToString(), encoder3.ToString())
+	})
+
+	t.Run("zero bytes", func(t *testing.T) {
+		zeroData := []byte{0x00, 0x00, 0x00, 0x00}
+
+		encoder := NewEncoder().FromBytes(zeroData).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromBytes(encoder.ToBytes()).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, zeroData, decoder.ToBytes())
+	})
+
+	t.Run("max bytes", func(t *testing.T) {
+		maxData := []byte{0xFF, 0xFF, 0xFF, 0xFF}
+
+		encoder := NewEncoder().FromBytes(maxData).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromBytes(encoder.ToBytes()).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, maxData, decoder.ToBytes())
+	})
+
+	t.Run("all possible byte values", func(t *testing.T) {
+		allBytes := make([]byte, 256)
+		for i := 0; i < 256; i++ {
+			allBytes[i] = byte(i)
+		}
+
+		encoder := NewEncoder().FromBytes(allBytes).ByHex()
+		assert.Nil(t, encoder.Error)
+
+		decoder := NewDecoder().FromString(encoder.ToString()).ByHex()
+		assert.Nil(t, decoder.Error)
+		assert.Equal(t, allBytes, decoder.ToBytes())
+	})
+}
+
+func TestHexSpecific(t *testing.T) {
+	t.Run("hex alphabet verification", func(t *testing.T) {
+		// Hex alphabet should contain only 0-9 and a-f
+		hexAlphabet := "0123456789abcdef"
+		allValid := true
+		for _, char := range hexAlphabet {
+			if !strings.ContainsRune("0123456789abcdef", char) {
+				allValid = false
+				break
+			}
+		}
+		assert.True(t, allValid)
+	})
+
+	t.Run("hex encoding consistency", func(t *testing.T) {
+		testData := "hello world"
+		encoder1 := NewEncoder().FromString(testData).ByHex()
+		encoder2 := NewEncoder().FromString(testData).ByHex()
+
+		assert.Nil(t, encoder1.Error)
+		assert.Nil(t, encoder2.Error)
+		assert.Equal(t, encoder1.ToString(), encoder2.ToString())
+	})
+
+	t.Run("hex vs string vs bytes consistency", func(t *testing.T) {
+		testData := "hello world"
+
+		encoder1 := NewEncoder().FromString(testData).ByHex()
+		encoder2 := NewEncoder().FromBytes([]byte(testData)).ByHex()
+		encoder3 := NewEncoder().FromFile(mock.NewFile([]byte(testData), "test.txt")).ByHex()
+
+		assert.Nil(t, encoder1.Error)
+		assert.Nil(t, encoder2.Error)
+		assert.Nil(t, encoder3.Error)
+		assert.Equal(t, encoder1.ToString(), encoder2.ToString())
+		assert.Equal(t, encoder1.ToString(), encoder3.ToString())
+	})
+
+	t.Run("hex specific test cases", func(t *testing.T) {
+		// Test specific Hex encoding patterns (generated using Python binascii library)
+		testCases := []struct {
+			input    []byte
+			expected string
+		}{
+			{[]byte{0x00}, "00"},
+			{[]byte{0x00, 0x00}, "0000"},
+			{[]byte{0x00, 0x00, 0x00}, "000000"},
+			{[]byte{0xFF}, "ff"},
+			{[]byte{0xFF, 0xFF}, "ffff"},
+			{[]byte{0xFF, 0xFF, 0xFF}, "ffffff"},
+		}
+
+		for _, tc := range testCases {
+			encoder := NewEncoder().FromBytes(tc.input).ByHex()
+			assert.Nil(t, encoder.Error)
+			assert.Equal(t, tc.expected, encoder.ToString())
+
+			decoder := NewDecoder().FromString(tc.expected).ByHex()
+			assert.Nil(t, decoder.Error)
+			assert.Equal(t, tc.input, decoder.ToBytes())
+		}
 	})
 }

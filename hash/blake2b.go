@@ -8,7 +8,7 @@ import (
 )
 
 // ByBlake2b encrypts by BLAKE2b with specified size (256, 384, 512) or HMAC-BLAKE2b based on whether key is set.
-func (h *Hasher) ByBlake2b(size int) *Hasher {
+func (h Hasher) ByBlake2b(size int) Hasher {
 	if h.Error != nil {
 		return h
 	}

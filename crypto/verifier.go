@@ -16,41 +16,41 @@ type Verifier struct {
 	Error  error
 }
 
-func NewVerifier() *Verifier {
-	return &Verifier{}
+func NewVerifier() Verifier {
+	return Verifier{}
 }
 
-func (v *Verifier) FromString(s string) *Verifier {
+func (v Verifier) FromString(s string) Verifier {
 	v.data = util.String2Bytes(s)
 	return v
 }
 
-func (v *Verifier) FromBytes(b []byte) *Verifier {
+func (v Verifier) FromBytes(b []byte) Verifier {
 	v.data = b
 	return v
 }
 
-func (v *Verifier) FromFile(f fs.File) *Verifier {
+func (v Verifier) FromFile(f fs.File) Verifier {
 	v.reader = f
 	return v
 }
 
-func (v *Verifier) WithHexSign(s []byte) *Verifier {
+func (v Verifier) WithHexSign(s []byte) Verifier {
 	v.sign = coding.NewDecoder().FromBytes(s).ByHex().ToBytes()
 	return v
 }
 
-func (v *Verifier) WithBase64Sign(s []byte) *Verifier {
+func (v Verifier) WithBase64Sign(s []byte) Verifier {
 	v.sign = coding.NewDecoder().FromBytes(s).ByBase64().ToBytes()
 	return v
 }
 
-func (v *Verifier) WithRawSign(s []byte) *Verifier {
+func (v Verifier) WithRawSign(s []byte) Verifier {
 	v.sign = s
 	return v
 }
 
-func (v *Verifier) ToBool() bool {
+func (v Verifier) ToBool() bool {
 	if len(v.data) == 0 || len(v.sign) == 0 {
 		return false
 	}
@@ -60,10 +60,10 @@ func (v *Verifier) ToBool() bool {
 // stream verifies with crypto stream using true streaming approach.
 // This method processes data in chunks without loading all results into memory,
 // providing constant memory usage regardless of input size.
-func (v *Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
+func (v Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	// Check if reader is nil
 	if v.reader == nil {
-		return nil, io.ErrUnexpectedEOF
+		return []byte{}, io.ErrUnexpectedEOF
 	}
 
 	// Use a bytes.Buffer to collect the verification output
@@ -94,7 +94,7 @@ func (v *Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 				break // Normal end of input
 			}
 			verifier.Close() // Close on error
-			return nil, readErr
+			return []byte{}, readErr
 		}
 	}
 

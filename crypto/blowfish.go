@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/cipher"
 )
 
-func (e *Encrypter) ByBlowfish(c *cipher.BlowfishCipher) *Encrypter {
+func (e Encrypter) ByBlowfish(c *cipher.BlowfishCipher) Encrypter {
 	if e.Error != nil {
 		return e
 	}
@@ -31,7 +31,7 @@ func (e *Encrypter) ByBlowfish(c *cipher.BlowfishCipher) *Encrypter {
 	return e
 }
 
-func (d *Decrypter) ByBlowfish(c *cipher.BlowfishCipher) *Decrypter {
+func (d Decrypter) ByBlowfish(c *cipher.BlowfishCipher) Decrypter {
 	if d.Error != nil {
 		return d
 	}

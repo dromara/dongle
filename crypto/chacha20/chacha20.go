@@ -1,3 +1,6 @@
+// Package chacha20 implements ChaCha20 encryption and decryption with streaming support.
+// It provides ChaCha20 encryption and decryption operations using the standard
+// ChaCha20 algorithm with support for 256-bit keys and 96-bit nonces.
 package chacha20
 
 import (
@@ -9,15 +12,16 @@ import (
 )
 
 // StdEncrypter represents a ChaCha20 encrypter for standard encryption operations.
-// It implements ChaCha20 encryption using the standard ChaCha20 algorithm.
+// It implements ChaCha20 encryption using the standard ChaCha20 algorithm with support
+// for 256-bit keys and 96-bit nonces.
 type StdEncrypter struct {
-	cipher *cipher.ChaCha20Cipher
-	Error  error
+	cipher *cipher.ChaCha20Cipher // The cipher interface for encryption operations
+	Error  error                  // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new ChaCha20 encrypter with the specified cipher and key.
-// Validates the key length and initializes the encrypter for ChaCha20 encryption operations.
-// The key must be exactly 32 bytes (256 bits) and nonce must be 12 bytes.
+// Validates the key length and nonce length, then initializes the encrypter for ChaCha20 encryption operations.
+// The key must be exactly 32 bytes (256 bits) and nonce must be 12 bytes (96 bits).
 func NewStdEncrypter(c *cipher.ChaCha20Cipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
@@ -60,10 +64,11 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 }
 
 // StdDecrypter represents a ChaCha20 decrypter for standard decryption operations.
-// It implements ChaCha20 decryption using the standard ChaCha20 algorithm.
+// It implements ChaCha20 decryption using the standard ChaCha20 algorithm with support
+// for 256-bit keys and 96-bit nonces.
 type StdDecrypter struct {
-	cipher *cipher.ChaCha20Cipher
-	Error  error
+	cipher *cipher.ChaCha20Cipher // The cipher interface for decryption operations
+	Error  error                  // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new ChaCha20 decrypter with the specified cipher and key.
@@ -114,10 +119,10 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer.
 type StreamEncrypter struct {
-	writer io.Writer
-	cipher *cipher.ChaCha20Cipher
-	stream stdCipher.Stream
-	Error  error
+	writer io.Writer              // Underlying writer for encrypted output
+	cipher *cipher.ChaCha20Cipher // The cipher interface for encryption operations
+	stream stdCipher.Stream       // Reused cipher stream for better performance
+	Error  error                  // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming ChaCha20 encrypter that writes encrypted data
@@ -193,10 +198,10 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by reading encrypted data
 // from the underlying reader and decrypting it in real-time without buffering.
 type StreamDecrypter struct {
-	reader io.Reader
-	cipher *cipher.ChaCha20Cipher
-	stream stdCipher.Stream
-	Error  error
+	reader io.Reader              // Underlying reader for encrypted input
+	cipher *cipher.ChaCha20Cipher // The cipher interface for decryption operations
+	stream stdCipher.Stream       // Reused cipher stream for better performance
+	Error  error                  // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming ChaCha20 decrypter that reads encrypted data
