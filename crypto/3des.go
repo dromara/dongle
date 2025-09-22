@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/cipher"
 )
 
-func (e *Encrypter) By3Des(c *cipher.TripleDesCipher) *Encrypter {
+func (e Encrypter) By3Des(c *cipher.TripleDesCipher) Encrypter {
 	if e.Error != nil {
 		return e
 	}
@@ -37,7 +37,7 @@ func (e *Encrypter) By3Des(c *cipher.TripleDesCipher) *Encrypter {
 	return e
 }
 
-func (d *Decrypter) By3Des(c *cipher.TripleDesCipher) *Decrypter {
+func (d Decrypter) By3Des(c *cipher.TripleDesCipher) Decrypter {
 	if d.Error != nil {
 		return d
 	}

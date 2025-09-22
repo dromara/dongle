@@ -354,8 +354,8 @@ func TestDecrypter_ByBlowfish(t *testing.T) {
 		decrypter := NewDecrypter()
 		decrypter.Error = errors.New("existing error")
 		result := decrypter.FromRawBytes([]byte("encrypted data")).ByBlowfish(c)
-		assert.Equal(t, decrypter, result)
-		assert.Equal(t, "existing error", result.Error.Error())
+		assert.Equal(t, errors.New("existing error"), result.Error)
+		assert.NotNil(t, result.src)
 	})
 
 	t.Run("decryption with different block modes", func(t *testing.T) {

@@ -17,61 +17,64 @@ type Encrypter struct {
 }
 
 // NewEncrypter returns a new Encrypter instance.
-func NewEncrypter() *Encrypter {
-	return &Encrypter{}
+func NewEncrypter() Encrypter {
+	return Encrypter{}
 }
 
 // FromString encodes from string.
-func (e *Encrypter) FromString(s string) *Encrypter {
+func (e Encrypter) FromString(s string) Encrypter {
 	e.src = util.String2Bytes(s)
 	return e
 }
 
 // FromBytes encodes from byte slice.
-func (e *Encrypter) FromBytes(b []byte) *Encrypter {
+func (e Encrypter) FromBytes(b []byte) Encrypter {
 	e.src = b
 	return e
 }
 
-func (e *Encrypter) FromFile(f fs.File) *Encrypter {
+func (e Encrypter) FromFile(f fs.File) Encrypter {
 	e.reader = f
 	return e
 }
 
 // ToRawString outputs as raw string without encoding.
-func (e *Encrypter) ToRawString() string {
+func (e Encrypter) ToRawString() string {
 	return util.Bytes2String(e.dst)
 }
 
 // ToRawBytes outputs as raw byte slice without encoding.
-func (e *Encrypter) ToRawBytes() []byte {
+func (e Encrypter) ToRawBytes() []byte {
+	if len(e.dst) == 0 {
+		return []byte{}
+	}
 	return e.dst
 }
 
 // ToBase64String outputs as base64 string.
-func (e *Encrypter) ToBase64String() string {
+func (e Encrypter) ToBase64String() string {
 	return coding.NewEncoder().FromBytes(e.dst).ByBase64().ToString()
 }
 
 // ToBase64Bytes outputs as base64 byte slice.
-func (e *Encrypter) ToBase64Bytes() []byte {
+func (e Encrypter) ToBase64Bytes() []byte {
 	return coding.NewEncoder().FromBytes(e.dst).ByBase64().ToBytes()
 }
 
 // ToHexString outputs as hex string.
-func (e *Encrypter) ToHexString() string {
+func (e Encrypter) ToHexString() string {
 	return coding.NewEncoder().FromBytes(e.dst).ByHex().ToString()
 }
 
 // ToHexBytes outputs as hex byte slice.
-func (e *Encrypter) ToHexBytes() []byte {
+func (e Encrypter) ToHexBytes() []byte {
 	return coding.NewEncoder().FromBytes(e.dst).ByHex().ToBytes()
 }
 
 // streamCrypto encrypts with crypto stream using true streaming approach.
 // This method processes data in chunks without loading all results into memory,
 // providing constant memory usage regardless of input size.
-func (e *Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
+func (e Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	// Use a bytes.Buffer to collect encrypted output
 	// This is more efficient than io.Pipe + io.ReadAll for the crypto use case
 	var bb bytes.Buffer
@@ -89,7 +92,7 @@ func (e *Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 			// Immediately encrypt and write the chunk
 			_, writeErr := encrypter.Write(buffer[:n])
 			if writeErr != nil {
-				return nil, writeErr
+				return []byte{}, writeErr
 			}
 		}
 
@@ -98,7 +101,7 @@ func (e *Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 			if readErr == io.EOF {
 				break // Normal end of input
 			}
-			return nil, readErr
+			return []byte{}, readErr
 		}
 	}
 

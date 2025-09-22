@@ -164,7 +164,7 @@ func TestEncrypter_ToRawBytes(t *testing.T) {
 		encrypter := NewEncrypter()
 		encrypter.dst = nil
 		result := encrypter.ToRawBytes()
-		assert.Nil(t, result)
+		assert.Equal(t, []byte{}, result)
 	})
 
 	t.Run("to raw bytes large", func(t *testing.T) {

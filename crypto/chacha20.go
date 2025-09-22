@@ -8,7 +8,7 @@ import (
 )
 
 // ByChaCha20 encrypts by ChaCha20.
-func (e *Encrypter) ByChaCha20(c *cipher.ChaCha20Cipher) *Encrypter {
+func (e Encrypter) ByChaCha20(c *cipher.ChaCha20Cipher) Encrypter {
 	if e.Error != nil {
 		return e
 	}
@@ -28,7 +28,7 @@ func (e *Encrypter) ByChaCha20(c *cipher.ChaCha20Cipher) *Encrypter {
 }
 
 // ByChaCha20 decrypts by ChaCha20.
-func (d *Decrypter) ByChaCha20(c *cipher.ChaCha20Cipher) *Decrypter {
+func (d Decrypter) ByChaCha20(c *cipher.ChaCha20Cipher) Decrypter {
 	if d.Error != nil {
 		return d
 	}

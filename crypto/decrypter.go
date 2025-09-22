@@ -18,26 +18,26 @@ type Decrypter struct {
 }
 
 // NewDecrypter returns a new Decrypter instance.
-func NewDecrypter() *Decrypter {
-	return &Decrypter{}
+func NewDecrypter() Decrypter {
+	return Decrypter{}
 }
 
-func (d *Decrypter) FromRawString(s string) *Decrypter {
+func (d Decrypter) FromRawString(s string) Decrypter {
 	d.src = util.String2Bytes(s)
 	return d
 }
 
-func (d *Decrypter) FromRawBytes(b []byte) *Decrypter {
+func (d Decrypter) FromRawBytes(b []byte) Decrypter {
 	d.src = b
 	return d
 }
 
-func (d *Decrypter) FromRawFile(f fs.File) *Decrypter {
+func (d Decrypter) FromRawFile(f fs.File) Decrypter {
 	d.reader = f
 	return d
 }
 
-func (d *Decrypter) FromBase64String(s string) *Decrypter {
+func (d Decrypter) FromBase64String(s string) Decrypter {
 	decode := coding.NewDecoder().FromString(s).ByBase64()
 	if decode.Error != nil {
 		return d
@@ -46,7 +46,7 @@ func (d *Decrypter) FromBase64String(s string) *Decrypter {
 	return d
 }
 
-func (d *Decrypter) FromBase64Bytes(b []byte) *Decrypter {
+func (d Decrypter) FromBase64Bytes(b []byte) Decrypter {
 	decode := coding.NewDecoder().FromBytes(b).ByBase64()
 	if decode.Error != nil {
 		return d
@@ -55,7 +55,7 @@ func (d *Decrypter) FromBase64Bytes(b []byte) *Decrypter {
 	return d
 }
 
-func (d *Decrypter) FromBase64File(f fs.File) *Decrypter {
+func (d Decrypter) FromBase64File(f fs.File) Decrypter {
 	if d.Error != nil {
 		return d
 	}
@@ -70,7 +70,7 @@ func (d *Decrypter) FromBase64File(f fs.File) *Decrypter {
 	return d
 }
 
-func (d *Decrypter) FromHexString(s string) *Decrypter {
+func (d Decrypter) FromHexString(s string) Decrypter {
 	decode := coding.NewDecoder().FromString(s).ByHex()
 	if decode.Error != nil {
 		return d
@@ -79,7 +79,7 @@ func (d *Decrypter) FromHexString(s string) *Decrypter {
 	return d
 }
 
-func (d *Decrypter) FromHexBytes(b []byte) *Decrypter {
+func (d Decrypter) FromHexBytes(b []byte) Decrypter {
 	decode := coding.NewDecoder().FromBytes(b).ByHex()
 	if decode.Error != nil {
 		return d
@@ -88,7 +88,7 @@ func (d *Decrypter) FromHexBytes(b []byte) *Decrypter {
 	return d
 }
 
-func (d *Decrypter) FromHexFile(f fs.File) *Decrypter {
+func (d Decrypter) FromHexFile(f fs.File) Decrypter {
 	if d.Error != nil {
 		return d
 	}
@@ -104,20 +104,20 @@ func (d *Decrypter) FromHexFile(f fs.File) *Decrypter {
 }
 
 // ToString outputs as string.
-func (d *Decrypter) ToString() string {
+func (d Decrypter) ToString() string {
 	return util.Bytes2String(d.dst)
 }
 
 // ToBytes outputs as byte slice.
-func (d *Decrypter) ToBytes() []byte {
+func (d Decrypter) ToBytes() []byte {
 	if len(d.dst) == 0 {
-		return []byte("")
+		return []byte{}
 	}
 	return d.dst
 }
 
 // stream decrypts with crypto stream.
-func (d *Decrypter) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
+func (d Decrypter) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
 	pr, pw := io.Pipe()
 	go func() {
 		defer pw.Close()
@@ -133,7 +133,7 @@ func (d *Decrypter) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
 	// Read all decrypted data
 	result, err := io.ReadAll(pr)
 	if err != nil {
-		return nil, err
+		return []byte{}, err
 	}
 	return result, nil
 }

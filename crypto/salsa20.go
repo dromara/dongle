@@ -8,7 +8,7 @@ import (
 )
 
 // BySalsa20 encrypts by Salsa20.
-func (e *Encrypter) BySalsa20(c *cipher.Salsa20Cipher) *Encrypter {
+func (e Encrypter) BySalsa20(c *cipher.Salsa20Cipher) Encrypter {
 	if e.Error != nil {
 		return e
 	}
@@ -28,7 +28,7 @@ func (e *Encrypter) BySalsa20(c *cipher.Salsa20Cipher) *Encrypter {
 }
 
 // BySalsa20 decrypts by Salsa20.
-func (d *Decrypter) BySalsa20(c *cipher.Salsa20Cipher) *Decrypter {
+func (d Decrypter) BySalsa20(c *cipher.Salsa20Cipher) Decrypter {
 	if d.Error != nil {
 		return d
 	}
