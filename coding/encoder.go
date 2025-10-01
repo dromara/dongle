@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/fs"
 
-	"github.com/dromara/dongle/util"
+	"github.com/dromara/dongle/utils"
 )
 
 type Encoder struct {
@@ -22,7 +22,7 @@ func NewEncoder() Encoder {
 
 // FromString encodes from string.
 func (e Encoder) FromString(s string) Encoder {
-	e.src = util.String2Bytes(s)
+	e.src = utils.String2Bytes(s)
 	return e
 }
 
@@ -39,7 +39,7 @@ func (e Encoder) FromFile(f fs.File) Encoder {
 
 // ToString outputs as string.
 func (e Encoder) ToString() string {
-	return util.Bytes2String(e.dst)
+	return utils.Bytes2String(e.dst)
 }
 
 // ToBytes outputs as byte slice.

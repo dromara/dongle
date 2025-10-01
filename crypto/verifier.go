@@ -6,7 +6,7 @@ import (
 	"io/fs"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/util"
+	"github.com/dromara/dongle/utils"
 )
 
 type Verifier struct {
@@ -21,7 +21,7 @@ func NewVerifier() Verifier {
 }
 
 func (v Verifier) FromString(s string) Verifier {
-	v.data = util.String2Bytes(s)
+	v.data = utils.String2Bytes(s)
 	return v
 }
 

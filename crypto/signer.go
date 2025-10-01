@@ -6,7 +6,7 @@ import (
 	"io/fs"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/util"
+	"github.com/dromara/dongle/utils"
 )
 
 type Signer struct {
@@ -22,7 +22,7 @@ func NewSigner() Signer {
 }
 
 func (s Signer) FromString(str string) Signer {
-	s.data = util.String2Bytes(str)
+	s.data = utils.String2Bytes(str)
 	return s
 }
 
@@ -38,7 +38,7 @@ func (s Signer) FromFile(f fs.File) Signer {
 
 // ToRawString outputs as raw string without encoding.
 func (s Signer) ToRawString() string {
-	return util.Bytes2String(s.sign)
+	return utils.Bytes2String(s.sign)
 }
 
 // ToRawBytes outputs as raw byte slice without encoding.

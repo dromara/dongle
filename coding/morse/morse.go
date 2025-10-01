@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/dromara/dongle/util"
+	"github.com/dromara/dongle/utils"
 )
 
 var StdSeparator = " "
@@ -69,7 +69,7 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 		return
 	}
 
-	s := strings.ToLower(util.Bytes2String(src))
+	s := strings.ToLower(utils.Bytes2String(src))
 
 	// Pre-allocate buffer with estimated size for better performance
 	estimatedSize := len(s) * 8 // Average morse code length is ~4 chars + separator
@@ -117,7 +117,7 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		return
 	}
 
-	morseString := util.Bytes2String(src)
+	morseString := utils.Bytes2String(src)
 	parts := strings.Split(morseString, StdSeparator) // Split by StdSeparator
 
 	// Pre-allocate buffer with estimated size for better performance

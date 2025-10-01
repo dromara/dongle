@@ -11,7 +11,7 @@ import (
 	"io"
 	"io/fs"
 
-	"github.com/dromara/dongle/util"
+	"github.com/dromara/dongle/utils"
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.
@@ -269,7 +269,7 @@ func (k *RsaKeyPair) formatPrivateKey(privateKey []byte) []byte {
 // formatKeyBody formats the key body into 64-character lines with the specified header and tail.
 // This is a helper function used by formatPublicKey and formatPrivateKey.
 func (k *RsaKeyPair) formatKeyBody(keyBody []byte, header, tail string) []byte {
-	bodyStr := util.Bytes2String(keyBody)
+	bodyStr := utils.Bytes2String(keyBody)
 	formatted := header
 
 	// Split the key body into 64-character lines
@@ -281,5 +281,5 @@ func (k *RsaKeyPair) formatKeyBody(keyBody []byte, header, tail string) []byte {
 		formatted += bodyStr[i:end] + "\n"
 	}
 	formatted += tail
-	return util.String2Bytes(formatted)
+	return utils.String2Bytes(formatted)
 }
