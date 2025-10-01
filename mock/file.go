@@ -1,6 +1,3 @@
-// Package mock provides mock implementations for testing file operations and I/O interfaces.
-// It includes mock files, readers, writers, and error scenarios to facilitate unit testing
-// of file-based operations without requiring actual file system access.
 package mock
 
 import (
