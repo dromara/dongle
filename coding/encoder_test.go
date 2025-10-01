@@ -5,9 +5,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncoder_FromString(t *testing.T) {
@@ -403,15 +402,6 @@ func TestEncoder_stream(t *testing.T) {
 }
 
 func TestEncoder_Error(t *testing.T) {
-	t.Run("stream with nil reader", func(t *testing.T) {
-		encoder := NewEncoder()
-		encoder.reader = nil
-
-		// This test is skipped because it would cause a panic
-		// The stream method assumes reader is not nil
-		t.Skip("Skipping nil reader test as it would cause panic")
-	})
-
 	t.Run("stream with pipe error", func(t *testing.T) {
 		errorWriter := mock.NewErrorReadWriteCloser(errors.New("copy error"))
 		encoder := NewEncoder()
