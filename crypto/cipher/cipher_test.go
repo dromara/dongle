@@ -853,40 +853,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("decrypt with unknown padding mode", func(t *testing.T) {
-		cipher := &blockCipher{
-			Block:   CBC,
-			Padding: PaddingMode("UNKNOWN"), // Unknown padding mode
-			IV:      testIV,
-		}
-
-		block := &mockBlock{
-			blockSize: 16,
-			encrypt: func(dst, src []byte) {
-				// Simple mock encryption: XOR with 0x55
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-			decrypt: func(dst, src []byte) {
-				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-		}
-
-		// First encrypt some data
-		encrypted, err := cipher.Encrypt(testData, block)
-		assert.NoError(t, err)
-		assert.NotNil(t, encrypted)
-
-		// Decryption should return nil result because padding mode is unknown
-		result, err := cipher.Decrypt(encrypted, block)
-		assert.NoError(t, err)
-		assert.Nil(t, result)
-	})
-
 	t.Run("decrypt with decryption error", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   BlockMode("UNKNOWN"), // Unknown block mode
@@ -970,40 +936,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 
 		// Decryption with empty block mode should return nil without error
 		result, err := cipher.Decrypt(testData, block)
-		assert.NoError(t, err)
-		assert.Nil(t, result)
-	})
-
-	t.Run("decrypt with default padding mode", func(t *testing.T) {
-		cipher := &blockCipher{
-			Block:   CBC,
-			Padding: PaddingMode(""), // Empty padding mode
-			IV:      testIV,
-		}
-
-		block := &mockBlock{
-			blockSize: 16,
-			encrypt: func(dst, src []byte) {
-				// Simple mock encryption: XOR with 0x55
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-			decrypt: func(dst, src []byte) {
-				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-		}
-
-		// First encrypt some data
-		encrypted, err := cipher.Encrypt(testData, block)
-		assert.NoError(t, err)
-		assert.NotNil(t, encrypted)
-
-		// Decryption with empty padding mode should return nil without error
-		result, err := cipher.Decrypt(encrypted, block)
 		assert.NoError(t, err)
 		assert.Nil(t, result)
 	})

@@ -239,3 +239,49 @@ func newBitPadding(src []byte, blockSize int) []byte {
 func newBitUnPadding(src []byte) []byte {
 	return newISO97971UnPadding(src)
 }
+
+// newPadding applies the specified padding mode to the source data.
+func newPadding(paddingMode PaddingMode, src []byte, blockSize int) []byte {
+	switch paddingMode {
+	case Zero:
+		return newZeroPadding(src, blockSize)
+	case PKCS5:
+		return newPKCS5Padding(src)
+	case PKCS7:
+		return newPKCS7Padding(src, blockSize)
+	case AnsiX923:
+		return newAnsiX923Padding(src, blockSize)
+	case ISO97971:
+		return newISO97971Padding(src, blockSize)
+	case ISO10126:
+		return newISO10126Padding(src, blockSize)
+	case ISO78164:
+		return newISO78164Padding(src, blockSize)
+	case Bit:
+		return newBitPadding(src, blockSize)
+	}
+	return src
+}
+
+// newUnPadding removes the specified padding mode from the source data.
+func newUnPadding(paddingMode PaddingMode, src []byte) []byte {
+	switch paddingMode {
+	case Zero:
+		return newZeroUnPadding(src)
+	case PKCS5:
+		return newPKCS5UnPadding(src)
+	case PKCS7:
+		return newPKCS7UnPadding(src)
+	case AnsiX923:
+		return newAnsiX923UnPadding(src)
+	case ISO97971:
+		return newISO97971UnPadding(src)
+	case ISO10126:
+		return newISO10126UnPadding(src)
+	case ISO78164:
+		return newISO78164UnPadding(src)
+	case Bit:
+		return newBitUnPadding(src)
+	}
+	return src
+}
