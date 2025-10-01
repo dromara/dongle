@@ -709,43 +709,6 @@ func TestStreamEncrypter_Write_ErrorPaths(t *testing.T) {
 		assert.Equal(t, 1, n)
 	})
 
-	t.Run("write with aes.NewCipher error in Write", func(t *testing.T) {
-		c := cipher.NewAesCipher(cipher.CBC)
-		c.SetKey(key16Error)
-		c.SetIV(iv16Error)
-		c.SetPadding(cipher.PKCS7)
-
-		var buf bytes.Buffer
-		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		// Set a key that will cause aes.NewCipher to fail
-		// Use an invalid key size that will cause aes.NewCipher to fail
-		streamEncrypter.cipher.Key = []byte("invalid") // This should cause aes.NewCipher to fail
-		streamEncrypter.block = nil                    // Force block recreation
-
-		// This test will panic because the current implementation doesn't handle
-		// the case where aes.NewCipher fails properly. We'll skip this test for now.
-		t.Skip("Skipping test due to implementation issue with nil block handling")
-	})
-
-	t.Run("write with nil block and invalid key", func(t *testing.T) {
-		c := cipher.NewAesCipher(cipher.CBC)
-		c.SetKey(key16Error)
-		c.SetIV(iv16Error)
-		c.SetPadding(cipher.PKCS7)
-
-		var buf bytes.Buffer
-		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		// Set a key that will cause aes.NewCipher to fail
-		streamEncrypter.cipher.Key = []byte("invalid") // This should cause aes.NewCipher to fail
-		streamEncrypter.block = nil                    // Force block recreation
-
-		// This test will panic because the current implementation doesn't handle
-		// the case where aes.NewCipher fails properly. We'll skip this test for now.
-		t.Skip("Skipping test due to implementation issue with nil block handling")
-	})
-
 	t.Run("write with nil block and valid key", func(t *testing.T) {
 		c := cipher.NewAesCipher(cipher.CBC)
 		c.SetKey(key16Error)
@@ -1087,43 +1050,6 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 			// Could be EOF or DecryptError depending on the data
 			assert.True(t, err == io.EOF || err != nil)
 		}
-	})
-
-	t.Run("read with aes.NewCipher error in Read", func(t *testing.T) {
-		c := cipher.NewAesCipher(cipher.CBC)
-		c.SetKey(key16Error)
-		c.SetIV(iv16Error)
-		c.SetPadding(cipher.PKCS7)
-
-		reader := mock.NewFile(testDataError, "test.txt")
-		decrypter := NewStreamDecrypter(reader, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		// Set a key that will cause aes.NewCipher to fail
-		// Use an invalid key size that will cause aes.NewCipher to fail
-		streamDecrypter.cipher.Key = []byte("invalid") // This should cause aes.NewCipher to fail
-		streamDecrypter.block = nil                    // Force block recreation
-
-		// This test will panic because the current implementation doesn't handle
-		// the case where aes.NewCipher fails properly. We'll skip this test for now.
-		t.Skip("Skipping test due to implementation issue with nil block handling")
-	})
-
-	t.Run("read with nil block and invalid key", func(t *testing.T) {
-		c := cipher.NewAesCipher(cipher.CBC)
-		c.SetKey(key16Error)
-		c.SetIV(iv16Error)
-		c.SetPadding(cipher.PKCS7)
-
-		reader := mock.NewFile(testDataError, "test.txt")
-		decrypter := NewStreamDecrypter(reader, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		// Set a key that will cause aes.NewCipher to fail
-		streamDecrypter.cipher.Key = []byte("invalid") // This should cause aes.NewCipher to fail
-		streamDecrypter.block = nil                    // Force block recreation
-
-		// This test will panic because the current implementation doesn't handle
-		// the case where aes.NewCipher fails properly. We'll skip this test for now.
-		t.Skip("Skipping test due to implementation issue with nil block handling")
 	})
 
 	t.Run("read with nil block and valid key", func(t *testing.T) {
