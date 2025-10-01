@@ -35,15 +35,12 @@
 ```go
 // 使用 github 库
 go get -u github.com/dromara/dongle
-import "github.com/dromara/dongle"
 
 // 使用 gitee 库
 go get -u gitee.com/dromara/dongle
-import "gitee.com/dromara/dongle"
 
 // 使用 gitcode 库
 go get -u gitcode.com/dromara/dongle
-import "gitcode.com/dromara/dongle"
 ```
 
 `Dongle` 已经捐赠给了 [dromara](https://dromara.org/ "dromara") 开源组织，仓库地址发生了改变，如果之前用的路径是
@@ -87,8 +84,8 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64
 对称加密(以 `AES` 为例)
 ```go
 import (
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/cipher"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/cipher"
 )
 
 // 创建密钥器
@@ -105,7 +102,7 @@ dongle.Encrypt.FromString("hello world").ByAes(c).ToHexString() // 48c6bc076e1da
 // 对字符串明文进行加密, 返回 base64 编码字符串密文
 dongle.Encrypt.FromString("hello world").ByAes(c).ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 
-// 对hex 编码字符串密文进行解密, 返回字符串明文
+// 对 hex 编码字符串密文进行解密, 返回字符串明文
 dongle.Decrypt.FromHexString("48c6bc076e1da2946e1c0e59e9c91ae9").ByAes(c).ToString() // hello world
 // 对 base64 编码字符串密文进行解密, 返回字符串明文
 dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() // hello world
@@ -114,9 +111,9 @@ dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() 
 非对称加密(以 `RSA` 为例)
 ```go
 import (
-	"crypto"
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/keypair"
+    "crypto"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/keypair"
 )
 
 // 创建密钥对
@@ -128,7 +125,7 @@ kp.SetHash(crypto.SHA256)
 
 // 设置公钥
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
-// 通过公钥对字符串明文进行加密, 返回hex 编码字符串密文
+// 通过公钥对字符串明文进行加密, 返回 hex 编码字符串密文
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40...
 // 通过公钥对字符串明文进行加密, 返回 base64 编码字符串密文
 dongle.Encrypt.FromString("hello world").ByRsa(kp).ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==...
@@ -144,9 +141,9 @@ dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToStrin
 数字签名、验证(以 `RSA` 为例)
 ```go
 import (
-	"crypto"
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/keypair"
+    "crypto"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/keypair"
 )
 
 // 创建密钥对
@@ -165,7 +162,7 @@ base64Bytes :=dongle.Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes() //
 
 // 设置公钥
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
-// 通过公钥对 Hex 编码签名进行验签
+// 通过公钥对 hex 编码签名进行验签
 dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
 // 通过公钥对 Base64 编码签名进行验签
 dongle.Verify.FromString("hello world").WithBase64Sign(hexBytes).ByRsa(kp).ToBool()

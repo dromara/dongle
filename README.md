@@ -31,15 +31,12 @@ English | [简体中文](README.cn.md) | [日本語](README.ja.md)
 ```go
 // Via github 
 go get -u github.com/dromara/dongle
-import "github.com/dromara/dongle"
 
 // Via gitee
 go get -u gitee.com/dromara/dongle
-import "gitee.com/dromara/dongle"
 
 // Via gitcode 
 go get -u gitcode.com/dromara/dongle
-import "gitcode.com/dromara/dongle"
 ```
 
 `Dongle` was donated to the [dromara](https://dromara.org/ "dromara") organization, the repository URL has changed. If
@@ -53,7 +50,9 @@ go mod edit -replace github.com/golang-module/dongle = github.com/dromara/dongle
 ### Example Usage
 Encode&Decode(using `Base64` as an example)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Encode.FromString("hello world").ByBase64().ToString()      // aGVsbG8gd29ybGQ=
 dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello world
@@ -61,7 +60,9 @@ dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64().ToString() // hello worl
 
 Hash Algorithm(using `Md5` as an example)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").ByMd5().ToHexString()    // 5eb63bbbe01eeed093cb22bb8f5acdc3
 dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
@@ -69,7 +70,9 @@ dongle.Hash.FromString("hello world").ByMd5().ToBase64String() // XrY7u+Ae7tCTyy
 
 Hmac Algorithm(using `Md5` as an example)
 ```go
-import "github.com/dromara/dongle"
+import (
+    "github.com/dromara/dongle"
+)
 
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToHexString()    // 4790626a275f776956386e5a3ea7b726
 dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
@@ -78,8 +81,8 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64
 Symmetric Encryption&Decryption(using `AES` as an example)
 ```go
 import (
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/cipher"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/cipher"
 )
 
 // Create cipher
@@ -105,9 +108,9 @@ dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() 
 Asymmetric Encryption&Decryption(using `RSA` as an example)
 ```go
 import (
-	"crypto"
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/keypair"
+    "crypto"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/keypair"
 )
 
 // Create key pair
@@ -135,9 +138,9 @@ dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToStrin
 Digital Signature&Verification(using `RSA` as an example)
 ```go
 import (
-	"crypto"
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/keypair"
+    "crypto"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/keypair"
 )
 
 // Create key pair

@@ -31,15 +31,12 @@
 ```go
 // github ライブラリを使用
 go get -u github.com/dromara/dongle
-import "github.com/dromara/dongle"
 
 // gitee ライブラリを使用
 go get -u gitee.com/dromara/dongle
-import "gitee.com/dromara/dongle"
 
 // gitcode ライブラリを使用
 go get -u gitcode.com/dromara/dongle
-import "gitcode.com/dromara/dongle"
 ```
 
 `Dongle` は [dromara](https://dromara.org/ "dromara") オープンソース組織に寄贈され、リポジトリURLが変更されました。以前のパスが `golang-module/dongle` だった場合は、`go.mod` で元のアドレスを新しいパスに置き換えるか、以下のコマンドを実行してください。
@@ -82,8 +79,8 @@ dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5().ToBase64
 対称暗号化・復号化(`AES`を例に)
 ```go
 import (
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/cipher"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/cipher"
 )
 
 // 暗号器を作成
@@ -109,9 +106,9 @@ dongle.Decrypt.FromBase64String("SMa8B24dopRuHA5Z6cka6Q==").ByAes(c).ToString() 
 非対称暗号化・復号化(`RSA`を例に)
 ```go
 import (
-	"crypto"
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/keypair"
+    "crypto"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/keypair"
 )
 
 // 鍵ペアを作成
@@ -139,9 +136,9 @@ dongle.Decrypt.FromBase64String("f66U/RqLiA2NVFTdjfMMQA==...").ByRsa(kp).ToStrin
 デジタル署名・検証(`RSA`を例に)
 ```go
 import (
-	"crypto"
-	"github.com/dromara/dongle"
-	"github.com/dromara/dongle/crypto/keypair"
+    "crypto"
+    "github.com/dromara/dongle"
+    "github.com/dromara/dongle/crypto/keypair"
 )
 
 // キーペアを作成
