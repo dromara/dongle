@@ -6,6 +6,15 @@ head:
 ---
 
 # 更新日志
+## [v1.1.5](https://github.com/dromara/dongle/compare/v1.1.4...v1.1.5) (2025-10-01)
+
+* [fix] 修复对称加密算法中对不需要填充的分组模式(如 CFB/OFB/CTR/GCM 等)进行填充时加解密错误的bug
+
+## [v1.1.4](https://github.com/dromara/dongle/compare/v1.1.3...v1.1.4) (2025-09-23)
+
+* [chore] 将方法接受者从指针改成值，防止出现使用全局默认实例时属性污染现象，调用方 `API` 没有任何影响
+* [feat] 增加 `twofish` 加密算法支持，包括标准处理和流式处理
+
 ## [v1.1.3](https://github.com/dromara/dongle/compare/v1.1.2...v1.1.3) (2025-09-15)
 
 * [chore] 优化 `3DES` 对称加密算法对 `16` 字节密钥的兼容

@@ -6,6 +6,15 @@ head:
 ---
 
 # Change Log
+## [v1.1.5](https://github.com/dromara/dongle/compare/v1.1.4...v1.1.5) (2025-10-01)
+
+* [fix] Fix bug where symmetric encryption algorithms incorrectly perform padding on block modes that don't require padding (such as CFB/OFB/CTR/GCM, etc.), causing encryption/decryption errors
+
+## [v1.1.4](https://github.com/dromara/dongle/compare/v1.1.3...v1.1.4) (2025-09-23)
+
+* [chore] Change method receivers from pointer to value to prevent property pollution when using global default instances, with no impact on caller `API`
+* [feat] Add `twofish` encryption algorithm support, including standard processing and streaming processing
+
 ## [v1.1.3](https://github.com/dromara/dongle/compare/v1.1.2...v1.1.3) (2025-09-15)
 
 * [chore] Optimize `3DES` symmetric encryption algorithm compatibility with `16`-byte keys
