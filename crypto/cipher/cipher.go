@@ -75,16 +75,16 @@ func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err e
 	if c.Block == GCM {
 		return newGCMDecrypter(src, c.Nonce, c.AAD, block)
 	}
-	var decrypted []byte
+	var paddedDst []byte
 	if c.Block == CBC {
-		decrypted, err = newCBCDecrypter(src, c.IV, block)
+		paddedDst, err = newCBCDecrypter(src, c.IV, block)
 	}
 	if c.Block == ECB {
-		decrypted, err = newECBDecrypter(src, block)
+		paddedDst, err = newECBDecrypter(src, block)
 	}
 	if err != nil {
 		return
 	}
-	dst = newUnPadding(c.Padding, decrypted)
+	dst = newUnPadding(c.Padding, paddedDst)
 	return
 }
