@@ -12,7 +12,7 @@ func (e Encrypter) ByRsa(kp *keypair.RsaKeyPair) Encrypter {
 		return e
 	}
 
-	// Check if we have a reader (streaming mode)
+	// Streaming encryption mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return rsa.NewStreamEncrypter(w, kp)
@@ -21,13 +21,10 @@ func (e Encrypter) ByRsa(kp *keypair.RsaKeyPair) Encrypter {
 	}
 
 	// Standard encryption mode
-	encrypted, err := rsa.NewStdEncrypter(kp).Encrypt(e.src)
-	if err != nil {
-		e.Error = err
-		return e
+	if len(e.src) > 0 {
+		e.dst, e.Error = rsa.NewStdEncrypter(kp).Encrypt(e.src)
 	}
 
-	e.dst = encrypted
 	return e
 }
 
@@ -36,7 +33,7 @@ func (d Decrypter) ByRsa(kp *keypair.RsaKeyPair) Decrypter {
 		return d
 	}
 
-	// Check if we have a reader (streaming mode)
+	// Streaming decryption mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return rsa.NewStreamDecrypter(r, kp)
@@ -45,13 +42,10 @@ func (d Decrypter) ByRsa(kp *keypair.RsaKeyPair) Decrypter {
 	}
 
 	// Standard decryption mode
-	decrypted, err := rsa.NewStdDecrypter(kp).Decrypt(d.src)
-	if err != nil {
-		d.Error = err
-		return d
+	if len(d.src) > 0 {
+		d.dst, d.Error = rsa.NewStdDecrypter(kp).Decrypt(d.src)
 	}
 
-	d.dst = decrypted
 	return d
 }
 
@@ -61,7 +55,7 @@ func (s Signer) ByRsa(kp *keypair.RsaKeyPair) Signer {
 		return s
 	}
 
-	// Check if we have a reader (streaming mode)
+	// Streaming signing mode
 	if s.reader != nil {
 		s.sign, s.Error = s.stream(func(w io.Writer) io.WriteCloser {
 			return rsa.NewStreamSigner(w, kp)
@@ -70,13 +64,10 @@ func (s Signer) ByRsa(kp *keypair.RsaKeyPair) Signer {
 	}
 
 	// Standard signing mode
-	signed, err := rsa.NewStdSigner(kp).Sign(s.data)
-	if err != nil {
-		s.Error = err
-		return s
+	if len(s.data) > 0 {
+		s.sign, s.Error = rsa.NewStdSigner(kp).Sign(s.data)
 	}
 
-	s.sign = signed
 	return s
 }
 
@@ -86,9 +77,8 @@ func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 		return v
 	}
 
+	// Streaming verification mode
 	if v.reader != nil {
-		// For streaming verification, we need to process the data through the verifier
-		// Since NewStreamVerifier now returns io.WriteCloser, we need to handle this differently
 		verifier := rsa.NewStreamVerifier(v.reader, kp)
 
 		// Write the data to be verified
@@ -107,21 +97,25 @@ func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 		return v
 	}
 
-	signature := kp.Sign
-	if len(signature) == 0 {
-		v.Error = &rsa.NoSignatureError{}
-		return v
+	// Standard verification mode
+	if len(v.data) > 0 {
+		signature := kp.Sign
+		if len(signature) == 0 {
+			v.Error = &rsa.NoSignatureError{}
+			return v
+		}
+
+		valid, err := rsa.NewStdVerifier(kp).Verify(v.data, signature)
+		if err != nil {
+			v.Error = err
+			return v
+		}
+
+		if valid {
+			v.data = []byte{1} // true
+			v.sign = signature // Set the signature for ToBool() to work
+		}
 	}
 
-	valid, err := rsa.NewStdVerifier(kp).Verify(v.data, signature)
-	if err != nil {
-		v.Error = err
-		return v
-	}
-
-	if valid {
-		v.data = []byte{1} // true
-		v.sign = signature // Set the signature for ToBool() to work
-	}
 	return v
 }

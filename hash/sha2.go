@@ -26,15 +26,21 @@ func (h Hasher) BySha2(size int) Hasher {
 		h.Error = fmt.Errorf("hash/sha2: unsupported size: %d, supported sizes are 224, 256, 384, 512", size)
 		return h
 	}
+
+	// Hmac mode
 	if len(h.key) > 0 {
 		return h.hmac(hasher)
 	}
+
+	// Streaming mode
 	if h.reader != nil {
 		h.dst, h.Error = h.stream(func() hash.Hash {
 			return hasher()
 		})
 		return h
 	}
+
+	// Standard mode
 	if len(h.src) > 0 {
 		hashFunc := hasher()
 		hashFunc.Write(h.src)

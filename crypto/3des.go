@@ -12,7 +12,7 @@ func (e Encrypter) By3Des(c *cipher.TripleDesCipher) Encrypter {
 		return e
 	}
 
-	// Check if we have a reader (streaming mode)
+	// Streaming encryption mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return tripledes.NewStreamEncrypter(w, c)
@@ -21,19 +21,10 @@ func (e Encrypter) By3Des(c *cipher.TripleDesCipher) Encrypter {
 	}
 
 	// Standard encryption mode
-	enc := tripledes.NewStdEncrypter(c)
-	if enc.Error != nil {
-		e.Error = enc.Error
-		return e
+	if len(e.src) > 0 {
+		e.dst, e.Error = tripledes.NewStdEncrypter(c).Encrypt(e.src)
 	}
 
-	encrypted, err := enc.Encrypt(e.src)
-	if err != nil {
-		e.Error = err
-		return e
-	}
-
-	e.dst = encrypted
 	return e
 }
 
@@ -42,7 +33,7 @@ func (d Decrypter) By3Des(c *cipher.TripleDesCipher) Decrypter {
 		return d
 	}
 
-	// Check if we have a reader (streaming mode)
+	// Streaming decryption mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return tripledes.NewStreamDecrypter(r, c)
@@ -51,12 +42,9 @@ func (d Decrypter) By3Des(c *cipher.TripleDesCipher) Decrypter {
 	}
 
 	// Standard decryption mode
-	decrypted, err := tripledes.NewStdDecrypter(c).Decrypt(d.src)
-	if err != nil {
-		d.Error = err
-		return d
+	if len(d.src) > 0 {
+		d.dst, d.Error = tripledes.NewStdDecrypter(c).Decrypt(d.src)
 	}
 
-	d.dst = decrypted
 	return d
 }

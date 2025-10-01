@@ -12,7 +12,7 @@ func (e Encrypter) ByTwofish(c *cipher.TwofishCipher) Encrypter {
 		return e
 	}
 
-	// Check if we have a reader (streaming mode)
+	// Streaming encryption mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return twofish.NewStreamEncrypter(w, c)
@@ -21,13 +21,9 @@ func (e Encrypter) ByTwofish(c *cipher.TwofishCipher) Encrypter {
 	}
 
 	// Standard encryption mode
-	encrypted, err := twofish.NewStdEncrypter(c).Encrypt(e.src)
-	if err != nil {
-		e.Error = err
-		return e
+	if len(e.src) > 0 {
+		e.dst, e.Error = twofish.NewStdEncrypter(c).Encrypt(e.src)
 	}
-
-	e.dst = encrypted
 	return e
 }
 
@@ -36,7 +32,7 @@ func (d Decrypter) ByTwofish(c *cipher.TwofishCipher) Decrypter {
 		return d
 	}
 
-	// Check if we have a reader (streaming mode)
+	// Streaming decryption mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return twofish.NewStreamDecrypter(r, c)
@@ -45,12 +41,8 @@ func (d Decrypter) ByTwofish(c *cipher.TwofishCipher) Decrypter {
 	}
 
 	// Standard decryption mode
-	decrypted, err := twofish.NewStdDecrypter(c).Decrypt(d.src)
-	if err != nil {
-		d.Error = err
-		return d
+	if len(d.src) > 0 {
+		d.dst, d.Error = twofish.NewStdDecrypter(c).Decrypt(d.src)
 	}
-
-	d.dst = decrypted
 	return d
 }

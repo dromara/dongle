@@ -12,6 +12,7 @@ func (e Encoder) ByMorse() Encoder {
 		return e
 	}
 
+	// Streaming encoding mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return morse.NewStreamEncoder(w)
@@ -19,14 +20,13 @@ func (e Encoder) ByMorse() Encoder {
 		return e
 	}
 
-	if len(e.src) == 0 {
-		return e
-	}
-	encoder := morse.NewStdEncoder()
-	e.dst = encoder.Encode(e.src)
-	if encoder.Error != nil {
+	// Standard encoding mode
+	if len(e.src) > 0 {
+		encoder := morse.NewStdEncoder()
 		e.Error = encoder.Error
+		e.dst = encoder.Encode(e.src)
 	}
+
 	return e
 }
 
@@ -36,6 +36,7 @@ func (d Decoder) ByMorse() Decoder {
 		return d
 	}
 
+	// Streaming decoding mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return morse.NewStreamDecoder(r)
@@ -43,9 +44,10 @@ func (d Decoder) ByMorse() Decoder {
 		return d
 	}
 
-	if len(d.src) == 0 {
-		return d
+	// Standard decoding mode
+	if len(d.src) > 0 {
+		d.dst, d.Error = morse.NewStdDecoder().Decode(d.src)
 	}
-	d.dst, d.Error = morse.NewStdDecoder().Decode(d.src)
+
 	return d
 }

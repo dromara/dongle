@@ -12,15 +12,21 @@ func (h Hasher) ByMd4() Hasher {
 		return h
 	}
 	hasher := md4.New
+
+	// Hmac mode
 	if len(h.key) > 0 {
 		return h.hmac(hasher)
 	}
+
+	// Streaming mode
 	if h.reader != nil {
 		h.dst, h.Error = h.stream(func() hash.Hash {
 			return hasher()
 		})
 		return h
 	}
+
+	// Standard mode
 	if len(h.src) > 0 {
 		hashFunc := hasher()
 		hashFunc.Write(h.src)

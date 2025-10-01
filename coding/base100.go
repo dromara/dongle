@@ -11,15 +11,20 @@ func (e Encoder) ByBase100() Encoder {
 	if e.Error != nil {
 		return e
 	}
+
+	// Streaming encoding mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return base100.NewStreamEncoder(w)
 		})
 		return e
 	}
+
+	// Standard encoding mode
 	if len(e.src) > 0 {
 		e.dst = base100.NewStdEncoder().Encode(e.src)
 	}
+
 	return e
 }
 
@@ -28,14 +33,19 @@ func (d Decoder) ByBase100() Decoder {
 	if d.Error != nil {
 		return d
 	}
+
+	// Streaming decoding mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return base100.NewStreamDecoder(r)
 		})
 		return d
 	}
+
+	// Standard decoding mode
 	if len(d.src) > 0 {
 		d.dst, d.Error = base100.NewStdDecoder().Decode(d.src)
 	}
+
 	return d
 }

@@ -13,7 +13,7 @@ func (e Encrypter) ByTea(c *cipher.TeaCipher) Encrypter {
 		return e
 	}
 
-	// If reader is set, use streaming processing
+	// Streaming encryption mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return tea.NewStreamEncrypter(w, c)
@@ -21,9 +21,11 @@ func (e Encrypter) ByTea(c *cipher.TeaCipher) Encrypter {
 		return e
 	}
 
+	// Standard encryption mode
 	if len(e.src) > 0 {
 		e.dst, e.Error = tea.NewStdEncrypter(c).Encrypt(e.src)
 	}
+
 	return e
 }
 
@@ -33,7 +35,7 @@ func (d Decrypter) ByTea(c *cipher.TeaCipher) Decrypter {
 		return d
 	}
 
-	// If reader is set, use streaming processing
+	// Streaming decryption mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return tea.NewStreamDecrypter(r, c)
@@ -41,9 +43,10 @@ func (d Decrypter) ByTea(c *cipher.TeaCipher) Decrypter {
 		return d
 	}
 
-	// Decrypt data in memory
+	// Standard decryption mode
 	if len(d.src) > 0 {
 		d.dst, d.Error = tea.NewStdDecrypter(c).Decrypt(d.src)
 	}
+
 	return d
 }

@@ -13,7 +13,7 @@ func (e Encrypter) BySalsa20(c *cipher.Salsa20Cipher) Encrypter {
 		return e
 	}
 
-	// If reader is set, use streaming processing
+	// Streaming encryption mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return salsa20.NewStreamEncrypter(w, c)
@@ -21,9 +21,11 @@ func (e Encrypter) BySalsa20(c *cipher.Salsa20Cipher) Encrypter {
 		return e
 	}
 
+	// Standard encryption mode
 	if len(e.src) > 0 {
 		e.dst, e.Error = salsa20.NewStdEncrypter(c).Encrypt(e.src)
 	}
+
 	return e
 }
 
@@ -33,7 +35,7 @@ func (d Decrypter) BySalsa20(c *cipher.Salsa20Cipher) Decrypter {
 		return d
 	}
 
-	// If reader is set, use streaming processing
+	// Streaming decryption mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return salsa20.NewStreamDecrypter(r, c)
@@ -41,9 +43,10 @@ func (d Decrypter) BySalsa20(c *cipher.Salsa20Cipher) Decrypter {
 		return d
 	}
 
-	// Decrypt data in memory
+	// Standard decryption mode
 	if len(d.src) > 0 {
 		d.dst, d.Error = salsa20.NewStdDecrypter(c).Decrypt(d.src)
 	}
+
 	return d
 }

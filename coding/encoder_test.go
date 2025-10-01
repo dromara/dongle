@@ -5,8 +5,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/dromara/dongle/mock"
 )
 
 func TestEncoder_FromString(t *testing.T) {

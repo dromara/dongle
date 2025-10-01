@@ -13,7 +13,7 @@ func (e Encrypter) ByChaCha20Poly1305(c *cipher.ChaCha20Poly1305Cipher) Encrypte
 		return e
 	}
 
-	// If reader is set, use streaming processing
+	// Streaming encryption mode
 	if e.reader != nil {
 		e.dst, e.Error = e.stream(func(w io.Writer) io.WriteCloser {
 			return chacha20poly1305.NewStreamEncrypter(w, c)
@@ -21,9 +21,11 @@ func (e Encrypter) ByChaCha20Poly1305(c *cipher.ChaCha20Poly1305Cipher) Encrypte
 		return e
 	}
 
+	// Standard encryption mode
 	if len(e.src) > 0 {
 		e.dst, e.Error = chacha20poly1305.NewStdEncrypter(c).Encrypt(e.src)
 	}
+
 	return e
 }
 
@@ -33,7 +35,7 @@ func (d Decrypter) ByChaCha20Poly1305(c *cipher.ChaCha20Poly1305Cipher) Decrypte
 		return d
 	}
 
-	// If reader is set, use streaming processing
+	// Streaming decryption mode
 	if d.reader != nil {
 		d.dst, d.Error = d.stream(func(r io.Reader) io.Reader {
 			return chacha20poly1305.NewStreamDecrypter(r, c)
@@ -41,9 +43,10 @@ func (d Decrypter) ByChaCha20Poly1305(c *cipher.ChaCha20Poly1305Cipher) Decrypte
 		return d
 	}
 
-	// Decrypt data in memory
+	// Standard decryption mode
 	if len(d.src) > 0 {
 		d.dst, d.Error = chacha20poly1305.NewStdDecrypter(c).Decrypt(d.src)
 	}
+
 	return d
 }

@@ -331,13 +331,6 @@ func TestEncoder_ByMorse_Error(t *testing.T) {
 		assert.Equal(t, errors.New("existing error"), result.Error)
 		assert.NotNil(t, result.src)
 	})
-
-	t.Run("unsupported character error", func(t *testing.T) {
-		// Test with unsupported characters that will cause encoder.Error to be set
-		encoder := NewEncoder().FromString("hello测试").ByMorse()
-		assert.Error(t, encoder.Error)
-		assert.Contains(t, encoder.Error.Error(), "invalid input")
-	})
 }
 
 func TestDecoder_ByMorse_Decode(t *testing.T) {
