@@ -152,33 +152,33 @@ func NewErrorFile(err error) *ErrorFile {
 }
 
 // Read always returns the configured error, simulating a file read failure.
-func (f *ErrorFile) Read(p []byte) (int, error) {
-	return 0, f.err
+func (e *ErrorFile) Read(p []byte) (int, error) {
+	return 0, e.err
 }
 
 // Close always returns the configured error, simulating a file close failure.
-func (f *ErrorFile) Close() error {
-	return f.err
+func (e *ErrorFile) Close() error {
+	return e.err
 }
 
 // Stat always returns the configured error, simulating a file stat failure.
-func (f *ErrorFile) Stat() (os.FileInfo, error) {
-	return nil, f.err
+func (e *ErrorFile) Stat() (os.FileInfo, error) {
+	return nil, e.err
 }
 
 // ReadDir always returns the configured error, simulating a directory read failure.
-func (f *ErrorFile) ReadDir(count int) ([]fs.DirEntry, error) {
-	return nil, f.err
+func (e *ErrorFile) ReadDir(count int) ([]fs.DirEntry, error) {
+	return nil, e.err
 }
 
 // Seek always returns the configured error, simulating a file seek failure.
-func (f *ErrorFile) Seek(offset int64, whence int) (int64, error) {
-	return 0, f.err
+func (e *ErrorFile) Seek(offset int64, whence int) (int64, error) {
+	return 0, e.err
 }
 
 // Write always returns the configured error, simulating a file write failure.
-func (f *ErrorFile) Write(p []byte) (n int, err error) {
-	return 0, f.err
+func (e *ErrorFile) Write(p []byte) (n int, err error) {
+	return 0, e.err
 }
 
 // fileInfo implements the os.FileInfo interface for mock file information.
@@ -189,22 +189,22 @@ type fileInfo struct {
 }
 
 // Name returns the file name.
-func (fi *fileInfo) Name() string { return fi.name }
+func (f *fileInfo) Name() string { return f.name }
 
 // Size returns the file size in bytes.
-func (fi *fileInfo) Size() int64 { return fi.size }
+func (f *fileInfo) Size() int64 { return f.size }
 
 // Mode returns a read-only file mode (0444) for mock files.
-func (fi *fileInfo) Mode() os.FileMode { return 0444 }
+func (f *fileInfo) Mode() os.FileMode { return 0444 }
 
 // ModTime returns a zero time value for mock files.
-func (fi *fileInfo) ModTime() time.Time { return time.Time{} }
+func (f *fileInfo) ModTime() time.Time { return time.Time{} }
 
 // IsDir returns false since mock files represent regular files, not directories.
-func (fi *fileInfo) IsDir() bool { return false }
+func (f *fileInfo) IsDir() bool { return false }
 
 // Sys returns nil for mock files as they don't have underlying system-specific data.
-func (fi *fileInfo) Sys() interface{} { return nil }
+func (f *fileInfo) Sys() interface{} { return nil }
 
 // WriteCloser is a mock implementation of io.WriteCloser for testing purposes.
 // It wraps an io.Writer and adds close functionality with state tracking.
@@ -221,20 +221,20 @@ func NewWriteCloser(w io.Writer) *WriteCloser {
 
 // Write implements the io.Writer interface by delegating to the underlying writer.
 // Returns os.ErrClosed if the WriteCloser has been closed.
-func (wc *WriteCloser) Write(p []byte) (n int, err error) {
-	if wc.closed {
+func (w *WriteCloser) Write(p []byte) (n int, err error) {
+	if w.closed {
 		return 0, os.ErrClosed
 	}
-	return wc.w.Write(p)
+	return w.w.Write(p)
 }
 
 // Close implements the io.Closer interface for the mock WriteCloser.
 // Marks the WriteCloser as closed and prevents further write operations.
-func (wc *WriteCloser) Close() error {
-	if wc.closed {
+func (w *WriteCloser) Close() error {
+	if w.closed {
 		return os.ErrClosed
 	}
-	wc.closed = true
+	w.closed = true
 	return nil
 }
 
@@ -251,13 +251,13 @@ func NewErrorWriteCloser(err error) *ErrorWriteCloser {
 }
 
 // Write always returns the configured error, simulating a write failure.
-func (wc *ErrorWriteCloser) Write(p []byte) (n int, err error) {
-	return 0, wc.err
+func (e *ErrorWriteCloser) Write(p []byte) (n int, err error) {
+	return 0, e.err
 }
 
 // Close always returns the configured error, simulating a close failure.
-func (wc *ErrorWriteCloser) Close() error {
-	return wc.err
+func (e *ErrorWriteCloser) Close() error {
+	return e.err
 }
 
 // CloseErrorWriteCloser is a mock io.WriteCloser where only the Close() method returns an error.
@@ -275,14 +275,14 @@ func NewCloseErrorWriteCloser(w io.Writer, err error) *CloseErrorWriteCloser {
 
 // Write implements the io.Writer interface by delegating to the underlying writer.
 // This method always succeeds, allowing testing of close error scenarios.
-func (wc *CloseErrorWriteCloser) Write(p []byte) (n int, err error) {
-	return wc.w.Write(p)
+func (c *CloseErrorWriteCloser) Write(p []byte) (n int, err error) {
+	return c.w.Write(p)
 }
 
 // Close always returns the configured error, simulating a close failure
 // while allowing writes to succeed.
-func (wc *CloseErrorWriteCloser) Close() error {
-	return wc.err
+func (c *CloseErrorWriteCloser) Close() error {
+	return c.err
 }
 
 // ErrorReadWriteCloser is a mock that implements io.Reader, io.Writer, and io.Closer interfaces,
