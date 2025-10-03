@@ -145,9 +145,7 @@ func NewStreamEncrypter(w io.Writer, c *cipher.ChaCha20Poly1305Cipher) io.WriteC
 		e.Error = InvalidNonceSizeError{Size: len(c.Nonce)}
 		return e
 	}
-	if aead, err := chacha20poly1305.New(c.Key); err == nil {
-		e.aead = aead
-	}
+	e.aead, e.Error = chacha20poly1305.New(c.Key)
 	return e
 }
 
@@ -179,9 +177,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	// Encrypt the entire chunk with authentication
 	encrypted := e.aead.Seal(nil, e.cipher.Nonce, p, e.cipher.AAD)
 
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		e.Error = WriteError{Err: writeErr}
+	if _, err = e.writer.Write(encrypted); err != nil {
+		e.Error = WriteError{Err: err}
 		return 0, e.Error
 	}
 
@@ -233,9 +230,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.ChaCha20Poly1305Cipher) io.Reader
 		d.Error = InvalidNonceSizeError{Size: len(c.Nonce)}
 		return d
 	}
-	if aead, err := chacha20poly1305.New(c.Key); err == nil {
-		d.aead = aead
-	}
+	d.aead, d.Error = chacha20poly1305.New(c.Key)
 	return d
 }
 
@@ -288,8 +283,8 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	}
 
 	// Decrypt and authenticate the complete data
-	decrypted, decryptErr := d.aead.Open(nil, d.cipher.Nonce, encrypted, d.cipher.AAD)
-	if decryptErr != nil {
+	decrypted, err := d.aead.Open(nil, d.cipher.Nonce, encrypted, d.cipher.AAD)
+	if err != nil {
 		return 0, AuthenticationError{}
 	}
 

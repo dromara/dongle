@@ -115,10 +115,7 @@ func NewStreamEncrypter(w io.Writer, c *cipher.AesCipher) io.WriteCloser {
 		return e
 	}
 
-	// Pre-create the cipher block for reuse
-	if block, err := aes.NewCipher(c.Key); err == nil {
-		e.block = block
-	}
+	e.block, e.Error = aes.NewCipher(c.Key)
 	return e
 }
 
@@ -155,9 +152,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Write encrypted data to the underlying writer
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, writeErr
+	if _, err = e.writer.Write(encrypted); err != nil {
+		return 0, err
 	}
 
 	return len(p), nil
@@ -207,10 +203,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.AesCipher) io.Reader {
 		return d
 	}
 
-	// Pre-create the cipher block for reuse
-	if block, err := aes.NewCipher(d.cipher.Key); err == nil {
-		d.block = block
-	}
+	d.block, d.Error = aes.NewCipher(d.cipher.Key)
 	return d
 }
 

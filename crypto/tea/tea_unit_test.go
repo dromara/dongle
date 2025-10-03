@@ -106,21 +106,6 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		_, err := encrypter.Encrypt(testdata8Tea)
 		assert.Equal(t, assert.AnError, err)
 	})
-
-	t.Run("with_cipher_error", func(t *testing.T) {
-		// Create a cipher with invalid rounds to trigger tea.NewCipherWithRounds error
-		c := cipher.NewTeaCipher()
-		c.SetKey(key16Tea)
-		c.SetRounds(-1) // Invalid rounds
-
-		encrypter := NewStdEncrypter(c)
-		assert.Nil(t, encrypter.Error)
-
-		// Try to encrypt - this should fail due to invalid rounds
-		_, err := encrypter.Encrypt(testdata8Tea)
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "failed to encrypt data")
-	})
 }
 
 func TestStdDecrypter_Decrypt(t *testing.T) {

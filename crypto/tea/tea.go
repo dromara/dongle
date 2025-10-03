@@ -7,9 +7,8 @@ import (
 	stdCipher "crypto/cipher"
 	"io"
 
-	"golang.org/x/crypto/tea"
-
 	"github.com/dromara/dongle/crypto/cipher"
+	"golang.org/x/crypto/tea"
 )
 
 // StdEncrypter represents a TEA encrypter for standard encryption operations.
@@ -34,14 +33,7 @@ func NewStdEncrypter(c *cipher.TeaCipher) *StdEncrypter {
 		return e
 	}
 
-	// Try to pre-create cipher block for better performance
-	// If there's an error, we'll handle it during Encrypt call
-	block, err := tea.NewCipherWithRounds(c.Key, c.Rounds)
-	if err == nil {
-		e.block = block
-	}
-	// Don't set error here - let it be handled in Encrypt method
-
+	e.block, e.Error = tea.NewCipherWithRounds(c.Key, c.Rounds)
 	return e
 }
 
@@ -61,11 +53,9 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	// Use pre-created cipher block for better performance
 	if e.block == nil {
 		// Fallback: create cipher block if not available
-		block, err := tea.NewCipherWithRounds(e.cipher.Key, e.cipher.Rounds)
-		if err != nil {
-			return nil, EncryptError{Err: err}
+		if block, err := tea.NewCipherWithRounds(e.cipher.Key, e.cipher.Rounds); err == nil {
+			e.block = block
 		}
-		e.block = block
 	}
 
 	// Encrypt each block

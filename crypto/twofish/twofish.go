@@ -115,10 +115,7 @@ func NewStreamEncrypter(w io.Writer, c *cipher.TwofishCipher) io.WriteCloser {
 		return e
 	}
 
-	// Pre-create the cipher block for reuse
-	if block, err := twofish.NewCipher(c.Key); err == nil {
-		e.block = block
-	}
+	e.block, e.Error = twofish.NewCipher(c.Key)
 	return e
 }
 
@@ -155,9 +152,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Write encrypted data to the underlying writer
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, writeErr
+	if _, err = e.writer.Write(encrypted); err != nil {
+		return 0, err
 	}
 
 	return len(p), nil
@@ -198,7 +194,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TwofishCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:    r,
 		cipher:    c,
-		decrypted: nil, // Will be populated on first read
+		decrypted: nil,
 		pos:       0,
 	}
 
@@ -207,10 +203,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TwofishCipher) io.Reader {
 		return d
 	}
 
-	// Pre-create the cipher block for reuse
-	if block, err := twofish.NewCipher(d.cipher.Key); err == nil {
-		d.block = block
-	}
+	d.block, d.Error = twofish.NewCipher(d.cipher.Key)
 	return d
 }
 

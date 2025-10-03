@@ -97,8 +97,7 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	}
 
 	// ED25519 verification does not require hashing as it handles hashing internally
-	valid = ed25519.Verify(pubKey, src, sign)
-	if !valid {
+	if valid = ed25519.Verify(pubKey, src, sign); !valid {
 		err = VerifyError{Err: nil}
 	}
 	return
@@ -173,8 +172,7 @@ func (s *StreamSigner) Close() error {
 	}
 
 	// Write signature to the underlying writer
-	_, err = s.writer.Write(signature)
-	if err != nil {
+	if _, err = s.writer.Write(signature); err != nil {
 		return err
 	}
 
@@ -279,9 +277,9 @@ func (v *StreamVerifier) Close() error {
 	}
 
 	// Verify the signature using the accumulated data
-	valid, verifyErr := v.Verify(v.buffer, v.signature)
-	if verifyErr != nil {
-		return verifyErr
+	valid, err := v.Verify(v.buffer, v.signature)
+	if err != nil {
+		return err
 	}
 
 	v.verified = valid

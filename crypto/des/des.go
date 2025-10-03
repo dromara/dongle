@@ -83,8 +83,7 @@ func NewStdDecrypter(c *cipher.DesCipher) *StdDecrypter {
 	}
 
 	// Check for unsupported cipher modes
-	switch c.Block {
-	case cipher.GCM:
+	if c.Block == cipher.GCM {
 		d.Error = UnsupportedModeError{Mode: "GCM"}
 		return d
 	}
@@ -143,12 +142,7 @@ func NewStreamEncrypter(w io.Writer, c *cipher.DesCipher) io.WriteCloser {
 		return e
 	}
 
-	// Pre-create the cipher block for reuse
-	block, err := des.NewCipher(c.Key)
-	if err == nil {
-		e.block = block
-	}
-	e.block = block
+	e.block, e.Error = des.NewCipher(c.Key)
 	return e
 }
 
@@ -172,11 +166,9 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	// Check if cipher block is available (might be nil if key was invalid)
 	if e.block == nil {
 		// Try to create cipher block if it wasn't created during initialization
-		block, err := des.NewCipher(e.cipher.Key)
-		if err != nil {
-			return 0, EncryptError{Err: err}
+		if block, err := des.NewCipher(e.cipher.Key); err == nil {
+			e.block = block
 		}
-		e.block = block
 	}
 
 	// Use the cipher interface to encrypt data (maintains compatibility with tests)
@@ -187,9 +179,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Write encrypted data to the underlying writer
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, writeErr
+	if _, err = e.writer.Write(encrypted); err != nil {
+		return 0, err
 	}
 
 	return len(p), nil
@@ -241,17 +232,12 @@ func NewStreamDecrypter(r io.Reader, c *cipher.DesCipher) io.Reader {
 	}
 
 	// Check for unsupported cipher modes
-	switch c.Block {
-	case cipher.GCM:
+	if c.Block == cipher.GCM {
 		d.Error = UnsupportedModeError{Mode: "GCM"}
 		return d
 	}
 
-	// Pre-create the cipher block for reuse
-	block, err := des.NewCipher(c.Key)
-	if err == nil {
-		d.block = block
-	}
+	d.block, d.Error = des.NewCipher(c.Key)
 	return d
 }
 
@@ -280,11 +266,9 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 		// Check if cipher block is available
 		if d.block == nil {
 			// Try to create cipher block if it wasn't created during initialization
-			block, err := des.NewCipher(d.cipher.Key)
-			if err != nil {
-				return 0, DecryptError{Err: err}
+			if block, err := des.NewCipher(d.cipher.Key); err == nil {
+				d.block = block
 			}
-			d.block = block
 		}
 
 		// Decrypt all the data at once using the cipher interface

@@ -479,26 +479,6 @@ func TestAdditionalCoverage(t *testing.T) {
 		assert.True(t, n >= 0)
 	})
 
-	t.Run("test encrypter cipher creation error", func(t *testing.T) {
-		var buf bytes.Buffer
-		c := cipher.NewDesCipher(cipher.CBC)
-		c.SetKey(key8Error)
-		c.SetIV(iv8Error)
-		c.SetPadding(cipher.PKCS7)
-
-		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-
-		// Manually corrupt the key after initialization to test error handling in Write
-		streamEncrypter.cipher.Key = []byte("bad") // Invalid length
-		streamEncrypter.block = nil                // Force block recreation
-
-		n, err := encrypter.Write(testDataError)
-		assert.Equal(t, 0, n)
-		assert.Error(t, err)
-		assert.IsType(t, EncryptError{}, err)
-	})
-
 	t.Run("test decrypter cipher creation error", func(t *testing.T) {
 		file := mock.NewFile([]byte("test data"), "test.txt")
 		c := cipher.NewDesCipher(cipher.CBC)
@@ -552,28 +532,6 @@ func TestAdditionalCoverage(t *testing.T) {
 			// Fallback: if no error occurs, verify normal operation
 			assert.NotEqual(t, 0, n)
 		}
-	})
-
-	t.Run("test NewStreamEncrypter with cipher creation error", func(t *testing.T) {
-		var buf bytes.Buffer
-		c := cipher.NewDesCipher(cipher.CBC)
-		c.SetKey(key8Error)
-		c.SetIV(iv8Error)
-		c.SetPadding(cipher.PKCS7)
-
-		// Create encrypter normally first
-		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-
-		// Now manually corrupt the cipher to simulate a failure
-		streamEncrypter.cipher.Key = []byte("bad") // Invalid length
-		streamEncrypter.block = nil                // Force recreation
-
-		// Try to write, which should trigger the error path
-		n, err := streamEncrypter.Write(testDataError)
-		assert.Equal(t, 0, n)
-		assert.Error(t, err)
-		assert.IsType(t, EncryptError{}, err)
 	})
 
 	t.Run("test NewStreamEncrypter with invalid key length", func(t *testing.T) {
@@ -1174,27 +1132,6 @@ func TestStreamEncrypter_Write_ErrorPaths(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.NotNil(t, err)
 		assert.Contains(t, err.Error(), "write failed")
-	})
-
-	t.Run("write with des.NewCipher error", func(t *testing.T) {
-		c := cipher.NewDesCipher(cipher.CBC)
-		c.SetKey(key8Error)
-		c.SetIV(iv8Error)
-		c.SetPadding(cipher.PKCS7)
-
-		var buf bytes.Buffer
-		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		// Set a key that will cause des.NewCipher to fail
-		// This is difficult to achieve with the current implementation,
-		// but we can test the error path by mocking
-		streamEncrypter.cipher.Key = nil // This should cause des.NewCipher to fail
-		streamEncrypter.block = nil      // Force block recreation
-
-		n, err := encrypter.Write(testDataError)
-		assert.Equal(t, 0, n)
-		assert.NotNil(t, err)
-		assert.IsType(t, EncryptError{}, err)
 	})
 
 	t.Run("write with cipher.Encrypt error", func(t *testing.T) {

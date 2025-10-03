@@ -161,9 +161,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Write encrypted data to the underlying writer
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, writeErr
+	if _, err = e.writer.Write(encrypted); err != nil {
+		return 0, err
 	}
 
 	return len(p), nil
@@ -348,16 +347,14 @@ func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
 	// Generate signature using appropriate padding based on key format
 	if s.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
-		sign, err = rsa.SignPKCS1v15(rand.Reader, priKey, s.keypair.Hash, hashed)
-		if err != nil {
+		if sign, err = rsa.SignPKCS1v15(rand.Reader, priKey, s.keypair.Hash, hashed); err != nil {
 			s.Error = SignError{Err: err}
 			return nil, s.Error
 		}
 	}
 	if s.keypair.Format == keypair.PKCS8 {
 		// Use PSS padding for PKCS8 format (more secure)
-		sign, err = rsa.SignPSS(rand.Reader, priKey, s.keypair.Hash, hashed, nil)
-		if err != nil {
+		if sign, err = rsa.SignPSS(rand.Reader, priKey, s.keypair.Hash, hashed, nil); err != nil {
 			s.Error = SignError{Err: err}
 			return nil, s.Error
 		}
@@ -409,16 +406,14 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	// Verify signature using appropriate padding based on key format
 	if v.keypair.Format == keypair.PKCS1 {
 		// Use PKCS1v15 padding for PKCS1 format
-		err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, sign)
-		if err != nil {
+		if err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, sign); err != nil {
 			v.Error = VerifyError{Err: err}
 			return false, v.Error
 		}
 	}
 	if v.keypair.Format == keypair.PKCS8 {
 		// Use PSS padding for PKCS8 format
-		err = rsa.VerifyPSS(pubKey, v.keypair.Hash, hashed, sign, nil)
-		if err != nil {
+		if err = rsa.VerifyPSS(pubKey, v.keypair.Hash, hashed, sign, nil); err != nil {
 			v.Error = VerifyError{Err: err}
 			return false, v.Error
 		}
@@ -483,8 +478,7 @@ func (s *StreamSigner) Close() error {
 	}
 
 	// Write signature to the underlying writer
-	_, err = s.writer.Write(signature)
-	if err != nil {
+	if _, err = s.writer.Write(signature); err != nil {
 		return err
 	}
 
@@ -546,8 +540,7 @@ func (v *StreamVerifier) Write(p []byte) (n int, err error) {
 	}
 
 	// Process data through the hash function for streaming
-	_, err = v.hasher.Write(p)
-	if err != nil {
+	if _, err = v.hasher.Write(p); err != nil {
 		return 0, err
 	}
 
@@ -574,9 +567,8 @@ func (v *StreamVerifier) Close() error {
 	hashed := v.hasher.Sum(nil)
 
 	// Verify the signature using the hashed data
-	_, verifyErr := v.Verify(hashed, v.signature)
-	if verifyErr != nil {
-		return verifyErr
+	if _, err = v.Verify(hashed, v.signature); err != nil {
+		return err
 	}
 
 	// Mark verification as completed
@@ -619,16 +611,14 @@ func (v *StreamVerifier) Verify(hashed, signature []byte) (valid bool, err error
 
 	// Use PKCS1v15 padding for PKCS1 format
 	if v.keypair.Format == keypair.PKCS1 {
-		err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, signature)
-		if err != nil {
+		if err = rsa.VerifyPKCS1v15(pubKey, v.keypair.Hash, hashed, signature); err != nil {
 			v.Error = VerifyError{Err: err}
 			return false, v.Error
 		}
 	}
 	if v.keypair.Format == keypair.PKCS8 {
 		// Use PSS padding for PKCS8 format
-		err = rsa.VerifyPSS(pubKey, v.keypair.Hash, hashed, signature, nil)
-		if err != nil {
+		if err = rsa.VerifyPSS(pubKey, v.keypair.Hash, hashed, signature, nil); err != nil {
 			v.Error = VerifyError{Err: err}
 			return false, v.Error
 		}

@@ -145,11 +145,7 @@ func NewStreamEncrypter(w io.Writer, c *cipher.BlowfishCipher) io.WriteCloser {
 		return e
 	}
 
-	// Pre-create the cipher block for reuse
-	block, err := blowfish.NewCipher(c.Key)
-	if err == nil {
-		e.block = block
-	}
+	e.block, e.Error = blowfish.NewCipher(c.Key)
 	return e
 }
 
@@ -186,9 +182,9 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Write encrypted data to the underlying writer
-	n, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, writeErr
+	n, err = e.writer.Write(encrypted)
+	if err != nil {
+		return 0, err
 	}
 
 	// Return the number of encrypted bytes written (project convention)
@@ -246,11 +242,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.BlowfishCipher) io.Reader {
 		return d
 	}
 
-	// Pre-create the cipher block for reuse
-	block, err := blowfish.NewCipher(c.Key)
-	if err == nil {
-		d.block = block
-	}
+	d.block, d.Error = blowfish.NewCipher(c.Key)
 	return d
 }
 

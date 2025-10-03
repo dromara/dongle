@@ -163,9 +163,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	salsa20.XORKeyStream(encrypted, p, e.cipher.Nonce, &key)
 
 	// Write encrypted data to the underlying writer
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, WriteError{Err: writeErr}
+	if _, err = e.writer.Write(encrypted); err != nil {
+		return 0, WriteError{Err: err}
 	}
 
 	return len(p), nil

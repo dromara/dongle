@@ -118,9 +118,7 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	}
 
 	// Prepare the key for Triple DES cipher block
-	key := expandKey(d.cipher.Key)
-
-	block, err := des.NewTripleDESCipher(key)
+	block, err := des.NewTripleDESCipher(expandKey(d.cipher.Key))
 	if err != nil {
 		err = DecryptError{Err: err}
 		return
@@ -161,11 +159,7 @@ func NewStreamEncrypter(w io.Writer, c *cipher.TripleDesCipher) io.WriteCloser {
 		return e
 	}
 
-	// Pre-create the cipher block for reuse
-	key := expandKey(c.Key)
-	if block, err := des.NewTripleDESCipher(key); err == nil {
-		e.block = block
-	}
+	e.block, e.Error = des.NewTripleDESCipher(expandKey(c.Key))
 	return e
 }
 
@@ -189,11 +183,9 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	// Check if cipher block is available (might be nil if key was invalid)
 	if e.block == nil {
 		// Try to create cipher block if it wasn't created during initialization
-		key := expandKey(e.cipher.Key)
-		if block, err := des.NewTripleDESCipher(key); err == nil {
+		if block, err := des.NewTripleDESCipher(expandKey(e.cipher.Key)); err == nil {
 			e.block = block
 		}
-
 	}
 
 	// Use the cipher interface to encrypt data (maintains compatibility with tests)
@@ -204,9 +196,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Write encrypted data to the underlying writer
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return 0, writeErr
+	if _, err = e.writer.Write(encrypted); err != nil {
+		return 0, err
 	}
 
 	return len(p), nil
@@ -248,7 +239,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TripleDesCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:    r,
 		cipher:    c,
-		decrypted: nil, // Will be populated on first read
+		decrypted: nil,
 		pos:       0,
 	}
 
@@ -263,11 +254,7 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TripleDesCipher) io.Reader {
 		return d
 	}
 
-	// Pre-create the cipher block for reuse
-	key := expandKey(c.Key)
-	if block, err := des.NewTripleDESCipher(key); err == nil {
-		d.block = block
-	}
+	d.block, d.Error = des.NewTripleDESCipher(expandKey(c.Key))
 	return d
 }
 
@@ -296,10 +283,11 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 		// Check if cipher block is available
 		if d.block == nil {
 			// Try to create cipher block if it wasn't created during initialization
-			key := expandKey(d.cipher.Key)
-			if block, err := des.NewTripleDESCipher(key); err == nil {
-				d.block = block
+			block, err := des.NewTripleDESCipher(expandKey(d.cipher.Key))
+			if err != nil {
+				return 0, DecryptError{Err: err}
 			}
+			d.block = block
 		}
 
 		// Decrypt all the data at once using the cipher interface

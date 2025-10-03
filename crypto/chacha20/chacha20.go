@@ -144,10 +144,7 @@ func NewStreamEncrypter(w io.Writer, c *cipher.ChaCha20Cipher) io.WriteCloser {
 		return e
 	}
 
-	stream, err := chacha20.NewUnauthenticatedCipher(c.Key, c.Nonce)
-	if err == nil {
-		e.stream = stream
-	}
+	e.stream, e.Error = chacha20.NewUnauthenticatedCipher(c.Key, c.Nonce)
 	return e
 }
 
@@ -172,9 +169,8 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	encrypted := make([]byte, len(p))
 	e.stream.XORKeyStream(encrypted, p)
 
-	_, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		e.Error = WriteError{Err: writeErr}
+	if _, err = e.writer.Write(encrypted); err != nil {
+		e.Error = WriteError{Err: err}
 		return 0, e.Error
 	}
 
@@ -241,8 +237,7 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 
 	// Initialize the cipher stream if not already done
 	if d.stream == nil {
-		stream, err := chacha20.NewUnauthenticatedCipher(d.cipher.Key, d.cipher.Nonce)
-		if err == nil {
+		if stream, err := chacha20.NewUnauthenticatedCipher(d.cipher.Key, d.cipher.Nonce); err == nil {
 			d.stream = stream
 		}
 	}

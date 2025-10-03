@@ -22,10 +22,7 @@ func NewStdEncrypter(key []byte) *StdEncrypter {
 		e.Error = KeySizeError(len(key))
 		return e
 	}
-	cipher, err := rc4.NewCipher(key)
-	if err == nil {
-		e.cipher = cipher
-	}
+	e.cipher, e.Error = rc4.NewCipher(key)
 	return e
 }
 
@@ -41,8 +38,7 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	// Use pre-created cipher for better performance
 	if e.cipher == nil {
 		// Fallback: create cipher if not available
-		cipher, err := rc4.NewCipher(e.key)
-		if err == nil {
+		if cipher, err := rc4.NewCipher(e.key); err == nil {
 			e.cipher = cipher
 		}
 	}
@@ -65,11 +61,7 @@ func NewStdDecrypter(key []byte) *StdDecrypter {
 		d.Error = KeySizeError(len(key))
 		return d
 	}
-	// Pre-create cipher for better performance
-	cipher, err := rc4.NewCipher(key)
-	if err == nil {
-		d.cipher = cipher
-	}
+	d.cipher, d.Error = rc4.NewCipher(key)
 	return d
 }
 
@@ -86,8 +78,7 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	// Use pre-created cipher for better performance
 	if d.cipher == nil {
 		// Fallback: create cipher if not available
-		cipher, err := rc4.NewCipher(d.key)
-		if err == nil {
+		if cipher, err := rc4.NewCipher(d.key); err == nil {
 			d.cipher = cipher
 		}
 	}
@@ -130,9 +121,9 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	// For stream cipher, we can encrypt in-place but we need a copy for output
 	encrypted := make([]byte, len(p))
 	e.cipher.XORKeyStream(encrypted, p)
-	n, writeErr := e.writer.Write(encrypted)
-	if writeErr != nil {
-		return n, WriteError{Err: writeErr}
+	n, err = e.writer.Write(encrypted)
+	if err != nil {
+		return n, WriteError{Err: err}
 	}
 	return n, nil
 }
@@ -159,11 +150,7 @@ func NewStreamDecrypter(r io.Reader, key []byte) io.Reader {
 		d.Error = KeySizeError(len(key))
 		return d
 	}
-	// Pre-create cipher for reuse
-	cipher, err := rc4.NewCipher(key)
-	if err == nil {
-		d.cipher = cipher
-	}
+	d.cipher, d.Error = rc4.NewCipher(key)
 	return d
 }
 
@@ -172,9 +159,9 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	if d.Error != nil {
 		return 0, d.Error
 	}
-	n, readErr := d.reader.Read(p)
-	if readErr != nil {
-		return n, ReadError{Err: readErr}
+	n, err = d.reader.Read(p)
+	if err != nil {
+		return n, ReadError{Err: err}
 	}
 	if n > 0 {
 		// RC4 is a stream cipher, we can decrypt in-place
