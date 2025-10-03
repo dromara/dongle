@@ -10,7 +10,7 @@ head:
 
 # RSA
 
-RSA 是一种非对称加密算法，使用公钥进行加密，私钥进行解密。`dongle` 支持标准 `RSA` 加密，提供多种密钥格式、哈希算法和输出格式。
+RSA 是一种非对称加密算法，使用公钥进行加密，私钥进行解密。`dongle` 支持标准和流式 `RSA` 加密，提供多种密钥格式、哈希算法和输出格式。
 
 支持以下密钥格式：
 
@@ -61,7 +61,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // 设置密钥格式（可选，默认为 PKCS8）
 kp.SetFormat(keypair.PKCS8)
-// 设置哈希算法（可选，默认为 SHA256）
+// 设置哈希算法（可选，默认为 SHA256，只有 PKCS8 密钥格式才需要设置哈希算法）
 kp.SetHash(crypto.SHA256)   
 ```
 

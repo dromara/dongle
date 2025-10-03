@@ -11,7 +11,7 @@ head:
 
 # Base58
 
-Base58 is an encoding method that converts binary data to `ASCII` characters, using `58` characters (1-9, A-Z, a-z, excluding easily confused characters 0, O, I, l) to represent data. `dongle` supports standard `Base58` encoding, following Bitcoin-style specifications.
+Base58 is an encoding method that converts binary data to `ASCII` characters, using `58` characters (1-9, A-Z, a-z, excluding easily confused characters 0, O, I, l) to represent data. `dongle` supports standard and streaming `Base58` encoding, following Bitcoin-style specifications.
 
 > The default alphabet is `123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz`,
 > You can customize the alphabet by setting `base58.StdAlphabet`

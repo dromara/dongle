@@ -10,7 +10,7 @@ head:
 
 # Hash-Md2
 
-`Hash-Md2` is a hash algorithm that produces a `16-byte` hash value. `dongle` supports the standard `md2` hash algorithm and provides multiple output formats.
+`Hash-Md2` is a hash algorithm that produces a `16-byte` hash value. `dongle` supports standard and streaming `md2` hash algorithms and provides multiple output formats.
 
 ## Input Data
 

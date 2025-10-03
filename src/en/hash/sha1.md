@@ -10,7 +10,7 @@ head:
 
 # Hash-Sha1
 
-`Hash-Sha1` is a hash algorithm that produces a `20-byte` hash value. `dongle` supports the standard `sha1` hash algorithm and provides multiple output formats.
+`Hash-Sha1` is a hash algorithm that produces a `20-byte` hash value. `dongle` supports standard and streaming `sha1` hash algorithms and provides multiple output formats.
 
 ## Input Data
 

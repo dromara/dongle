@@ -10,7 +10,7 @@ head:
 
 # Hash-Sm3
 
-`Hash-SM3` is a national cryptographic hash algorithm that produces `32`-byte hash values. It is a cryptographic hash algorithm published by the National Cryptography Administration of China, compliant with the `GB/T 32918.1-2016` standard. `dongle` supports the standard `SM3` hash algorithm and provides multiple output formats.
+`Hash-SM3` is a national cryptographic hash algorithm that produces `32`-byte hash values. It is a cryptographic hash algorithm published by the National Cryptography Administration of China, compliant with the `GB/T 32918.1-2016` standard. `dongle` supports standard and streaming `SM3` hash algorithms and provides multiple output formats.
 
 ## Input Data
 

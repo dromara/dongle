@@ -11,7 +11,7 @@ head:
 
 # Hex
 
-Hex is an encoding method that converts binary data to `ASCII` characters, using `16` characters (0-9, A-F) to represent data. `dongle` supports standard `Hex` encoding, also known as `Base16` encoding.
+Hex is an encoding method that converts binary data to `ASCII` characters, using `16` characters (0-9, A-F) to represent data. `dongle` supports standard and streaming `Hex` encoding, also known as `Base16` encoding.
 
 ### Encoding Data
 

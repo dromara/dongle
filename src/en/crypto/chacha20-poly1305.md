@@ -10,7 +10,7 @@ head:
 
 # ChaCha20-Poly1305
 
-ChaCha20-Poly1305 is a modern high-performance authenticated encryption algorithm (AEAD) that combines `ChaCha20` stream cipher and `Poly1305` message authentication code. It uses fixed-length `32` byte keys and `12` byte nonces to encrypt and authenticate data. `dongle` supports standard `ChaCha20-Poly1305` encryption, providing multiple input formats, output formats and streaming processing capabilities.
+ChaCha20-Poly1305 is a modern high-performance authenticated encryption algorithm (AEAD) that combines `ChaCha20` stream cipher and `Poly1305` message authentication code. It uses fixed-length `32` byte keys and `12` byte nonces to encrypt and authenticate data. `dongle` supports standard and streaming `ChaCha20-Poly1305` encryption, providing multiple input formats, output formats and streaming processing capabilities.
 
 ChaCha20-Poly1305 is a symmetric encryption algorithm that uses the same key for encryption and decryption. As an `AEAD` algorithm, it not only provides confidentiality protection, but also provides integrity and authenticity verification, capable of detecting data tampering.
 

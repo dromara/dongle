@@ -11,7 +11,7 @@ head:
 
 # 3DES
 
-3DES（Triple Data Encryption Standard）は対称暗号化アルゴリズムで、`16` バイトまたは `24` バイトの鍵を使用します。`dongle` は標準的な `3DES` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
+3DES（Triple Data Encryption Standard）は対称暗号化アルゴリズムで、`16` バイトまたは `24` バイトの鍵を使用します。`dongle` は標準およびストリーミング `3DES` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
 
 以下のブロックモードをサポート：
 
@@ -141,16 +141,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CTRモード
+## ECBモード
 
 ### Cipherの作成
 
 ```go
-c := cipher.New3DesCipher(cipher.CTR)
+c := cipher.New3DesCipher(cipher.ECB)
 // 鍵を設定（16バイトは自動的に24バイトに拡張）
 c.SetKey([]byte("123456781234567812345678"))
-// 初期化ベクトルを設定（8バイト）
-c.SetIV([]byte("87654321"))                   
+// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+c.SetPadding(cipher.PKCS7)                   
 ```
 
 ### データの暗号化
@@ -235,16 +235,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## ECBモード
+## CTRモード
 
 ### Cipherの作成
 
 ```go
-c := cipher.New3DesCipher(cipher.ECB)
+c := cipher.New3DesCipher(cipher.CTR)
 // 鍵を設定（16バイトは自動的に24バイトに拡張）
 c.SetKey([]byte("123456781234567812345678"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
-c.SetPadding(cipher.PKCS7) 
+// 初期化ベクトルを設定（8バイト）
+c.SetIV([]byte("87654321")) 
 ```
 
 ### データの暗号化

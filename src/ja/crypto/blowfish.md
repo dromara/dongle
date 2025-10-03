@@ -11,7 +11,7 @@ head:
 
 # Blowfish
 
-Blowfishは対称暗号化アルゴリズムで、可変長の鍵をサポートし、鍵長は `1` から `56` バイトです。`dongle` は標準的な `Blowfish` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
+Blowfishは対称暗号化アルゴリズムで、可変長の鍵をサポートし、鍵長は `1` から `56` バイトです。`dongle` は標準およびストリーミング `Blowfish` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
 
 以下のブロックモードをサポート：
 
@@ -140,16 +140,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CTRモード
+## ECBモード
 
 ### Cipherの作成
 
 ```go
-c := cipher.NewBlowfishCipher(cipher.CTR)
+c := cipher.NewBlowfishCipher(cipher.ECB)
 // 鍵を設定（1-56バイト）
 c.SetKey([]byte("1234567890123456"))
-// 初期化ベクトルを設定（8バイト）
-c.SetIV([]byte("87654321"))
+// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+c.SetPadding(cipher.PKCS7)
 ```
 
 ### データの暗号化
@@ -234,16 +234,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## ECBモード
+## CTRモード
 
 ### Cipherの作成
 
 ```go
-c := cipher.NewBlowfishCipher(cipher.ECB)
+c := cipher.NewBlowfishCipher(cipher.CTR)
 // 鍵を設定（1-56バイト）
 c.SetKey([]byte("1234567890123456"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
-c.SetPadding(cipher.PKCS7)
+// 初期化ベクトルを設定（8バイト）
+c.SetIV([]byte("87654321"))
 ```
 
 ### データの暗号化

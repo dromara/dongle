@@ -10,7 +10,7 @@ head:
 
 # TEA
 
-TEA (Tiny Encryption Algorithm) is a simple and efficient block cipher algorithm that uses a fixed-length `16-byte` key to encrypt and decrypt data. `dongle` supports standard `TEA` encryption and provides multiple input formats, output formats, and streaming processing capabilities.
+TEA (Tiny Encryption Algorithm) is a simple and efficient block cipher algorithm that uses a fixed-length `16-byte` key to encrypt and decrypt data. `dongle` supports standard and streaming `TEA` encryption and provides multiple input formats, output formats, and streaming processing capabilities.
 
 TEA is a symmetric encryption algorithm that uses the same key for encryption and decryption. TEA uses `8-byte` data blocks for encryption, and data length must be a multiple of `8`.
 

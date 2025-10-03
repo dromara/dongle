@@ -11,7 +11,7 @@ head:
 
 # Base62
 
-Base62 is an encoding method that converts binary data to `ASCII` characters, using `62` characters (0-9, A-Z, a-z) to represent data. `dongle` supports standard `Base62` encoding.
+Base62 is an encoding method that converts binary data to `ASCII` characters, using `62` characters (0-9, A-Z, a-z) to represent data. `dongle` supports standard and streaming `Base62` encoding.
 
 > The default alphabet is `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`,
 > You can customize the alphabet by setting `base62.StdAlphabet`

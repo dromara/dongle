@@ -10,7 +10,7 @@ head:
 
 # RSA
 
-RSA is an asymmetric encryption algorithm that uses public key for encryption and private key for decryption. `dongle` supports standard `RSA` encryption and provides multiple key formats, hash algorithms, and output formats.
+RSA is an asymmetric encryption algorithm that uses public key for encryption and private key for decryption. `dongle` supports standard and streaming `RSA` encryption and provides multiple key formats, hash algorithms, and output formats.
 
 Supported key formats:
 
@@ -61,7 +61,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256)
+// Set hash algorithm (optional, default is SHA256, only PKCS8 key format requires hash algorithm setting)
 kp.SetHash(crypto.SHA256)
 ```
 

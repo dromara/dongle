@@ -10,7 +10,7 @@ head:
 
 # Hash-Ripemd160
 
-`Hash-Ripemd160` 是一种产生 `20` 字节哈希值的哈希算法，`dongle` 支持标准 `ripemd160` 哈希算法，提供多种输出格式。
+`Hash-Ripemd160` 是一种产生 `20` 字节哈希值的哈希算法，`dongle` 支持标准和流式 `ripemd160` 哈希算法，提供多种输出格式。
 
 ## 输入数据
 

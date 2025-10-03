@@ -10,7 +10,7 @@ head:
 
 # Hmac-Md4
 
-`Hmac-Md4` is a message authentication code algorithm based on `md4`. `dongle` supports the standard `md4` message authentication code algorithm and provides multiple output formats.
+`Hmac-Md4` is a message authentication code algorithm based on `md4`. `dongle` supports standard and streaming `md4` message authentication code algorithms and provides multiple output formats.
 
 > Note: The `WithKey` method must be called before `ByMd4`
 

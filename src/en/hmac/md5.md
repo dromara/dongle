@@ -10,7 +10,7 @@ head:
 
 # Hmac-Md5
 
-`Hmac-Md5` is a message authentication code algorithm based on `md5`. `dongle` supports the standard `md5` message authentication code algorithm and provides multiple output formats.
+`Hmac-Md5` is a message authentication code algorithm based on `md5`. `dongle` supports standard and streaming `md5` message authentication code algorithms and provides multiple output formats.
 
 > Note: The `WithKey` method must be called before `ByMd5`
 

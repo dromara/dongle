@@ -10,7 +10,7 @@ head:
 
 # Hmac-Md2
 
-`Hmac-Md2` is a message authentication code algorithm based on `md2`. `dongle` supports the standard `md2` message authentication code algorithm and provides multiple output formats.
+`Hmac-Md2` is a message authentication code algorithm based on `md2`. `dongle` supports standard and streaming `md2` message authentication code algorithms and provides multiple output formats.
 
 > Note: The `WithKey` method must be called before `ByMd2`
 

@@ -11,7 +11,7 @@ head:
 
 # Base45
 
-Base45 is an encoding method that converts binary data to `ASCII` characters, using `45` characters （0-9, A-Z, space, $, %, *, +, -, ., /, :）to represent data. `dongle` supports standard `Base45` encoding, compliant with `RFC9285` specifications.
+Base45 is an encoding method that converts binary data to `ASCII` characters, using `45` characters （0-9, A-Z, space, $, %, *, +, -, ., /, :）to represent data. `dongle` supports standard and streaming `Base45` encoding, compliant with `RFC9285` specifications.
 
 > The default alphabet is `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:`,
 > You can customize the alphabet by setting `base45.StdAlphabet`

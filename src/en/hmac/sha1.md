@@ -10,7 +10,7 @@ head:
 
 # Hmac-Sha1
 
-`Hmac-Sha1` is a message authentication code algorithm based on `sha1`. `dongle` supports the standard `sha1` message authentication code algorithm and provides multiple output formats.
+`Hmac-Sha1` is a message authentication code algorithm based on `sha1`. `dongle` supports standard and streaming `sha1` message authentication code algorithms and provides multiple output formats.
 
 > Note: The `WithKey` method must be called before `BySha1`
 

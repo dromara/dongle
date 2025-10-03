@@ -10,7 +10,7 @@ head:
 
 # Hash-Blake2b
 
-`Hash-Blake2b` は異なる長さのハッシュ値を生成するハッシュアルゴリズムのシリーズで、`blake2b-256`、`blake2b-384`、`blake2b-512` を含みます。`dongle` は3つの `hash-blake2b` バリアントすべてをサポートしています。
+`Hash-Blake2b` は異なる長さのハッシュ値を生成するハッシュアルゴリズムのシリーズで、`blake2b-256`、`blake2b-384`、`blake2b-512` を含みます。`dongle` は3つの `hash-blake2b` バリアントすべておよびストリーミングをサポートしています。
 
 - [Blake2b-256](#blake2b-256)：32バイトのハッシュ値を生成
 - [Blake2b-384](#blake2b-384)：48バイトのハッシュ値を生成

@@ -10,7 +10,7 @@ head:
 
 # Hash-Ripemd160
 
-`Hash-Ripemd160` is a hash algorithm that produces a `20-byte` hash value. `dongle` supports the standard `ripemd160` hash algorithm and provides multiple output formats.
+`Hash-Ripemd160` is a hash algorithm that produces a `20-byte` hash value. `dongle` supports standard and streaming `ripemd160` hash algorithms and provides multiple output formats.
 
 ## Input Data
 

@@ -11,7 +11,7 @@ head:
 
 # Base64
 
-Base64 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `64` 个字符（A-Z, a-z, 0-9, +, /）来表示数据。`dongle` 支持标准 `Base64` 和 `Base64Url` 两种变体。
+Base64 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `64` 个字符（A-Z, a-z, 0-9, +, /）来表示数据。`dongle` 支持标准和流式 `Base64` 编码以及标准和流式 `Base64Url` 编码。
 
 - [Base64Std](#base64std)
 - [Base64Url](#base64url)

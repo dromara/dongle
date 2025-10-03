@@ -10,7 +10,7 @@ head:
 
 # Hmac-Blake2b
 
-`Hmac-Blake2b` is a message authentication code algorithm based on `blake2b`. `dongle` supports the standard `blake2b` message authentication code algorithm and provides multiple output formats.
+`Hmac-Blake2b` is a message authentication code algorithm based on `blake2b`. `dongle` supports standard and streaming `blake2b` message authentication code algorithms and provides multiple output formats.
 
 > Note: The `WithKey` method must be called before `ByBlake2b`
 

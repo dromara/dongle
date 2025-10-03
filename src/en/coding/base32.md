@@ -11,7 +11,7 @@ head:
 
 # Base32
 
-Base32 is an encoding method that converts binary data to `ASCII` characters, using `32` characters (A-Z, 2-7) to represent data. `dongle` supports both standard `Base32` and `Base32Hex` variants.
+Base32 is an encoding method that converts binary data to `ASCII` characters, using `32` characters (A-Z, 2-7) to represent data. `dongle` supports standard and streaming `Base32` and `Base32Hex` variants.
 
 - [Base32Std](#base32std)
 - [Base32Hex](#base32hex)

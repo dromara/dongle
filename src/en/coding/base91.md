@@ -11,7 +11,7 @@ head:
 
 # Base91
 
-Base91 is an encoding method that converts binary data to `ASCII` characters, using `91` characters (A-Z, a-z, 0-9, and special characters, excluding spaces, apostrophes, hyphens, and backslashes) to represent data. `dongle` supports standard `Base91` encoding.
+Base91 is an encoding method that converts binary data to `ASCII` characters, using `91` characters (A-Z, a-z, 0-9, and special characters, excluding spaces, apostrophes, hyphens, and backslashes) to represent data. `dongle` supports standard and streaming `Base91` encoding.
 
 > The default character set is `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_{|}~"`,
 > which can be customized by setting `base91.StdAlphabet`

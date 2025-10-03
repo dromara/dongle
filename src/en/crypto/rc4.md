@@ -10,7 +10,7 @@ head:
 
 # RC4
 
-RC4 (Rivest Cipher 4) is a stream cipher encryption algorithm that uses variable-length keys (1-256 bytes) to encrypt and decrypt data. `dongle` supports standard `RC4` encryption and provides multiple input formats, output formats, and streaming processing capabilities.
+RC4 (Rivest Cipher 4) is a stream cipher encryption algorithm that uses variable-length keys (1-256 bytes) to encrypt and decrypt data. `dongle` supports standard and streaming `RC4` encryption and provides multiple input formats, output formats, and streaming processing capabilities.
 
 RC4 is a symmetric encryption algorithm that uses the same key for encryption and decryption. Since RC4 is a stream cipher, it does not require padding and can directly process data of any length.
 

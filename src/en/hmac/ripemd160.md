@@ -10,7 +10,7 @@ head:
 
 # Hmac-Ripemd160
 
-`Hmac-Ripemd160` is a message authentication code algorithm based on `ripemd160`. `dongle` supports the standard `ripemd160` message authentication code algorithm and provides multiple output formats.
+`Hmac-Ripemd160` is a message authentication code algorithm based on `ripemd160`. `dongle` supports standard and streaming `ripemd160` message authentication code algorithms and provides multiple output formats.
 
 > Note: The `WithKey` method must be called before `ByRipemd160`
 

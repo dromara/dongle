@@ -10,7 +10,7 @@ head:
 
 # Hash-Md4
 
-`Hash-Md4` is a hash algorithm that produces a `16-byte` hash value. `dongle` supports the standard `md4` hash algorithm and provides multiple output formats.
+`Hash-Md4` is a hash algorithm that produces a `16-byte` hash value. `dongle` supports standard and streaming `md4` hash algorithms and provides multiple output formats.
 
 ## Input Data
 

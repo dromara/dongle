@@ -11,7 +11,7 @@ head:
 
 # Base85
 
-Base85 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `85` 个字符（ASCII 33-117，即 ! 到 u）来表示数据。`dongle` 支持标准 `Base85` 编码，也称为 `ASCII85`，符合 `Adobe PostScript` 和 `PDF` 规范。
+Base85 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `85` 个字符（ASCII 33-117，即 ! 到 u）来表示数据。`dongle` 支持标准和流式 `Base85` 编码，也称为 `ASCII85`，符合 `Adobe PostScript` 和 `PDF` 规范。
 
 ### 编码数据
 输入数据

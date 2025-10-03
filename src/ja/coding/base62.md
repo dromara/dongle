@@ -11,7 +11,7 @@ head:
 
 # Base62
 
-Base62は、バイナリデータを`ASCII`文字にエンコードする方法で、`62`文字（0-9、A-Z、a-z）を使用してデータを表現します。`dongle`は標準的な`Base62`エンコードをサポートしています。
+Base62は、バイナリデータを`ASCII`文字にエンコードする方法で、`62`文字（0-9、A-Z、a-z）を使用してデータを表現します。`dongle`は標準およびストリーミング`Base62`エンコードをサポートしています。
 
 > デフォルトのアルファベットは `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz` です、
 > `base62.StdAlphabet` を設定することでアルファベットをカスタマイズできます

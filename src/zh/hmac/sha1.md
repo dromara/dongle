@@ -10,7 +10,7 @@ head:
 
 # Hmac-Sha1
 
-`Hmac-Sha1` 是一种基于 `sha1` 的消息认证码算法，`dongle` 支持标准 `sha1` 消息认证码算法，提供多种输出格式。
+`Hmac-Sha1` 是一种基于 `sha1` 的消息认证码算法，`dongle` 支持标准和流式 `sha1` 消息认证码算法，提供多种输出格式。
 
 > 注意：`WithKey` 方法必须在 `BySha1` 之前调用
 

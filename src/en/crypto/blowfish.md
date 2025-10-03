@@ -10,13 +10,13 @@ head:
 
 # Blowfish
 
-Blowfish is a symmetric encryption algorithm that supports variable-length keys, with key lengths from `1` to `56` bytes. `dongle` supports standard `Blowfish` encryption and provides multiple block modes, padding modes, and output formats.
+Blowfish is a symmetric encryption algorithm that supports variable-length keys, with key lengths from `1` to `56` bytes. `dongle` supports standard and streaming `Blowfish` encryption and provides multiple block modes, padding modes, and output formats.
 
 Supported block modes:
 
 - **CBC (Cipher Block Chaining)**: Cipher Block Chaining mode, requires setting key `Key`, initialization vector `IV` (8 bytes), and padding mode `Padding`
-- **CTR (Counter)**: Counter mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 - **ECB (Electronic Codebook)**: Electronic Codebook mode, requires setting key `Key` and padding mode `Padding`
+- **CTR (Counter)**: Counter mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 - **CFB (Cipher Feedback)**: Cipher Feedback mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 - **OFB (Output Feedback)**: Output Feedback mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 
@@ -51,7 +51,7 @@ c := cipher.NewBlowfishCipher(cipher.CBC)
 c.SetKey([]byte("1234567890123456"))
 // Set initialization vector (8 bytes)
 c.SetIV([]byte("87654321"))
-// Set padding mode (optional, default is PKCS7)
+// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -139,16 +139,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CTR Mode
+## ECB Mode
 
 ### Create Cipher
 
 ```go
-c := cipher.NewBlowfishCipher(cipher.CTR)
+c := cipher.NewBlowfishCipher(cipher.ECB)
 // Set key (1-56 bytes)
 c.SetKey([]byte("1234567890123456"))
-// Set initialization vector (8 bytes)
-c.SetIV([]byte("87654321"))
+// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+c.SetPadding(cipher.PKCS7)
 ```
 
 ### Encrypt Data
@@ -233,16 +233,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## ECB Mode
+## CTR Mode
 
 ### Create Cipher
 
 ```go
-c := cipher.NewBlowfishCipher(cipher.ECB)
+c := cipher.NewBlowfishCipher(cipher.CTR)
 // Set key (1-56 bytes)
 c.SetKey([]byte("1234567890123456"))
-// Set padding mode (optional, default is PKCS7)
-c.SetPadding(cipher.PKCS7)
+// Set initialization vector (8 bytes)
+c.SetIV([]byte("87654321"))
 ```
 
 ### Encrypt Data

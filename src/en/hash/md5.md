@@ -10,7 +10,7 @@ head:
 
 # Hash-Md5
 
-`Hash-Md5` is a hash algorithm that produces a `16-byte` hash value. `dongle` supports the standard `md5` hash algorithm and provides multiple output formats.
+`Hash-Md5` is a hash algorithm that produces a `16-byte` hash value. `dongle` supports standard and streaming `md5` hash algorithms and provides multiple output formats.
 
 ## Input Data
 

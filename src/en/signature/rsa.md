@@ -11,7 +11,7 @@ head:
 
 # RSA
 
-RSA digital signature is a digital signature algorithm based on asymmetric encryption, using private key for signing and public key for verification. `dongle` supports standard `RSA` digital signatures and provides multiple key formats, hash algorithms, and output formats.
+RSA digital signature is a digital signature algorithm based on asymmetric encryption, using private key for signing and public key for verification. `dongle` supports standard and streaming `RSA` digital signatures and provides multiple key formats, hash algorithms, and output formats.
 
 Supported key formats:
 
@@ -62,7 +62,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256)
+// Set hash algorithm (optional, default is SHA256, only PKCS8 key format requires hash algorithm setting)
 kp.SetHash(crypto.SHA256)   
 ```
 

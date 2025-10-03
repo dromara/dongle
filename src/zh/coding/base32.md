@@ -11,7 +11,7 @@ head:
 
 # Base32
 
-Base32 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `32` 个字符（A-Z, 2-7）来表示数据。`dongle` 支持标准 `Base32` 和 `Base32Hex` 两种变体。
+Base32 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `32` 个字符（A-Z, 2-7）来表示数据。`dongle` 支持标准和流式 `Base32` 和 `Base32Hex` 两种变体。
 
 - [Base32Std](#base32std)
 - [Base32Hex](#base32hex)

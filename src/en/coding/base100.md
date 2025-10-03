@@ -11,7 +11,7 @@ head:
 
 # Base100
 
-Base100 is an encoding method that converts binary data to `Emoji` characters, where each byte is converted to a `4-byte` UTF-8 sequence representing an emoji symbol. `dongle` supports standard `Base100` encoding.
+Base100 is an encoding method that converts binary data to `Emoji` characters, where each byte is converted to a `4-byte` UTF-8 sequence representing an emoji symbol. `dongle` supports standard and streaming `Base100` encoding.
 
 ### Encoding Data
 

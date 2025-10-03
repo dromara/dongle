@@ -10,7 +10,7 @@ head:
 
 # Hmac-Ripemd160
 
-`Hmac-Ripemd160` 是一种基于 `ripemd160` 的消息认证码算法，`dongle` 支持标准 `ripemd160` 消息认证码算法，提供多种输出格式。
+`Hmac-Ripemd160` 是一种基于 `ripemd160` 的消息认证码算法，`dongle` 支持标准和流式 `ripemd160` 消息认证码算法，提供多种输出格式。
 
 > 注意：`WithKey` 方法必须在 `ByRipemd160` 之前调用
 

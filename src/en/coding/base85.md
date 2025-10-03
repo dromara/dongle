@@ -11,7 +11,7 @@ head:
 
 # Base85
 
-Base85 is an encoding method that converts binary data to `ASCII` characters, using `85` characters (ASCII 33-117, i.e., ! to u) to represent data. `dongle` supports standard `Base85` encoding, also known as `ASCII85`, compliant with `Adobe PostScript` and `PDF` specifications.
+Base85 is an encoding method that converts binary data to `ASCII` characters, using `85` characters (ASCII 33-117, i.e., ! to u) to represent data. `dongle` supports standard and streaming `Base85` encoding, also known as `ASCII85`, compliant with `Adobe PostScript` and `PDF` specifications.
 
 ### Encoding Data
 

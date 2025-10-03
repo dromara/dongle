@@ -10,7 +10,7 @@ head:
 
 # Hmac-Blake2b
 
-`Hmac-Blake2b` 是一种基于 `blake2b` 的消息认证码算法，`dongle` 支持标准 `blake2b` 消息认证码算法，提供多种输出格式。
+`Hmac-Blake2b` 是一种基于 `blake2b` 的消息认证码算法，`dongle` 支持标准和流式 `blake2b` 消息认证码算法，提供多种输出格式。
 
 > 注意：`WithKey` 方法必须在 `ByBlake2b` 之前调用
 

@@ -11,7 +11,7 @@ head:
 
 # DES
 
-DES（Data Encryption Standard）は対称暗号化アルゴリズムで、`8` バイト鍵を使用します。`dongle` は標準的な `DES` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
+DES（Data Encryption Standard）は対称暗号化アルゴリズムで、`8` バイト鍵を使用します。`dongle` は標準およびストリーミング `DES` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
 
 以下のブロックモードをサポート：
 
@@ -140,16 +140,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CTR モード
+## ECB モード
 
 ### Cipherの作成
 
 ```go
-c := cipher.NewDesCipher(cipher.CTR)
+c := cipher.NewDesCipher(cipher.ECB)
 // 鍵を設定（8バイト）
 c.SetKey([]byte("12345678"))
-// 初期化ベクトルを設定（8バイト）
-c.SetIV([]byte("87654321"))
+// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+c.SetPadding(cipher.PKCS7)
 ```
 
 ### データの暗号化
@@ -234,16 +234,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## ECB モード
+## CTR モード
 
 ### Cipherの作成
 
 ```go
-c := cipher.NewDesCipher(cipher.ECB)
+c := cipher.NewDesCipher(cipher.CTR)
 // 鍵を設定（8バイト）
 c.SetKey([]byte("12345678"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
-c.SetPadding(cipher.PKCS7)
+// 初期化ベクトルを設定（8バイト）
+c.SetIV([]byte("87654321"))
 ```
 
 ### データの暗号化

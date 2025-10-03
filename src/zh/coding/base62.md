@@ -11,7 +11,7 @@ head:
 
 # Base62
 
-Base62 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `62` 个字符（0-9, A-Z, a-z）来表示数据。`dongle` 支持标准 `Base62` 编码。
+Base62 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `62` 个字符（0-9, A-Z, a-z）来表示数据。`dongle` 支持标准和流式 `Base62` 编码。
 
 > 默认字符集为 `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`,
 > 可以通过设置 `base62.StdAlphabet` 来自定义字符集

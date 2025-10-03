@@ -10,7 +10,7 @@ head:
 
 # ChaCha20
 
-ChaCha20 is a modern high-performance stream cipher algorithm that uses a fixed-length `32` bytes key and `12` bytes nonce to encrypt and decrypt data. `dongle` supports standard `ChaCha20` encryption, providing multiple input formats, output formats, and streaming processing capabilities.
+ChaCha20 is a modern high-performance stream cipher algorithm that uses a fixed-length `32` bytes key and `12` bytes nonce to encrypt and decrypt data. `dongle` supports standard and streaming `ChaCha20` encryption, providing multiple input formats, output formats, and streaming processing capabilities.
 
 ChaCha20 is a symmetric encryption algorithm that uses the same key for both encryption and decryption. ChaCha20 as a stream cipher can handle data of any length without data alignment requirements.
 

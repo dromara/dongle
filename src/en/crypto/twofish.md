@@ -10,13 +10,13 @@ head:
 
 # Twofish
 
-Twofish is a symmetric encryption algorithm that supports fixed-length keys with key sizes of `16`, `24`, or `32` bytes. `dongle` supports standard `Twofish` encryption with multiple block modes, padding modes, and output formats.
+Twofish is a symmetric encryption algorithm that supports fixed-length keys with key sizes of `16`, `24`, or `32` bytes. `dongle` supports standard and streaming `Twofish` encryption with multiple block modes, padding modes, and output formats.
 
 The following block modes are supported:
 
 - **CBC (Cipher Block Chaining)**: Requires setting key `Key`, initialization vector `IV` (16 bytes), and padding mode `Padding`
-- **CTR (Counter)**: Requires setting key `Key` and initialization vector `IV` (16 bytes)
 - **ECB (Electronic Codebook)**: Requires setting key `Key` and padding mode `Padding`
+- **CTR (Counter)**: Requires setting key `Key` and initialization vector `IV` (16 bytes)
 - **CFB (Cipher Feedback)**: Requires setting key `Key` and initialization vector `IV` (16 bytes)
 - **OFB (Output Feedback)**: Requires setting key `Key` and initialization vector `IV` (16 bytes)
 - **GCM (Galois/Counter Mode)**: Requires setting key `Key`, nonce `Nonce` (12 bytes), and optional additional authenticated data `AAD`
@@ -50,7 +50,7 @@ c := cipher.NewTwofishCipher(cipher.CBC)
 c.SetKey([]byte("1234567890123456"))
 // Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))
-// Set padding mode (optional, defaults to PKCS7)
+// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -138,16 +138,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CTR Mode
+## ECB Mode
 
 ### Create Cipher
 
 ```go
-c := cipher.NewTwofishCipher(cipher.CTR)
+c := cipher.NewTwofishCipher(cipher.ECB)
 // Set key (16, 24, or 32 bytes)
 c.SetKey([]byte("1234567890123456"))
-// Set initialization vector (16 bytes)
-c.SetIV([]byte("1234567890123456"))
+// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+c.SetPadding(cipher.PKCS7)
 ```
 
 ### Encrypt Data
@@ -232,16 +232,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## ECB Mode
+## CTR Mode
 
 ### Create Cipher
 
 ```go
-c := cipher.NewTwofishCipher(cipher.ECB)
+c := cipher.NewTwofishCipher(cipher.CTR)
 // Set key (16, 24, or 32 bytes)
 c.SetKey([]byte("1234567890123456"))
-// Set padding mode (optional, defaults to PKCS7)
-c.SetPadding(cipher.PKCS7)
+// Set initialization vector (16 bytes)
+c.SetIV([]byte("1234567890123456"))
 ```
 
 ### Encrypt Data

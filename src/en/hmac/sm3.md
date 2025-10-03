@@ -10,7 +10,7 @@ head:
 
 # Hmac-Sm3
 
-`Hmac-Sm3` is a message authentication code algorithm based on `sm3`. `dongle` supports the standard `sm3` message authentication code algorithm and provides multiple output formats.
+`Hmac-Sm3` is a message authentication code algorithm based on `sm3`. `dongle` supports standard and streaming `sm3` message authentication code algorithms and provides multiple output formats.
 
 > Note: The `WithKey` method must be called before `BySm3`
 

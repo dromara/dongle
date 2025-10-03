@@ -10,7 +10,7 @@ head:
 
 # Salsa20
 
-Salsa20 is a modern high-performance stream cipher algorithm that uses a fixed-length `32`-byte key and `8`-byte nonce to encrypt and decrypt data. `dongle` supports standard `Salsa20` encryption with multiple input formats, output formats, and streaming capabilities.
+Salsa20 is a modern high-performance stream cipher algorithm that uses a fixed-length `32`-byte key and `8`-byte nonce to encrypt and decrypt data. `dongle` supports standard and streaming `Salsa20` encryption with multiple input formats, output formats, and streaming capabilities.
 
 Salsa20 is a symmetric encryption algorithm that uses the same key for encryption and decryption. As a stream cipher, Salsa20 can handle data of arbitrary length without alignment requirements.
 

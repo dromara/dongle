@@ -11,7 +11,7 @@ head:
 
 # Base64
 
-Base64 is an encoding method that converts binary data to `ASCII` characters, using `64` characters (A-Z, a-z, 0-9, +, /) to represent data. `dongle` supports both standard `Base64` and `Base64Url` variants.
+Base64 is an encoding method that converts binary data to `ASCII` characters, using `64` characters (A-Z, a-z, 0-9, +, /) to represent data. `dongle` supports standard and streaming `Base64` encoding as well as standard and streaming `Base64Url` encoding.
 
 - [Base64Std](#base64std)
 - [Base64Url](#base64url)

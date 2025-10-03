@@ -11,7 +11,7 @@ head:
 
 # Morse
 
-Morse is an encoding method that converts text to sequences of dots and dashes, following the International Morse Code standard (ITU-R M.1677-1). `dongle` supports standard `Morse` encoding, converting letters, numbers, and punctuation marks to standardized sequences of dots and dashes.
+Morse is an encoding method that converts text to sequences of dots and dashes, following the International Morse Code standard (ITU-R M.1677-1). `dongle` supports standard and streaming `Morse` encoding, converting letters, numbers, and punctuation marks to standardized sequences of dots and dashes.
 > The default separator is `space`,
 > You can customize the separator by setting `morse.StdSeparator`
 

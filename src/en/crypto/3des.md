@@ -10,13 +10,13 @@ head:
 
 # 3DES
 
-3DES (Triple Data Encryption Standard) is a symmetric encryption algorithm that uses a `16-byte` or `24-byte` key. `dongle` supports standard `3DES` encryption and provides multiple block modes, padding modes, and output formats.
+3DES (Triple Data Encryption Standard) is a symmetric encryption algorithm that uses a `16-byte` or `24-byte` key. `dongle` supports standard and streaming `3DES` encryption and provides multiple block modes, padding modes, and output formats.
 
 Supported block modes:
 
 - **CBC (Cipher Block Chaining)**: Cipher Block Chaining mode, requires setting key `Key`, initialization vector `IV` (8 bytes), and padding mode `Padding`
-- **CTR (Counter)**: Counter mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 - **ECB (Electronic Codebook)**: Electronic Codebook mode, requires setting key `Key` and padding mode `Padding`
+- **CTR (Counter)**: Counter mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 - **CFB (Cipher Feedback)**: Cipher Feedback mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 - **OFB (Output Feedback)**: Output Feedback mode, requires setting key `Key` and initialization vector `IV` (8 bytes)
 
@@ -52,7 +52,7 @@ c := cipher.New3DesCipher(cipher.CBC)
 c.SetKey([]byte("123456781234567812345678"))
 // Set initialization vector (8 bytes)
 c.SetIV([]byte("87654321"))
-// Set padding mode (optional, default is PKCS7)
+// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
 c.SetPadding(cipher.PKCS7) 
 ```
 
@@ -138,6 +138,100 @@ Output Data
 decrypter.ToString() // hello world
 // Output decrypted byte slice
 decrypter.ToBytes()  // []byte("hello world")
+```
+
+## ECB Mode
+
+### Create Cipher
+
+```go
+c := cipher.New3DesCipher(cipher.ECB)
+// Set key (16-byte will auto-expand to 24-byte)
+c.SetKey([]byte("123456781234567812345678"))
+// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+c.SetPadding(cipher.PKCS7) 
+```
+
+### Encrypt Data
+
+Input Data
+```go
+// Input string
+encrypter := dongle.Encrypt.FromString("hello world").By3Des(c)
+// Input byte slice
+encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).By3Des(c)
+// Input file stream
+file, _ := os.Open("test.txt")
+encrypter := dongle.Encrypt.FromFile(file).By3Des(c)
+
+// Check encryption error
+if encrypter.Error != nil {
+	fmt.Printf("Encryption error: %v\n", encrypter.Error)
+	return
+}
+```
+
+Output Data
+```go
+// Output hex-encoded string
+encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+// Output hex-encoded byte slice
+encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+
+// Output base64-encoded string
+encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+// Output base64-encoded byte slice
+encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+
+// Output raw string
+encrypter.ToRawString()
+// Output raw byte slice
+encrypter.ToRawBytes() 
+```
+
+### Decrypt Data
+
+Input Data
+
+```go
+// Input hex-encoded string
+decrypter := dongle.Decrypt.FromHexString(hexString).By3Des(c)
+// Input hex-encoded byte slice
+decrypter := dongle.Decrypt.FromHexBytes(hexBytes).By3Des(c)
+// Input hex-encoded file stream
+file, _ := os.Open("encrypted.hex")
+decrypter := dongle.Decrypt.FromHexFile(file).By3Des(c)
+
+// Input base64-encoded string
+decrypter := dongle.Decrypt.FromBase64String(base64String).By3Des(c)
+// Input base64-encoded byte slice
+decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).By3Des(c)
+// Input base64-encoded file stream
+file, _ := os.Open("encrypted.base64")
+decrypter := dongle.Decrypt.FromBase64File(file).By3Des(c)
+
+// Input raw string
+decrypter := dongle.Decrypt.FromRawString(rawString).By3Des(c)
+// Input raw byte slice
+decrypter := dongle.Decrypt.FromRawBytes(rawBytes).By3Des(c)
+// Input raw file stream
+file, _ := os.Open("encrypted.bin")
+decrypter := dongle.Decrypt.FromRawFile(file).By3Des(c)
+
+// Check decryption error
+if decrypter.Error != nil {
+	fmt.Printf("Decryption error: %v\n", decrypter.Error)
+	return
+}
+```
+
+Output Data
+
+```go
+// Output decrypted string
+decrypter.ToString() // hello world
+// Output decrypted byte slice
+decrypter.ToBytes() // []byte("hello world")
 ```
 
 ## CTR Mode
@@ -232,100 +326,6 @@ Output Data
 decrypter.ToString() // hello world
 // Output decrypted byte slice
 decrypter.ToBytes()  // []byte("hello world")
-```
-
-## ECB Mode
-
-### Create Cipher
-
-```go
-c := cipher.New3DesCipher(cipher.ECB)
-// Set key (16-byte will auto-expand to 24-byte)
-c.SetKey([]byte("123456781234567812345678"))
-// Set padding mode (optional, default is PKCS7)
-c.SetPadding(cipher.PKCS7) 
-```
-
-### Encrypt Data
-
-Input Data
-```go
-// Input string
-encrypter := dongle.Encrypt.FromString("hello world").By3Des(c)
-// Input byte slice
-encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).By3Des(c)
-// Input file stream
-file, _ := os.Open("test.txt")
-encrypter := dongle.Encrypt.FromFile(file).By3Des(c)
-
-// Check encryption error
-if encrypter.Error != nil {
-	fmt.Printf("Encryption error: %v\n", encrypter.Error)
-	return
-}
-```
-
-Output Data
-```go
-// Output hex-encoded string
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
-
-// Output base64-encoded string
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
-
-// Output raw string
-encrypter.ToRawString()
-// Output raw byte slice
-encrypter.ToRawBytes() 
-```
-
-### Decrypt Data
-
-Input Data
-
-```go
-// Input hex-encoded string
-decrypter := dongle.Decrypt.FromHexString(hexString).By3Des(c)
-// Input hex-encoded byte slice
-decrypter := dongle.Decrypt.FromHexBytes(hexBytes).By3Des(c)
-// Input hex-encoded file stream
-file, _ := os.Open("encrypted.hex")
-decrypter := dongle.Decrypt.FromHexFile(file).By3Des(c)
-
-// Input base64-encoded string
-decrypter := dongle.Decrypt.FromBase64String(base64String).By3Des(c)
-// Input base64-encoded byte slice
-decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).By3Des(c)
-// Input base64-encoded file stream
-file, _ := os.Open("encrypted.base64")
-decrypter := dongle.Decrypt.FromBase64File(file).By3Des(c)
-
-// Input raw string
-decrypter := dongle.Decrypt.FromRawString(rawString).By3Des(c)
-// Input raw byte slice
-decrypter := dongle.Decrypt.FromRawBytes(rawBytes).By3Des(c)
-// Input raw file stream
-file, _ := os.Open("encrypted.bin")
-decrypter := dongle.Decrypt.FromRawFile(file).By3Des(c)
-
-// Check decryption error
-if decrypter.Error != nil {
-	fmt.Printf("Decryption error: %v\n", decrypter.Error)
-	return
-}
-```
-
-Output Data
-
-```go
-// Output decrypted string
-decrypter.ToString() // hello world
-// Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
 ```
 
 ## CFB Mode

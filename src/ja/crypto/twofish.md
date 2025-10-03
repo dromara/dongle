@@ -10,7 +10,7 @@ head:
 
 # Twofish
 
-Twofishは、`16`、`24`、または`32`バイトの固定長キーをサポートする対称暗号化アルゴリズムです。`dongle`は標準的な`Twofish`暗号化をサポートし、複数のブロックモード、パディングモード、出力形式を提供します。
+Twofishは、`16`、`24`、または`32`バイトの固定長キーをサポートする対称暗号化アルゴリズムです。`dongle`は標準およびストリーミング`Twofish`暗号化をサポートし、複数のブロックモード、パディングモード、出力形式を提供します。
 
 以下のブロックモードがサポートされています：
 
@@ -138,16 +138,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CTRモード
+## ECBモード
 
 ### 暗号器の作成
 
 ```go
-c := cipher.NewTwofishCipher(cipher.CTR)
+c := cipher.NewTwofishCipher(cipher.ECB)
 // キーを設定（16、24、または32バイト）
 c.SetKey([]byte("1234567890123456"))
-// 初期化ベクトルを設定（16バイト）
-c.SetIV([]byte("1234567890123456"))
+// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+c.SetPadding(cipher.PKCS7)
 ```
 
 ### データの暗号化
@@ -232,16 +232,16 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## ECBモード
+## CTRモード
 
 ### 暗号器の作成
 
 ```go
-c := cipher.NewTwofishCipher(cipher.ECB)
+c := cipher.NewTwofishCipher(cipher.CTR)
 // キーを設定（16、24、または32バイト）
 c.SetKey([]byte("1234567890123456"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
-c.SetPadding(cipher.PKCS7)
+// 初期化ベクトルを設定（16バイト）
+c.SetIV([]byte("1234567890123456"))
 ```
 
 ### データの暗号化

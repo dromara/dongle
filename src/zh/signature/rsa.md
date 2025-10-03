@@ -10,7 +10,7 @@ head:
 
 # RSA
 
-RSA 数字签名是一种基于非对称加密的数字签名算法，使用私钥进行签名，公钥进行验证。`dongle` 支持标准 `RSA` 数字签名，提供多种密钥格式、哈希算法和输出格式。
+RSA 数字签名是一种基于非对称加密的数字签名算法，使用私钥进行签名，公钥进行验证。`dongle` 支持标准和流式 `RSA` 数字签名，提供多种密钥格式、哈希算法和输出格式。
 
 支持以下密钥格式：
 
@@ -61,7 +61,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // 设置密钥格式（可选，默认为 PKCS8）
 kp.SetFormat(keypair.PKCS8)
-// 设置哈希算法（可选，默认为 SHA256）
+// 设置哈希算法（可选，默认为 SHA256，只有 PKCS8 密钥格式才需要设置哈希算法）
 kp.SetHash(crypto.SHA256)   
 ```
 
@@ -199,7 +199,7 @@ if verifier.Error != nil {
 ### 输出数据
 ```go
 // 输出验证结果
-verifier.ByRsa(kp).ToBool() // true 或 false
+verifier.ToBool() // true 或 false
 ```
 
 

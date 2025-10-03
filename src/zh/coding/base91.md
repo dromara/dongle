@@ -11,7 +11,7 @@ head:
 
 # Base91
 
-Base91 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `91` 个字符（A-Z, a-z, 0-9, 以及特殊字符，排除空格、撇号、连字符和反斜杠）来表示数据。`dongle` 支持标准 `Base91` 编码。
+Base91 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使用 `91` 个字符（A-Z, a-z, 0-9, 以及特殊字符，排除空格、撇号、连字符和反斜杠）来表示数据。`dongle` 支持标准和流式 `Base91` 编码。
 
 > 默认字符集为 `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_{|}~"`,
 > 可以通过设置 `base91.StdAlphabet` 来自定义字符集

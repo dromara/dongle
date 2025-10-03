@@ -11,14 +11,14 @@ head:
 
 # AES
 
-AES（Advanced Encryption Standard）は対称暗号化アルゴリズムで、`16` バイト、`24` バイト、`32` バイトの鍵長をサポートします。`dongle` は標準的な `AES` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
+AES（Advanced Encryption Standard）は対称暗号化アルゴリズムで、`16` バイト、`24` バイト、`32` バイトの鍵長をサポートします。`dongle` は標準およびストリーミング `AES` 暗号化をサポートし、多様なブロックモード、パディングモード、出力形式を提供します。
 
 以下のブロックモードをサポート：
 
 - **CBC（Cipher Block Chaining）**：暗号ブロック連鎖モード、鍵 `Key`、初期化ベクトル `IV`（16バイト）、パディングモード `Padding` の設定が必要
+- **ECB（Electronic Codebook）**：電子暗号帳モード、鍵 `Key` とパディングモード `Padding` の設定が必要
 - **CTR（Counter）**：カウンターモード、鍵 `Key` と初期化ベクトル `IV`（12バイト）の設定が必要
 - **GCM（Galois/Counter Mode）**：ガロア/カウンターモード、鍵 `Key`、乱数 `Nonce`（12バイト）、追加認証データ `AAD`（オプション）の設定が必要
-- **ECB（Electronic Codebook）**：電子暗号帳モード、鍵 `Key` とパディングモード `Padding` の設定が必要
 - **CFB（Cipher Feedback）**：暗号フィードバックモード、鍵 `Key` と初期化ベクトル `IV`（16バイト）の設定が必要
 - **OFB（Output Feedback）**：出力フィードバックモード、鍵 `Key` と初期化ベクトル `IV`（16バイト）の設定が必要
 
@@ -51,7 +51,7 @@ c := cipher.NewAesCipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890"))
 // 初期化ベクトルを設定（16バイト）
 c.SetIV([]byte("1234567890123456"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
+// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
 c.SetPadding(cipher.PKCS7)          
 ```
 
@@ -137,6 +137,100 @@ if decrypter.Error != nil {
 decrypter.ToString() // hello world
 // 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
+```
+
+## ECBモード
+
+### Cipherの作成
+
+```go
+c := cipher.NewAesCipher(cipher.ECB)
+// 鍵を設定（16バイト）
+c.SetKey([]byte("dongle1234567890"))
+// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+c.SetPadding(cipher.PKCS7) 
+```
+
+### データの暗号化
+
+入力データ
+```go
+// 入力文字列
+encrypter := dongle.Encrypt.FromString("hello world").ByAes(c)
+// 入力バイトスライス
+encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByAes(c)
+// 入力ファイルストリーム
+file, _ := os.Open("test.txt")
+encrypter := dongle.Encrypt.FromFile(file).ByAes(c)
+
+// 暗号化エラーをチェック
+if encrypter.Error != nil {
+	fmt.Printf("暗号化エラー: %v\n", encrypter.Error)
+	return
+}
+```
+
+出力データ
+```go
+// Hexエンコード文字列を出力
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+// Hexエンコードバイトスライスを出力
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+
+// Base64エンコード文字列を出力
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+// Base64エンコードバイトスライスを出力
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+
+// エンコードなし生文字列を出力
+encrypter.ToRawString()
+// エンコードなし生バイトスライスを出力
+encrypter.ToRawBytes() 
+```
+
+### データの復号化
+
+入力データ
+
+```go
+// Hexエンコード文字列を入力
+decrypter := dongle.Decrypt.FromHexString(hexString).ByAes(c)
+// Hexエンコードバイトスライスを入力
+decrypter := dongle.Decrypt.FromHexBytes(hexBytes).ByAes(c)
+// Hexエンコードファイルストリームを入力
+file, _ := os.Open("encrypted.hex")
+decrypter := dongle.Decrypt.FromHexFile(file).ByAes(c)
+
+// Base64エンコード文字列を入力
+decrypter := dongle.Decrypt.FromBase64String(base64String).ByAes(c)
+// Base64エンコードバイトスライスを入力
+decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByAes(c)
+// Base64エンコードファイルストリームを入力
+file, _ := os.Open("encrypted.base64")
+decrypter := dongle.Decrypt.FromBase64File(file).ByAes(c)
+
+// 生文字列を入力
+decrypter := dongle.Decrypt.FromRawString(rawString).ByAes(c)
+// 生バイトスライスを入力
+decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByAes(c)
+// 生ファイルストリームを入力
+file, _ := os.Open("encrypted.bin")
+decrypter := dongle.Decrypt.FromRawFile(file).ByAes(c)
+
+// 復号化エラーをチェック
+if decrypter.Error != nil {
+	fmt.Printf("復号化エラー: %v\n", decrypter.Error)
+	return
+}
+```
+
+出力データ
+
+```go
+// 文字列を出力
+decrypter.ToString() // hello world
+// バイトスライスを出力
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CTRモード
@@ -330,97 +424,6 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## ECBモード
-
-### Cipherの作成
-
-```go
-c := cipher.NewAesCipher(cipher.ECB)
-// 鍵を設定（16バイト）
-c.SetKey([]byte("dongle1234567890"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
-c.SetPadding(cipher.PKCS7) 
-```
-
-### データの暗号化
-
-入力データ
-```go
-// 入力文字列
-encrypter := dongle.Encrypt.FromString("hello world").ByAes(c)
-// 入力バイトスライス
-encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByAes(c)
-// 入力ファイルストリーム
-file, _ := os.Open("test.txt")
-encrypter := dongle.Encrypt.FromFile(file).ByAes(c)
-
-// 暗号化エラーをチェック
-if encrypter.Error != nil {
-	fmt.Printf("暗号化エラー: %v\n", encrypter.Error)
-	return
-}
-```
-
-出力データ
-```go
-// Hexエンコード文字列を出力
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
-
-// Base64エンコード文字列を出力
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
-
-// エンコードなし生文字列を出力
-encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
-encrypter.ToRawBytes() 
-```
-
-### データの復号化
-
-入力データ
-```go
-// Hexエンコード文字列を入力
-decrypter := dongle.Decrypt.FromHexString(hexString).ByAes(c)
-// Hexエンコードバイトスライスを入力
-decrypter := dongle.Decrypt.FromHexBytes(hexBytes).ByAes(c)
-// Hexエンコードファイルストリームを入力
-file, _ := os.Open("encrypted.hex")
-decrypter := dongle.Decrypt.FromHexFile(file).ByAes(c)
-
-// Base64エンコード文字列を入力
-decrypter := dongle.Decrypt.FromBase64String(base64String).ByAes(c)
-// Base64エンコードバイトスライスを入力
-decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByAes(c)
-// Base64エンコードファイルストリームを入力
-file, _ := os.Open("encrypted.base64")
-decrypter := dongle.Decrypt.FromBase64File(file).ByAes(c)
-
-// 生文字列を入力
-decrypter := dongle.Decrypt.FromRawString(rawString).ByAes(c)
-// 生バイトスライスを入力
-decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByAes(c)
-// 生ファイルストリームを入力
-file, _ := os.Open("encrypted.bin")
-decrypter := dongle.Decrypt.FromRawFile(file).ByAes(c)
-
-// 復号化エラーをチェック
-if decrypter.Error != nil {
-	fmt.Printf("復号化エラー: %v\n", decrypter.Error)
-	return
-}
-```
-
-出力データ
-```go
-// 復号化後の文字列を出力
-decrypter.ToString() // hello world
-// 復号化後のバイトスライスを出力
-decrypter.ToBytes() // []byte("hello world")
-```
 
 ## CFBモード
 

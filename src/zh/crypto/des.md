@@ -10,13 +10,13 @@ head:
 
 # DES
 
-DES（Data Encryption Standard）是一种对称加密算法，使用 `8` 字节密钥。`dongle` 支持标准 `DES` 加密，提供多种分组模式、填充模式和输出格式。
+DES（Data Encryption Standard）是一种对称加密算法，使用 `8` 字节密钥。`dongle` 支持标准和流式 `DES` 加密，提供多种分组模式、填充模式和输出格式。
 
 支持以下分组模式：
 
 - **CBC（Cipher Block Chaining）**：密码分组链接模式，需要设置密钥 `Key`、初始化向量 `IV`（8 字节）和填充模式 `Padding`
-- **CTR（Counter）**：计数器模式，需要设置密钥 `Key` 和初始化向量 `IV`（8 字节）
 - **ECB（Electronic Codebook）**：电子密码本模式，需要设置密钥 `Key` 和填充模式 `Padding`
+- **CTR（Counter）**：计数器模式，需要设置密钥 `Key` 和初始化向量 `IV`（8 字节）
 - **CFB（Cipher Feedback）**：密码反馈模式，需要设置密钥 `Key` 和初始化向量 `IV`（8 字节）
 - **OFB（Output Feedback）**：输出反馈模式，需要设置密钥 `Key` 和初始化向量 `IV`（8 字节）
 
@@ -51,7 +51,7 @@ c := cipher.NewDesCipher(cipher.CBC)
 c.SetKey([]byte("12345678"))
 // 设置初始化向量（8 字节）
 c.SetIV([]byte("87654321"))
-// 设置填充模式（可选，默认为 PKCS7）
+// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -137,6 +137,100 @@ if decrypter.Error != nil {
 decrypter.ToString() // hello world
 // 输出字节切片
 decrypter.ToBytes()  // []byte("hello world")
+```
+
+## ECB 模式
+
+### 创建 Cipher
+
+```go
+c := cipher.NewDesCipher(cipher.ECB)
+// 设置密钥（8 字节）
+c.SetKey([]byte("12345678"))
+// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+c.SetPadding(cipher.PKCS7)
+```
+
+### 加密数据
+
+输入数据
+```go
+// 输入字符串
+encrypter := dongle.Encrypt.FromString("hello world").ByDes(c)
+// 输入字节切片
+encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByDes(c)
+// 输入文件流
+file, _ := os.Open("test.txt")
+encrypter := dongle.Encrypt.FromFile(file).ByDes(c)
+
+// 检查加密错误
+if encrypter.Error != nil {
+	fmt.Printf("加密错误: %v\n", encrypter.Error)
+	return
+}
+```
+
+输出数据
+```go
+// 输出 Hex 编码字符串
+encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+// 输出 Hex 编码字节切片
+encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+
+// 输出 Base64 编码字符串
+encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+// 输出 Base64 编码字节切片
+encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+
+// 输出未编码原始字符串
+encrypter.ToRawString()
+// 输出未编码原始字节切片
+encrypter.ToRawBytes() 
+```
+
+### 解密数据
+
+输入数据
+
+```go
+// 输入 Hex 编码字符串
+decrypter := dongle.Decrypt.FromHexString(hexString).ByDes(c)
+// 输入 Hex 编码字节切片
+decrypter := dongle.Decrypt.FromHexBytes(hexBytes).ByDes(c)
+// 输入 Hex 编码文件流
+file, _ := os.Open("encrypted.hex")
+decrypter := dongle.Decrypt.FromHexFile(file).ByDes(c)
+
+// 输入 Base64 编码字符串
+decrypter := dongle.Decrypt.FromBase64String(base64String).ByDes(c)
+// 输入 Base64 编码字节切片
+decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByDes(c)
+// 输入 Base64 编码文件流
+file, _ := os.Open("encrypted.base64")
+decrypter := dongle.Decrypt.FromBase64File(file).ByDes(c)
+
+// 输入原始字符串
+decrypter := dongle.Decrypt.FromRawString(rawString).ByDes(c)
+// 输入原始字节切片
+decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByDes(c)
+// 输入原始文件流
+file, _ := os.Open("encrypted.bin")
+decrypter := dongle.Decrypt.FromRawFile(file).ByDes(c)
+
+// 检查解密错误
+if decrypter.Error != nil {
+	fmt.Printf("解密错误: %v\n", decrypter.Error)
+	return
+}
+```
+
+输出数据
+
+```go
+// 输出字符串
+decrypter.ToString() // hello world
+// 输出字节切片
+decrypter.ToBytes() // []byte("hello world")
 ```
 
 ## CTR 模式
@@ -231,100 +325,6 @@ if decrypter.Error != nil {
 decrypter.ToString() // hello world
 // 输出字节切片
 decrypter.ToBytes()  // []byte("hello world")
-```
-
-## ECB 模式
-
-### 创建 Cipher
-
-```go
-c := cipher.NewDesCipher(cipher.ECB)
-// 设置密钥（8 字节）
-c.SetKey([]byte("12345678"))
-// 设置填充模式（可选，默认为 PKCS7）
-c.SetPadding(cipher.PKCS7)
-```
-
-### 加密数据
-
-输入数据
-```go
-// 输入字符串
-encrypter := dongle.Encrypt.FromString("hello world").ByDes(c)
-// 输入字节切片
-encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByDes(c)
-// 输入文件流
-file, _ := os.Open("test.txt")
-encrypter := dongle.Encrypt.FromFile(file).ByDes(c)
-
-// 检查加密错误
-if encrypter.Error != nil {
-	fmt.Printf("加密错误: %v\n", encrypter.Error)
-	return
-}
-```
-
-输出数据
-```go
-// 输出 Hex 编码字符串
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
-
-// 输出 Base64 编码字符串
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
-
-// 输出未编码原始字符串
-encrypter.ToRawString()
-// 输出未编码原始字节切片
-encrypter.ToRawBytes() 
-```
-
-### 解密数据
-
-输入数据
-
-```go
-// 输入 Hex 编码字符串
-decrypter := dongle.Decrypt.FromHexString(hexString).ByDes(c)
-// 输入 Hex 编码字节切片
-decrypter := dongle.Decrypt.FromHexBytes(hexBytes).ByDes(c)
-// 输入 Hex 编码文件流
-file, _ := os.Open("encrypted.hex")
-decrypter := dongle.Decrypt.FromHexFile(file).ByDes(c)
-
-// 输入 Base64 编码字符串
-decrypter := dongle.Decrypt.FromBase64String(base64String).ByDes(c)
-// 输入 Base64 编码字节切片
-decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByDes(c)
-// 输入 Base64 编码文件流
-file, _ := os.Open("encrypted.base64")
-decrypter := dongle.Decrypt.FromBase64File(file).ByDes(c)
-
-// 输入原始字符串
-decrypter := dongle.Decrypt.FromRawString(rawString).ByDes(c)
-// 输入原始字节切片
-decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByDes(c)
-// 输入原始文件流
-file, _ := os.Open("encrypted.bin")
-decrypter := dongle.Decrypt.FromRawFile(file).ByDes(c)
-
-// 检查解密错误
-if decrypter.Error != nil {
-	fmt.Printf("解密错误: %v\n", decrypter.Error)
-	return
-}
-```
-
-输出数据
-
-```go
-// 输出字符串
-decrypter.ToString() // hello world
-// 输出字节切片
-decrypter.ToBytes() // []byte("hello world")
 ```
 
 ## CFB 模式
