@@ -207,9 +207,8 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 		d, c := x/baseRadix, x%baseRadix
 
 		encoded := []byte{StdAlphabet[c], StdAlphabet[d], StdAlphabet[v]}
-		_, writeErr := e.writer.Write(encoded)
-		if writeErr != nil {
-			return len(p), writeErr
+		if _, err = e.writer.Write(encoded); err != nil {
+			return len(p), err
 		}
 	}
 
@@ -235,8 +234,7 @@ func (e *StreamEncoder) Close() error {
 		val := uint16(e.buffer[0])
 		d, c := val/baseRadix, val%baseRadix
 		encoded := []byte{StdAlphabet[c], StdAlphabet[d]}
-		_, err := e.writer.Write(encoded)
-		if err != nil {
+		if _, err := e.writer.Write(encoded); err != nil {
 			return err
 		}
 		e.buffer = nil
@@ -279,20 +277,20 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 
 	// Read encoded data in chunks
 	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	nn, err := d.reader.Read(readBuf)
+	rn, err := d.reader.Read(readBuf)
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
 
-	if nn == 0 {
+	if rn == 0 {
 		return 0, io.EOF
 	}
 
 	// Decode the data using the configured decoder
 	decoder := NewStdDecoder()
-	decoded, decodeErr := decoder.Decode(readBuf[:nn])
-	if decodeErr != nil {
-		return 0, decodeErr
+	decoded, err := decoder.Decode(readBuf[:rn])
+	if err != nil {
+		return 0, err
 	}
 
 	// Copy decoded data to the provided buffer

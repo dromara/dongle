@@ -308,19 +308,19 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 
 	// Read encoded data in chunks
 	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	nn, err := d.reader.Read(readBuf)
+	rn, err := d.reader.Read(readBuf)
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
 
-	if nn == 0 {
+	if rn == 0 {
 		return 0, io.EOF
 	}
 
 	// Decode the data using the configured decoder
-	decoded, decodeErr := d.decoder.Decode(readBuf[:nn])
-	if decodeErr != nil {
-		return 0, decodeErr
+	decoded, err := d.decoder.Decode(readBuf[:rn])
+	if err != nil {
+		return 0, err
 	}
 
 	// Copy decoded data to the provided buffer

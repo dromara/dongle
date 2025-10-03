@@ -141,9 +141,8 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 		// Encode 5 bytes to 8 characters
 		encoded := make([]byte, 8)
 		e.encoder.Encode(encoded, data[i:i+5])
-		_, writeErr := e.writer.Write(encoded)
-		if writeErr != nil {
-			return len(p), writeErr
+		if _, err = e.writer.Write(encoded); err != nil {
+			return len(p), err
 		}
 	}
 
@@ -189,9 +188,7 @@ func (e *StreamEncoder) Close() error {
 			encoded = encoded[:7]
 			encoded = append(encoded, []byte("=")...)
 		}
-
-		_, err := e.writer.Write(encoded)
-		if err != nil {
+		if _, err := e.writer.Write(encoded); err != nil {
 			return err
 		}
 		e.buffer = nil
@@ -242,21 +239,21 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 
 	// Read encoded data in chunks
 	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	nn, err := d.reader.Read(readBuf)
+	rn, err := d.reader.Read(readBuf)
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
 
-	if nn == 0 {
+	if rn == 0 {
 		return 0, io.EOF
 	}
 
 	// Decode the data using the configured decoder
-	decodedLen := d.decoder.DecodedLen(nn)
+	decodedLen := d.decoder.DecodedLen(rn)
 	decoded := make([]byte, decodedLen)
-	n, decodeErr := d.decoder.Decode(decoded, readBuf[:nn])
-	if decodeErr != nil {
-		return 0, decodeErr
+	n, err = d.decoder.Decode(decoded, readBuf[:rn])
+	if err != nil {
+		return 0, err
 	}
 
 	// Copy decoded data to the provided buffer
