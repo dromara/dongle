@@ -76,9 +76,8 @@ func (e Encoder) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 			hasData = true
 
 			// Write the chunk to the encoder for immediate processing
-			_, writeErr := encoder.Write(buffer[:n])
-			if writeErr != nil {
-				return []byte{}, writeErr
+			if _, err = encoder.Write(buffer[:n]); err != nil {
+				return []byte{}, err
 			}
 		}
 

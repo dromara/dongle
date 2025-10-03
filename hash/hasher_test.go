@@ -316,7 +316,7 @@ func TestHasher_hmac(t *testing.T) {
 		}
 		result := hasher.hmac(md2.New)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte{}, result.dst)
+		assert.Empty(t, result.dst)
 	})
 
 	t.Run("hmac with empty reader", func(t *testing.T) {
@@ -327,7 +327,7 @@ func TestHasher_hmac(t *testing.T) {
 		}
 		result := hasher.hmac(md2.New)
 		assert.Nil(t, result.Error)
-		assert.Equal(t, []byte{}, result.dst)
+		assert.Empty(t, result.dst)
 	})
 
 	t.Run("hmac with seeker reader", func(t *testing.T) {
@@ -436,7 +436,7 @@ func TestHasher_hmac(t *testing.T) {
 
 		result := hasher.hmac(errorHash)
 		assert.NotNil(t, result.Error)
-		assert.Contains(t, result.Error.Error(), "hmac hasher write error")
+		assert.Contains(t, result.Error.Error(), "hmac: hasher write error")
 		assert.Nil(t, result.dst)
 	})
 
@@ -450,7 +450,7 @@ func TestHasher_hmac(t *testing.T) {
 
 		result := hasher.hmac(md2.New)
 		assert.NotNil(t, result.Error)
-		assert.Contains(t, result.Error.Error(), "hmac stream read error")
+		assert.Contains(t, result.Error.Error(), "hmac: stream read error")
 		assert.Nil(t, result.dst)
 	})
 }
