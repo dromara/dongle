@@ -1,3 +1,6 @@
+// Package hash provides cryptographic hash functions and HMAC operations.
+// It supports multiple hash algorithms including MD2, MD4, MD5, SHA1, SHA2, SHA3,
+// BLAKE2b, BLAKE2s, RIPEMD160, and SM3, with both standard and streaming modes.
 package hash
 
 import (
@@ -115,16 +118,15 @@ func (h Hasher) stream(fn func() hash.Hash) ([]byte, error) {
 
 		// Handle read errors
 		if err != nil && err != io.EOF {
-			return []byte{}, fmt.Errorf("stream read error: %w", err)
+			return []byte{}, fmt.Errorf("hash: stream read error: %w", err)
 		}
 
 		// If we read some data, process it immediately
 		if n > 0 {
 			hasData = true
 			// Write the chunk to the hasher for immediate processing
-			_, writeErr := hasher.Write(buffer[:n])
-			if writeErr != nil {
-				return []byte{}, fmt.Errorf("hasher write error: %w", writeErr)
+			if _, err = hasher.Write(buffer[:n]); err != nil {
+				return []byte{}, fmt.Errorf("hash: hasher write error: %w", err)
 			}
 		}
 
@@ -158,10 +160,8 @@ func (h Hasher) hmac(fn func() hash.Hash) Hasher {
 	// Create HMAC hasher using the hashFunc and key
 	hasher := hmac.New(fn, h.key)
 
-	if len(h.src) > 0 {
-		// Use source data for HMAC (non-streaming)
-		hasher.Write(h.src)
-	} else if h.reader != nil {
+	// Streaming mode
+	if h.reader != nil {
 		// Try to reset the reader position if it's a seeker
 		if seeker, ok := h.reader.(io.Seeker); ok {
 			seeker.Seek(0, io.SeekStart)
@@ -179,7 +179,7 @@ func (h Hasher) hmac(fn func() hash.Hash) Hasher {
 
 			// Handle read errors
 			if err != nil && err != io.EOF {
-				h.Error = fmt.Errorf("hmac stream read error: %w", err)
+				h.Error = fmt.Errorf("hmac: stream read error: %w", err)
 				return h
 			}
 
@@ -189,9 +189,8 @@ func (h Hasher) hmac(fn func() hash.Hash) Hasher {
 				totalBytes += int64(n)
 
 				// Write the chunk to the hasher for immediate processing
-				_, writeErr := hasher.Write(buffer[:n])
-				if writeErr != nil {
-					h.Error = fmt.Errorf("hmac hasher write error: %w", writeErr)
+				if _, err = hasher.Write(buffer[:n]); err != nil {
+					h.Error = fmt.Errorf("hmac: hasher write error: %w", err)
 					return h
 				}
 			}
@@ -207,12 +206,16 @@ func (h Hasher) hmac(fn func() hash.Hash) Hasher {
 			h.dst = []byte{}
 			return h
 		}
-	} else {
-		// If no source data, return empty result
-		h.dst = []byte{}
+
+		h.dst = hasher.Sum(nil)
 		return h
 	}
 
-	h.dst = hasher.Sum(nil)
+	// Standard mode
+	if len(h.src) > 0 {
+		hasher.Write(h.src)
+		h.dst = hasher.Sum(nil)
+	}
+
 	return h
 }
