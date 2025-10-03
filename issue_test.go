@@ -1,12 +1,35 @@
 package dongle
 
 import (
+	"crypto/md5"
+	"fmt"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/hash"
 	"github.com/stretchr/testify/assert"
 )
+
+// https://github.com/dromara/dongle/issues/28
+func TestIssue28(t *testing.T) {
+	var str = "1234567"
+
+	h := md5.New()
+	_, _ = io.WriteString(h, str)
+	md5Std := fmt.Sprintf("%x", h.Sum(nil))
+
+	md5ByDongle1 := Hash.FromString(str).ByMd5().ToHexString()
+	md5ByDongle2 := hash.NewHasher().FromString(str).ByMd5().ToHexString()
+	md5ByDongle3 := Hash.FromString(str).WithKey([]byte("123456")).ByMd5().ToHexString()
+	md5ByDongle4 := Hash.FromString(str).ByMd5().ToHexString()
+
+	assert.Equalf(t, md5Std, md5ByDongle1, "1.默认全局无指定Key MD5结果应与原生结果一致")
+	assert.Equalf(t, md5Std, md5ByDongle2, "2.新建实例无指定Key MD5结果应与原生结果一致")
+	assert.NotEqualf(t, md5Std, md5ByDongle3, "3.默认全局指定Key MD5结果应与原生结果不一致")
+	assert.Equalf(t, md5Std, md5ByDongle4, "4.默认全局无指定Key MD5结果应与原生结果一致")
+}
 
 // https://github.com/dromara/dongle/issues/29
 func TestIssue29(t *testing.T) {
