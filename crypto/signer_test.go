@@ -146,15 +146,33 @@ func TestSigner_ToRawString(t *testing.T) {
 }
 
 func TestSigner_ToRawBytes(t *testing.T) {
-	t.Run("to raw bytes", func(t *testing.T) {
+	t.Run("to raw bytes with empty data", func(t *testing.T) {
 		signer := NewSigner()
+		signer.data = []byte{} // Empty data triggers early return
 		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
 		result := signer.ToRawBytes()
 		assert.Equal(t, []byte{}, result)
 	})
 
+	t.Run("to raw bytes with nil data", func(t *testing.T) {
+		signer := NewSigner()
+		signer.data = nil // Nil data triggers early return
+		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
+		result := signer.ToRawBytes()
+		assert.Equal(t, []byte{}, result)
+	})
+
+	t.Run("to raw bytes with valid data", func(t *testing.T) {
+		signer := NewSigner()
+		signer.data = []byte("hello world") // Valid data allows sign to be returned
+		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
+		result := signer.ToRawBytes()
+		assert.Equal(t, []byte{0x00, 0x01, 0x02, 0x03}, result)
+	})
+
 	t.Run("to raw bytes empty", func(t *testing.T) {
 		signer := NewSigner()
+		signer.data = []byte("hello world")
 		signer.sign = []byte{}
 		result := signer.ToRawBytes()
 		assert.Equal(t, []byte{}, result)
@@ -162,17 +180,19 @@ func TestSigner_ToRawBytes(t *testing.T) {
 
 	t.Run("to raw bytes nil", func(t *testing.T) {
 		signer := NewSigner()
+		signer.data = []byte("hello world")
 		signer.sign = nil
 		result := signer.ToRawBytes()
-		assert.Equal(t, []byte{}, result)
+		assert.Nil(t, result)
 	})
 
 	t.Run("to raw bytes binary", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}
 		signer := NewSigner()
+		signer.data = []byte("hello world")
 		signer.sign = binaryData
 		result := signer.ToRawBytes()
-		assert.Equal(t, []byte{}, result)
+		assert.Equal(t, binaryData, result)
 	})
 }
 
@@ -390,7 +410,7 @@ func TestSigner_Stream(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("stream with error in close", func(t *testing.T) {
+	t.Run("stream with close error", func(t *testing.T) {
 		signer := NewSigner()
 		signer.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
@@ -398,9 +418,8 @@ func TestSigner_Stream(t *testing.T) {
 			return mock.NewCloseErrorWriteCloser(w, assert.AnError)
 		})
 
-		// Close error is not propagated in the current implementation
-		// The stream method uses defer signer.Close() which ignores the error
-		assert.Nil(t, err)
-		assert.Equal(t, []byte("hello world"), result)
+		assert.NotNil(t, err)
+		assert.Equal(t, assert.AnError, err)
+		assert.Equal(t, []byte{}, result)
 	})
 }

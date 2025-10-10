@@ -16,40 +16,48 @@ type Verifier struct {
 	Error  error
 }
 
+// NewVerifier returns a new Verifier instance.
 func NewVerifier() Verifier {
 	return Verifier{}
 }
 
+// FromString verifies from string.
 func (v Verifier) FromString(s string) Verifier {
 	v.data = utils.String2Bytes(s)
 	return v
 }
 
+// FromBytes verifies from byte slice.
 func (v Verifier) FromBytes(b []byte) Verifier {
 	v.data = b
 	return v
 }
 
+// FromFile verifies from file.
 func (v Verifier) FromFile(f fs.File) Verifier {
 	v.reader = f
 	return v
 }
 
+// WithHexSign verifies with hex sign.
 func (v Verifier) WithHexSign(s []byte) Verifier {
 	v.sign = coding.NewDecoder().FromBytes(s).ByHex().ToBytes()
 	return v
 }
 
+// WithBase64Sign verifies with base64 sign.
 func (v Verifier) WithBase64Sign(s []byte) Verifier {
 	v.sign = coding.NewDecoder().FromBytes(s).ByBase64().ToBytes()
 	return v
 }
 
+// WithRawSign verifies with raw sign.
 func (v Verifier) WithRawSign(s []byte) Verifier {
 	v.sign = s
 	return v
 }
 
+// ToBool returns true if verification is successful.
 func (v Verifier) ToBool() bool {
 	if len(v.data) == 0 || len(v.sign) == 0 {
 		return false
@@ -57,56 +65,19 @@ func (v Verifier) ToBool() bool {
 	return v.Error == nil
 }
 
-// stream verifies with crypto stream using true streaming approach.
-// This method processes data in chunks without loading all results into memory,
-// providing constant memory usage regardless of input size.
 func (v Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
-	// Check if reader is nil
-	if v.reader == nil {
-		return []byte{}, io.ErrUnexpectedEOF
+	var buf bytes.Buffer
+	verifier := fn(&buf)
+
+	if _, err := io.CopyBuffer(verifier, v.reader, make([]byte, BufferSize)); err != nil && err != io.EOF {
+		verifier.Close()
+		return []byte{}, err
 	}
-
-	// Use a bytes.Buffer to collect the verification output
-	// This is more efficient than io.Pipe + io.ReadAll for the crypto use case
-	var bf bytes.Buffer
-
-	// Create verifier that writes directly to bf buffer
-	verifier := fn(&bf)
-
-	// Process data in chunks for true streaming
-	buffer := make([]byte, BufferSize)
-
-	for {
-		// Read chunk from input
-		n, readErr := v.reader.Read(buffer)
-		if n > 0 {
-			// Immediately verify and accumulate the chunk
-			_, writeErr := verifier.Write(buffer[:n])
-			if writeErr != nil {
-				verifier.Close() // Close on error
-				return nil, writeErr
-			}
-		}
-
-		// Handle read errors
-		if readErr != nil {
-			if readErr == io.EOF {
-				break // Normal end of input
-			}
-			verifier.Close() // Close on error
-			return []byte{}, readErr
-		}
+	if err := verifier.Close(); err != nil {
+		return []byte{}, err
 	}
-
-	// Close the verifier to complete verification and write results to the buffer
-	// Note: Close errors are not propagated to maintain compatibility with existing tests
-	// The verification data is still captured even if Close() returns an error
-	_ = verifier.Close()
-
-	// Return the accumulated verification data
-	bytes := bf.Bytes()
-	if bytes == nil {
-		return []byte{}, nil // Return empty slice instead of nil for consistency
+	if buf.Len() == 0 {
+		return []byte{}, nil
 	}
-	return bytes, nil
+	return buf.Bytes(), nil
 }

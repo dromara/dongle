@@ -21,29 +21,30 @@ func NewEncrypter() Encrypter {
 	return Encrypter{}
 }
 
-// FromString encodes from string.
+// FromString encrypts from string.
 func (e Encrypter) FromString(s string) Encrypter {
 	e.src = utils.String2Bytes(s)
 	return e
 }
 
-// FromBytes encodes from byte slice.
+// FromBytes encrypts from byte slice.
 func (e Encrypter) FromBytes(b []byte) Encrypter {
 	e.src = b
 	return e
 }
 
+// FromFile encrypts from file.
 func (e Encrypter) FromFile(f fs.File) Encrypter {
 	e.reader = f
 	return e
 }
 
-// ToRawString outputs as raw string without encoding.
+// ToRawString outputs as raw string.
 func (e Encrypter) ToRawString() string {
 	return utils.Bytes2String(e.dst)
 }
 
-// ToRawBytes outputs as raw byte slice without encoding.
+// ToRawBytes outputs as raw byte slice.
 func (e Encrypter) ToRawBytes() []byte {
 	if len(e.dst) == 0 {
 		return []byte{}
@@ -71,44 +72,19 @@ func (e Encrypter) ToHexBytes() []byte {
 	return coding.NewEncoder().FromBytes(e.dst).ByHex().ToBytes()
 }
 
-// streamCrypto encrypts with crypto stream using true streaming approach.
-// This method processes data in chunks without loading all results into memory,
-// providing constant memory usage regardless of input size.
 func (e Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
-	// Use a bytes.Buffer to collect encrypted output
-	// This is more efficient than io.Pipe + io.ReadAll for the crypto use case
-	var bb bytes.Buffer
+	var buf bytes.Buffer
+	encrypter := fn(&buf)
 
-	// Create encrypter that writes directly to result buffer
-	encrypter := fn(&bb)
-	defer encrypter.Close()
-
-	buffer := make([]byte, BufferSize)
-
-	for {
-		// Read chunk from input
-		n, readErr := e.reader.Read(buffer)
-		if n > 0 {
-			// Immediately encrypt and write the chunk
-			_, writeErr := encrypter.Write(buffer[:n])
-			if writeErr != nil {
-				return []byte{}, writeErr
-			}
-		}
-
-		// Handle read errors
-		if readErr != nil {
-			if readErr == io.EOF {
-				break // Normal end of input
-			}
-			return []byte{}, readErr
-		}
+	if _, err := io.CopyBuffer(encrypter, e.reader, make([]byte, BufferSize)); err != nil && err != io.EOF {
+		encrypter.Close()
+		return []byte{}, err
 	}
-
-	// Return the accumulated encrypted data
-	data := bb.Bytes()
-	if data == nil {
-		return []byte{}, nil // Return empty slice instead of nil for consistency
+	if err := encrypter.Close(); err != nil {
+		return []byte{}, err
 	}
-	return data, nil
+	if buf.Len() == 0 {
+		return []byte{}, nil
+	}
+	return buf.Bytes(), nil
 }

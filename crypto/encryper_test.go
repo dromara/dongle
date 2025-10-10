@@ -401,7 +401,7 @@ func TestEncrypter_Stream(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("stream with error in close", func(t *testing.T) {
+	t.Run("stream with close error", func(t *testing.T) {
 		encrypter := NewEncrypter()
 		encrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
 
@@ -409,9 +409,8 @@ func TestEncrypter_Stream(t *testing.T) {
 			return mock.NewCloseErrorWriteCloser(w, assert.AnError)
 		})
 
-		// Close error is not propagated in the current implementation
-		// The stream method uses defer encrypter.Close() which ignores the error
-		assert.Nil(t, err)
-		assert.Equal(t, []byte("hello world"), result)
+		assert.NotNil(t, err)
+		assert.Equal(t, assert.AnError, err)
+		assert.Equal(t, []byte{}, result)
 	})
 }

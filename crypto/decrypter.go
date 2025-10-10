@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"bytes"
 	"io"
 	"io/fs"
 
@@ -22,21 +23,25 @@ func NewDecrypter() Decrypter {
 	return Decrypter{}
 }
 
+// FromRawString decrypts from raw string.
 func (d Decrypter) FromRawString(s string) Decrypter {
 	d.src = utils.String2Bytes(s)
 	return d
 }
 
+// FromRawBytes decrypts from raw bytes.
 func (d Decrypter) FromRawBytes(b []byte) Decrypter {
 	d.src = b
 	return d
 }
 
+// FromRawFile decrypts from raw file.
 func (d Decrypter) FromRawFile(f fs.File) Decrypter {
 	d.reader = f
 	return d
 }
 
+// FromBase64String decrypts from base64 string.
 func (d Decrypter) FromBase64String(s string) Decrypter {
 	decode := coding.NewDecoder().FromString(s).ByBase64()
 	if decode.Error != nil {
@@ -46,6 +51,7 @@ func (d Decrypter) FromBase64String(s string) Decrypter {
 	return d
 }
 
+// FromBase64Bytes decrypts from base64 bytes.
 func (d Decrypter) FromBase64Bytes(b []byte) Decrypter {
 	decode := coding.NewDecoder().FromBytes(b).ByBase64()
 	if decode.Error != nil {
@@ -55,6 +61,7 @@ func (d Decrypter) FromBase64Bytes(b []byte) Decrypter {
 	return d
 }
 
+// FromBase64File decrypts from base64 file.
 func (d Decrypter) FromBase64File(f fs.File) Decrypter {
 	if d.Error != nil {
 		return d
@@ -70,6 +77,7 @@ func (d Decrypter) FromBase64File(f fs.File) Decrypter {
 	return d
 }
 
+// FromHexString decrypts from hex string.
 func (d Decrypter) FromHexString(s string) Decrypter {
 	decode := coding.NewDecoder().FromString(s).ByHex()
 	if decode.Error != nil {
@@ -79,6 +87,7 @@ func (d Decrypter) FromHexString(s string) Decrypter {
 	return d
 }
 
+// FromHexBytes decrypts from hex bytes.
 func (d Decrypter) FromHexBytes(b []byte) Decrypter {
 	decode := coding.NewDecoder().FromBytes(b).ByHex()
 	if decode.Error != nil {
@@ -88,6 +97,7 @@ func (d Decrypter) FromHexBytes(b []byte) Decrypter {
 	return d
 }
 
+// FromHexFile decrypts from hex file.
 func (d Decrypter) FromHexFile(f fs.File) Decrypter {
 	if d.Error != nil {
 		return d
@@ -116,24 +126,15 @@ func (d Decrypter) ToBytes() []byte {
 	return d.dst
 }
 
-// stream decrypts with crypto stream.
 func (d Decrypter) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
-	pr, pw := io.Pipe()
-	go func() {
-		defer pw.Close()
+	var buf bytes.Buffer
+	decrypter := fn(d.reader)
 
-		// Create a Reader that decrypts data
-		decrypter := fn(d.reader)
-		_, err := io.Copy(pw, decrypter)
-		if err != nil {
-			pw.CloseWithError(err)
-			return
-		}
-	}()
-	// Read all decrypted data
-	result, err := io.ReadAll(pr)
-	if err != nil {
+	if _, err := io.CopyBuffer(&buf, decrypter, make([]byte, BufferSize)); err != nil && err != io.EOF {
 		return []byte{}, err
 	}
-	return result, nil
+	if buf.Len() == 0 {
+		return []byte{}, nil
+	}
+	return buf.Bytes(), nil
 }

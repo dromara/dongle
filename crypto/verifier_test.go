@@ -218,20 +218,6 @@ func TestVerifier_stream(t *testing.T) {
 		assert.Equal(t, []byte("hello world"), result)
 	})
 
-	t.Run("with nil reader", func(t *testing.T) {
-		verifier := NewVerifier()
-		verifier.reader = nil
-
-		result, err := verifier.stream(func(w io.Writer) io.WriteCloser {
-			return mock.NewWriteCloser(w)
-		})
-
-		// The stream method might return empty data instead of error for nil reader
-		// The important thing is that it handles the nil reader gracefully
-		_ = err    // Acknowledge that error might be nil
-		_ = result // Acknowledge that result might be empty
-	})
-
 	t.Run("with reader error", func(t *testing.T) {
 		verifier := NewVerifier()
 		errorReader := mock.NewErrorReadWriteCloser(errors.New("read error"))
@@ -315,6 +301,20 @@ func TestVerifier_stream(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("hello world"), result)
+	})
+
+	t.Run("with close error in stream", func(t *testing.T) {
+		verifier := NewVerifier()
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		verifier.reader = file
+
+		result, err := verifier.stream(func(w io.Writer) io.WriteCloser {
+			return mock.NewCloseErrorWriteCloser(w, errors.New("close error"))
+		})
+
+		assert.Error(t, err)
+		assert.Empty(t, result)
+		assert.Equal(t, "close error", err.Error())
 	})
 }
 
