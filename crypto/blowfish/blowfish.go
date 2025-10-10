@@ -182,13 +182,13 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	}
 
 	// Write encrypted data to the underlying writer
-	n, err = e.writer.Write(encrypted)
+	_, err = e.writer.Write(encrypted)
 	if err != nil {
 		return 0, err
 	}
 
-	// Return the number of encrypted bytes written (project convention)
-	return n, nil
+	// Return the number of input bytes processed (io.CopyBuffer convention)
+	return len(p), nil
 }
 
 // Close implements the io.Closer interface for the Blowfish stream encrypter.
