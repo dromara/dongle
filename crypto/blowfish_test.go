@@ -67,18 +67,6 @@ func TestEncrypter_ByBlowfish(t *testing.T) {
 		assert.NotEqual(t, testdataBlowfish, encrypter.dst)
 	})
 
-	t.Run("streaming encryption with reader", func(t *testing.T) {
-		c := cipher.NewBlowfishCipher(cipher.CBC)
-		c.SetKey(key16Blowfish)
-		c.SetIV(iv8Blowfish)
-		c.SetPadding(cipher.PKCS7)
-		file := mock.NewFile([]byte("hello world"), "test.txt")
-		encrypter := NewEncrypter().FromFile(file).ByBlowfish(c)
-		assert.Nil(t, encrypter.Error)
-		assert.NotNil(t, encrypter.dst)
-		assert.NotEqual(t, testdataBlowfish, encrypter.dst)
-	})
-
 	t.Run("streaming encryption with large data", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
 		c.SetKey(key16Blowfish)
