@@ -281,7 +281,7 @@ func TestHasher_stream(t *testing.T) {
 
 		result, err := hasher.stream(errorHash)
 		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "hasher write error")
+		assert.Contains(t, err.Error(), "stream copy error")
 		assert.Equal(t, []byte{}, result)
 	})
 }
@@ -436,7 +436,7 @@ func TestHasher_hmac(t *testing.T) {
 
 		result := hasher.hmac(errorHash)
 		assert.NotNil(t, result.Error)
-		assert.Contains(t, result.Error.Error(), "hmac: hasher write error")
+		assert.Contains(t, result.Error.Error(), "mock write error")
 		assert.Nil(t, result.dst)
 	})
 
@@ -450,7 +450,7 @@ func TestHasher_hmac(t *testing.T) {
 
 		result := hasher.hmac(md2.New)
 		assert.NotNil(t, result.Error)
-		assert.Contains(t, result.Error.Error(), "hmac: stream read error")
+		assert.Contains(t, result.Error.Error(), "read error")
 		assert.Nil(t, result.dst)
 	})
 }

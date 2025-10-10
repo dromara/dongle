@@ -102,62 +102,30 @@ func (h Hasher) ToHexBytes() []byte {
 	return coding.NewEncoder().FromBytes(h.dst).ByHex().ToBytes()
 }
 
-// stream encrypts with stream using true streaming processing.
 func (h Hasher) stream(fn func() hash.Hash) ([]byte, error) {
 	hasher := fn()
 	defer hasher.Reset()
 
-	buffer := make([]byte, BufferSize)
-
-	var hasData bool
-
-	// Stream process data in chunks
-	for {
-		// Read a chunk of data
-		n, err := h.reader.Read(buffer)
-
-		// Handle read errors
-		if err != nil && err != io.EOF {
-			return []byte{}, fmt.Errorf("hash: stream read error: %w", err)
-		}
-
-		// If we read some data, process it immediately
-		if n > 0 {
-			hasData = true
-			// Write the chunk to the hasher for immediate processing
-			if _, err = hasher.Write(buffer[:n]); err != nil {
-				return []byte{}, fmt.Errorf("hash: hasher write error: %w", err)
-			}
-		}
-
-		// If we've reached EOF, break the loop
-		if err == io.EOF {
-			break
-		}
+	copiedN, err := io.CopyBuffer(hasher, h.reader, make([]byte, BufferSize))
+	if err != nil && err != io.EOF {
+		return []byte{}, fmt.Errorf("hash: stream copy error: %w", err)
 	}
-
-	// If no data was read, return empty result
-	if !hasData {
+	if copiedN == 0 {
 		return []byte{}, nil
 	}
-
-	// Return the hash result
 	return hasher.Sum(nil), nil
 }
 
-// hmac calculates HMAC using the given hash function and key
 func (h Hasher) hmac(fn func() hash.Hash) Hasher {
 	if h.Error != nil {
 		return h
 	}
 
-	// Check if key is set
 	if len(h.key) == 0 {
 		h.Error = fmt.Errorf("hmac: key not set, please call WithKey() first")
 		return h
 	}
 
-	// Create HMAC hasher using the hashFunc and key
 	hasher := hmac.New(fn, h.key)
 
 	// Streaming mode
@@ -167,46 +135,14 @@ func (h Hasher) hmac(fn func() hash.Hash) Hasher {
 			seeker.Seek(0, io.SeekStart)
 		}
 
-		buffer := make([]byte, BufferSize)
-
-		var totalBytes int64
-		var hasData bool
-
-		// Stream process data in chunks
-		for {
-			// Read a chunk of data
-			n, err := h.reader.Read(buffer)
-
-			// Handle read errors
-			if err != nil && err != io.EOF {
-				h.Error = fmt.Errorf("hmac: stream read error: %w", err)
-				return h
-			}
-
-			// If we read some data, process it immediately
-			if n > 0 {
-				hasData = true
-				totalBytes += int64(n)
-
-				// Write the chunk to the hasher for immediate processing
-				if _, err = hasher.Write(buffer[:n]); err != nil {
-					h.Error = fmt.Errorf("hmac: hasher write error: %w", err)
-					return h
-				}
-			}
-
-			// If we've reached EOF, break the loop
-			if err == io.EOF {
-				break
-			}
-		}
-
-		// If no data was read, return empty result
-		if !hasData {
-			h.dst = []byte{}
+		copiedN, err := io.CopyBuffer(hasher, h.reader, make([]byte, BufferSize))
+		if err != nil && err != io.EOF {
+			h.Error = fmt.Errorf("hmac: stream copy error: %w", err)
 			return h
 		}
-
+		if copiedN == 0 {
+			return h
+		}
 		h.dst = hasher.Sum(nil)
 		return h
 	}
