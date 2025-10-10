@@ -150,66 +150,62 @@ func (k *RsaKeyPair) SetHash(hash crypto.Hash) {
 // It supports both PKCS1 and PKCS8 formats automatically.
 //
 // Note: This method automatically detects the key format from the PEM headers.
-func (k *RsaKeyPair) ParsePublicKey() (pub *rsa.PublicKey, err error) {
+func (k *RsaKeyPair) ParsePublicKey() (*rsa.PublicKey, error) {
 	publicKey := k.PublicKey
 	block, _ := pem.Decode(publicKey)
 	if block == nil {
-		err = NilPemBlockError{}
-		return
+		return nil, NilPemBlockError{}
 	}
 
-	// Parse based on the PEM block type
+	// PKCS1 format public key
 	if block.Type == "RSA PUBLIC KEY" {
-		// PKCS1 format public key
-		pub, err = x509.ParsePKCS1PublicKey(block.Bytes)
+		pub, err := x509.ParsePKCS1PublicKey(block.Bytes)
 		if err != nil {
 			err = InvalidPublicKeyError{Err: err}
-			return
 		}
+		return pub, err
 	}
+
+	// PKCS8 format public key
 	if block.Type == "PUBLIC KEY" {
-		// PKCS8 format public key
-		pub8, err8 := x509.ParsePKIXPublicKey(block.Bytes)
-		if err8 != nil {
-			err = InvalidPublicKeyError{Err: err8}
-			return
+		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return nil, InvalidPublicKeyError{Err: err}
 		}
-		pub, err = pub8.(*rsa.PublicKey), err8
+		return pub.(*rsa.PublicKey), err
 	}
-	return
+	return nil, nil
 }
 
 // ParsePrivateKey parses the private key from PEM format and returns a Go crypto/rsa.PrivateKey.
 // It supports both PKCS1 and PKCS8 formats automatically.
 //
 // Note: This method automatically detects the key format from the PEM headers.
-func (k *RsaKeyPair) ParsePrivateKey() (pri *rsa.PrivateKey, err error) {
+func (k *RsaKeyPair) ParsePrivateKey() (*rsa.PrivateKey, error) {
 	privateKey := k.PrivateKey
 	block, _ := pem.Decode(privateKey)
 	if block == nil {
-		err = NilPemBlockError{}
-		return
+		return nil, NilPemBlockError{}
 	}
 
-	// Parse based on the PEM block type
+	// PKCS1 format private key
 	if block.Type == "RSA PRIVATE KEY" {
-		// PKCS1 format private key
-		pri, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+		pri, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
-			err = InvalidPrivateKeyError{Err: err}
-			return
+			return nil, InvalidPrivateKeyError{Err: err}
 		}
+		return pri, err
 	}
+
+	// PKCS8 format private key
 	if block.Type == "PRIVATE KEY" {
-		// PKCS8 format private key
-		pri8, err8 := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err8 != nil {
-			err = InvalidPrivateKeyError{Err: err}
-			return
+		pri, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, InvalidPrivateKeyError{Err: err}
 		}
-		pri, err = pri8.(*rsa.PrivateKey), err8
+		return pri.(*rsa.PrivateKey), err
 	}
-	return
+	return nil, nil
 }
 
 // formatPublicKey formats a public key according to the specified format.
