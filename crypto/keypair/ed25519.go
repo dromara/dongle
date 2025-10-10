@@ -39,13 +39,7 @@ func NewEd25519KeyPair() *Ed25519KeyPair {
 //
 // Note: The generated keys are automatically formatted in PEM format using PKCS8 format.
 func (k *Ed25519KeyPair) GenKeyPair() *Ed25519KeyPair {
-	return k.genKeyPairWithRand(rand.Reader)
-}
-
-// genKeyPairWithRand generates a new ED25519 key pair using the specified random reader.
-// This method is primarily used for testing purposes to simulate error conditions.
-func (k *Ed25519KeyPair) genKeyPairWithRand(randReader io.Reader) *Ed25519KeyPair {
-	publicKey, privateKey, _ := ed25519.GenerateKey(randReader)
+	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
 
 	// ED25519 only supports PKCS8 format
 	privateBytes, _ := x509.MarshalPKCS8PrivateKey(privateKey)
