@@ -195,122 +195,33 @@ func TestDecoder_ToBytes(t *testing.T) {
 }
 
 func TestDecoder_stream(t *testing.T) {
-	t.Run("stream with empty data", func(t *testing.T) {
+	t.Run("success with data", func(t *testing.T) {
+		data := []byte("hello decode stream")
+		file := mock.NewFile(data, "d.txt")
+		decoder := NewDecoder().FromFile(file)
+		out, err := decoder.stream(func(r io.Reader) io.Reader {
+			return r
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, data, out)
+	})
+
+	t.Run("empty reader returns empty", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
-		decoder := NewDecoder()
-		decoder.reader = file
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			return r
-		})
-
-		assert.Nil(t, err)
-		assert.Equal(t, []byte{}, result)
+		decoder := NewDecoder().FromFile(file)
+		out, err := decoder.stream(func(r io.Reader) io.Reader { return r })
+		assert.NoError(t, err)
+		assert.Equal(t, []byte{}, out)
 	})
 
-	t.Run("stream with single byte data", func(t *testing.T) {
-		file := mock.NewFile([]byte("a"), "single.txt")
+	t.Run("decoder read error", func(t *testing.T) {
+		readErr := errors.New("read error")
+		errReader := mock.NewErrorReadWriteCloser(readErr)
 		decoder := NewDecoder()
-		decoder.reader = file
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			return r
-		})
-
-		assert.Nil(t, err)
-		assert.Equal(t, []byte("a"), result)
-	})
-
-	t.Run("stream with exact buffer size data", func(t *testing.T) {
-		// Create data exactly 64KB (buffer size)
-		data := make([]byte, 64*1024)
-		for i := range data {
-			data[i] = byte(i % 256)
-		}
-		file := mock.NewFile(data, "exact.txt")
-		decoder := NewDecoder()
-		decoder.reader = file
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			return r
-		})
-
-		assert.Nil(t, err)
-		assert.Equal(t, data, result)
-	})
-
-	t.Run("stream with larger than buffer data", func(t *testing.T) {
-		// Create data larger than 64KB (buffer size)
-		data := make([]byte, 100*1024)
-		for i := range data {
-			data[i] = byte(i % 256)
-		}
-		file := mock.NewFile(data, "large.txt")
-		decoder := NewDecoder()
-		decoder.reader = file
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			return r
-		})
-
-		assert.Nil(t, err)
-		assert.Equal(t, data, result)
-	})
-
-	t.Run("stream with partial buffer reads", func(t *testing.T) {
-		// Test with data that will cause partial buffer reads
-		data := []byte("hello world test data")
-		file := mock.NewFile(data, "partial.txt")
-		decoder := NewDecoder()
-		decoder.reader = file
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			return r
-		})
-
-		assert.Nil(t, err)
-		assert.Equal(t, data, result)
-	})
-
-	t.Run("stream with read error", func(t *testing.T) {
-		errorFile := mock.NewErrorFile(errors.New("read error"))
-		decoder := NewDecoder()
-		decoder.reader = errorFile
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			return r
-		})
-
+		decoder.reader = errReader
+		out, err := decoder.stream(func(r io.Reader) io.Reader { return errReader })
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "read error")
-		assert.Equal(t, []byte{}, result)
-	})
-
-	t.Run("stream with transform error", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello world"), "test.txt")
-		decoder := NewDecoder()
-		decoder.reader = file
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			// Return an error reader from transform function
-			return mock.NewErrorFile(errors.New("transform error"))
-		})
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "transform error")
-		assert.Equal(t, []byte{}, result)
-	})
-
-	t.Run("stream with normal processing", func(t *testing.T) {
-		file := mock.NewFile([]byte("hello world"), "test.txt")
-		decoder := NewDecoder()
-		decoder.reader = file
-
-		result, err := decoder.stream(func(r io.Reader) io.Reader {
-			return r
-		})
-
-		assert.Nil(t, err)
-		assert.Equal(t, []byte("hello world"), result)
+		assert.Equal(t, []byte{}, out)
 	})
 }

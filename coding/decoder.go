@@ -51,46 +51,15 @@ func (d Decoder) ToBytes() []byte {
 	return d.dst
 }
 
-// stream decodes with stream using true streaming processing.
 func (d Decoder) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
-	buffer := make([]byte, BufferSize)
-
-	// Create a buffer to collect decoded data
-	var result bytes.Buffer
-
-	// Get the decoder from the provided function
+	var buf bytes.Buffer
 	decoder := fn(d.reader)
 
-	var hasData bool
-
-	// Stream process data in chunks
-	for {
-		// Read a chunk of data from the decoder
-		n, err := decoder.Read(buffer)
-		if err != nil && err != io.EOF {
-			return []byte{}, err
-		}
-
-		// If we read some data, process it immediately
-		if n > 0 {
-			hasData = true
-
-			// Write the chunk to our result buffer
-			// bytes.Buffer.Write never returns an error unless memory runs out
-			result.Write(buffer[:n])
-		}
-
-		// If we've reached EOF, break the loop
-		if err == io.EOF {
-			break
-		}
+	if _, err := io.CopyBuffer(&buf, decoder, make([]byte, BufferSize)); err != nil && err != io.EOF {
+		return []byte{}, err
 	}
-
-	// If no data was read, return empty result
-	if !hasData {
+	if buf.Len() == 0 {
 		return []byte{}, nil
 	}
-
-	// Return the decoded result
-	return result.Bytes(), nil
+	return buf.Bytes(), nil
 }
