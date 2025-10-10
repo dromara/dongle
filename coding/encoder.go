@@ -32,6 +32,7 @@ func (e Encoder) FromBytes(b []byte) Encoder {
 	return e
 }
 
+// FromFile encodes from file.
 func (e Encoder) FromFile(f fs.File) Encoder {
 	e.reader = f
 	return e
@@ -50,53 +51,19 @@ func (e Encoder) ToBytes() []byte {
 	return e.dst
 }
 
-// stream encodes with stream using true streaming processing.
 func (e Encoder) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
-	buffer := make([]byte, BufferSize)
+	var buf bytes.Buffer
+	encoder := fn(&buf)
 
-	// Create a buffer to collect encoded data
-	var result bytes.Buffer
-
-	// Use the provided function to create an encoder
-	encoder := fn(&result)
-	defer encoder.Close()
-
-	var hasData bool
-
-	// Stream process data in chunks
-	for {
-		// Read a chunk of data from the reader
-		n, err := e.reader.Read(buffer)
-		if err != nil && err != io.EOF {
-			return []byte{}, err
-		}
-
-		// If we read some data, process it immediately
-		if n > 0 {
-			hasData = true
-
-			// Write the chunk to the encoder for immediate processing
-			if _, err = encoder.Write(buffer[:n]); err != nil {
-				return []byte{}, err
-			}
-		}
-
-		// If we've reached EOF, break the loop
-		if err == io.EOF {
-			break
-		}
+	if _, err := io.CopyBuffer(encoder, e.reader, make([]byte, BufferSize)); err != nil && err != io.EOF {
+		encoder.Close()
+		return []byte{}, err
 	}
-
-	// If no data was read, return empty result
-	if !hasData {
-		return []byte{}, nil
-	}
-
-	// Close the encoder to flush any remaining data
 	if err := encoder.Close(); err != nil {
 		return []byte{}, err
 	}
-
-	// Return the encoded result
-	return result.Bytes(), nil
+	if buf.Len() == 0 {
+		return []byte{}, nil
+	}
+	return buf.Bytes(), nil
 }
