@@ -148,6 +148,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 {text: '3des', link: 'crypto/3des'},
 				{text: 'rc4', link: 'crypto/rc4'},
 				{text: 'tea', link: 'crypto/tea'},
+				{text: 'xtea', link: 'crypto/xtea'},
                 {text: 'chacha20', link: 'crypto/chacha20'},
                 {text: 'chacha20-poly1305', link: 'crypto/chacha20-poly1305'},
                 {text: 'salsa20', link: 'crypto/salsa20'},
