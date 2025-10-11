@@ -6,6 +6,12 @@ head:
 ---
 
 # 更新ログ
+## [v1.1.6](https://github.com/dromara/dongle/compare/v1.1.5...v1.1.6) (2025-10-12)
+
+* [chore] `io.CopyBuffer` を使用してストリーム処理ロジックを簡素化
+* [chore] `tea` 暗号化アルゴリズムを最適化し、異なるブロックモードとパディングモードをサポート
+* [feat] `xtea` 暗号化アルゴリズムサポートを追加（標準処理とストリーム処理を含む）
+
 ## [v1.1.5](https://github.com/dromara/dongle/compare/v1.1.4...v1.1.5) (2025-10-01)
 
 * [fix] パディングが不要なブロックモード（CFB/OFB/CTR/GCM など）で対称暗号化アルゴリズムがパディングを実行した際の暗号化/復号化エラーのバグを修正

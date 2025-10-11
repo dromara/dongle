@@ -6,6 +6,12 @@ head:
 ---
 
 # Change Log
+## [v1.1.6](https://github.com/dromara/dongle/compare/v1.1.5...v1.1.6) (2025-10-12)
+
+* [chore] Use `io.CopyBuffer` to simplify streaming processing logic
+* [chore] Optimize `tea` encryption algorithm to support different block modes and padding modes
+* [feat] Add `xtea` encryption algorithm support, including standard processing and streaming processing
+
 ## [v1.1.5](https://github.com/dromara/dongle/compare/v1.1.4...v1.1.5) (2025-10-01)
 
 * [fix] Fix bug where symmetric encryption algorithms incorrectly perform padding on block modes that don't require padding (such as CFB/OFB/CTR/GCM, etc.), causing encryption/decryption errors

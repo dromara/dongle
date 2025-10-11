@@ -6,6 +6,12 @@ head:
 ---
 
 # 更新日志
+## [v1.1.6](https://github.com/dromara/dongle/compare/v1.1.5...v1.1.6) (2025-10-12)
+
+* [chore] 使用 `io.CopyBuffer` 简化流式处理逻辑
+* [chore] 优化 `tea` 加密算法，支持不同分块模式和填充模式
+* [feat] 增加 `xtea` 加密算法支持，包括标准处理和流式处理
+
 ## [v1.1.5](https://github.com/dromara/dongle/compare/v1.1.4...v1.1.5) (2025-10-01)
 
 * [fix] 修复对称加密算法中对不需要填充的分组模式(如 CFB/OFB/CTR/GCM 等)进行填充时加解密错误的bug
