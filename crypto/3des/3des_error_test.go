@@ -767,7 +767,4 @@ func TestCoverage_MissingPaths(t *testing.T) {
 			t.Logf("Got expected error: %v", err)
 		}
 	})
-
-	// Remove all the parity error tests since they don't work with modern Go crypto/des
-	// The remaining uncovered lines are dead code paths that cannot be reached in normal operation
 }
