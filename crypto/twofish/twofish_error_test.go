@@ -577,7 +577,7 @@ func TestStreamEncrypter_Write_ErrorHandling(t *testing.T) {
 		c.SetIV([]byte("1234567890123456")) // Set IV for CBC mode
 
 		// Create a mock writer that returns an error
-		mockWriter := &mockWriteCloser{writeError: errors.New("write error")}
+		mockWriter := mock.NewErrorWriteCloser(errors.New("write error"))
 		encrypter := NewStreamEncrypter(mockWriter, c).(*StreamEncrypter)
 
 		n, err := encrypter.Write([]byte("test"))
@@ -624,7 +624,8 @@ func TestStreamEncrypter_Close_ErrorHandling(t *testing.T) {
 		c.SetKey([]byte("1234567890123456"))
 
 		// Create a mock writer that implements io.Closer
-		mockWriter := &mockWriteCloser{closeError: errors.New("close error")}
+		var buf bytes.Buffer
+		mockWriter := mock.NewCloseErrorWriteCloser(&buf, errors.New("close error"))
 		encrypter := NewStreamEncrypter(mockWriter, c).(*StreamEncrypter)
 
 		err := encrypter.Close()
@@ -666,7 +667,7 @@ func TestStreamDecrypter_Read_ErrorHandling(t *testing.T) {
 		c.SetKey([]byte("1234567890123456"))
 
 		// Create a mock reader that returns an error
-		mockReader := &mockReader{readError: errors.New("read error")}
+		mockReader := mock.NewErrorFile(errors.New("read error"))
 		decrypter := NewStreamDecrypter(mockReader, c).(*StreamDecrypter)
 
 		buf := make([]byte, 10)
@@ -1053,45 +1054,4 @@ func TestStreamDecrypter_Read_Comprehensive(t *testing.T) {
 			assert.True(t, err == io.EOF || err != nil)
 		}
 	})
-}
-
-// errorCloser is a writer that implements io.Closer and returns an error
-type errorCloser struct {
-	err error
-}
-
-func (w *errorCloser) Write(p []byte) (n int, err error) {
-	return len(p), nil
-}
-
-func (w *errorCloser) Close() error {
-	return w.err
-}
-
-// Mock implementations for testing
-type mockWriteCloser struct {
-	writeError error
-	closeError error
-}
-
-func (m *mockWriteCloser) Write(p []byte) (n int, err error) {
-	if m.writeError != nil {
-		return 0, m.writeError
-	}
-	return len(p), nil
-}
-
-func (m *mockWriteCloser) Close() error {
-	return m.closeError
-}
-
-type mockReader struct {
-	readError error
-}
-
-func (m *mockReader) Read(p []byte) (n int, err error) {
-	if m.readError != nil {
-		return 0, m.readError
-	}
-	return 0, io.EOF
 }

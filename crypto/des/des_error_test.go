@@ -1045,7 +1045,8 @@ func TestStreamEncrypter_Close_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		// Use a mock closer that returns an error
-		mockCloser := &errorCloser{err: errors.New("close failed")}
+		var buf bytes.Buffer
+		mockCloser := mock.NewCloseErrorWriteCloser(&buf, errors.New("close failed"))
 		encrypter := NewStreamEncrypter(mockCloser, c)
 
 		err := encrypter.Close()
@@ -1166,17 +1167,4 @@ func TestStreamEncrypter_Write_ErrorPaths(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, len(testDataError), n)
 	})
-}
-
-// errorCloser is a writer that implements io.Closer and returns an error
-type errorCloser struct {
-	err error
-}
-
-func (w *errorCloser) Write(p []byte) (n int, err error) {
-	return len(p), nil
-}
-
-func (w *errorCloser) Close() error {
-	return w.err
 }
