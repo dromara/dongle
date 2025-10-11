@@ -9,7 +9,7 @@ import (
 // TestTeaCipher_SetKey tests the SetKey method
 func TestTeaCipher_SetKey(t *testing.T) {
 	t.Run("set key", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		key := []byte("testkey1234567890")
 
 		cipher.SetKey(key)
@@ -17,7 +17,7 @@ func TestTeaCipher_SetKey(t *testing.T) {
 	})
 
 	t.Run("set empty key", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		var key []byte
 
 		cipher.SetKey(key)
@@ -26,14 +26,14 @@ func TestTeaCipher_SetKey(t *testing.T) {
 	})
 
 	t.Run("set nil key", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 
 		cipher.SetKey(nil)
 		assert.Nil(t, cipher.Key)
 	})
 
 	t.Run("set 16 byte key", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		key := make([]byte, 16)
 		for i := range key {
 			key[i] = byte(i % 256)
@@ -45,7 +45,7 @@ func TestTeaCipher_SetKey(t *testing.T) {
 	})
 
 	t.Run("overwrite existing key", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		key1 := []byte("firstkey12345678")
 		key2 := []byte("secondkey1234567")
 
@@ -61,12 +61,12 @@ func TestTeaCipher_SetKey(t *testing.T) {
 // TestTeaCipher_SetRounds tests the SetRounds method
 func TestTeaCipher_SetRounds(t *testing.T) {
 	t.Run("set default rounds", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		assert.Equal(t, 64, cipher.Rounds)
 	})
 
 	t.Run("set custom rounds", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		rounds := 32
 
 		cipher.SetRounds(rounds)
@@ -74,7 +74,7 @@ func TestTeaCipher_SetRounds(t *testing.T) {
 	})
 
 	t.Run("set zero rounds", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		rounds := 0
 
 		cipher.SetRounds(rounds)
@@ -82,7 +82,7 @@ func TestTeaCipher_SetRounds(t *testing.T) {
 	})
 
 	t.Run("set negative rounds", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		rounds := -10
 
 		cipher.SetRounds(rounds)
@@ -90,7 +90,7 @@ func TestTeaCipher_SetRounds(t *testing.T) {
 	})
 
 	t.Run("set large rounds", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		rounds := 128
 
 		cipher.SetRounds(rounds)
@@ -98,7 +98,7 @@ func TestTeaCipher_SetRounds(t *testing.T) {
 	})
 
 	t.Run("overwrite existing rounds", func(t *testing.T) {
-		cipher := NewTeaCipher()
+		cipher := NewTeaCipher(ECB)
 		rounds1 := 32
 		rounds2 := 96
 

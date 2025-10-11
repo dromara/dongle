@@ -1,13 +1,17 @@
 package cipher
 
 type TeaCipher struct {
-	baseCipher
+	blockCipher
 	Rounds int
 }
 
-func NewTeaCipher() (c *TeaCipher) {
+func NewTeaCipher(block BlockMode) (c *TeaCipher) {
 	return &TeaCipher{
-		Rounds: 64,
+		blockCipher: blockCipher{
+			Block:   block,
+			Padding: PKCS7,
+		},
+		Rounds: 64, // TEA 默认 64 轮
 	}
 }
 
