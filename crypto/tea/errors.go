@@ -78,3 +78,14 @@ type InvalidDataSizeError struct {
 func (e InvalidDataSizeError) Error() string {
 	return fmt.Sprintf("crypto/tea: invalid data size %d, must be a multiple of 8 bytes", e.Size)
 }
+
+// UnsupportedModeError represents an error when an unsupported cipher mode is used.
+type UnsupportedModeError struct {
+	Mode string // The unsupported mode name
+}
+
+// Error returns a formatted error message describing the unsupported mode.
+// The message includes the mode name and explains why it's not supported.
+func (e UnsupportedModeError) Error() string {
+	return fmt.Sprintf("crypto/tea: unsupported cipher mode '%s', tea only supports CBC, CTR, ECB, CFB, and OFB modes", e.Mode)
+}

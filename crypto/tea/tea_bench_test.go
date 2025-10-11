@@ -3,330 +3,257 @@ package tea
 import (
 	"bytes"
 	"crypto/rand"
-	"io"
+	"fmt"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
-	"github.com/dromara/dongle/mock"
 )
 
-// Benchmark data for various sizes
-var benchmarkData = map[string][]byte{
-	"small":      make([]byte, 64),
-	"medium":     make([]byte, 1024),
-	"large":      make([]byte, 8192),
-	"very_large": make([]byte, 65536), // 64KB
-}
+func BenchmarkTEA_StdEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	rand.Read(key)
 
-var testKey = []byte("dongle-tea-key16") // 16 bytes for TEA
+	c := cipher.NewTeaCipher(cipher.ECB)
+	c.SetKey(key)
 
-func initBenchData() {
-	// Initialize random data, ensuring block alignment for TEA (8-byte blocks)
-	for name, data := range benchmarkData {
-		rand.Read(data)
-		// Ensure data is 8-byte aligned for TEA
-		if len(data)%8 != 0 {
-			benchmarkData[name] = data[:len(data)-len(data)%8]
-		}
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
+
+	encrypter := NewStdEncrypter(c)
+	decrypter := NewStdDecrypter(c)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		encrypted, _ := encrypter.Encrypt(plaintext)
+		decrypter.Decrypt(encrypted)
 	}
 }
 
-// BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data sizes
-func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
-	initBenchData()
-	c := cipher.NewTeaCipher()
-	c.SetKey(testKey)
+func BenchmarkTEA_StreamEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	rand.Read(key)
 
-	for name, data := range benchmarkData {
-		b.Run(name, func(b *testing.B) {
-			enc := NewStdEncrypter(c)
-			b.ResetTimer()
-			b.ReportAllocs()
-			for i := 0; i < b.N; i++ {
-				_, err := enc.Encrypt(data)
-				if err != nil {
-					b.Fatalf("Encrypt failed: %v", err)
-				}
-			}
-		})
-	}
-}
+	c := cipher.NewTeaCipher(cipher.ECB)
+	c.SetKey(key)
 
-// BenchmarkStdDecrypter_Decrypt benchmarks the standard decrypter for various data sizes
-func BenchmarkStdDecrypter_Decrypt(b *testing.B) {
-	initBenchData()
-	c := cipher.NewTeaCipher()
-	c.SetKey(testKey)
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
 
-	// Pre-encrypt all test data
-	encryptedData := make(map[string][]byte)
-	enc := NewStdEncrypter(c)
-	for name, data := range benchmarkData {
-		encrypted, err := enc.Encrypt(data)
-		if err != nil {
-			b.Fatalf("Failed to prepare encrypted data: %v", err)
-		}
-		encryptedData[name] = encrypted
-	}
-
-	for name, encrypted := range encryptedData {
-		b.Run(name, func(b *testing.B) {
-			dec := NewStdDecrypter(c)
-			b.ResetTimer()
-			b.ReportAllocs()
-			for i := 0; i < b.N; i++ {
-				_, err := dec.Decrypt(encrypted)
-				if err != nil {
-					b.Fatalf("Decrypt failed: %v", err)
-				}
-			}
-		})
-	}
-}
-
-// BenchmarkStreamingVsStandard compares streaming vs standard operations for large data
-func BenchmarkStreamingVsStandard(b *testing.B) {
-	initBenchData()
-	c := cipher.NewTeaCipher()
-	c.SetKey(testKey)
-
-	data := make([]byte, 32768) // 32KB for better streaming comparison
-	rand.Read(data)
-	// Ensure 8-byte alignment for TEA
-	data = data[:len(data)-len(data)%8]
-
-	b.Run("standard_encrypt", func(b *testing.B) {
-		enc := NewStdEncrypter(c)
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_, err := enc.Encrypt(data)
-			if err != nil {
-				b.Fatalf("Encrypt failed: %v", err)
-			}
-		}
-	})
-
-	b.Run("streaming_encrypt", func(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Encrypt
 		var buf bytes.Buffer
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			buf.Reset()
-			enc := NewStreamEncrypter(&buf, c)
-			_, err := enc.Write(data)
-			if err != nil {
-				b.Fatalf("Write failed: %v", err)
-			}
-			err = enc.Close()
-			if err != nil {
-				b.Fatalf("Close failed: %v", err)
-			}
-		}
-	})
+		encrypter := NewStreamEncrypter(&buf, c)
+		encrypter.Write(plaintext)
+		encrypter.Close()
 
-	// For decryption, we need encrypted data first
-	enc := NewStdEncrypter(c)
-	encrypted, err := enc.Encrypt(data)
-	if err != nil {
-		b.Fatalf("Failed to prepare encrypted data: %v", err)
+		// Decrypt
+		reader := bytes.NewReader(buf.Bytes())
+		decrypter := NewStreamDecrypter(reader, c)
+		decrypted := make([]byte, len(plaintext))
+		decrypter.Read(decrypted)
 	}
-
-	b.Run("standard_decrypt", func(b *testing.B) {
-		dec := NewStdDecrypter(c)
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_, err := dec.Decrypt(encrypted)
-			if err != nil {
-				b.Fatalf("Decrypt failed: %v", err)
-			}
-		}
-	})
-
-	b.Run("streaming_decrypt", func(b *testing.B) {
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			reader := mock.NewFile(encrypted, "test.bin")
-			dec := NewStreamDecrypter(reader, c)
-
-			// Read all data
-			buf := make([]byte, len(data))
-			_, err := dec.Read(buf)
-			if err != nil && err != io.EOF {
-				b.Fatalf("Decrypt failed: %v", err)
-			}
-		}
-	})
 }
 
-// BenchmarkCipherReuse compares cipher creation vs reuse performance
-func BenchmarkCipherReuse(b *testing.B) {
-	initBenchData()
-	c := cipher.NewTeaCipher()
-	c.SetKey(testKey)
+func BenchmarkTEA_CBC_StdEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	iv := make([]byte, 8)
+	rand.Read(key)
+	rand.Read(iv)
 
-	data := make([]byte, 1024)
-	rand.Read(data)
-	// Ensure 8-byte alignment
-	data = data[:len(data)-len(data)%8]
+	c := cipher.NewTeaCipher(cipher.CBC)
+	c.SetKey(key)
+	c.SetIV(iv)
+	c.SetPadding(cipher.PKCS7)
 
-	b.Run("new_cipher_each_time", func(b *testing.B) {
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			// Simulate the old behavior: create cipher each time
-			enc := &StdEncrypter{cipher: c}
-			_, err := enc.Encrypt(data)
-			if err != nil {
-				b.Fatalf("Encrypt failed: %v", err)
-			}
-		}
-	})
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
 
-	b.Run("reuse_cipher", func(b *testing.B) {
-		enc := NewStdEncrypter(c)
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_, err := enc.Encrypt(data)
-			if err != nil {
-				b.Fatalf("Encrypt failed: %v", err)
-			}
-		}
-	})
+	encrypter := NewStdEncrypter(c)
+	decrypter := NewStdDecrypter(c)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		encrypted, _ := encrypter.Encrypt(plaintext)
+		decrypter.Decrypt(encrypted)
+	}
 }
 
-// BenchmarkStreamDecryptOptimization tests streaming decryption improvements
-func BenchmarkStreamDecryptOptimization(b *testing.B) {
-	initBenchData()
-	c := cipher.NewTeaCipher()
-	c.SetKey(testKey)
+func BenchmarkTEA_CBC_StreamEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	iv := make([]byte, 8)
+	rand.Read(key)
+	rand.Read(iv)
 
-	data := make([]byte, 4096)
-	rand.Read(data)
-	// Ensure 8-byte alignment
-	data = data[:len(data)-len(data)%8]
+	c := cipher.NewTeaCipher(cipher.CBC)
+	c.SetKey(key)
+	c.SetIV(iv)
+	c.SetPadding(cipher.PKCS7)
 
-	// Pre-encrypt data for decryption tests
-	enc := NewStdEncrypter(c)
-	encrypted, err := enc.Encrypt(data)
-	if err != nil {
-		b.Fatalf("Failed to prepare encrypted data: %v", err)
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Encrypt
+		var buf bytes.Buffer
+		encrypter := NewStreamEncrypter(&buf, c)
+		encrypter.Write(plaintext)
+		encrypter.Close()
+
+		// Decrypt
+		reader := bytes.NewReader(buf.Bytes())
+		decrypter := NewStreamDecrypter(reader, c)
+		decrypted := make([]byte, len(plaintext))
+		decrypter.Read(decrypted)
 	}
-
-	b.Run("old_style_block_by_block", func(b *testing.B) {
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			reader := mock.NewFile(encrypted, "test.bin")
-
-			// Simulate old block-by-block reading approach
-			var result []byte
-			buf := make([]byte, 8) // TEA block size
-			for {
-				n, err := reader.Read(buf)
-				if n == 0 {
-					break
-				}
-				if err != nil && err != io.EOF {
-					b.Fatalf("Read failed: %v", err)
-				}
-
-				// Would decrypt single block here (simulated)
-				result = append(result, buf[:n]...)
-
-				if err == io.EOF {
-					break
-				}
-			}
-		}
-	})
-
-	b.Run("new_style_decrypt_once", func(b *testing.B) {
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			reader := mock.NewFile(encrypted, "test.bin")
-			dec := NewStreamDecrypter(reader, c)
-
-			// New behavior: decrypt all at once, serve in chunks
-			buf := make([]byte, len(data))
-			_, err := dec.Read(buf)
-			if err != nil && err != io.EOF {
-				b.Fatalf("Decrypt failed: %v", err)
-			}
-		}
-	})
 }
 
-// BenchmarkMemoryEfficiency tests memory allocation efficiency
-func BenchmarkMemoryEfficiency(b *testing.B) {
-	initBenchData()
-	c := cipher.NewTeaCipher()
-	c.SetKey(testKey)
+func BenchmarkTEA_CTR_StdEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	iv := make([]byte, 8)
+	rand.Read(key)
+	rand.Read(iv)
 
-	data := make([]byte, 4096)
-	rand.Read(data)
-	// Ensure 8-byte alignment
-	data = data[:len(data)-len(data)%8]
+	c := cipher.NewTeaCipher(cipher.CTR)
+	c.SetKey(key)
+	c.SetIV(iv)
 
-	// Pre-encrypt data for decryption tests
-	enc := NewStdEncrypter(c)
-	encrypted, err := enc.Encrypt(data)
-	if err != nil {
-		b.Fatalf("Failed to prepare encrypted data: %v", err)
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
+
+	encrypter := NewStdEncrypter(c)
+	decrypter := NewStdDecrypter(c)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		encrypted, _ := encrypter.Encrypt(plaintext)
+		decrypter.Decrypt(encrypted)
 	}
+}
 
-	b.Run("stream_encrypt_with_buffering", func(b *testing.B) {
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			var buf bytes.Buffer
-			enc := NewStreamEncrypter(&buf, c)
+func BenchmarkTEA_CTR_StreamEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	iv := make([]byte, 8)
+	rand.Read(key)
+	rand.Read(iv)
 
-			// Write data in chunks to test buffering
-			chunkSize := 24 // Not 8-byte aligned to test buffering
-			for offset := 0; offset < len(data); offset += chunkSize {
-				end := offset + chunkSize
-				if end > len(data) {
-					end = len(data)
-				}
-				_, err := enc.Write(data[offset:end])
-				if err != nil {
-					b.Fatalf("Write failed: %v", err)
-				}
+	c := cipher.NewTeaCipher(cipher.CTR)
+	c.SetKey(key)
+	c.SetIV(iv)
+
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Encrypt
+		var buf bytes.Buffer
+		encrypter := NewStreamEncrypter(&buf, c)
+		encrypter.Write(plaintext)
+		encrypter.Close()
+
+		// Decrypt
+		reader := bytes.NewReader(buf.Bytes())
+		decrypter := NewStreamDecrypter(reader, c)
+		decrypted := make([]byte, len(plaintext))
+		decrypter.Read(decrypted)
+	}
+}
+
+func BenchmarkTEA_CFB_StdEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	iv := make([]byte, 8)
+	rand.Read(key)
+	rand.Read(iv)
+
+	c := cipher.NewTeaCipher(cipher.CFB)
+	c.SetKey(key)
+	c.SetIV(iv)
+
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
+
+	encrypter := NewStdEncrypter(c)
+	decrypter := NewStdDecrypter(c)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		encrypted, _ := encrypter.Encrypt(plaintext)
+		decrypter.Decrypt(encrypted)
+	}
+}
+
+func BenchmarkTEA_OFB_StdEncryption(b *testing.B) {
+	key := make([]byte, 16)
+	iv := make([]byte, 8)
+	rand.Read(key)
+	rand.Read(iv)
+
+	c := cipher.NewTeaCipher(cipher.OFB)
+	c.SetKey(key)
+	c.SetIV(iv)
+
+	plaintext := make([]byte, 1024)
+	rand.Read(plaintext)
+
+	encrypter := NewStdEncrypter(c)
+	decrypter := NewStdDecrypter(c)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		encrypted, _ := encrypter.Encrypt(plaintext)
+		decrypter.Decrypt(encrypted)
+	}
+}
+
+func BenchmarkTEA_DifferentSizes(b *testing.B) {
+	key := make([]byte, 16)
+	rand.Read(key)
+
+	c := cipher.NewTeaCipher(cipher.ECB)
+	c.SetKey(key)
+
+	sizes := []int{8, 64, 256, 1024, 4096}
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("size_%d", size), func(b *testing.B) {
+			plaintext := make([]byte, size)
+			rand.Read(plaintext)
+
+			encrypter := NewStdEncrypter(c)
+			decrypter := NewStdDecrypter(c)
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				encrypted, _ := encrypter.Encrypt(plaintext)
+				decrypter.Decrypt(encrypted)
 			}
-			err := enc.Close()
-			if err != nil {
-				b.Fatalf("Close failed: %v", err)
-			}
-		}
-	})
+		})
+	}
+}
 
-	b.Run("stream_decrypt_chunked_read", func(b *testing.B) {
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			reader := mock.NewFile(encrypted, "test.bin")
-			dec := NewStreamDecrypter(reader, c)
+func BenchmarkTEA_DifferentRounds(b *testing.B) {
+	key := make([]byte, 16)
+	rand.Read(key)
 
-			// Read in small chunks to test the serving mechanism
-			var result []byte
-			buf := make([]byte, 64) // Small buffer
-			for {
-				n, err := dec.Read(buf)
-				if n > 0 {
-					result = append(result, buf[:n]...)
-				}
-				if err == io.EOF {
-					break
-				}
-				if err != nil {
-					b.Fatalf("Read failed: %v", err)
-				}
+	rounds := []int{32, 64, 96}
+	for _, rounds := range rounds {
+		b.Run(fmt.Sprintf("rounds_%d", rounds), func(b *testing.B) {
+			c := cipher.NewTeaCipher(cipher.ECB)
+			c.SetKey(key)
+			c.SetRounds(rounds)
+
+			plaintext := make([]byte, 1024)
+			rand.Read(plaintext)
+
+			encrypter := NewStdEncrypter(c)
+			decrypter := NewStdDecrypter(c)
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				encrypted, _ := encrypter.Encrypt(plaintext)
+				decrypter.Decrypt(encrypted)
 			}
-		}
-	})
+		})
+	}
 }

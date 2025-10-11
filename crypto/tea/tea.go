@@ -27,44 +27,35 @@ func NewStdEncrypter(c *cipher.TeaCipher) *StdEncrypter {
 	e := &StdEncrypter{
 		cipher: c,
 	}
-
 	if len(c.Key) != 16 {
 		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
-
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
+		return e
+	}
 	e.block, e.Error = tea.NewCipherWithRounds(c.Key, c.Rounds)
 	return e
 }
 
 // Encrypt encrypts the given byte slice using TEA encryption.
-// Uses the pre-created cipher block for better performance.
-// TEA requires data to be a multiple of 8 bytes.
+// Creates a TEA cipher block and uses the configured cipher interface
+// to perform the encryption operation with proper error handling.
+// Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
-	if e.Error != nil {
-		return nil, e.Error
+	// Return empty data for empty input
+	if len(src) == 0 {
+		return
 	}
 
-	// TEA uses 8-byte blocks, data must be a multiple of 8 bytes
-	if len(src)%8 != 0 {
-		return nil, InvalidDataSizeError{Size: len(src)}
+	block, err := tea.NewCipherWithRounds(e.cipher.Key, e.cipher.Rounds)
+	if err != nil {
+		err = EncryptError{Err: err}
+		return
 	}
-
-	// Use pre-created cipher block for better performance
-	if e.block == nil {
-		// Fallback: create cipher block if not available
-		if block, err := tea.NewCipherWithRounds(e.cipher.Key, e.cipher.Rounds); err == nil {
-			e.block = block
-		}
-	}
-
-	// Encrypt each block
-	dst = make([]byte, len(src))
-	for i := 0; i < len(src); i += 8 {
-		e.block.Encrypt(dst[i:i+8], src[i:i+8])
-	}
-
-	return dst, nil
+	return e.cipher.Encrypt(src, block)
 }
 
 // StdDecrypter represents a TEA decrypter for standard decryption operations.
@@ -83,53 +74,38 @@ func NewStdDecrypter(c *cipher.TeaCipher) *StdDecrypter {
 	d := &StdDecrypter{
 		cipher: c,
 	}
-
 	if len(c.Key) != 16 {
 		d.Error = KeySizeError(len(c.Key))
 		return d
 	}
-
-	// Try to pre-create cipher block for better performance
-	// If there's an error, we'll handle it during Decrypt call
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		d.Error = UnsupportedModeError{Mode: "GCM"}
+		return d
+	}
 	block, err := tea.NewCipherWithRounds(c.Key, c.Rounds)
 	if err == nil {
 		d.block = block
 	}
-	// Don't set error here - let it be handled in Decrypt method
-
 	return d
 }
 
 // Decrypt decrypts the given byte slice using TEA decryption.
-// Uses the pre-created cipher block for better performance.
-// TEA requires data to be a multiple of 8 bytes.
+// Creates a TEA cipher block and uses the configured cipher interface
+// to perform the decryption operation with proper error handling.
+// Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
-	if d.Error != nil {
-		return nil, d.Error
+	// Return empty data for empty input
+	if len(src) == 0 {
+		return
 	}
 
-	// TEA uses 8-byte blocks, data must be a multiple of 8 bytes
-	if len(src)%8 != 0 {
-		return nil, InvalidDataSizeError{Size: len(src)}
+	block, err := tea.NewCipherWithRounds(d.cipher.Key, d.cipher.Rounds)
+	if err != nil {
+		err = DecryptError{Err: err}
+		return
 	}
-
-	// Use pre-created cipher block for better performance
-	if d.block == nil {
-		// Fallback: create cipher block if not available
-		block, err := tea.NewCipherWithRounds(d.cipher.Key, d.cipher.Rounds)
-		if err != nil {
-			return nil, DecryptError{Err: err}
-		}
-		d.block = block
-	}
-
-	// Decrypt each block
-	dst = make([]byte, len(src))
-	for i := 0; i < len(src); i += 8 {
-		d.block.Decrypt(dst[i:i+8], src[i:i+8])
-	}
-
-	return dst, nil
+	return d.cipher.Decrypt(src, block)
 }
 
 // StreamEncrypter represents a streaming TEA encrypter that implements io.WriteCloser.
@@ -138,8 +114,8 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 type StreamEncrypter struct {
 	writer io.Writer         // Underlying writer for encrypted output
 	cipher *cipher.TeaCipher // The cipher interface for encryption operations
-	block  stdCipher.Block   // Pre-created cipher block for reuse
 	buffer []byte            // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block   // Reused cipher block for better performance
 	Error  error             // Error field for storing encryption errors
 }
 
@@ -157,22 +133,20 @@ func NewStreamEncrypter(w io.Writer, c *cipher.TeaCipher) io.WriteCloser {
 		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
-
-	// Try to pre-create cipher block for better performance
-	// If there's an error, we'll handle it during Write call
-	block, err := tea.NewCipherWithRounds(c.Key, c.Rounds)
-	if err == nil {
-		e.block = block
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		e.Error = UnsupportedModeError{Mode: "GCM"}
+		return e
 	}
-	// Don't set error here - let it be handled in Write method
-
+	e.block, e.Error = tea.NewCipherWithRounds(c.Key, c.Rounds)
 	return e
 }
 
-// Write implements io.Writer interface for streaming TEA encryption.
-// Provides improved performance through cipher block reuse and efficient buffering.
-// Accumulates data in 8-byte blocks as required by TEA.
+// Write implements the io.Writer interface for streaming TEA encryption.
+// Provides improved performance through cipher block reuse while maintaining compatibility.
+// Accumulates data and processes it using the cipher interface for consistency.
 func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
+	// Check for existing errors from initialization
 	if e.Error != nil {
 		return 0, e.Error
 	}
@@ -181,67 +155,39 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 		return 0, nil
 	}
 
-	// Check if cipher block is available
-	if e.block == nil {
-		// Fallback: create cipher block if not available
-		block, err := tea.NewCipherWithRounds(e.cipher.Key, e.cipher.Rounds)
-		if err != nil {
-			e.Error = EncryptError{Err: err}
-			return 0, e.Error
-		}
-		e.block = block
-	}
-
-	// For single write with non-block-aligned data, return error immediately
-	// This maintains compatibility with existing tests that expect immediate validation
-	if len(e.buffer) == 0 && len(p)%8 != 0 {
-		return 0, InvalidDataSizeError{Size: len(p)}
-	}
-
 	// Combine any leftover bytes from previous write with new data
 	data := append(e.buffer, p...)
 	e.buffer = nil // Clear buffer after combining
 
-	// Process complete 8-byte blocks
-	blockSize := 8
-	completeBlocks := len(data) / blockSize
-	processedBytes := completeBlocks * blockSize
-
-	if completeBlocks > 0 {
-		// Encrypt complete blocks
-		encrypted := make([]byte, processedBytes)
-		for i := 0; i < processedBytes; i += blockSize {
-			e.block.Encrypt(encrypted[i:i+blockSize], data[i:i+blockSize])
-		}
-
-		// Write encrypted data
-		_, writeErr := e.writer.Write(encrypted)
-		if writeErr != nil {
-			e.Error = WriteError{Err: writeErr}
-			return 0, e.Error
+	// Check if cipher block is available (might be nil if key was invalid)
+	if e.block == nil {
+		// Try to create cipher block if it wasn't created during initialization
+		if block, err := tea.NewCipherWithRounds(e.cipher.Key, e.cipher.Rounds); err == nil {
+			e.block = block
 		}
 	}
 
-	// Store remaining bytes for next write
-	if processedBytes < len(data) {
-		e.buffer = append(e.buffer, data[processedBytes:]...)
+	// Use the cipher interface to encrypt data (maintains compatibility with tests)
+	// This ensures proper padding and mode handling
+	encrypted, err := e.cipher.Encrypt(data, e.block)
+	if err != nil {
+		return 0, EncryptError{Err: err}
+	}
+
+	// Write encrypted data to the underlying writer
+	if _, err = e.writer.Write(encrypted); err != nil {
+		return 0, err
 	}
 
 	return len(p), nil
 }
 
-// Close implements io.Closer interface for streaming TEA encryption.
-// Processes any remaining buffered data and closes the underlying writer if it implements io.Closer.
+// Close implements the io.Closer interface for the streaming TEA encrypter.
+// Closes the underlying writer if it implements io.Closer.
+// Note: All data is processed in Write method for compatibility with cipher interface.
 func (e *StreamEncrypter) Close() error {
+	// Check for existing errors
 	if e.Error != nil {
-		return e.Error
-	}
-
-	// Process any remaining buffered data
-	if len(e.buffer) > 0 {
-		// TEA requires complete 8-byte blocks
-		// In a real implementation, you might want to add padding here
-		e.Error = InvalidDataSizeError{Size: len(e.buffer)}
 		return e.Error
 	}
 
@@ -253,14 +199,14 @@ func (e *StreamEncrypter) Close() error {
 }
 
 // StreamDecrypter represents a streaming TEA decrypter that implements io.Reader.
-// It provides efficient decryption for large data streams by reading encrypted data
-// from the underlying reader and decrypting it in chunks.
+// It provides efficient decryption for large data streams by processing data
+// in chunks and reading decrypted output from the underlying reader with proper state management.
 type StreamDecrypter struct {
 	reader    io.Reader         // Underlying reader for encrypted input
 	cipher    *cipher.TeaCipher // The cipher interface for decryption operations
 	decrypted []byte            // All decrypted data
 	pos       int               // Current position in the decrypted data
-	block     stdCipher.Block   // Pre-created cipher block for reuse
+	block     stdCipher.Block   // Reused cipher block for better performance
 	Error     error             // Error field for storing decryption errors
 }
 
@@ -279,22 +225,20 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TeaCipher) io.Reader {
 		d.Error = KeySizeError(len(c.Key))
 		return d
 	}
-
-	// Try to pre-create cipher block for better performance
-	// If there's an error, we'll handle it during Read call
-	block, err := tea.NewCipherWithRounds(c.Key, c.Rounds)
-	if err == nil {
-		d.block = block
+	// Check for unsupported cipher modes
+	if c.Block == cipher.GCM {
+		d.Error = UnsupportedModeError{Mode: "GCM"}
+		return d
 	}
-	// Don't set error here - let it be handled in Read method
-
+	d.block, d.Error = tea.NewCipherWithRounds(c.Key, c.Rounds)
 	return d
 }
 
-// Read implements io.Reader interface for streaming TEA decryption.
+// Read implements the io.Reader interface for streaming TEA decryption.
 // On the first call, reads all encrypted data from the underlying reader and decrypts it.
 // Subsequent calls return chunks of the decrypted data to maintain streaming interface.
 func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
+	// Check for existing errors from initialization
 	if d.Error != nil {
 		return 0, d.Error
 	}
@@ -313,28 +257,20 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 			return 0, io.EOF
 		}
 
-		// Check if cipher block is available
+		// Check if cipher block is available (might be nil if key was invalid)
 		if d.block == nil {
-			// Fallback: create cipher block if not available
-			block, err := tea.NewCipherWithRounds(d.cipher.Key, d.cipher.Rounds)
-			if err != nil {
-				d.Error = DecryptError{Err: err}
-				return 0, d.Error
+			// Try to create cipher block if it wasn't created during initialization
+			if block, err := tea.NewCipherWithRounds(d.cipher.Key, d.cipher.Rounds); err == nil {
+				d.block = block
 			}
-			d.block = block
 		}
 
-		// TEA uses 8-byte blocks, data must be a multiple of 8 bytes
-		if len(encryptedData)%8 != 0 {
-			// Return an error that suggests unexpected EOF (partial block read)
-			d.Error = ReadError{Err: io.ErrUnexpectedEOF}
+		// Use the cipher interface to decrypt data (maintains compatibility with tests)
+		// This ensures proper padding and mode handling
+		decrypted, err := d.cipher.Decrypt(encryptedData, d.block)
+		if err != nil {
+			d.Error = DecryptError{Err: err}
 			return 0, d.Error
-		}
-
-		// Decrypt all the data at once
-		decrypted := make([]byte, len(encryptedData))
-		for i := 0; i < len(encryptedData); i += 8 {
-			d.block.Decrypt(decrypted[i:i+8], encryptedData[i:i+8])
 		}
 
 		d.decrypted = decrypted
