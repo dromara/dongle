@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/salsa20"
 )
 
-// BySalsa20 encrypts by Salsa20.
+// BySalsa20 encrypts by salsa20.
 func (e Encrypter) BySalsa20(c *cipher.Salsa20Cipher) Encrypter {
 	if e.Error != nil {
 		return e
@@ -29,7 +29,7 @@ func (e Encrypter) BySalsa20(c *cipher.Salsa20Cipher) Encrypter {
 	return e
 }
 
-// BySalsa20 decrypts by Salsa20.
+// BySalsa20 decrypts by salsa20.
 func (d Decrypter) BySalsa20(c *cipher.Salsa20Cipher) Decrypter {
 	if d.Error != nil {
 		return d

@@ -7,6 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/rsa"
 )
 
+// ByRsa encrypts by rsa.
 func (e Encrypter) ByRsa(kp *keypair.RsaKeyPair) Encrypter {
 	if e.Error != nil {
 		return e
@@ -28,6 +29,7 @@ func (e Encrypter) ByRsa(kp *keypair.RsaKeyPair) Encrypter {
 	return e
 }
 
+// ByRsa decrypts by rsa.
 func (d Decrypter) ByRsa(kp *keypair.RsaKeyPair) Decrypter {
 	if d.Error != nil {
 		return d
@@ -49,7 +51,7 @@ func (d Decrypter) ByRsa(kp *keypair.RsaKeyPair) Decrypter {
 	return d
 }
 
-// ByRsa signs the data using RSA digital signature
+// ByRsa signs by rsa.
 func (s Signer) ByRsa(kp *keypair.RsaKeyPair) Signer {
 	if s.Error != nil {
 		return s
@@ -71,7 +73,7 @@ func (s Signer) ByRsa(kp *keypair.RsaKeyPair) Signer {
 	return s
 }
 
-// ByRsa verifies the signature using RSA digital signature verification
+// ByRsa verifies by rsa.
 func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 	if v.Error != nil {
 		return v

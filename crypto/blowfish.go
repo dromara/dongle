@@ -7,6 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/cipher"
 )
 
+// ByBlowfish encrypts by blowfish
 func (e Encrypter) ByBlowfish(c *cipher.BlowfishCipher) Encrypter {
 	if e.Error != nil {
 		return e
@@ -27,6 +28,7 @@ func (e Encrypter) ByBlowfish(c *cipher.BlowfishCipher) Encrypter {
 	return e
 }
 
+// ByBlowfish decrypts by blowfish
 func (d Decrypter) ByBlowfish(c *cipher.BlowfishCipher) Decrypter {
 	if d.Error != nil {
 		return d

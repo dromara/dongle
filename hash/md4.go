@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/md4"
 )
 
-// ByMd4 encrypts by MD4 or HMAC-MD4 based on whether key is set.
+// ByMd4 computes the MD4 hash or hmac of the input data.
 func (h Hasher) ByMd4() Hasher {
 	if h.Error != nil {
 		return h

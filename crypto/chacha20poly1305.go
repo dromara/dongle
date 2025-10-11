@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/cipher"
 )
 
-// ByChaCha20Poly1305 encrypts by ChaCha20-Poly1305.
+// ByChaCha20Poly1305 encrypts by chacha20-poly1305.
 func (e Encrypter) ByChaCha20Poly1305(c *cipher.ChaCha20Poly1305Cipher) Encrypter {
 	if e.Error != nil {
 		return e
@@ -29,7 +29,7 @@ func (e Encrypter) ByChaCha20Poly1305(c *cipher.ChaCha20Poly1305Cipher) Encrypte
 	return e
 }
 
-// ByChaCha20Poly1305 decrypts by ChaCha20-Poly1305.
+// ByChaCha20Poly1305 decrypts by chacha20-poly1305.
 func (d Decrypter) ByChaCha20Poly1305(c *cipher.ChaCha20Poly1305Cipher) Decrypter {
 	if d.Error != nil {
 		return d

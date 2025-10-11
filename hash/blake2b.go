@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-// ByBlake2b encrypts by BLAKE2b with specified size (256, 384, 512) or HMAC-BLAKE2b based on whether key is set.
+// ByBlake2b computes the BLAKE2b hash or hmac of the input data.
 func (h Hasher) ByBlake2b(size int) Hasher {
 	if h.Error != nil {
 		return h

@@ -7,6 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/twofish"
 )
 
+// ByTwofish encrypts by twofish.
 func (e Encrypter) ByTwofish(c *cipher.TwofishCipher) Encrypter {
 	if e.Error != nil {
 		return e
@@ -27,6 +28,7 @@ func (e Encrypter) ByTwofish(c *cipher.TwofishCipher) Encrypter {
 	return e
 }
 
+// ByTwofish decrypts by twofish.
 func (d Decrypter) ByTwofish(c *cipher.TwofishCipher) Decrypter {
 	if d.Error != nil {
 		return d

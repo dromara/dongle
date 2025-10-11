@@ -6,7 +6,7 @@ import (
 	"github.com/dromara/dongle/hash/sm3"
 )
 
-// BySm3 encrypts by SM3 or HMAC-SM3 based on whether key is set.
+// BySm3 computes the SM3 hash or hmac of the input data.
 func (h Hasher) BySm3() Hasher {
 	if h.Error != nil {
 		return h

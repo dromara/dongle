@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/rc4"
 )
 
-// ByRc4 encrypts by RC4.
+// ByRc4 encrypts by rc4.
 func (e Encrypter) ByRc4(c *cipher.Rc4Cipher) Encrypter {
 	if e.Error != nil {
 		return e
@@ -29,7 +29,7 @@ func (e Encrypter) ByRc4(c *cipher.Rc4Cipher) Encrypter {
 	return e
 }
 
-// ByRc4 decrypts by RC4.
+// ByRc4 decrypts by rc4.
 func (d Decrypter) ByRc4(c *cipher.Rc4Cipher) Decrypter {
 	if d.Error != nil {
 		return d

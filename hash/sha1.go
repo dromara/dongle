@@ -5,7 +5,7 @@ import (
 	"hash"
 )
 
-// BySha1 encrypts by SHA1 or HMAC-SHA1 based on whether key is set.
+// BySha1 computes the SHA1 hash or hmac of the input data.
 func (h Hasher) BySha1() Hasher {
 	if h.Error != nil {
 		return h

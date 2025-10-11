@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/tea"
 )
 
-// ByTea encrypts by TEA.
+// ByTea encrypts by tea.
 func (e Encrypter) ByTea(c *cipher.TeaCipher) Encrypter {
 	if e.Error != nil {
 		return e
@@ -29,7 +29,7 @@ func (e Encrypter) ByTea(c *cipher.TeaCipher) Encrypter {
 	return e
 }
 
-// ByTea decrypts by TEA.
+// ByTea decrypts by tea.
 func (d Decrypter) ByTea(c *cipher.TeaCipher) Decrypter {
 	if d.Error != nil {
 		return d

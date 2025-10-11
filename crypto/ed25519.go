@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/keypair"
 )
 
-// ByEd25519 signs the data using ED25519 digital signature
+// ByEd25519 signs by ed25519.
 func (s Signer) ByEd25519(kp *keypair.Ed25519KeyPair) Signer {
 	if s.Error != nil {
 		return s
@@ -34,7 +34,7 @@ func (s Signer) ByEd25519(kp *keypair.Ed25519KeyPair) Signer {
 	return s
 }
 
-// ByEd25519 verifies the signature using ED25519 digital signature verification
+// ByEd25519 verifies by ed25519.
 func (v Verifier) ByEd25519(kp *keypair.Ed25519KeyPair) Verifier {
 	if v.Error != nil {
 		return v

@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-// BySha3 encrypts by SHA3 with specified size (224, 256, 384, 512) or HMAC-SHA3 based on whether key is set.
+// BySha3 computes the SHA3 hash or hmac of the input data.
 func (h Hasher) BySha3(size int) Hasher {
 	if h.Error != nil {
 		return h

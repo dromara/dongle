@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/ripemd160"
 )
 
-// ByRipemd160 encrypts by RIPEMD160 or HMAC-RIPEMD160 based on whether key is set.
+// ByRipemd160 computes the RIPEMD160 hash or hmac of the input data.
 func (h Hasher) ByRipemd160() Hasher {
 	if h.Error != nil {
 		return h
