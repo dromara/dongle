@@ -889,7 +889,7 @@ func TestStreamEncrypter_Write_EdgeCases(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		// Create a writer that always returns an error
-		errorWriter := &errorWriter{err: errors.New("write failed")}
+		errorWriter := mock.NewErrorWriteCloser(errors.New("write failed"))
 		encrypter := NewStreamEncrypter(errorWriter, c)
 
 		n, err := encrypter.Write([]byte("test"))
@@ -930,15 +930,6 @@ func TestStreamEncrypter_Write_EdgeCases(t *testing.T) {
 			assert.Greater(t, n, 0)
 		}
 	})
-}
-
-// errorWriter is a writer that always returns an error
-type errorWriter struct {
-	err error
-}
-
-func (w *errorWriter) Write([]byte) (n int, err error) {
-	return 0, w.err
 }
 
 func TestStreamDecrypter_Read_EdgeCases(t *testing.T) {
@@ -1080,13 +1071,6 @@ func TestErrorTypeAssertions(t *testing.T) {
 	})
 }
 
-func TestUnsupportedModeError(t *testing.T) {
-	t.Run("error message format", func(t *testing.T) {
-		err := UnsupportedModeError{Mode: "GCM"}
-		assert.Equal(t, "crypto/blowfish: unsupported cipher mode 'GCM', Blowfish only supports CBC, CTR, ECB, CFB, and OFB modes", err.Error())
-	})
-}
-
 func TestNewStdEncrypter_ErrorPaths(t *testing.T) {
 	t.Run("invalid key size - too short", func(t *testing.T) {
 		c := cipher.NewBlowfishCipher(cipher.CBC)
@@ -1112,19 +1096,6 @@ func TestNewStdEncrypter_ErrorPaths(t *testing.T) {
 		assert.NotNil(t, encrypter.Error)
 		assert.IsType(t, KeySizeError(0), encrypter.Error)
 		assert.Equal(t, "crypto/blowfish: invalid key size 57, must be between 1 and 56 bytes", encrypter.Error.Error())
-	})
-
-	t.Run("unsupported GCM mode", func(t *testing.T) {
-		c := cipher.NewBlowfishCipher(cipher.GCM)
-		c.SetKey([]byte("1234567890123456"))
-		c.SetIV([]byte("12345678"))
-		c.SetPadding(cipher.PKCS7)
-
-		encrypter := NewStdEncrypter(c)
-		assert.NotNil(t, encrypter)
-		assert.NotNil(t, encrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, encrypter.Error)
-		assert.Equal(t, "crypto/blowfish: unsupported cipher mode 'GCM', Blowfish only supports CBC, CTR, ECB, CFB, and OFB modes", encrypter.Error.Error())
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {
@@ -1164,19 +1135,6 @@ func TestNewStdDecrypter_ErrorPaths(t *testing.T) {
 		assert.NotNil(t, decrypter.Error)
 		assert.IsType(t, KeySizeError(0), decrypter.Error)
 		assert.Equal(t, "crypto/blowfish: invalid key size 57, must be between 1 and 56 bytes", decrypter.Error.Error())
-	})
-
-	t.Run("unsupported GCM mode", func(t *testing.T) {
-		c := cipher.NewBlowfishCipher(cipher.GCM)
-		c.SetKey([]byte("1234567890123456"))
-		c.SetIV([]byte("12345678"))
-		c.SetPadding(cipher.PKCS7)
-
-		decrypter := NewStdDecrypter(c)
-		assert.NotNil(t, decrypter)
-		assert.NotNil(t, decrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, decrypter.Error)
-		assert.Equal(t, "crypto/blowfish: unsupported cipher mode 'GCM', Blowfish only supports CBC, CTR, ECB, CFB, and OFB modes", decrypter.Error.Error())
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {
@@ -1467,7 +1425,8 @@ func TestStreamEncrypter_Close_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		// Use a mock closer that returns an error
-		mockCloser := &errorCloser{err: errors.New("close failed")}
+		var buf bytes.Buffer
+		mockCloser := mock.NewCloseErrorWriteCloser(&buf, errors.New("close failed"))
 		encrypter := NewStreamEncrypter(mockCloser, c)
 
 		err := encrypter.Close()
@@ -1489,15 +1448,38 @@ func TestStreamEncrypter_Close_ErrorPaths(t *testing.T) {
 	})
 }
 
-// errorCloser is a writer that implements io.Closer and returns an error
-type errorCloser struct {
-	err error
+func TestUnsupportedModeError(t *testing.T) {
+	t.Run("unsupported mode error", func(t *testing.T) {
+		err := UnsupportedModeError{Mode: "GCM"}
+		expected := "crypto/blowfish: unsupported cipher mode 'GCM', blowfish only supports CBC, CTR, ECB, CFB, and OFB modes"
+		assert.Equal(t, expected, err.Error())
+	})
 }
 
-func (w *errorCloser) Write(p []byte) (n int, err error) {
-	return len(p), nil
+func TestNewStdEncrypter_GCMError(t *testing.T) {
+	t.Run("GCM mode error in StdEncrypter", func(t *testing.T) {
+		c := cipher.NewBlowfishCipher(cipher.GCM)
+		c.SetKey([]byte("1234567890123456"))
+		c.SetNonce([]byte("1234567890123456")) // 16-byte nonce for GCM
+
+		encrypter := NewStdEncrypter(c)
+		assert.NotNil(t, encrypter)
+		assert.NotNil(t, encrypter.Error)
+		assert.IsType(t, UnsupportedModeError{}, encrypter.Error)
+		assert.Contains(t, encrypter.Error.Error(), "unsupported cipher mode 'GCM'")
+	})
 }
 
-func (w *errorCloser) Close() error {
-	return w.err
+func TestNewStdDecrypter_GCMError(t *testing.T) {
+	t.Run("GCM mode error in StdDecrypter", func(t *testing.T) {
+		c := cipher.NewBlowfishCipher(cipher.GCM)
+		c.SetKey([]byte("1234567890123456"))
+		c.SetNonce([]byte("1234567890123456")) // 16-byte nonce for GCM
+
+		decrypter := NewStdDecrypter(c)
+		assert.NotNil(t, decrypter)
+		assert.NotNil(t, decrypter.Error)
+		assert.IsType(t, UnsupportedModeError{}, decrypter.Error)
+		assert.Contains(t, decrypter.Error.Error(), "unsupported cipher mode 'GCM'")
+	})
 }
