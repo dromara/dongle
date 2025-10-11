@@ -12,7 +12,7 @@ import (
 func TestTeaInputTypes(t *testing.T) {
 	t.Run("string input", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := "12345678" // 8-byte string for TEA
 
@@ -25,7 +25,7 @@ func TestTeaInputTypes(t *testing.T) {
 
 	t.Run("bytes input", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data for TEA
 
@@ -38,7 +38,7 @@ func TestTeaInputTypes(t *testing.T) {
 
 	t.Run("empty input", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := ""
 
@@ -49,7 +49,7 @@ func TestTeaInputTypes(t *testing.T) {
 
 	t.Run("empty bytes input", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		var plaintext []byte
 
@@ -60,7 +60,7 @@ func TestTeaInputTypes(t *testing.T) {
 
 	t.Run("unicode input", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := "12345678" // 8-byte data for TEA
 
@@ -73,7 +73,7 @@ func TestTeaInputTypes(t *testing.T) {
 
 	t.Run("binary input", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		// 8-byte binary data (multiple of 8 bytes as required by TEA)
 		plaintext := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07}
@@ -87,7 +87,7 @@ func TestTeaInputTypes(t *testing.T) {
 
 	t.Run("8-byte multiple input", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		// 16-byte data (multiple of 8 bytes as required by TEA)
 		plaintext := []byte("1234567890123456")
@@ -104,7 +104,7 @@ func TestTeaInputTypes(t *testing.T) {
 func TestTeaErrorHandling(t *testing.T) {
 	t.Run("empty key", func(t *testing.T) {
 		plaintext := "Hello, TEA!"
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey([]byte{}) // Empty key
 
 		encrypted := NewEncrypter().FromString(plaintext).ByTea(teaCipher).ToRawString()
@@ -117,7 +117,7 @@ func TestTeaErrorHandling(t *testing.T) {
 	t.Run("invalid key size", func(t *testing.T) {
 		plaintext := "Hello, TEA!"
 		key := []byte("short") // Invalid key size (not 16 bytes)
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		encrypted := NewEncrypter().FromString(plaintext).ByTea(teaCipher).ToRawString()
@@ -129,7 +129,7 @@ func TestTeaErrorHandling(t *testing.T) {
 
 	t.Run("with existing error", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := "Hello, TEA!"
 
@@ -146,26 +146,34 @@ func TestTeaErrorHandling(t *testing.T) {
 		assert.Empty(t, decrypted)
 	})
 
-	t.Run("encryption error with invalid data size", func(t *testing.T) {
+	t.Run("encryption with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
-		// 7-byte data (not multiple of 8 bytes)
+		// 7-byte data (not multiple of 8 bytes) - should be padded
 		plaintext := []byte("1234567")
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
-		assert.Empty(t, encrypted)
+		assert.NotEmpty(t, encrypted) // Should be encrypted with padding
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted) // Should decrypt to original data
 	})
 
-	t.Run("decryption error with invalid data size", func(t *testing.T) {
+	t.Run("decryption with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
-		// 7-byte data (not multiple of 8 bytes)
+		// 7-byte data (not multiple of 8 bytes) - should be padded
 		plaintext := []byte("1234567")
 
-		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
-		assert.Empty(t, decrypted)
+		// First encrypt with padding
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
+
+		// Then decrypt
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted) // Should decrypt to original data
 	})
 }
 
@@ -173,7 +181,7 @@ func TestTeaErrorHandling(t *testing.T) {
 func TestTeaStreaming(t *testing.T) {
 	t.Run("stream encrypter with valid key", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		// Create a mock file for streaming (must be multiple of 8 bytes)
@@ -188,7 +196,7 @@ func TestTeaStreaming(t *testing.T) {
 
 	t.Run("stream encrypter with invalid key", func(t *testing.T) {
 		key := []byte("invalid") // Invalid key size
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		// plaintext is not used in this test case, removing it
 		mockFile := mock.NewFile([]byte("test data"), "test.txt")
@@ -198,7 +206,7 @@ func TestTeaStreaming(t *testing.T) {
 
 	t.Run("stream with read error", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		errorReader := mock.NewErrorFile(assert.AnError)
 
@@ -211,7 +219,7 @@ func TestTeaStreaming(t *testing.T) {
 func TestTeaStdEncrypter(t *testing.T) {
 	t.Run("new std encrypter with valid key", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -221,7 +229,7 @@ func TestTeaStdEncrypter(t *testing.T) {
 
 	t.Run("new std encrypter with invalid key", func(t *testing.T) {
 		key := []byte("invalid") // Invalid key size
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -231,7 +239,7 @@ func TestTeaStdEncrypter(t *testing.T) {
 
 	t.Run("std encrypter encrypt with existing error", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -244,7 +252,7 @@ func TestTeaStdEncrypter(t *testing.T) {
 
 	t.Run("std encrypter encrypt empty data", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		var plaintext []byte // Empty data
 
@@ -252,14 +260,17 @@ func TestTeaStdEncrypter(t *testing.T) {
 		assert.Empty(t, encrypted)
 	})
 
-	t.Run("std encrypter encrypt with invalid data size", func(t *testing.T) {
+	t.Run("std encrypter encrypt with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
-		plaintext := []byte("1234567") // 7-byte data (not multiple of 8)
+		plaintext := []byte("1234567") // 7-byte data (not multiple of 8) - should be padded
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
-		assert.Empty(t, encrypted)
+		assert.NotEmpty(t, encrypted) // Should be encrypted with padding
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted) // Should decrypt to original data
 	})
 }
 
@@ -267,7 +278,7 @@ func TestTeaStdEncrypter(t *testing.T) {
 func TestTeaStdDecrypter(t *testing.T) {
 	t.Run("new std decrypter with valid key", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -282,7 +293,7 @@ func TestTeaStdDecrypter(t *testing.T) {
 
 	t.Run("new std decrypter with invalid key", func(t *testing.T) {
 		key := []byte("invalid") // Invalid key size
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -292,7 +303,7 @@ func TestTeaStdDecrypter(t *testing.T) {
 
 	t.Run("std decrypter decrypt with existing error", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -305,7 +316,7 @@ func TestTeaStdDecrypter(t *testing.T) {
 
 	t.Run("std decrypter decrypt empty data", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		var plaintext []byte // Empty data
 
@@ -313,14 +324,19 @@ func TestTeaStdDecrypter(t *testing.T) {
 		assert.Empty(t, decrypted)
 	})
 
-	t.Run("std decrypter decrypt with invalid data size", func(t *testing.T) {
+	t.Run("std decrypter decrypt with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
-		plaintext := []byte("1234567") // 7-byte data (not multiple of 8)
+		plaintext := []byte("1234567") // 7-byte data (not multiple of 8) - should be padded
 
-		decrypted := NewDecrypter().FromRawBytes(plaintext).ByTea(teaCipher).ToBytes()
-		assert.Empty(t, decrypted)
+		// First encrypt with padding
+		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
+		assert.NotEmpty(t, encrypted)
+
+		// Then decrypt
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted) // Should decrypt to original data
 	})
 }
 
@@ -328,7 +344,7 @@ func TestTeaStdDecrypter(t *testing.T) {
 func TestTeaDecrypterComprehensive(t *testing.T) {
 	t.Run("decrypter with existing error", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -341,7 +357,7 @@ func TestTeaDecrypterComprehensive(t *testing.T) {
 
 	t.Run("decrypter with invalid key size", func(t *testing.T) {
 		key := []byte("invalid") // Invalid key size
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -354,7 +370,7 @@ func TestTeaDecrypterComprehensive(t *testing.T) {
 func TestTeaPackageDirect(t *testing.T) {
 	t.Run("ByTea with invalid key", func(t *testing.T) {
 		key := []byte("invalid") // Invalid key size
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("12345678") // 8-byte data
 
@@ -367,7 +383,7 @@ func TestTeaPackageDirect(t *testing.T) {
 
 	t.Run("ByTea stream branch with invalid key", func(t *testing.T) {
 		key := []byte("invalid") // Invalid key size
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		mockFile := mock.NewFile([]byte("test data"), "test.txt")
@@ -380,7 +396,7 @@ func TestTeaPackageDirect(t *testing.T) {
 func TestTeaByTeaStreamBranch(t *testing.T) {
 	t.Run("ByTea stream branch", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("1234567890123456") // 16-byte data
 
@@ -394,7 +410,7 @@ func TestTeaByTeaStreamBranch(t *testing.T) {
 
 	t.Run("ByTea stream branch with error", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		// plaintext is not used in this test case, removing it
 		encrypted := NewEncrypter().FromFile(mock.NewErrorFile(assert.AnError)).ByTea(teaCipher).ToRawString()
@@ -403,7 +419,7 @@ func TestTeaByTeaStreamBranch(t *testing.T) {
 
 	t.Run("decrypter stream branch", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 		plaintext := []byte("1234567890123456") // 16-byte data
 
@@ -425,7 +441,7 @@ func TestTeaByTeaStreamBranch(t *testing.T) {
 func TestTeaEdgeCases(t *testing.T) {
 	t.Run("encrypter with nil src", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		// Create encrypter with nil src
@@ -440,7 +456,7 @@ func TestTeaEdgeCases(t *testing.T) {
 
 	t.Run("decrypter with nil src", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		// Create decrypter with nil src
@@ -455,7 +471,7 @@ func TestTeaEdgeCases(t *testing.T) {
 
 	t.Run("encrypter with empty src", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		// Create encrypter with empty src
@@ -470,7 +486,7 @@ func TestTeaEdgeCases(t *testing.T) {
 
 	t.Run("decrypter with empty src", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		// Create decrypter with empty src
@@ -485,7 +501,7 @@ func TestTeaEdgeCases(t *testing.T) {
 
 	t.Run("encrypter with reader nil and empty src", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		// Create encrypter with nil reader and empty src
@@ -501,7 +517,7 @@ func TestTeaEdgeCases(t *testing.T) {
 
 	t.Run("decrypter with reader nil and empty src", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		// Create decrypter with nil reader and empty src
@@ -519,7 +535,7 @@ func TestTeaEdgeCases(t *testing.T) {
 // TestTeaWithDifferentDataSizes tests TEA with different data sizes
 func TestTeaWithDifferentDataSizes(t *testing.T) {
 	key := []byte("1234567890123456") // 16-byte key for TEA
-	teaCipher := cipher.NewTeaCipher()
+	teaCipher := cipher.NewTeaCipher(cipher.ECB)
 	teaCipher.SetKey(key)
 
 	t.Run("8-byte data", func(t *testing.T) {
@@ -552,18 +568,24 @@ func TestTeaWithDifferentDataSizes(t *testing.T) {
 		assert.Equal(t, plaintext, decrypted)
 	})
 
-	t.Run("invalid 7-byte data", func(t *testing.T) {
-		plaintext := []byte("1234567") // 7 bytes (not multiple of 8)
+	t.Run("7-byte data with padding", func(t *testing.T) {
+		plaintext := []byte("1234567") // 7 bytes (not multiple of 8) - should be padded
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
-		assert.Empty(t, encrypted)
+		assert.NotEmpty(t, encrypted) // Should be encrypted with padding
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted) // Should decrypt to original data
 	})
 
-	t.Run("invalid 15-byte data", func(t *testing.T) {
-		plaintext := []byte("123456789012345") // 15 bytes (not multiple of 8)
+	t.Run("15-byte data with padding", func(t *testing.T) {
+		plaintext := []byte("123456789012345") // 15 bytes (not multiple of 8) - should be padded
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
-		assert.Empty(t, encrypted)
+		assert.NotEmpty(t, encrypted) // Should be encrypted with padding
+
+		decrypted := NewDecrypter().FromRawBytes(encrypted).ByTea(teaCipher).ToBytes()
+		assert.Equal(t, plaintext, decrypted) // Should decrypt to original data
 	})
 }
 
@@ -573,7 +595,7 @@ func TestTeaWithDifferentKeySizes(t *testing.T) {
 
 	t.Run("16-byte key", func(t *testing.T) {
 		key := []byte("1234567890123456") // Exactly 16 bytes
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
@@ -585,7 +607,7 @@ func TestTeaWithDifferentKeySizes(t *testing.T) {
 
 	t.Run("invalid 8-byte key", func(t *testing.T) {
 		key := []byte("12345678") // 8 bytes (invalid for TEA)
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
@@ -600,7 +622,7 @@ func TestTeaWithDifferentKeySizes(t *testing.T) {
 		for i := range key {
 			key[i] = byte(i % 256)
 		}
-		teaCipher := cipher.NewTeaCipher()
+		teaCipher := cipher.NewTeaCipher(cipher.ECB)
 		teaCipher.SetKey(key)
 
 		encrypted := NewEncrypter().FromBytes(plaintext).ByTea(teaCipher).ToRawBytes()
