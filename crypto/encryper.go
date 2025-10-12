@@ -76,6 +76,10 @@ func (e Encrypter) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	var buf bytes.Buffer
 	encrypter := fn(&buf)
 
+	// Try to reset the reader position if it's a seeker
+	if seeker, ok := e.reader.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
 	if _, err := io.CopyBuffer(encrypter, e.reader, make([]byte, BufferSize)); err != nil && err != io.EOF {
 		encrypter.Close()
 		return []byte{}, err

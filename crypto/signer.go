@@ -76,6 +76,11 @@ func (s Signer) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	var buf bytes.Buffer
 	signer := fn(&buf)
 
+	// Try to reset the reader position if it's a seeker
+	if seeker, ok := s.reader.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
+
 	if _, err := io.CopyBuffer(signer, s.reader, make([]byte, BufferSize)); err != nil && err != io.EOF {
 		signer.Close()
 		return []byte{}, err

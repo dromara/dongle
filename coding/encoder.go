@@ -55,6 +55,10 @@ func (e Encoder) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := fn(&buf)
 
+	// Try to reset the reader position if it's a seeker
+	if seeker, ok := e.reader.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
 	if _, err := io.CopyBuffer(encoder, e.reader, make([]byte, BufferSize)); err != nil && err != io.EOF {
 		encoder.Close()
 		return []byte{}, err

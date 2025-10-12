@@ -69,6 +69,10 @@ func (v Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {
 	var buf bytes.Buffer
 	verifier := fn(&buf)
 
+	// Try to reset the reader position if it's a seeker
+	if seeker, ok := v.reader.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
 	if _, err := io.CopyBuffer(verifier, v.reader, make([]byte, BufferSize)); err != nil && err != io.EOF {
 		verifier.Close()
 		return []byte{}, err

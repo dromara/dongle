@@ -55,6 +55,10 @@ func (d Decoder) stream(fn func(io.Reader) io.Reader) ([]byte, error) {
 	var buf bytes.Buffer
 	decoder := fn(d.reader)
 
+	// Try to reset the reader position if it's a seeker
+	if seeker, ok := d.reader.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
 	if _, err := io.CopyBuffer(&buf, decoder, make([]byte, BufferSize)); err != nil && err != io.EOF {
 		return []byte{}, err
 	}

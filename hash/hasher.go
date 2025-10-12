@@ -106,6 +106,11 @@ func (h Hasher) stream(fn func() hash.Hash) ([]byte, error) {
 	hasher := fn()
 	defer hasher.Reset()
 
+	// Try to reset the reader position if it's a seeker
+	if seeker, ok := h.reader.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
+
 	copiedN, err := io.CopyBuffer(hasher, h.reader, make([]byte, BufferSize))
 	if err != nil && err != io.EOF {
 		return []byte{}, fmt.Errorf("hash: stream copy error: %w", err)
