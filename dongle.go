@@ -13,7 +13,7 @@ import (
 	"github.com/dromara/dongle/hash"
 )
 
-const Version = "1.1.6"
+const Version = "1.1.7"
 
 var (
 	// Encode defines an Encoder instance.
