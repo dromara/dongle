@@ -33,8 +33,8 @@ func (d Decoder) FromBytes(b []byte) Decoder {
 }
 
 // FromFile decodes from file.
-func (d Decoder) FromFile(ff fs.File) Decoder {
-	d.reader = ff
+func (d Decoder) FromFile(f fs.File) Decoder {
+	d.reader = f
 	return d
 }
 
