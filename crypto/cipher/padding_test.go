@@ -9,25 +9,25 @@ import (
 func TestNoPadding(t *testing.T) {
 	t.Run("No padding with data", func(t *testing.T) {
 		data := []byte("Hello, World!")
-		padded := newNoPadding(data)
+		padded := NewNoPadding(data)
 		assert.Equal(t, data, padded)
 	})
 
 	t.Run("No unpadding with data", func(t *testing.T) {
 		data := []byte("Hello, World!")
-		unpadded := newNoUnPadding(data)
+		unpadded := NewNoUnPadding(data)
 		assert.Equal(t, data, unpadded)
 	})
 
 	t.Run("No padding with empty data", func(t *testing.T) {
 		var data []byte
-		padded := newNoPadding(data)
+		padded := NewNoPadding(data)
 		assert.Equal(t, data, padded)
 	})
 
 	t.Run("No unpadding with empty data", func(t *testing.T) {
 		var data []byte
-		unpadded := newNoUnPadding(data)
+		unpadded := NewNoUnPadding(data)
 		assert.Equal(t, data, unpadded)
 	})
 }
@@ -37,7 +37,7 @@ func TestZeroPadding(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
 		expected := []byte("Hello\x00\x00\x00")
-		padded := newZeroPadding(data, blockSize)
+		padded := NewZeroPadding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -45,7 +45,7 @@ func TestZeroPadding(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		blockSize := 8
 		expected := []byte("12345678") // No padding for exact block size
-		padded := newZeroPadding(data, blockSize)
+		padded := NewZeroPadding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -53,7 +53,7 @@ func TestZeroPadding(t *testing.T) {
 		data := []byte("1234567890123456") // 16 bytes, exact multiple of 8
 		blockSize := 8
 		expected := []byte("1234567890123456") // No padding for exact block size
-		padded := newZeroPadding(data, blockSize)
+		padded := NewZeroPadding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -61,40 +61,40 @@ func TestZeroPadding(t *testing.T) {
 		data := []byte("Hello World")
 		blockSize := 4
 		expected := []byte("Hello World\x00")
-		padded := newZeroPadding(data, blockSize)
+		padded := NewZeroPadding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("Zero padding with empty data", func(t *testing.T) {
 		var data []byte
 		blockSize := 8
-		padded := newZeroPadding(data, blockSize)
+		padded := NewZeroPadding(data, blockSize)
 		assert.Equal(t, data, padded) // Empty data returns as is with zero padding
 	})
 
 	t.Run("Zero unpadding with trailing zeros", func(t *testing.T) {
 		data := []byte("Hello\x00\x00\x00")
 		expected := []byte("Hello")
-		unpadded := newZeroUnPadding(data)
+		unpadded := NewZeroUnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("Zero unpadding with no trailing zeros", func(t *testing.T) {
 		data := []byte("Hello")
 		expected := []byte("Hello")
-		unpadded := newZeroUnPadding(data)
+		unpadded := NewZeroUnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("Zero unpadding with all zeros", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0}
-		unpadded := newZeroUnPadding(data)
+		unpadded := NewZeroUnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("Zero unpadding with empty data", func(t *testing.T) {
 		var data []byte
-		unpadded := newZeroUnPadding(data)
+		unpadded := NewZeroUnPadding(data)
 		assert.Nil(t, unpadded)
 	})
 }
@@ -104,7 +104,7 @@ func TestPKCS7Padding(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
 		expected := []byte("Hello\x03\x03\x03")
-		padded := newPKCS7Padding(data, blockSize)
+		padded := NewPKCS7Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -112,7 +112,7 @@ func TestPKCS7Padding(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
 		expected := []byte("Hello\x03\x03\x03")
-		padded := newPKCS7Padding(data, blockSize)
+		padded := NewPKCS7Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -120,7 +120,7 @@ func TestPKCS7Padding(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		blockSize := 8
 		expected := []byte("12345678\x08\x08\x08\x08\x08\x08\x08\x08")
-		padded := newPKCS7Padding(data, blockSize)
+		padded := NewPKCS7Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -128,57 +128,57 @@ func TestPKCS7Padding(t *testing.T) {
 		var data []byte
 		blockSize := 8
 		expected := []byte{0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08}
-		padded := newPKCS7Padding(data, blockSize)
+		padded := NewPKCS7Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("PKCS7 unpadding with 1 byte padding", func(t *testing.T) {
 		data := []byte("Hello\x01")
 		expected := []byte("Hello")
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("PKCS7 unpadding with 3 bytes padding", func(t *testing.T) {
 		data := []byte("Hello\x03\x03\x03")
 		expected := []byte("Hello")
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("PKCS7 unpadding with full block padding", func(t *testing.T) {
 		data := []byte("\x08\x08\x08\x08\x08\x08\x08\x08")
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("PKCS7 unpadding with invalid padding size", func(t *testing.T) {
 		data := []byte("Hello\x09") // padding size > data length
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("PKCS7 unpadding with invalid padding size larger than data", func(t *testing.T) {
 		data := []byte("Hi\x10") // padding size 16 > data length 3
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("PKCS7 unpadding with zero padding size", func(t *testing.T) {
 		data := []byte("Hello\x00") // padding size 0
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("PKCS7 unpadding with padding size equal to data length", func(t *testing.T) {
 		data := []byte("\x01") // padding size 1, data length 1
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded) // Should return empty data
 	})
 
 	t.Run("PKCS7 unpadding with empty data", func(t *testing.T) {
 		var data []byte
-		unpadded := newPKCS7UnPadding(data)
+		unpadded := NewPKCS7UnPadding(data)
 		assert.Nil(t, unpadded) // Should return nil
 	})
 }
@@ -187,48 +187,48 @@ func TestPKCS5Padding(t *testing.T) {
 	t.Run("PKCS5 padding with 1 byte needed", func(t *testing.T) {
 		data := []byte("1234567") // 7 bytes
 		expected := []byte("1234567\x01")
-		padded := newPKCS5Padding(data)
+		padded := NewPKCS5Padding(data)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("PKCS5 padding with 3 bytes needed", func(t *testing.T) {
 		data := []byte("12345") // 5 bytes
 		expected := []byte("12345\x03\x03\x03")
-		padded := newPKCS5Padding(data)
+		padded := NewPKCS5Padding(data)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("PKCS5 padding with exact block size", func(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		expected := []byte("12345678\x08\x08\x08\x08\x08\x08\x08\x08")
-		padded := newPKCS5Padding(data)
+		padded := NewPKCS5Padding(data)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("PKCS5 padding with empty data", func(t *testing.T) {
 		var data []byte
 		expected := []byte{0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08}
-		padded := newPKCS5Padding(data)
+		padded := NewPKCS5Padding(data)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("PKCS5 unpadding with 1 byte padding", func(t *testing.T) {
 		data := []byte("1234567\x01")
 		expected := []byte("1234567")
-		unpadded := newPKCS5UnPadding(data)
+		unpadded := NewPKCS5UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("PKCS5 unpadding with 3 bytes padding", func(t *testing.T) {
 		data := []byte("12345\x03\x03\x03")
 		expected := []byte("12345")
-		unpadded := newPKCS5UnPadding(data)
+		unpadded := NewPKCS5UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("PKCS5 unpadding with full block padding", func(t *testing.T) {
 		data := []byte("\x08\x08\x08\x08\x08\x08\x08\x08")
-		unpadded := newPKCS5UnPadding(data)
+		unpadded := NewPKCS5UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 }
@@ -238,7 +238,7 @@ func TestAnsiX923Padding(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
 		expected := []byte("Hello\x00\x00\x03")
-		padded := newAnsiX923Padding(data, blockSize)
+		padded := NewAnsiX923Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -246,7 +246,7 @@ func TestAnsiX923Padding(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
 		expected := []byte("Hello\x00\x00\x03")
-		padded := newAnsiX923Padding(data, blockSize)
+		padded := NewAnsiX923Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -254,7 +254,7 @@ func TestAnsiX923Padding(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		blockSize := 8
 		expected := []byte("12345678\x00\x00\x00\x00\x00\x00\x00\x08")
-		padded := newAnsiX923Padding(data, blockSize)
+		padded := NewAnsiX923Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -262,7 +262,7 @@ func TestAnsiX923Padding(t *testing.T) {
 		data := []byte("1234567890123456") // 16 bytes, exact multiple of 8
 		blockSize := 8
 		expected := []byte("1234567890123456\x00\x00\x00\x00\x00\x00\x00\x08")
-		padded := newAnsiX923Padding(data, blockSize)
+		padded := NewAnsiX923Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -270,7 +270,7 @@ func TestAnsiX923Padding(t *testing.T) {
 		data := []byte("Hello World")
 		blockSize := 4
 		expected := []byte("Hello World\x01")
-		padded := newAnsiX923Padding(data, blockSize)
+		padded := NewAnsiX923Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -278,7 +278,7 @@ func TestAnsiX923Padding(t *testing.T) {
 		var data []byte
 		blockSize := 8
 		expected := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08}
-		padded := newAnsiX923Padding(data, blockSize)
+		padded := NewAnsiX923Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -288,7 +288,7 @@ func TestAnsiX923Padding(t *testing.T) {
 		copy(data, "1234567")
 		data[7] = 1 // Last byte is padding length
 		expected := []byte("1234567")
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
@@ -298,25 +298,25 @@ func TestAnsiX923Padding(t *testing.T) {
 		copy(data, "12345")
 		data[7] = 3 // Last byte is padding length
 		expected := []byte("12345")
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("AnsiX923 unpadding with full block padding", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 8}
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("AnsiX923 unpadding with invalid padding size", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 9} // padding size > data length
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("AnsiX923 unpadding with zero padding size", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 0} // padding size = 0
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
@@ -326,19 +326,19 @@ func TestAnsiX923Padding(t *testing.T) {
 		copy(data, "123456")
 		data[6] = 0x01 // Non-zero padding byte
 		data[7] = 0x02 // Padding length
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data due to invalid padding
 	})
 
 	t.Run("AnsiX923 unpadding with padding size equal to data length", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 8} // padding size = data length
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("AnsiX923 unpadding with empty data", func(t *testing.T) {
 		var data []byte
-		unpadded := newAnsiX923UnPadding(data)
+		unpadded := NewAnsiX923UnPadding(data)
 		assert.Nil(t, unpadded)
 	})
 }
@@ -348,7 +348,7 @@ func TestISO97971Padding(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
 		expected := []byte("Hello\x80\x00\x00")
-		padded := newISO97971Padding(data, blockSize)
+		padded := NewISO97971Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -356,7 +356,7 @@ func TestISO97971Padding(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
 		expected := []byte("Hello\x80\x00\x00")
-		padded := newISO97971Padding(data, blockSize)
+		padded := NewISO97971Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -364,7 +364,7 @@ func TestISO97971Padding(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		blockSize := 8
 		expected := []byte("12345678\x80\x00\x00\x00\x00\x00\x00\x00")
-		padded := newISO97971Padding(data, blockSize)
+		padded := NewISO97971Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -372,7 +372,7 @@ func TestISO97971Padding(t *testing.T) {
 		data := []byte("1234567890123456") // 16 bytes, exact multiple of 8
 		blockSize := 8
 		expected := []byte("1234567890123456\x80\x00\x00\x00\x00\x00\x00\x00")
-		padded := newISO97971Padding(data, blockSize)
+		padded := NewISO97971Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -380,7 +380,7 @@ func TestISO97971Padding(t *testing.T) {
 		data := []byte("Hello World")
 		blockSize := 4
 		expected := []byte("Hello World\x80")
-		padded := newISO97971Padding(data, blockSize)
+		padded := NewISO97971Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -388,58 +388,58 @@ func TestISO97971Padding(t *testing.T) {
 		var data []byte
 		blockSize := 8
 		expected := []byte{0x80, 0, 0, 0, 0, 0, 0, 0}
-		padded := newISO97971Padding(data, blockSize)
+		padded := NewISO97971Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("ISO97971 unpadding with 1 byte padding", func(t *testing.T) {
 		data := []byte("Hello\x80")
 		expected := []byte("Hello")
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("ISO97971 unpadding with 3 bytes padding", func(t *testing.T) {
 		data := []byte("Hello\x80\x00\x00")
 		expected := []byte("Hello")
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("ISO97971 unpadding with full block padding", func(t *testing.T) {
 		data := []byte{0x80, 0, 0, 0, 0, 0, 0, 0}
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("ISO97971 unpadding with no 0x80 byte", func(t *testing.T) {
 		data := []byte("Hello\x00\x00\x00")
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("ISO97971 unpadding with non-zero bytes after 0x80", func(t *testing.T) {
 		data := []byte("Hello\x80\x01\x00") // Non-zero byte after 0x80
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("ISO97971 unpadding with multiple 0x80 bytes", func(t *testing.T) {
 		data := []byte("Hello\x80\x00\x80\x00") // Multiple 0x80 bytes, should find last one
 		expected := []byte("Hello\x80\x00")
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("ISO97971 unpadding with 0x80 at beginning", func(t *testing.T) {
 		data := []byte("\x80\x00\x00\x00")
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("ISO97971 unpadding with empty data", func(t *testing.T) {
 		var data []byte
-		unpadded := newISO97971UnPadding(data)
+		unpadded := NewISO97971UnPadding(data)
 		assert.Nil(t, unpadded)
 	})
 }
@@ -448,7 +448,7 @@ func TestISO10126Padding(t *testing.T) {
 	t.Run("ISO10126 padding with 1 byte needed", func(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
-		padded := newISO10126Padding(data, blockSize)
+		padded := NewISO10126Padding(data, blockSize)
 		assert.Equal(t, 8, len(padded))
 		assert.Equal(t, data, padded[:5])
 		assert.Equal(t, byte(3), padded[7]) // Last byte should be padding length
@@ -457,7 +457,7 @@ func TestISO10126Padding(t *testing.T) {
 	t.Run("ISO10126 padding with 3 bytes needed", func(t *testing.T) {
 		data := []byte("Hello")
 		blockSize := 8
-		padded := newISO10126Padding(data, blockSize)
+		padded := NewISO10126Padding(data, blockSize)
 		assert.Equal(t, 8, len(padded))
 		assert.Equal(t, data, padded[:5])
 		assert.Equal(t, byte(3), padded[7]) // Last byte should be padding length
@@ -466,7 +466,7 @@ func TestISO10126Padding(t *testing.T) {
 	t.Run("ISO10126 padding with exact block size", func(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		blockSize := 8
-		padded := newISO10126Padding(data, blockSize)
+		padded := NewISO10126Padding(data, blockSize)
 		assert.Equal(t, 16, len(padded)) // Adds full block
 		assert.Equal(t, data, padded[:8])
 		assert.Equal(t, byte(8), padded[15]) // Last byte should be padding length
@@ -475,7 +475,7 @@ func TestISO10126Padding(t *testing.T) {
 	t.Run("ISO10126 padding with exact block size 16", func(t *testing.T) {
 		data := []byte("1234567890123456") // 16 bytes, exact multiple of 8
 		blockSize := 8
-		padded := newISO10126Padding(data, blockSize)
+		padded := NewISO10126Padding(data, blockSize)
 		assert.Equal(t, 24, len(padded)) // Adds full block
 		assert.Equal(t, data, padded[:16])
 		assert.Equal(t, byte(8), padded[23]) // Last byte should be padding length
@@ -484,7 +484,7 @@ func TestISO10126Padding(t *testing.T) {
 	t.Run("ISO10126 padding with multiple blocks", func(t *testing.T) {
 		data := []byte("Hello World")
 		blockSize := 4
-		padded := newISO10126Padding(data, blockSize)
+		padded := NewISO10126Padding(data, blockSize)
 		assert.Equal(t, 12, len(padded)) // Adds 1 byte padding
 		assert.Equal(t, data, padded[:11])
 		assert.Equal(t, byte(1), padded[11]) // Last byte should be padding length
@@ -493,7 +493,7 @@ func TestISO10126Padding(t *testing.T) {
 	t.Run("ISO10126 padding with empty data", func(t *testing.T) {
 		var data []byte
 		blockSize := 8
-		padded := newISO10126Padding(data, blockSize)
+		padded := NewISO10126Padding(data, blockSize)
 		assert.Equal(t, 8, len(padded))
 		assert.Equal(t, byte(8), padded[7]) // Last byte should be padding length
 	})
@@ -501,7 +501,7 @@ func TestISO10126Padding(t *testing.T) {
 	t.Run("ISO10126 padding with single byte padding", func(t *testing.T) {
 		data := []byte("1234567")
 		blockSize := 8
-		padded := newISO10126Padding(data, blockSize)
+		padded := NewISO10126Padding(data, blockSize)
 		assert.Equal(t, 8, len(padded))
 		assert.Equal(t, data, padded[:7])
 		assert.Equal(t, byte(1), padded[7]) // Last byte should be padding length
@@ -513,7 +513,7 @@ func TestISO10126Padding(t *testing.T) {
 		copy(data, "1234567")
 		data[7] = 1 // Last byte is padding length
 		expected := []byte("1234567")
-		unpadded := newISO10126UnPadding(data)
+		unpadded := NewISO10126UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
@@ -523,37 +523,37 @@ func TestISO10126Padding(t *testing.T) {
 		copy(data, "12345")
 		data[7] = 3 // Last byte is padding length
 		expected := []byte("12345")
-		unpadded := newISO10126UnPadding(data)
+		unpadded := NewISO10126UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("ISO10126 unpadding with full block padding", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 8}
-		unpadded := newISO10126UnPadding(data)
+		unpadded := NewISO10126UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("ISO10126 unpadding with invalid padding size", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 9} // padding size > data length
-		unpadded := newISO10126UnPadding(data)
+		unpadded := NewISO10126UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("ISO10126 unpadding with zero padding size", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 0} // padding size = 0
-		unpadded := newISO10126UnPadding(data)
+		unpadded := NewISO10126UnPadding(data)
 		assert.Equal(t, data, unpadded) // Should return original data
 	})
 
 	t.Run("ISO10126 unpadding with padding size equal to data length", func(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 8} // padding size = data length
-		unpadded := newISO10126UnPadding(data)
+		unpadded := NewISO10126UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 
 	t.Run("ISO10126 unpadding with empty data", func(t *testing.T) {
 		var data []byte
-		unpadded := newISO10126UnPadding(data)
+		unpadded := NewISO10126UnPadding(data)
 		assert.Nil(t, unpadded)
 	})
 }
@@ -563,7 +563,7 @@ func TestISO78164Padding(t *testing.T) {
 		data := []byte("1234567") // 7 bytes
 		blockSize := 8
 		expected := []byte("1234567\x80")
-		padded := newISO78164Padding(data, blockSize)
+		padded := NewISO78164Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -571,7 +571,7 @@ func TestISO78164Padding(t *testing.T) {
 		data := []byte("12345") // 5 bytes
 		blockSize := 8
 		expected := []byte("12345\x80\x00\x00")
-		padded := newISO78164Padding(data, blockSize)
+		padded := NewISO78164Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -579,7 +579,7 @@ func TestISO78164Padding(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		blockSize := 8
 		expected := []byte("12345678\x80\x00\x00\x00\x00\x00\x00\x00")
-		padded := newISO78164Padding(data, blockSize)
+		padded := NewISO78164Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
@@ -587,27 +587,27 @@ func TestISO78164Padding(t *testing.T) {
 		var data []byte
 		blockSize := 8
 		expected := []byte{0x80, 0, 0, 0, 0, 0, 0, 0}
-		padded := newISO78164Padding(data, blockSize)
+		padded := NewISO78164Padding(data, blockSize)
 		assert.Equal(t, expected, padded)
 	})
 
 	t.Run("ISO78164 unpadding with 1 byte padding", func(t *testing.T) {
 		data := []byte("1234567\x80")
 		expected := []byte("1234567")
-		unpadded := newISO78164UnPadding(data)
+		unpadded := NewISO78164UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("ISO78164 unpadding with 3 bytes padding", func(t *testing.T) {
 		data := []byte("12345\x80\x00\x00")
 		expected := []byte("12345")
-		unpadded := newISO78164UnPadding(data)
+		unpadded := NewISO78164UnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("ISO78164 unpadding with full block padding", func(t *testing.T) {
 		data := []byte{0x80, 0, 0, 0, 0, 0, 0, 0}
-		unpadded := newISO78164UnPadding(data)
+		unpadded := NewISO78164UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 }
@@ -616,7 +616,7 @@ func TestBitPadding(t *testing.T) {
 	t.Run("Bit padding with 1 byte needed", func(t *testing.T) {
 		data := []byte("1234567") // 7 bytes
 		blockSize := 8
-		padded := newBitPadding(data, blockSize)
+		padded := NewBitPadding(data, blockSize)
 		assert.Equal(t, blockSize, len(padded))
 		assert.Equal(t, data, padded[:len(data)])
 		assert.Equal(t, byte(0x80), padded[len(data)]) // First padding byte should be 0x80
@@ -625,7 +625,7 @@ func TestBitPadding(t *testing.T) {
 	t.Run("Bit padding with 3 bytes needed", func(t *testing.T) {
 		data := []byte("12345") // 5 bytes
 		blockSize := 8
-		padded := newBitPadding(data, blockSize)
+		padded := NewBitPadding(data, blockSize)
 		assert.Equal(t, blockSize, len(padded))
 		assert.Equal(t, data, padded[:len(data)])
 		assert.Equal(t, byte(0x80), padded[len(data)]) // First padding byte should be 0x80
@@ -634,7 +634,7 @@ func TestBitPadding(t *testing.T) {
 	t.Run("Bit padding with exact block size", func(t *testing.T) {
 		data := []byte("12345678") // 8 bytes
 		blockSize := 8
-		padded := newBitPadding(data, blockSize)
+		padded := NewBitPadding(data, blockSize)
 		assert.Equal(t, blockSize*2, len(padded)) // Adds full block
 		assert.Equal(t, data, padded[:len(data)])
 		assert.Equal(t, byte(0x80), padded[len(data)]) // First padding byte should be 0x80
@@ -643,7 +643,7 @@ func TestBitPadding(t *testing.T) {
 	t.Run("Bit padding with exact block size 16", func(t *testing.T) {
 		data := []byte("1234567890123456") // 16 bytes, exact multiple of 8
 		blockSize := 8
-		padded := newBitPadding(data, blockSize)
+		padded := NewBitPadding(data, blockSize)
 		assert.Equal(t, blockSize*3, len(padded)) // Adds full block
 		assert.Equal(t, data, padded[:len(data)])
 		assert.Equal(t, byte(0x80), padded[len(data)]) // First padding byte should be 0x80
@@ -652,7 +652,7 @@ func TestBitPadding(t *testing.T) {
 	t.Run("Bit padding with multiple blocks", func(t *testing.T) {
 		data := []byte("1234567890123456") // 16 bytes (2 blocks)
 		blockSize := 8
-		padded := newBitPadding(data, blockSize)
+		padded := NewBitPadding(data, blockSize)
 		assert.Equal(t, blockSize*3, len(padded)) // Adds full block
 		assert.Equal(t, data, padded[:len(data)])
 		assert.Equal(t, byte(0x80), padded[len(data)]) // First padding byte should be 0x80
@@ -661,7 +661,7 @@ func TestBitPadding(t *testing.T) {
 	t.Run("Bit padding with empty data", func(t *testing.T) {
 		var data []byte
 		blockSize := 8
-		padded := newBitPadding(data, blockSize)
+		padded := NewBitPadding(data, blockSize)
 		assert.Equal(t, blockSize, len(padded))
 		assert.Equal(t, byte(0x80), padded[0]) // First padding byte should be 0x80
 	})
@@ -669,20 +669,20 @@ func TestBitPadding(t *testing.T) {
 	t.Run("Bit unpadding with 1 byte padding", func(t *testing.T) {
 		data := []byte("1234567\x80")
 		expected := []byte("1234567")
-		unpadded := newBitUnPadding(data)
+		unpadded := NewBitUnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("Bit unpadding with 3 bytes padding", func(t *testing.T) {
 		data := []byte("12345\x80\x00\x00")
 		expected := []byte("12345")
-		unpadded := newBitUnPadding(data)
+		unpadded := NewBitUnPadding(data)
 		assert.Equal(t, expected, unpadded)
 	})
 
 	t.Run("Bit unpadding with full block padding", func(t *testing.T) {
 		data := []byte{0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-		unpadded := newBitUnPadding(data)
+		unpadded := NewBitUnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
 	})
 }

@@ -40,51 +40,97 @@ func (c *blockCipher) SetAAD(aad []byte) {
 
 func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err error) {
 	if c.Block == CFB {
-		return newCFBEncrypter(src, c.IV, block)
+		return NewCFBEncrypter(src, c.IV, block)
 	}
 	if c.Block == OFB {
-		return newOFBEncrypter(src, c.IV, block)
+		return NewOFBEncrypter(src, c.IV, block)
 	}
 	if c.Block == CTR {
-		return newCTREncrypter(src, c.IV, block)
+		return NewCTREncrypter(src, c.IV, block)
 	}
 	if c.Block == GCM {
-		return newGCMEncrypter(src, c.Nonce, c.AAD, block)
+		return NewGCMEncrypter(src, c.Nonce, c.AAD, block)
 	}
 
-	paddedSrc := newPadding(c.Padding, src, block.BlockSize())
+	paddedSrc := padding(c.Padding, src, block.BlockSize())
 	if c.Block == CBC {
-		return newCBCEncrypter(paddedSrc, c.IV, block)
+		return NewCBCEncrypter(paddedSrc, c.IV, block)
 	}
 	if c.Block == ECB {
-		return newECBEncrypter(paddedSrc, block)
+		return NewECBEncrypter(paddedSrc, block)
 	}
 	return
 }
 
 func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err error) {
 	if c.Block == CFB {
-		return newCFBDecrypter(src, c.IV, block)
+		return NewCFBDecrypter(src, c.IV, block)
 	}
 	if c.Block == OFB {
-		return newOFBDecrypter(src, c.IV, block)
+		return NewOFBDecrypter(src, c.IV, block)
 	}
 	if c.Block == CTR {
-		return newCTRDecrypter(src, c.IV, block)
+		return NewCTRDecrypter(src, c.IV, block)
 	}
 	if c.Block == GCM {
-		return newGCMDecrypter(src, c.Nonce, c.AAD, block)
+		return NewGCMDecrypter(src, c.Nonce, c.AAD, block)
 	}
 	var paddedDst []byte
 	if c.Block == CBC {
-		paddedDst, err = newCBCDecrypter(src, c.IV, block)
+		paddedDst, err = NewCBCDecrypter(src, c.IV, block)
 	}
 	if c.Block == ECB {
-		paddedDst, err = newECBDecrypter(src, block)
+		paddedDst, err = NewECBDecrypter(src, block)
 	}
 	if err != nil {
 		return
 	}
-	dst = newUnPadding(c.Padding, paddedDst)
+	dst = unpadding(c.Padding, paddedDst)
 	return
+}
+
+// padding applies the specified padding mode to the source data.
+func padding(paddingMode PaddingMode, src []byte, blockSize int) []byte {
+	switch paddingMode {
+	case Zero:
+		return NewZeroPadding(src, blockSize)
+	case PKCS5:
+		return NewPKCS5Padding(src)
+	case PKCS7:
+		return NewPKCS7Padding(src, blockSize)
+	case AnsiX923:
+		return NewAnsiX923Padding(src, blockSize)
+	case ISO97971:
+		return NewISO97971Padding(src, blockSize)
+	case ISO10126:
+		return NewISO10126Padding(src, blockSize)
+	case ISO78164:
+		return NewISO78164Padding(src, blockSize)
+	case Bit:
+		return NewBitPadding(src, blockSize)
+	}
+	return src
+}
+
+// unpadding removes the specified padding mode from the source data.
+func unpadding(paddingMode PaddingMode, src []byte) []byte {
+	switch paddingMode {
+	case Zero:
+		return NewZeroUnPadding(src)
+	case PKCS5:
+		return NewPKCS5UnPadding(src)
+	case PKCS7:
+		return NewPKCS7UnPadding(src)
+	case AnsiX923:
+		return NewAnsiX923UnPadding(src)
+	case ISO97971:
+		return NewISO97971UnPadding(src)
+	case ISO10126:
+		return NewISO10126UnPadding(src)
+	case ISO78164:
+		return NewISO78164UnPadding(src)
+	case Bit:
+		return NewBitUnPadding(src)
+	}
+	return src
 }

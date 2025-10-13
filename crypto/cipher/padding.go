@@ -21,25 +21,25 @@ const (
 	Bit      PaddingMode = "Bit"       // Bit padding - 0x80 + zeros
 )
 
-// newNoPadding applies no padding to the source data.
+// NewNoPadding applies no padding to the source data.
 // This function simply returns the original data without modification.
 //
 // Note: Data must already be a multiple of the block size for this to work correctly.
-func newNoPadding(src []byte) []byte {
+func NewNoPadding(src []byte) []byte {
 	return src
 }
 
-// newNoUnPadding removes no padding from the source data.
+// NewNoUnPadding removes no padding from the source data.
 // This function simply returns the original data without modification.
-func newNoUnPadding(src []byte) []byte {
+func NewNoUnPadding(src []byte) []byte {
 	return src
 }
 
-// newZeroPadding applies zero padding to the source data.
+// NewZeroPadding applies zero padding to the source data.
 // Zero padding adds padding bytes (filled with zeros) to reach the block size.
 // If the data length is already a multiple of block size, no padding is added.
 // For empty data, no padding is added.
-func newZeroPadding(src []byte, blockSize int) []byte {
+func NewZeroPadding(src []byte, blockSize int) []byte {
 	if len(src) == 0 {
 		return src
 	}
@@ -53,9 +53,9 @@ func newZeroPadding(src []byte, blockSize int) []byte {
 	return append(src, make([]byte, paddingSize)...)
 }
 
-// newZeroUnPadding removes zero padding from the source data.
+// NewZeroUnPadding removes zero padding from the source data.
 // This function removes trailing zero bytes from the data.
-func newZeroUnPadding(src []byte) []byte {
+func NewZeroUnPadding(src []byte) []byte {
 	if len(src) == 0 {
 		return nil
 	}
@@ -68,18 +68,18 @@ func newZeroUnPadding(src []byte) []byte {
 	return src[:lastNonZero+1]
 }
 
-// newPKCS7Padding applies PKCS7 padding to the source data.
+// NewPKCS7Padding applies PKCS7 padding to the source data.
 // PKCS7 padding adds N bytes, each with value N, where N is the number of padding bytes needed.
 // This is the most commonly used padding scheme in modern cryptography.
-func newPKCS7Padding(src []byte, blockSize int) []byte {
+func NewPKCS7Padding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
 	paddingBytes := bytes.Repeat([]byte{byte(paddingSize)}, paddingSize)
 	return append(src, paddingBytes...)
 }
 
-// newPKCS7UnPadding removes PKCS7 padding from the source data.
+// NewPKCS7UnPadding removes PKCS7 padding from the source data.
 // This function reads the last byte to determine the padding size and removes that many bytes.
-func newPKCS7UnPadding(src []byte) []byte {
+func NewPKCS7UnPadding(src []byte) []byte {
 	if len(src) == 0 {
 		return nil
 	}
@@ -92,23 +92,23 @@ func newPKCS7UnPadding(src []byte) []byte {
 	return src[:len(src)-paddingSize]
 }
 
-// newPKCS5Padding applies PKCS5 padding to the source data.
+// NewPKCS5Padding applies PKCS5 padding to the source data.
 // PKCS5 padding is identical to PKCS7 padding but is limited to 8-byte blocks.
 // This function calls PKCS7 padding with a fixed block size of 8.
-func newPKCS5Padding(src []byte) []byte {
-	return newPKCS7Padding(src, 8)
+func NewPKCS5Padding(src []byte) []byte {
+	return NewPKCS7Padding(src, 8)
 }
 
-// newPKCS5UnPadding removes PKCS5 padding from the source data.
+// NewPKCS5UnPadding removes PKCS5 padding from the source data.
 // This function calls PKCS7 unpadding since PKCS5 and PKCS7 are identical.
-func newPKCS5UnPadding(src []byte) []byte {
-	return newPKCS7UnPadding(src)
+func NewPKCS5UnPadding(src []byte) []byte {
+	return NewPKCS7UnPadding(src)
 }
 
-// newAnsiX923Padding applies ANSI X.923 padding to the source data.
+// NewAnsiX923Padding applies ANSI X.923 padding to the source data.
 // ANSI X.923 padding fills with zeros and adds the padding length as the last byte.
 // If the data length is already a multiple of block size, a full block of padding is added.
-func newAnsiX923Padding(src []byte, blockSize int) []byte {
+func NewAnsiX923Padding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
 
 	paddingBytes := make([]byte, paddingSize)
@@ -116,9 +116,9 @@ func newAnsiX923Padding(src []byte, blockSize int) []byte {
 	return append(src, paddingBytes...)
 }
 
-// newAnsiX923UnPadding removes ANSI X.923 padding from the source data.
+// NewAnsiX923UnPadding removes ANSI X.923 padding from the source data.
 // This function validates that all padding bytes except the last are zero.
-func newAnsiX923UnPadding(src []byte) []byte {
+func NewAnsiX923UnPadding(src []byte) []byte {
 	if len(src) == 0 {
 		return nil
 	}
@@ -137,10 +137,10 @@ func newAnsiX923UnPadding(src []byte) []byte {
 	return src[:len(src)-paddingSize]
 }
 
-// newISO97971Padding applies ISO/IEC 9797-1 padding method 1 to the source data.
+// NewISO97971Padding applies ISO/IEC 9797-1 padding method 1 to the source data.
 // ISO9797-1 method 1 adds a 0x80 byte followed by zero bytes to reach the block size.
 // If the data length is already a multiple of block size, a full block of padding is added.
-func newISO97971Padding(src []byte, blockSize int) []byte {
+func NewISO97971Padding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
 
 	paddingBytes := make([]byte, paddingSize)
@@ -149,9 +149,9 @@ func newISO97971Padding(src []byte, blockSize int) []byte {
 	return append(src, paddingBytes...)
 }
 
-// newISO97971UnPadding removes ISO/IEC 9797-1 padding method 1 from the source data.
+// NewISO97971UnPadding removes ISO/IEC 9797-1 padding method 1 from the source data.
 // This function finds the last 0x80 byte and validates that all bytes after it are zero.
-func newISO97971UnPadding(src []byte) []byte {
+func NewISO97971UnPadding(src []byte) []byte {
 	if len(src) == 0 {
 		return nil
 	}
@@ -178,10 +178,10 @@ func newISO97971UnPadding(src []byte) []byte {
 	return src[:lastIndex]
 }
 
-// newISO10126Padding applies ISO/IEC 10126 padding to the source data.
+// NewISO10126Padding applies ISO/IEC 10126 padding to the source data.
 // ISO10126 padding fills with random bytes and adds the padding length as the last byte.
 // This padding scheme provides better security by using random padding bytes.
-func newISO10126Padding(src []byte, blockSize int) []byte {
+func NewISO10126Padding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
 
 	paddingBytes := make([]byte, paddingSize)
@@ -193,11 +193,11 @@ func newISO10126Padding(src []byte, blockSize int) []byte {
 	return append(src, paddingBytes...)
 }
 
-// newISO10126UnPadding removes ISO/IEC 10126 padding from the source data.
+// NewISO10126UnPadding removes ISO/IEC 10126 padding from the source data.
 // This function reads the last byte to determine the padding size and removes that many bytes.
 //
 // Note: The random padding bytes are not validated, only the length is used.
-func newISO10126UnPadding(src []byte) []byte {
+func NewISO10126UnPadding(src []byte) []byte {
 	if len(src) == 0 {
 		return nil
 	}
@@ -209,23 +209,23 @@ func newISO10126UnPadding(src []byte) []byte {
 	return src[:len(src)-paddingSize]
 }
 
-// newISO78164Padding applies ISO/IEC 7816-4 padding to the source data.
+// NewISO78164Padding applies ISO/IEC 7816-4 padding to the source data.
 // ISO7816-4 padding is identical to ISO9797-1 method 1 padding.
 // This function calls ISO9797-1 padding implementation.
-func newISO78164Padding(src []byte, blockSize int) []byte {
-	return newISO97971Padding(src, blockSize)
+func NewISO78164Padding(src []byte, blockSize int) []byte {
+	return NewISO97971Padding(src, blockSize)
 }
 
-// newISO78164UnPadding removes ISO/IEC 7816-4 padding from the source data.
+// NewISO78164UnPadding removes ISO/IEC 7816-4 padding from the source data.
 // This function calls ISO9797-1 unpadding since they are identical.
-func newISO78164UnPadding(src []byte) []byte {
-	return newISO97971UnPadding(src)
+func NewISO78164UnPadding(src []byte) []byte {
+	return NewISO97971UnPadding(src)
 }
 
-// newBitPadding applies bit padding to the source data.
+// NewBitPadding applies bit padding to the source data.
 // Bit padding adds a 0x80 byte followed by zero bytes to reach the block size.
 // This is similar to ISO9797-1 method 1 but with a different name.
-func newBitPadding(src []byte, blockSize int) []byte {
+func NewBitPadding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
 
 	paddingBytes := make([]byte, paddingSize)
@@ -234,54 +234,8 @@ func newBitPadding(src []byte, blockSize int) []byte {
 	return append(src, paddingBytes...)
 }
 
-// newBitUnPadding removes bit padding from the source data.
+// NewBitUnPadding removes bit padding from the source data.
 // This function calls ISO9797-1 unpadding since they are identical.
-func newBitUnPadding(src []byte) []byte {
-	return newISO97971UnPadding(src)
-}
-
-// newPadding applies the specified padding mode to the source data.
-func newPadding(paddingMode PaddingMode, src []byte, blockSize int) []byte {
-	switch paddingMode {
-	case Zero:
-		return newZeroPadding(src, blockSize)
-	case PKCS5:
-		return newPKCS5Padding(src)
-	case PKCS7:
-		return newPKCS7Padding(src, blockSize)
-	case AnsiX923:
-		return newAnsiX923Padding(src, blockSize)
-	case ISO97971:
-		return newISO97971Padding(src, blockSize)
-	case ISO10126:
-		return newISO10126Padding(src, blockSize)
-	case ISO78164:
-		return newISO78164Padding(src, blockSize)
-	case Bit:
-		return newBitPadding(src, blockSize)
-	}
-	return src
-}
-
-// newUnPadding removes the specified padding mode from the source data.
-func newUnPadding(paddingMode PaddingMode, src []byte) []byte {
-	switch paddingMode {
-	case Zero:
-		return newZeroUnPadding(src)
-	case PKCS5:
-		return newPKCS5UnPadding(src)
-	case PKCS7:
-		return newPKCS7UnPadding(src)
-	case AnsiX923:
-		return newAnsiX923UnPadding(src)
-	case ISO97971:
-		return newISO97971UnPadding(src)
-	case ISO10126:
-		return newISO10126UnPadding(src)
-	case ISO78164:
-		return newISO78164UnPadding(src)
-	case Bit:
-		return newBitUnPadding(src)
-	}
-	return src
+func NewBitUnPadding(src []byte) []byte {
+	return NewISO97971UnPadding(src)
 }
