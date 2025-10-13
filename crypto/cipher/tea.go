@@ -11,7 +11,7 @@ func NewTeaCipher(block BlockMode) (c *TeaCipher) {
 			Block:   block,
 			Padding: PKCS7,
 		},
-		Rounds: 64, // TEA 默认 64 轮
+		Rounds: 64,
 	}
 }
 
