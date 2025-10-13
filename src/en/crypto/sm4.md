@@ -2,40 +2,40 @@
 head:
   - - meta
     - name: description
-      content: SM4 加密算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: SM4 Encryption Algorithm | A lightweight, semantic, developer-friendly golang encoding & cryptography library
   - - meta
     - name: keywords
-      content: sm4, 加密, 解密, 对称加密, 分组密码
+      content: sm4, encryption, decryption, symmetric encryption, block cipher
 ---
 
 # SM4
 
-SM4（Chinese National Standard）是一种对称加密算法，支持 `16` 字节密钥长度。`dongle` 支持标准和流式 `SM4` 加密，提供多种分组模式、填充模式和输出格式。
+SM4 (Chinese National Standard) is a symmetric encryption algorithm that supports a `16`-byte key length. `dongle` supports both standard and streaming `SM4` encryption, providing multiple block modes, padding modes, and output formats.
 
-支持以下分组模式：
+The following block modes are supported:
 
-- **CBC（Cipher Block Chaining）**：密码分组链接模式，需要设置密钥 `Key`、初始化向量 `IV`（16 字节）和填充模式`Padding`
-- **ECB（Electronic Codebook）**：电子密码本模式，需要设置密钥 `Key` 和填充模式`Padding`
-- **CTR（Counter）**：计数器模式，需要设置密钥 `Key` 和初始化向量 `IV`（12 字节）
-- **GCM（Galois/Counter Mode）**：伽罗瓦/计数器模式，需要设置密钥 `Key`、随机数 `Nonce`（12 字节）和额外的认证数据 `AAD`（可选）
-- **CFB（Cipher Feedback）**：密码反馈模式，需要设置密钥 `Key` 和初始化向量 `IV`（16 字节）
-- **OFB（Output Feedback）**：输出反馈模式，需要设置密钥 `Key` 和初始化向量 `IV`（16 字节）
+- **CBC (Cipher Block Chaining)**: Cipher block chaining mode, requires setting the key `Key`, initialization vector `IV` (16 bytes), and padding mode `Padding`
+- **ECB (Electronic Codebook)**: Electronic codebook mode, requires setting the key `Key` and padding mode `Padding`
+- **CTR (Counter)**: Counter mode, requires setting the key `Key` and initialization vector `IV` (12 bytes)
+- **GCM (Galois/Counter Mode)**: Galois/Counter mode, requires setting the key `Key`, nonce `Nonce` (12 bytes), and additional authenticated data `AAD` (optional)
+- **CFB (Cipher Feedback)**: Cipher feedback mode, requires setting the key `Key` and initialization vector `IV` (16 bytes)
+- **OFB (Output Feedback)**: Output feedback mode, requires setting the key `Key` and initialization vector `IV` (16 bytes)
 
-支持以下填充模式：
+The following padding modes are supported:
 
-- **No**：无填充，明文长度必须是 16 的整数倍
-- **Zero**：零填充，用零字节填充到块边界，如果明文长度不是 16 的倍数，则用 0x00 字节填充
-- **PKCS7**：PKCS#7 填充，最常用的填充方式，用 N 个值为 N 的字节填充，其中 N 是填充的字节数
-- **PKCS5**：PKCS#5 填充，适用于 8 字节块大小，用 N 个值为 N 的字节填充，其中 N 是填充的字节数
-- **AnsiX923**：ANSI X.923 填充，除最后一个字节外都用 0x00 填充，最后一个字节表示填充的字节数
-- **ISO97971**：ISO/IEC 9797-1 填充，第一个字节为 0x80，其余用 0x00 填充
-- **ISO10126**：ISO/IEC 10126 填充，除最后一个字节外都用随机字节填充，最后一个字节表示填充的字节数
-- **ISO78164**：ISO/IEC 7816-4 填充，第一个字节为 0x80，其余用 0x00 填充
-- **Bit**：位填充，在明文末尾添加一个 1 位，然后用 0 位填充到块边界
+- **No**: No padding, plaintext length must be a multiple of 16
+- **Zero**: Zero padding, pad with zero bytes to block boundary, if plaintext length is not a multiple of 16, pad with 0x00 bytes
+- **PKCS7**: PKCS#7 padding, the most commonly used padding method, pad with N bytes of value N, where N is the number of padding bytes
+- **PKCS5**: PKCS#5 padding, suitable for 8-byte block size, pad with N bytes of value N, where N is the number of padding bytes
+- **AnsiX923**: ANSI X.923 padding, all bytes except the last one are padded with 0x00, the last byte indicates the number of padding bytes
+- **ISO97971**: ISO/IEC 9797-1 padding, the first byte is 0x80, the rest are padded with 0x00
+- **ISO10126**: ISO/IEC 10126 padding, all bytes except the last one are padded with random bytes, the last byte indicates the number of padding bytes
+- **ISO78164**: ISO/IEC 7816-4 padding, the first byte is 0x80, the rest are padded with 0x00
+- **Bit**: Bit padding, add a 1 bit at the end of the plaintext, then pad with 0 bits to the block boundary
 
-> **注意**：仅 `CBC/ECB` 分组模式需要填充
+> **Note**: Only `CBC/ECB` block modes require padding
 
-导入相关模块：
+Import related modules:
 ```go
 import (
     "github.com/dromara/dongle"
@@ -43,569 +43,567 @@ import (
 )
 ```
 
-## CBC 模式
+## CBC Mode
 
-### 创建 Cipher
+### Create Cipher
 ```go
 c := cipher.NewSm4Cipher(cipher.CBC)
-// 设置密钥（16 字节)
+// Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// 设置初始化向量（16 字节)
+// Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))
-// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7)          
 ```
 
-### 加密数据
+### Encrypt Data
 
- 输入数据
+ Input Data
 
 ```go
-// 输入字符串
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").BySm4(c)
-// 输入字节切片
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).BySm4(c)
-// 输入文件流
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).BySm4(c)
 
-// 检查加密错误
+// Check encryption error
 if encrypter.Error != nil {
-    fmt.Printf("加密错误: %v\n", encrypter.Error)
+    fmt.Printf("Encryption error: %v\n", encrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 
 ```go
-// 输出 Hex 编码字符串
+// Output Hex encoded string
 encrypter.ToHexString()
-// 输出 Hex 编码字节切片
+// Output Hex encoded byte slice
 encrypter.ToHexBytes()
 
-// 输出 Base64 编码字符串
+// Output Base64 encoded string
 encrypter.ToBase64String()
-// 输出 Base64 编码字节切片
+// Output Base64 encoded byte slice
 encrypter.ToBase64Bytes()
 
-// 输出未编码原始字符串
+// Output unencoded raw string
 encrypter.ToRawString()
-// 输出未编码原始字节切片
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
-### 解密数据
+### Decrypt Data
 
- 输入数据
+ Input Data
 
 ```go
-// 输入 Hex 编码字符串
+// Input Hex encoded string
 decrypter := dongle.Decrypt.FromHexString(hexString).BySm4(c)
-// 输入 Hex 编码字节切片
+// Input Hex encoded byte slice
 decrypter := dongle.Decrypt.FromHexBytes(hexBytes).BySm4(c)
-// 输入 Hex 编码文件
+// Input Hex encoded file
 file, _ := os.Open("encrypted.hex")
 decrypter := dongle.Decrypt.FromHexFile(file).BySm4(c)
 
-// 输入 Base64 编码字符串
+// Input Base64 encoded string
 decrypter := dongle.Decrypt.FromBase64String(base64String).BySm4(c)
-// 输入 Base64 编码字节切片
+// Input Base64 encoded byte slice
 decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
-// 输入 Base64 编码文件流
+// Input Base64 encoded file stream
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 输入原始字符串
+// Input raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 输入原始字节切片
+// Input raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 输入原始文件流
+// Input raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
-// 检查解密错误
+// Check decryption error
 if decrypter.Error != nil {
-    fmt.Printf("解密错误: %v\n", decrypter.Error)
+    fmt.Printf("Decryption error: %v\n", decrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 
 ```go
-// 输出解密后的字符串
+// Output decrypted string
 decrypter.ToString() // hello world
-// 输出解密后的字节切片
+// Output decrypted byte slice
 decrypter.ToBytes() // []byte("hello world")
 ```
 
-## ECB 模式
+## ECB Mode
 
-### 创建 Cipher
+### Create Cipher
 
 ```go
 c := cipher.NewSm4Cipher(cipher.ECB)
-// 设置密钥（16 字节)
+// Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7) 
 ```
 
-### 加密数据
+### Encrypt Data
 
-输入数据
+Input Data
 ```go
-// 输入字符串
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").BySm4(c)
-// 输入字节切片
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).BySm4(c)
-// 输入文件流
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).BySm4(c)
 
-// 检查加密错误
+// Check encryption error
 if encrypter.Error != nil {
-    fmt.Printf("加密错误: %v\n", encrypter.Error)
+    fmt.Printf("Encryption error: %v\n", encrypter.Error)
     return
 }
 ```
 
-输出数据
+Output Data
 ```go
-// 输出 Hex 编码字符串
+// Output Hex encoded string
 encrypter.ToHexString()
-// 输出 Hex 编码字节切片
+// Output Hex encoded byte slice
 encrypter.ToHexBytes()
 
-// 输出 Base64 编码字符串
+// Output Base64 encoded string
 encrypter.ToBase64String()
-// 输出 Base64 编码字节切片
+// Output Base64 encoded byte slice
 encrypter.ToBase64Bytes()
 
-// 输出未编码原始字符串
+// Output unencoded raw string
 encrypter.ToRawString()
-// 输出未编码原始字节切片
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
-### 解密数据
+### Decrypt Data
 
-输入数据
+Input Data
 ```go
-// 输入 Hex 编码字符串
+// Input Hex encoded string
 decrypter := dongle.Decrypt.FromHexString(hexString).BySm4(c)
-// 输入 Hex 编码字节切片
+// Input Hex encoded byte slice
 decrypter := dongle.Decrypt.FromHexBytes(hexBytes).BySm4(c)
-// 输入 Hex 编码文件流
+// Input Hex encoded file stream
 file, _ := os.Open("encrypted.hex")
 decrypter := dongle.Decrypt.FromHexFile(file).BySm4(c)
 
-// 输入 Base64 编码字符串
+// Input Base64 encoded string
 decrypter := dongle.Decrypt.FromBase64String(base64String).BySm4(c)
-// 输入 Base64 编码字节切片
+// Input Base64 encoded byte slice
 decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
-// 输入 Base64 编码文件流
+// Input Base64 encoded file stream
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 输入原始字符串
+// Input raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 输入原始字节切片
+// Input raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 输入原始文件流
+// Input raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
-// 检查解密错误
+// Check decryption error
 if decrypter.Error != nil {
-    fmt.Printf("解密错误: %v\n", decrypter.Error)
+    fmt.Printf("Decryption error: %v\n", decrypter.Error)
     return
 }
 ```
 
-输出数据
+Output Data
 ```go
-// 输出解密后的字符串
+// Output decrypted string
 decrypter.ToString() // hello world
-// 输出解密后的字节切片
+// Output decrypted byte slice
 decrypter.ToBytes() // []byte("hello world")
 ```
 
-## CTR 模式
+## CTR Mode
 
-### 创建 Cipher
+### Create Cipher
 
 ```go
 c := cipher.NewSm4Cipher(cipher.CTR)
-// 设置密钥（16 字节)
+// Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// 设置初始化向量（12 字节)
+// Set initialization vector (12 bytes)
 c.SetIV([]byte("123456789012"))      
 ```
 
-### 加密数据
+### Encrypt Data
 
- 输入数据
+ Input Data
 ```go
-// 输入字符串
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").BySm4(c)
-// 输入字节切片
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).BySm4(c)
-// 输入文件流
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).BySm4(c)
 
-// 检查加密错误
+// Check encryption error
 if encrypter.Error != nil {
-    fmt.Printf("加密错误: %v\n", encrypter.Error)
+    fmt.Printf("Encryption error: %v\n", encrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 ```go
-// 输出 Hex 编码字符串
+// Output Hex encoded string
 encrypter.ToHexString()
-// 输出 Hex 编码字节切片
+// Output Hex encoded byte slice
 encrypter.ToHexBytes()
 
-// 输出 Base64 编码字符串
+// Output Base64 encoded string
 encrypter.ToBase64String()
-// 输出 Base64 编码字节切片
+// Output Base64 encoded byte slice
 encrypter.ToBase64Bytes()
 
-// 输出未编码原始字符串
+// Output unencoded raw string
 encrypter.ToRawString()
-// 输出未编码原始字节切片
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
-### 解密数据
+### Decrypt Data
 
- 输入数据
+ Input Data
 
 ```go
-// 输入 Hex 编码字符串
+// Input Hex encoded string
 decrypter := dongle.Decrypt.FromHexString(hexString).BySm4(c)
-// 输入 Hex 编码字节切片
+// Input Hex encoded byte slice
 decrypter := dongle.Decrypt.FromHexBytes(hexBytes).BySm4(c)
-// 输入 Hex 编码文件流
+// Input Hex encoded file stream
 file, _ := os.Open("encrypted.hex")
 decrypter := dongle.Decrypt.FromHexFile(file).BySm4(c)
 
-// 输入 Base64 编码字符串
+// Input Base64 encoded string
 decrypter := dongle.Decrypt.FromBase64String(base64String).BySm4(c)
-// 输入 Base64 编码字节切片
+// Input Base64 encoded byte slice
 decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
-// 输入 Base64 编码文件流
+// Input Base64 encoded file stream
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 输入原始字符串
+// Input raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 输入原始字节切片
+// Input raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 输入原始文件流
+// Input raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
-// 检查解密错误
+// Check decryption error
 if decrypter.Error != nil {
-    fmt.Printf("解密错误: %v\n", decrypter.Error)
+    fmt.Printf("Decryption error: %v\n", decrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 
 ```go
-// 输出字符串
+// Output string
 decrypter.ToString() // hello world
-// 输出字节切片
+// Output byte slice
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## GCM 模式
+## GCM Mode
 
-GCM 模式提供认证加密功能，支持额外的认证数据（AAD）。
+GCM mode provides authenticated encryption functionality and supports additional authenticated data (AAD).
 
-### 创建 Cipher
+### Create Cipher
 
 ```go
 c := cipher.NewSm4Cipher(cipher.GCM)
-// 设置密钥（16 字节)
+// Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// 设置随机数（12 字节)
+// Set nonce (12 bytes)
 c.SetNonce([]byte("123456789012"))
-// 设置额外的认证数据（可选）
+// Set additional authenticated data (optional)
 c.SetAAD([]byte("additional data")) 
 ```
 
-### 加密数据
+### Encrypt Data
 
- 输入数据
+ Input Data
 ```go
-// 输入字符串
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").BySm4(c)
-// 输入字节切片
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).BySm4(c)
-// 输入文件流
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).BySm4(c)
 
-// 检查加密错误
+// Check encryption error
 if encrypter.Error != nil {
-    fmt.Printf("加密错误: %v\n", encrypter.Error)
+    fmt.Printf("Encryption error: %v\n", encrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 ```go
-// 输出 Hex 编码字符串
+// Output Hex encoded string
 encrypter.ToHexString()
-// 输出 Hex 编码字节切片
+// Output Hex encoded byte slice
 encrypter.ToHexBytes()
 
-// 输出 Base64 编码字符串
+// Output Base64 encoded string
 encrypter.ToBase64String()
-// 输出 Base64 编码字节切片
+// Output Base64 encoded byte slice
 encrypter.ToBase64Bytes()
 
-// 输出未编码原始字符串
+// Output unencoded raw string
 encrypter.ToRawString()
-// 输出未编码原始字节切片
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
-### 解密数据
+### Decrypt Data
 
- 输入数据
+ Input Data
 
 ```go
-// 输入 Hex 编码字符串
+// Input Hex encoded string
 decrypter := dongle.Decrypt.FromHexString(hexString).BySm4(c)
-// 输入 Hex 编码字节切片
+// Input Hex encoded byte slice
 decrypter := dongle.Decrypt.FromHexBytes(hexBytes).BySm4(c)
-// 输入 Hex 编码文件流
+// Input Hex encoded file stream
 file, _ := os.Open("encrypted.hex")
 decrypter := dongle.Decrypt.FromHexFile(file).BySm4(c)
 
-// 输入 Base64 编码字符串
+// Input Base64 encoded string
 decrypter := dongle.Decrypt.FromBase64String(base64String).BySm4(c)
-// 输入 Base64 编码字节切片
+// Input Base64 encoded byte slice
 decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
-// 输入 Base64 编码文件流
+// Input Base64 encoded file stream
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 输入原始字符串
+// Input raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 输入原始字节切片
+// Input raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 输入原始文件流
+// Input raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
-// 检查解密错误
+// Check decryption error
 if decrypter.Error != nil {
-    fmt.Printf("解密错误: %v\n", decrypter.Error)
+    fmt.Printf("Decryption error: %v\n", decrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 ```go
-// 输出字符串
+// Output string
 decrypter.ToString() // hello world
-// 输出字节切片
+// Output byte slice
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CFB 模式
+## CFB Mode
 
-### 创建 Cipher
+### Create Cipher
 
 ```go
 c := cipher.NewSm4Cipher(cipher.CFB)
-// 设置密钥（16 字节)
+// Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// 设置初始化向量（16 字节)
+// Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))  
 ```
 
-### 加密数据
+### Encrypt Data
 
- 输入数据
+ Input Data
 ```go
-// 输入字符串
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").BySm4(c)
-// 输入字节切片
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).BySm4(c)
-// 输入文件流
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).BySm4(c)
 
-// 检查加密错误
+// Check encryption error
 if encrypter.Error != nil {
-    fmt.Printf("加密错误: %v\n", encrypter.Error)
+    fmt.Printf("Encryption error: %v\n", encrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 ```go
-// 输出 Hex 编码字符串
+// Output Hex encoded string
 encrypter.ToHexString()
-// 输出 Hex 编码字节切片
+// Output Hex encoded byte slice
 encrypter.ToHexBytes()   
 
-// 输出 Base64 编码字符串
+// Output Base64 encoded string
 encrypter.ToBase64String()
-// 输出 Base64 编码字节切片
+// Output Base64 encoded byte slice
 encrypter.ToBase64Bytes()   
 
-// 输出未编码原始字符串
+// Output unencoded raw string
 encrypter.ToRawString()
-// 输出未编码原始字节切片
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
-### 解密数据
+### Decrypt Data
 
- 输入数据
+ Input Data
 ```go
-// 输入 Hex 编码字符串
+// Input Hex encoded string
 decrypter := dongle.Decrypt.FromHexString(hexString).BySm4(c)
-// 输入 Hex 编码字节切片
+// Input Hex encoded byte slice
 decrypter := dongle.Decrypt.FromHexBytes(hexBytes).BySm4(c)
-// 输入 Hex 编码文件流
+// Input Hex encoded file stream
 file, _ := os.Open("encrypted.hex")
 decrypter := dongle.Decrypt.FromHexFile(file).BySm4(c)
 
-// 输入 Base64 编码字符串
+// Input Base64 encoded string
 decrypter := dongle.Decrypt.FromBase64String(base64String).BySm4(c)
-// 输入 Base64 编码字节切片
+// Input Base64 encoded byte slice
 decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
-// 输入 Base64 编码文件流
+// Input Base64 encoded file stream
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 输入原始字符串
+// Input raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 输入原始字节切片
+// Input raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 输入原始文件流
+// Input raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
-// 检查解密错误
+// Check decryption error
 if decrypter.Error != nil {
-    fmt.Printf("解密错误: %v\n", decrypter.Error)
+    fmt.Printf("Decryption error: %v\n", decrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 ```go
-// 输出字符串
+// Output string
 decrypter.ToString() // hello world
-// 输出字节切片
+// Output byte slice
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## OFB 模式
+## OFB Mode
 
-### 创建 Cipher
+### Create Cipher
 
 ```go
 c := cipher.NewSm4Cipher(cipher.OFB)
-// 设置密钥（16 字节)
+// Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// 设置初始化向量（16 字节)
+// Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))  
 ```
 
-### 加密数据
+### Encrypt Data
 
- 输入数据
+ Input Data
 ```go
-// 输入字符串
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").BySm4(c)
-// 输入字节切片
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).BySm4(c)
-// 输入文件流
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).BySm4(c)
 
-// 检查加密错误
+// Check encryption error
 if encrypter.Error != nil {
-    fmt.Printf("加密错误: %v\n", encrypter.Error)
+    fmt.Printf("Encryption error: %v\n", encrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 ```go
-// 输出 Hex 编码字符串
+// Output Hex encoded string
 encrypter.ToHexString()
-// 输出 Hex 编码字节切片
+// Output Hex encoded byte slice
 encrypter.ToHexBytes()   
 
-// 输出 Base64 编码字符串
+// Output Base64 encoded string
 encrypter.ToBase64String()
-// 输出 Base64 编码字节切片
+// Output Base64 encoded byte slice
 encrypter.ToBase64Bytes()   
 
-// 输出未编码原始字符串
+// Output unencoded raw string
 encrypter.ToRawString()
-// 输出未编码原始字节切片
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
-### 解密数据
+### Decrypt Data
 
- 输入数据
+ Input Data
 
 ```go
-// 输入 Hex 编码字符串
+// Input Hex encoded string
 decrypter := dongle.Decrypt.FromHexString(hexString).BySm4(c)
-// 输入 Hex 编码字节切片
+// Input Hex encoded byte slice
 decrypter := dongle.Decrypt.FromHexBytes(hexBytes).BySm4(c)
-// 输入 Hex 编码文件流
+// Input Hex encoded file stream
 file, _ := os.Open("encrypted.hex")
 decrypter := dongle.Decrypt.FromHexFile(file).BySm4(c)
 
-// 输入 Base64 编码字符串
+// Input Base64 encoded string
 decrypter := dongle.Decrypt.FromBase64String(base64String).BySm4(c)
-// 输入 Base64 编码字节切片
+// Input Base64 encoded byte slice
 decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
-// 输入 Base64 编码文件流
+// Input Base64 encoded file stream
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 输入原始字符串
+// Input raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 输入原始字节切片
+// Input raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 输入原始文件流
+// Input raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
-// 检查解密错误
+// Check decryption error
 if decrypter.Error != nil {
-    fmt.Printf("解密错误: %v\n", decrypter.Error)
+    fmt.Printf("Decryption error: %v\n", decrypter.Error)
     return
 }
 ```
 
- 输出数据
+ Output Data
 ```go
-// 输出字符串
+// Output string
 decrypter.ToString() // hello world
-// 输出字节切片
+// Output byte slice
 decrypter.ToBytes()  // []byte("hello world")
 ```
-
-

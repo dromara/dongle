@@ -34,6 +34,8 @@ Supported padding modes:
 - **ISO78164**: ISO/IEC 7816-4 padding, first byte is 0x80, rest padded with 0x00
 - **Bit**: Bit padding, add a 1-bit at the end of plaintext, then pad with 0-bits to block boundary
 
+> **Note**: Only `CBC/ECB` block modes require padding
+
 Import related modules:
 ```go
 import (
