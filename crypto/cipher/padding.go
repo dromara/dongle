@@ -21,7 +21,7 @@ const (
 	Bit      PaddingMode = "Bit"       // Bit padding - 0x80 + zeros
 )
 
-// NewNoPadding applies no padding to the source data.
+// NewNoPadding adds no padding to the source data.
 // This function simply returns the original data without modification.
 //
 // Note: Data must already be a multiple of the block size for this to work correctly.
@@ -35,7 +35,7 @@ func NewNoUnPadding(src []byte) []byte {
 	return src
 }
 
-// NewZeroPadding applies zero padding to the source data.
+// NewZeroPadding adds zero padding to the source data.
 // Zero padding adds padding bytes (filled with zeros) to reach the block size.
 // If the data length is already a multiple of block size, no padding is added.
 // For empty data, no padding is added.
@@ -68,7 +68,7 @@ func NewZeroUnPadding(src []byte) []byte {
 	return src[:lastNonZero+1]
 }
 
-// NewPKCS7Padding applies PKCS7 padding to the source data.
+// NewPKCS7Padding adds PKCS7 padding to the source data.
 // PKCS7 padding adds N bytes, each with value N, where N is the number of padding bytes needed.
 // This is the most commonly used padding scheme in modern cryptography.
 func NewPKCS7Padding(src []byte, blockSize int) []byte {
@@ -92,7 +92,7 @@ func NewPKCS7UnPadding(src []byte) []byte {
 	return src[:len(src)-paddingSize]
 }
 
-// NewPKCS5Padding applies PKCS5 padding to the source data.
+// NewPKCS5Padding adds PKCS5 padding to the source data.
 // PKCS5 padding is identical to PKCS7 padding but is limited to 8-byte blocks.
 // This function calls PKCS7 padding with a fixed block size of 8.
 func NewPKCS5Padding(src []byte) []byte {
@@ -105,7 +105,7 @@ func NewPKCS5UnPadding(src []byte) []byte {
 	return NewPKCS7UnPadding(src)
 }
 
-// NewAnsiX923Padding applies ANSI X.923 padding to the source data.
+// NewAnsiX923Padding adds ANSI X.923 padding to the source data.
 // ANSI X.923 padding fills with zeros and adds the padding length as the last byte.
 // If the data length is already a multiple of block size, a full block of padding is added.
 func NewAnsiX923Padding(src []byte, blockSize int) []byte {
@@ -137,7 +137,7 @@ func NewAnsiX923UnPadding(src []byte) []byte {
 	return src[:len(src)-paddingSize]
 }
 
-// NewISO97971Padding applies ISO/IEC 9797-1 padding method 1 to the source data.
+// NewISO97971Padding adds ISO/IEC 9797-1 padding method 1 to the source data.
 // ISO9797-1 method 1 adds a 0x80 byte followed by zero bytes to reach the block size.
 // If the data length is already a multiple of block size, a full block of padding is added.
 func NewISO97971Padding(src []byte, blockSize int) []byte {
@@ -178,7 +178,7 @@ func NewISO97971UnPadding(src []byte) []byte {
 	return src[:lastIndex]
 }
 
-// NewISO10126Padding applies ISO/IEC 10126 padding to the source data.
+// NewISO10126Padding adds ISO/IEC 10126 padding to the source data.
 // ISO10126 padding fills with random bytes and adds the padding length as the last byte.
 // This padding scheme provides better security by using random padding bytes.
 func NewISO10126Padding(src []byte, blockSize int) []byte {
@@ -209,7 +209,7 @@ func NewISO10126UnPadding(src []byte) []byte {
 	return src[:len(src)-paddingSize]
 }
 
-// NewISO78164Padding applies ISO/IEC 7816-4 padding to the source data.
+// NewISO78164Padding adds ISO/IEC 7816-4 padding to the source data.
 // ISO7816-4 padding is identical to ISO9797-1 method 1 padding.
 // This function calls ISO9797-1 padding implementation.
 func NewISO78164Padding(src []byte, blockSize int) []byte {
@@ -222,7 +222,7 @@ func NewISO78164UnPadding(src []byte) []byte {
 	return NewISO97971UnPadding(src)
 }
 
-// NewBitPadding applies bit padding to the source data.
+// NewBitPadding adds bit padding to the source data.
 // Bit padding adds a 0x80 byte followed by zero bytes to reach the block size.
 // This is similar to ISO9797-1 method 1 but with a different name.
 func NewBitPadding(src []byte, blockSize int) []byte {
