@@ -7,7 +7,7 @@ import (
 	"github.com/dromara/dongle/crypto/cipher"
 )
 
-// ByAes encrypts by aes
+// ByAes encrypts by aes.
 func (e Encrypter) ByAes(c *cipher.AesCipher) Encrypter {
 	if e.Error != nil {
 		return e
@@ -28,7 +28,7 @@ func (e Encrypter) ByAes(c *cipher.AesCipher) Encrypter {
 	return e
 }
 
-// ByAes decrypts by aes
+// ByAes decrypts by aes.
 func (d Decrypter) ByAes(c *cipher.AesCipher) Decrypter {
 	if d.Error != nil {
 		return d
