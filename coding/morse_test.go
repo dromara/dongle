@@ -5,9 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 // Test data for morse encoding (generated using Python implementation)

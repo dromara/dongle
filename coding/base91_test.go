@@ -5,9 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/dromara/dongle/mock"
+	"github.com/stretchr/testify/assert"
 )
 
 // Test data for base91 encoding (generated using dongle implementation)
