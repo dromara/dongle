@@ -9,6 +9,7 @@ type baseCipher struct {
 	Key []byte
 }
 
+// SetKey sets the encryption key for the cipher.
 func (c *baseCipher) SetKey(key []byte) {
 	c.Key = key
 }
@@ -22,22 +23,27 @@ type blockCipher struct {
 	Padding PaddingMode
 }
 
+// SetPadding sets the padding mode for the cipher.
 func (c *blockCipher) SetPadding(padding PaddingMode) {
 	c.Padding = padding
 }
 
+// SetIV sets the initialization vector (IV) for the cipher.
 func (c *blockCipher) SetIV(iv []byte) {
 	c.IV = iv
 }
 
+// SetNonce sets the nonce for the cipher.
 func (c *blockCipher) SetNonce(nonce []byte) {
 	c.Nonce = nonce
 }
 
+// SetAAD sets the additional authentication data (AAD) for the cipher.
 func (c *blockCipher) SetAAD(aad []byte) {
 	c.AAD = aad
 }
 
+// Encrypt encrypts the source data using the specified cipher.
 func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err error) {
 	if c.Block == CFB {
 		return NewCFBEncrypter(src, c.IV, block)
@@ -62,6 +68,7 @@ func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err e
 	return
 }
 
+// Decrypt decrypts the source data using the specified cipher.
 func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err error) {
 	if c.Block == CFB {
 		return NewCFBDecrypter(src, c.IV, block)
@@ -89,7 +96,7 @@ func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err e
 	return
 }
 
-// padding applies the specified padding mode to the source data.
+// padding adds the specified padding mode to the source data.
 func padding(paddingMode PaddingMode, src []byte, blockSize int) []byte {
 	switch paddingMode {
 	case Zero:

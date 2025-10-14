@@ -43,13 +43,11 @@ func NewZeroPadding(src []byte, blockSize int) []byte {
 	if len(src) == 0 {
 		return src
 	}
-
 	paddingSize := blockSize - len(src)%blockSize
 	if paddingSize == blockSize {
 		// Data length is exactly a multiple of block size, no padding needed
 		return src
 	}
-
 	return append(src, make([]byte, paddingSize)...)
 }
 
@@ -57,14 +55,12 @@ func NewZeroPadding(src []byte, blockSize int) []byte {
 // This function removes trailing zero bytes from the data.
 func NewZeroUnPadding(src []byte) []byte {
 	if len(src) == 0 {
-		return nil
+		return src
 	}
-
 	lastNonZero := len(src) - 1
 	for lastNonZero >= 0 && src[lastNonZero] == 0 {
 		lastNonZero--
 	}
-
 	return src[:lastNonZero+1]
 }
 
@@ -81,14 +77,12 @@ func NewPKCS7Padding(src []byte, blockSize int) []byte {
 // This function reads the last byte to determine the padding size and removes that many bytes.
 func NewPKCS7UnPadding(src []byte) []byte {
 	if len(src) == 0 {
-		return nil
+		return src
 	}
-
 	paddingSize := int(src[len(src)-1])
 	if paddingSize > len(src) || paddingSize == 0 {
 		return src // Invalid padding, return original data
 	}
-
 	return src[:len(src)-paddingSize]
 }
 
@@ -110,7 +104,6 @@ func NewPKCS5UnPadding(src []byte) []byte {
 // If the data length is already a multiple of block size, a full block of padding is added.
 func NewAnsiX923Padding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
-
 	paddingBytes := make([]byte, paddingSize)
 	paddingBytes[paddingSize-1] = byte(paddingSize)
 	return append(src, paddingBytes...)
@@ -120,20 +113,17 @@ func NewAnsiX923Padding(src []byte, blockSize int) []byte {
 // This function validates that all padding bytes except the last are zero.
 func NewAnsiX923UnPadding(src []byte) []byte {
 	if len(src) == 0 {
-		return nil
+		return src
 	}
 	paddingSize := int(src[len(src)-1])
 	if paddingSize > len(src) || paddingSize == 0 {
 		return src
 	}
-
-	// Verify all padding bytes except the last are zero
 	for i := len(src) - paddingSize; i < len(src)-1; i++ {
 		if src[i] != 0 {
 			return src
 		}
 	}
-
 	return src[:len(src)-paddingSize]
 }
 
@@ -142,10 +132,8 @@ func NewAnsiX923UnPadding(src []byte) []byte {
 // If the data length is already a multiple of block size, a full block of padding is added.
 func NewISO97971Padding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
-
 	paddingBytes := make([]byte, paddingSize)
 	paddingBytes[0] = 0x80
-
 	return append(src, paddingBytes...)
 }
 
@@ -163,18 +151,15 @@ func NewISO97971UnPadding(src []byte) []byte {
 			break
 		}
 	}
-
 	if lastIndex == -1 {
 		return src
 	}
-
 	// Verify all bytes after 0x80 are zero
 	for i := lastIndex + 1; i < len(src); i++ {
 		if src[i] != 0x00 {
 			return src
 		}
 	}
-
 	return src[:lastIndex]
 }
 
@@ -183,13 +168,11 @@ func NewISO97971UnPadding(src []byte) []byte {
 // This padding scheme provides better security by using random padding bytes.
 func NewISO10126Padding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
-
 	paddingBytes := make([]byte, paddingSize)
 	if paddingSize > 1 {
 		rand.Read(paddingBytes[:paddingSize-1])
 	}
 	paddingBytes[paddingSize-1] = byte(paddingSize)
-
 	return append(src, paddingBytes...)
 }
 
@@ -199,13 +182,12 @@ func NewISO10126Padding(src []byte, blockSize int) []byte {
 // Note: The random padding bytes are not validated, only the length is used.
 func NewISO10126UnPadding(src []byte) []byte {
 	if len(src) == 0 {
-		return nil
+		return src
 	}
 	paddingSize := int(src[len(src)-1])
 	if paddingSize > len(src) || paddingSize == 0 {
 		return src
 	}
-
 	return src[:len(src)-paddingSize]
 }
 
@@ -227,10 +209,8 @@ func NewISO78164UnPadding(src []byte) []byte {
 // This is similar to ISO9797-1 method 1 but with a different name.
 func NewBitPadding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
-
 	paddingBytes := make([]byte, paddingSize)
 	paddingBytes[0] = 0x80
-
 	return append(src, paddingBytes...)
 }
 

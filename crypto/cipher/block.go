@@ -21,24 +21,21 @@ const (
 // CBC mode encrypts each block of plaintext by XORing it with the previous
 // ciphertext block before applying the block cipher algorithm.
 func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: CBC}
+		return dst, EmptyIVError{mode: CBC}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: CBC}
+		return dst, NilBlockError{mode: CBC}
 	}
 
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
-		return nil, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
+		return dst, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
 	}
 
 	if len(src)%blockSize != 0 {
-		return nil, InvalidSrcError{mode: CBC, src: src, size: blockSize}
+		return dst, InvalidSrcError{mode: CBC, src: src, size: blockSize}
 	}
 
 	// Perform CBC encryption using the standard library implementation
@@ -51,25 +48,21 @@ func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // CBC decryption reverses the encryption process by applying the block cipher
 // and then XORing with the previous ciphertext block.
 func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: CBC}
+		return dst, EmptyIVError{mode: CBC}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: CBC}
+		return dst, NilBlockError{mode: CBC}
 	}
 
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
-		return nil, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
+		return dst, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
 	}
 
 	if len(src)%blockSize != 0 {
-		return nil, InvalidSrcError{mode: CBC, src: src, size: blockSize}
+		return dst, InvalidSrcError{mode: CBC, src: src, size: blockSize}
 	}
 
 	// Perform CBC decryption using the standard library implementation
@@ -82,16 +75,12 @@ func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // CTR mode transforms a block cipher into a stream cipher by encrypting
 // a counter value and XORing the result with the plaintext.
 func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: CTR}
+		return dst, EmptyIVError{mode: CTR}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: CTR}
+		return dst, NilBlockError{mode: CTR}
 	}
 
 	// Handle nonce for CTR mode
@@ -113,16 +102,12 @@ func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // NewCTRDecrypter decrypts data using Counter (CTR) mode.
 // In CTR mode, decryption is identical to encryption since it's a stream cipher.
 func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: CTR}
+		return dst, EmptyIVError{mode: CTR}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: CTR}
+		return dst, NilBlockError{mode: CTR}
 	}
 
 	// Handle nonce for CTR mode
@@ -146,17 +131,13 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // Note: ECB mode is generally not recommended for secure applications due to
 // its vulnerability to pattern analysis.
 func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if block == nil {
-		return nil, NilBlockError{mode: ECB}
+		return dst, NilBlockError{mode: ECB}
 	}
 
 	blockSize := block.BlockSize()
 	if len(src)%blockSize != 0 {
-		return nil, InvalidSrcError{mode: ECB, src: src, size: blockSize}
+		return dst, InvalidSrcError{mode: ECB, src: src, size: blockSize}
 	}
 
 	// Perform ECB encryption - encrypt each block independently
@@ -170,17 +151,13 @@ func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 // NewECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
 // ECB decryption decrypts each block independently.
 func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if block == nil {
-		return nil, NilBlockError{mode: ECB}
+		return dst, NilBlockError{mode: ECB}
 	}
 
 	blockSize := block.BlockSize()
 	if len(src)%blockSize != 0 {
-		return nil, InvalidSrcError{mode: ECB, src: src, size: blockSize}
+		return dst, InvalidSrcError{mode: ECB, src: src, size: blockSize}
 	}
 
 	// Perform ECB decryption - decrypt each block independently
@@ -196,22 +173,18 @@ func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 // and authenticity. It combines CTR mode encryption with a Galois field
 // multiplication for authentication.
 func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if block == nil {
-		return nil, NilBlockError{mode: GCM}
+		return dst, NilBlockError{mode: GCM}
 	}
 
 	if len(nonce) == 0 {
-		return nil, EmptyNonceError{mode: GCM}
+		return dst, EmptyNonceError{mode: GCM}
 	}
 
 	// Create GCM cipher from the underlying block cipher
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, CreateCipherError{mode: GCM, err: err}
+		return dst, CreateCipherError{mode: GCM, err: err}
 	}
 
 	// Perform GCM encryption with authentication
@@ -222,28 +195,24 @@ func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 // NewGCMDecrypter decrypts data using Galois/Counter Mode (GCM).
 // GCM decryption verifies the authentication tag before decrypting the data.
 func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if block == nil {
-		return nil, NilBlockError{mode: GCM}
+		return dst, NilBlockError{mode: GCM}
 	}
 
 	if len(nonce) == 0 {
-		return nil, EmptyNonceError{mode: GCM}
+		return dst, EmptyNonceError{mode: GCM}
 	}
 
 	// Create GCM cipher from the underlying block cipher
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, CreateCipherError{mode: GCM, err: err}
+		return dst, CreateCipherError{mode: GCM, err: err}
 	}
 
 	// Perform GCM decryption with authentication verification
 	dst, err = gcm.Open(nil, nonce, src, aad)
 	if err != nil {
-		return nil, CreateCipherError{mode: GCM, err: err}
+		return dst, CreateCipherError{mode: GCM, err: err}
 	}
 
 	return dst, nil
@@ -253,25 +222,18 @@ func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 // CFB mode transforms a block cipher into a stream cipher by encrypting
 // the previous ciphertext block and XORing the result with the plaintext.
 func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: CFB}
+		return dst, EmptyIVError{mode: CFB}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: CFB}
+		return dst, NilBlockError{mode: CFB}
 	}
 
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
-		return nil, InvalidIVError{mode: CFB, iv: iv, size: blockSize}
+		return dst, InvalidIVError{mode: CFB, iv: iv, size: blockSize}
 	}
-
-	// CFB mode doesn't require source data to be a multiple of block size
-	// It can handle any data length
 
 	// Perform CFB encryption using the standard library implementation
 	dst = make([]byte, len(src))
@@ -282,25 +244,18 @@ func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // NewCFBDecrypter decrypts data using Cipher Feedback (CFB) mode.
 // In CFB mode, decryption is identical to encryption since it's a stream cipher.
 func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: CFB}
+		return dst, EmptyIVError{mode: CFB}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: CFB}
+		return dst, NilBlockError{mode: CFB}
 	}
 
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
-		return nil, InvalidIVError{mode: CFB, iv: iv, size: blockSize}
+		return dst, InvalidIVError{mode: CFB, iv: iv, size: blockSize}
 	}
-
-	// CFB mode doesn't require source data to be a multiple of block size
-	// It can handle any data length
 
 	// Perform CFB decryption using the standard library implementation
 	dst = make([]byte, len(src))
@@ -312,25 +267,18 @@ func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // OFB mode transforms a block cipher into a stream cipher by repeatedly
 // encrypting the initialization vector and using the output as a keystream.
 func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: OFB}
+		return dst, EmptyIVError{mode: OFB}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: OFB}
+		return dst, NilBlockError{mode: OFB}
 	}
 
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
-		return nil, InvalidIVError{mode: OFB, iv: iv, size: blockSize}
+		return dst, InvalidIVError{mode: OFB, iv: iv, size: blockSize}
 	}
-
-	// OFB mode doesn't require source data to be a multiple of block size
-	// It can handle any data length
 
 	// Perform OFB encryption using the standard library implementation
 	dst = make([]byte, len(src))
@@ -341,25 +289,18 @@ func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // NewOFBDecrypter decrypts data using Output Feedback (OFB) mode.
 // In OFB mode, decryption is identical to encryption since it's a stream cipher.
 func NewOFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	// Validate input parameters
-	// Note: Empty src should have been padded before reaching this function
-	// So we don't need to check for empty src here
-
 	if len(iv) == 0 {
-		return nil, EmptyIVError{mode: OFB}
+		return dst, EmptyIVError{mode: OFB}
 	}
 
 	if block == nil {
-		return nil, NilBlockError{mode: OFB}
+		return dst, NilBlockError{mode: OFB}
 	}
 
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
-		return nil, InvalidIVError{mode: OFB, iv: iv, size: blockSize}
+		return dst, InvalidIVError{mode: OFB, iv: iv, size: blockSize}
 	}
-
-	// OFB mode doesn't require source data to be a multiple of block size
-	// It can handle any data length
 
 	// Perform OFB decryption using the standard library implementation
 	dst = make([]byte, len(src))

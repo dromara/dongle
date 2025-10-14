@@ -908,7 +908,7 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		// Decrypt nil data
 		result, err := cipher.Decrypt(nil, block)
 		assert.NoError(t, err)
-		assert.Nil(t, result) // Should return nil result
+		assert.Empty(t, result)
 	})
 
 	t.Run("decrypt with default block mode", func(t *testing.T) {
