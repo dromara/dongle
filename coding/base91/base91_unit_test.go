@@ -97,6 +97,23 @@ func TestStdEncoder_Encode(t *testing.T) {
 	})
 }
 
+func TestStdEncoderDecoder_ErrorShortCircuit(t *testing.T) {
+	t.Run("encoder preset error", func(t *testing.T) {
+		enc := NewStdEncoder()
+		enc.Error = assert.AnError
+		out := enc.Encode([]byte("hello"))
+		assert.Nil(t, out)
+	})
+
+	t.Run("decoder preset error", func(t *testing.T) {
+		dec := NewStdDecoder()
+		dec.Error = assert.AnError
+		out, err := dec.Decode([]byte("TPwJh>A"))
+		assert.Nil(t, out)
+		assert.Equal(t, assert.AnError, err)
+	})
+}
+
 // TestStdDecoder_Decode tests standard base91 decoding scenarios.
 func TestStdDecoder_Decode(t *testing.T) {
 	t.Run("decode empty input", func(t *testing.T) {
@@ -173,6 +190,15 @@ func TestStdDecoder_Decode(t *testing.T) {
 		decoded, err := decoder.Decode(encoded)
 		assert.Nil(t, err)
 		assert.Equal(t, []byte{0x00, 0x00, 0x01, 0x02, 0x03}, decoded)
+	})
+
+	// Cover leftover single-character path (v != -1 at end)
+	t.Run("decode leftover single char", func(t *testing.T) {
+		dec := NewStdDecoder()
+		// One valid base91 character; will leave v != -1 and flush one byte
+		out, err := dec.Decode([]byte("A"))
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(out))
 	})
 }
 

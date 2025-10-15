@@ -180,6 +180,45 @@ func TestStdDecoder_Decode(t *testing.T) {
 	})
 }
 
+func TestStdEncoderDecoder_ErrorFlags(t *testing.T) {
+	t.Run("encoder with existing error", func(t *testing.T) {
+		enc := NewStdEncoder()
+		enc.Error = assert.AnError
+		out := enc.Encode([]byte("hello"))
+		assert.Nil(t, out)
+	})
+
+	t.Run("decoder with existing error", func(t *testing.T) {
+		dec := NewStdDecoder()
+		dec.Error = assert.AnError
+		out, err := dec.Decode([]byte("BOu!rDZ"))
+		assert.Nil(t, out)
+		assert.Equal(t, assert.AnError, err)
+	})
+
+	t.Run("decoder incomplete group sizing (len%5==1)", func(t *testing.T) {
+		dec := NewStdDecoder()
+		// One character that's not 'z'; will be padded and decode to 1 byte
+		out, err := dec.Decode([]byte("!"))
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(out))
+	})
+
+	t.Run("decoder incomplete group sizing (len%5==2)", func(t *testing.T) {
+		dec := NewStdDecoder()
+		out, err := dec.Decode([]byte("!!"))
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(out))
+	})
+
+	t.Run("decoder incomplete group sizing (len%5==3 => 2 bytes)", func(t *testing.T) {
+		dec := NewStdDecoder()
+		out, err := dec.Decode([]byte("!!!"))
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(out))
+	})
+}
+
 // TestStreamEncoder_Write tests writing to the stream encoder.
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {

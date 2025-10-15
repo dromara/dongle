@@ -187,6 +187,23 @@ func TestStdDecoder_Decode(t *testing.T) {
 	})
 }
 
+func TestStdEncoderDecoder_ErrorShortCircuit(t *testing.T) {
+	t.Run("encoder preset error", func(t *testing.T) {
+		enc := NewStdEncoder()
+		enc.Error = assert.AnError
+		out := enc.Encode([]byte("hello"))
+		assert.Nil(t, out)
+	})
+
+	t.Run("decoder preset error", func(t *testing.T) {
+		dec := NewStdDecoder()
+		dec.Error = assert.AnError
+		out, err := dec.Decode([]byte("68656c6c6f"))
+		assert.Nil(t, out)
+		assert.Equal(t, assert.AnError, err)
+	})
+}
+
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
 		var buf bytes.Buffer

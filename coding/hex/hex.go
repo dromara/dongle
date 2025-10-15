@@ -24,6 +24,9 @@ func NewStdEncoder() *StdEncoder {
 // Returns an empty byte slice if the input is empty.
 // The encoding process uses the standard hex alphabet (0-9, A-F).
 func (e *StdEncoder) Encode(src []byte) (dst []byte) {
+	if e.Error != nil {
+		return
+	}
 	if len(src) == 0 {
 		return
 	}
@@ -49,6 +52,10 @@ func NewStdDecoder() *StdDecoder {
 // Returns the decoded data and any error encountered during decoding.
 // Returns an empty byte slice and nil error if the input is empty.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
+	if d.Error != nil {
+		err = d.Error
+		return
+	}
 	if len(src) == 0 {
 		return
 	}

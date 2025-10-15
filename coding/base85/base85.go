@@ -23,6 +23,9 @@ func NewStdEncoder() *StdEncoder {
 // Encode encodes the given byte slice using ASCII85 encoding.
 // Uses Go's standard encoding/ascii85 package for reliable and efficient encoding.
 func (e *StdEncoder) Encode(src []byte) (dst []byte) {
+	if e.Error != nil {
+		return
+	}
 	if len(src) == 0 {
 		return
 	}
@@ -49,6 +52,10 @@ func NewStdDecoder() *StdDecoder {
 // Uses Go's standard encoding/ascii85 package for reliable and efficient decoding.
 // Handles special cases like "z" representing 4 zero bytes and incomplete groups.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
+	if d.Error != nil {
+		err = d.Error
+		return
+	}
 	if len(src) == 0 {
 		return
 	}

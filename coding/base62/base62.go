@@ -41,6 +41,9 @@ func NewStdEncoder() *StdEncoder {
 // Handles leading zeros specially by encoding them as "0" + character pairs.
 // The encoding process uses big.Int arithmetic for large number handling.
 func (e *StdEncoder) Encode(src []byte) (dst []byte) {
+	if e.Error != nil {
+		return
+	}
 	if len(src) == 0 {
 		return
 	}
@@ -134,6 +137,10 @@ func NewStdDecoder() *StdDecoder {
 // Handles leading zeros pattern ("0" + character) and validates character validity.
 // Uses big.Int arithmetic for large number handling.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
+	if d.Error != nil {
+		err = d.Error
+		return
+	}
 	if len(src) == 0 {
 		return
 	}

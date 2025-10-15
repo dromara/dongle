@@ -42,11 +42,15 @@ func NewStdEncoder() *StdEncoder {
 // Base45 encodes 2 bytes in 3 characters, or 1 byte in 2 characters.
 // The encoding process handles both even and odd-length inputs efficiently.
 func (e *StdEncoder) Encode(src []byte) (dst []byte) {
-	// Pre-calculate output size for better memory allocation
-	outputSize := e.getOutputSize(len(src))
+	if e.Error != nil {
+		return
+	}
 	if len(src) == 0 {
 		return
 	}
+
+	// Pre-calculate output size for better memory allocation
+	outputSize := e.getOutputSize(len(src))
 
 	result := make([]byte, 0, outputSize)
 
@@ -105,12 +109,17 @@ func NewStdDecoder() *StdDecoder {
 // Decode decodes the given base45-encoded byte slice back to binary data.
 // Validates input length (must be congruent to 0 or 2 modulo 3) and character validity.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
+	if d.Error != nil {
+		err = d.Error
+		return
+	}
+	if len(src) == 0 {
+		return
+	}
+
 	size := len(src)
 	// Pre-allocate with estimated capacity
 	estimatedSize := d.getDecodedSize(size)
-	if size == 0 {
-		return
-	}
 	mod := size % 3
 	if mod != 0 && mod != 2 {
 		err = InvalidLengthError{Length: size, Mod: mod}

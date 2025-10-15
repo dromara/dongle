@@ -137,7 +137,8 @@ func NewStdDecoder() *StdDecoder {
 // Uses big.Int arithmetic for large number handling and proper overflow management.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	if d.Error != nil {
-		return nil, d.Error
+		err = d.Error
+		return
 	}
 	if len(src) == 0 {
 		return

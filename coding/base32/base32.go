@@ -78,7 +78,8 @@ func NewStdDecoder(alphabet string) *StdDecoder {
 // The decoded result is truncated to the actual decoded length.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	if d.Error != nil {
-		return nil, d.Error
+		err = d.Error
+		return
 	}
 	if len(src) == 0 {
 		return

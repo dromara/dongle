@@ -356,6 +356,48 @@ func TestStdDecoder_Decode(t *testing.T) {
 	})
 }
 
+func TestStdEncoderDecoder_ErrorFlags(t *testing.T) {
+	t.Run("encoder with existing error", func(t *testing.T) {
+		enc := NewStdEncoder()
+		enc.Error = errors.New("preset error")
+		out := enc.Encode([]byte("hello"))
+		assert.Nil(t, out)
+	})
+
+	t.Run("decoder with existing error", func(t *testing.T) {
+		dec := NewStdDecoder()
+		dec.Error = errors.New("preset error")
+		out, err := dec.Decode([]byte("%69 VDL2"))
+		assert.Nil(t, out)
+		assert.EqualError(t, err, "preset error")
+	})
+}
+
+func TestInternalSizeHelpers(t *testing.T) {
+	t.Run("encoder.getOutputSize direct", func(t *testing.T) {
+		enc := NewStdEncoder()
+		// 覆盖 inputLen==0 分支
+		sz0 := enc.getOutputSize(0)
+		assert.Equal(t, 0, sz0)
+		// 常规分支：偶数/奇数长度
+		assert.Equal(t, 3, enc.getOutputSize(2))
+		assert.Equal(t, 5, enc.getOutputSize(3))
+	})
+
+	t.Run("decoder.getDecodedSize direct", func(t *testing.T) {
+		dec := NewStdDecoder()
+		// 覆盖 encodedLen==0 分支
+		sz0 := dec.getDecodedSize(0)
+		assert.Equal(t, 0, sz0)
+		// 常规分支：3 的倍数与余 2
+		assert.Equal(t, 2, dec.getDecodedSize(3))
+		assert.Equal(t, 1, dec.getDecodedSize(2))
+		assert.Equal(t, 3, dec.getDecodedSize(5))
+		// 额外覆盖：余 1 的情况虽然非法，但函数行为应是 groups*2 + 0
+		assert.Equal(t, 2, dec.getDecodedSize(4))
+	})
+}
+
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
 		var buf bytes.Buffer

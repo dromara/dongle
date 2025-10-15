@@ -36,6 +36,9 @@ func NewStdEncoder() *StdEncoder {
 // Uses a bit-packing algorithm that groups 13 or 14 bits into 16-bit values
 // for optimal encoding efficiency, following the base91 specification.
 func (e *StdEncoder) Encode(src []byte) (dst []byte) {
+	if e.Error != nil {
+		return
+	}
 	if len(src) == 0 {
 		return
 	}
@@ -127,6 +130,10 @@ func NewStdDecoder() *StdDecoder {
 // Uses bit-unpacking algorithm to reconstruct the original binary data
 // and validates character validity during decoding.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
+	if d.Error != nil {
+		err = d.Error
+		return
+	}
 	if len(src) == 0 {
 		return
 	}

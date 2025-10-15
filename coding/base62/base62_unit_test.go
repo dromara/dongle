@@ -170,6 +170,21 @@ func TestStdDecoder_Decode(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
+	// 额外补充：覆盖 Decode 中领先零处理的“无需扩容”分支（val=0）
+	t.Run("decode only leading zero with zero-count (\"00\")", func(t *testing.T) {
+		decoder := NewStdDecoder()
+		decoded, err := decoder.Decode([]byte("00"))
+		assert.Nil(t, err)
+		assert.Nil(t, decoded)
+	})
+
+	t.Run("decode leading zero with zero-count before valid payload (\"007tQLFHz\")", func(t *testing.T) {
+		decoder := NewStdDecoder()
+		decoded, err := decoder.Decode([]byte("007tQLFHz"))
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("hello"), decoded)
+	})
+
 	t.Run("decode simple string", func(t *testing.T) {
 		decoder := NewStdDecoder()
 		encoded := []byte("7tQLFHz")
@@ -292,6 +307,23 @@ func TestStdDecoder_Decode(t *testing.T) {
 		result := encoder.Encode(data)
 		assert.NotEmpty(t, result)
 		assert.Nil(t, encoder.Error)
+	})
+}
+
+func TestStdEncoderDecoder_ErrorFlags(t *testing.T) {
+	t.Run("encoder with existing error", func(t *testing.T) {
+		enc := NewStdEncoder()
+		enc.Error = errors.New("preset error")
+		out := enc.Encode([]byte("hello"))
+		assert.Nil(t, out)
+	})
+
+	t.Run("decoder with existing error", func(t *testing.T) {
+		dec := NewStdDecoder()
+		dec.Error = errors.New("preset error")
+		out, err := dec.Decode([]byte("7tQLFHz"))
+		assert.Nil(t, out)
+		assert.EqualError(t, err, "preset error")
 	})
 }
 

@@ -63,11 +63,13 @@ func NewStdDecoder() *StdDecoder {
 // Validates that the first two bytes are 0xf0 and 0x9f respectively.
 func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	if d.Error != nil {
-		return nil, d.Error
+		err = d.Error
+		return
 	}
 	if len(src) == 0 {
 		return
 	}
+
 	if len(src)%4 != 0 {
 		return nil, InvalidLengthError(len(src))
 	}
