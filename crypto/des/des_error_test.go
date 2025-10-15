@@ -784,7 +784,7 @@ func TestStdEncrypter_Encrypt_ErrorPaths(t *testing.T) {
 		// The encryption will fail because the key is invalid
 		assert.Empty(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, EncryptError{}, err)
+		assert.IsType(t, KeySizeError(5), err)
 	})
 
 	t.Run("encrypt with invalid key causing des.NewCipher error", func(t *testing.T) {

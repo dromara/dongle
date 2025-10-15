@@ -16,7 +16,7 @@ var (
 	key32Salsa20    = []byte("dongle12345678901234567890123456") // 32 bytes
 	nonce8Salsa20   = []byte("12345678")                         // 8 bytes
 	testdataSalsa20 = []byte("hello world")                      // 11 bytes
-	testdataEmpty   = []byte("")                                 // 0 bytes
+	testdataEmpty   []byte                                       // nil (empty)
 	testdataLong    = []byte("This is a longer test message for Salsa20 encryption and decryption testing")
 )
 
@@ -104,7 +104,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		encrypter := NewStdEncrypter(c)
 		result, err := encrypter.Encrypt(testdataEmpty)
 		assert.NoError(t, err)
-		assert.Equal(t, []byte{}, result)
+		assert.Empty(t, result)
 	})
 
 	t.Run("encrypt_with_existing_error", func(t *testing.T) {
@@ -146,7 +146,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		decrypter := NewStdDecrypter(c)
 		result, err := decrypter.Decrypt(testdataEmpty)
 		assert.NoError(t, err)
-		assert.Equal(t, []byte{}, result)
+		assert.Empty(t, result)
 	})
 
 	t.Run("decrypt_with_existing_error", func(t *testing.T) {
@@ -522,8 +522,8 @@ var pythonTestCases = []struct {
 		name:               "empty_plaintext",
 		key:                []byte("dongle12345678901234567890123456"),
 		nonce:              []byte("12345678"),
-		plaintext:          []byte{},
-		expectedCiphertext: []byte{},
+		plaintext:          nil,
+		expectedCiphertext: nil,
 	},
 	{
 		name:               "long_plaintext",

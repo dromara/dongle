@@ -47,6 +47,12 @@ func NewStdEncrypter(c *cipher.BlowfishCipher) *StdEncrypter {
 // to perform the encryption operation with proper error handling.
 // Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
+	if e.Error != nil {
+		err = e.Error
+		return
+	}
+
 	// Return empty data for empty input
 	if len(src) == 0 {
 		return
@@ -97,6 +103,12 @@ func NewStdDecrypter(c *cipher.BlowfishCipher) *StdDecrypter {
 // to perform the decryption operation with proper error handling.
 // Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
+	if d.Error != nil {
+		err = d.Error
+		return
+	}
+
 	// Return empty data for empty input
 	if len(src) == 0 {
 		return

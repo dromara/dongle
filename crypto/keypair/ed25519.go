@@ -29,7 +29,7 @@ type Ed25519KeyPair struct {
 	Error error
 }
 
-// NewEd25519KeyPair creates and returns a new ED25519 key pair instance.
+// NewEd25519KeyPair returns a new ED25519 key pair instance.
 func NewEd25519KeyPair() *Ed25519KeyPair {
 	return &Ed25519KeyPair{}
 }

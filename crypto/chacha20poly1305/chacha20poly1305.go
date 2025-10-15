@@ -45,10 +45,13 @@ func NewStdEncrypter(c *cipher.ChaCha20Poly1305Cipher) *StdEncrypter {
 // The output includes both encrypted data and authentication tag for integrity verification.
 // Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if e.Error != nil {
-		return nil, e.Error
+		err = e.Error
+		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}
@@ -96,10 +99,13 @@ func NewStdDecrypter(c *cipher.ChaCha20Poly1305Cipher) *StdDecrypter {
 // The input must include both encrypted data and authentication tag for successful decryption.
 // Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if d.Error != nil {
-		return nil, d.Error
+		err = d.Error
+		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}

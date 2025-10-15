@@ -4,7 +4,6 @@ import (
 	"crypto/cipher"
 )
 
-// BlockMode represents the different block cipher modes of operation
 type BlockMode string
 
 // Supported block cipher modes

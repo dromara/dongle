@@ -28,13 +28,17 @@ func NewStdEncrypter(key []byte) *StdEncrypter {
 
 // Encrypt encrypts src using RC4
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if e.Error != nil {
 		err = e.Error
 		return
 	}
+
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}
+
 	// Use pre-created cipher for better performance
 	if e.cipher == nil {
 		// Fallback: create cipher if not available
@@ -67,14 +71,17 @@ func NewStdDecrypter(key []byte) *StdDecrypter {
 
 // Decrypt decrypts src using RC4
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if d.Error != nil {
 		err = d.Error
 		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}
+
 	// Use pre-created cipher for better performance
 	if d.cipher == nil {
 		// Fallback: create cipher if not available

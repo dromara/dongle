@@ -42,12 +42,15 @@ func NewStdEncrypter(c *cipher.Salsa20Cipher) *StdEncrypter {
 // Encrypt encrypts the given byte slice using Salsa20 encryption.
 // Salsa20 is a stream cipher, so it can encrypt data of any length.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if e.Error != nil {
-		return nil, e.Error
+		err = e.Error
+		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
-		return []byte{}, nil
+		return
 	}
 
 	// Create a copy of the key for salsa20.XORKeyStream
@@ -93,12 +96,15 @@ func NewStdDecrypter(c *cipher.Salsa20Cipher) *StdDecrypter {
 // Decrypt decrypts the given byte slice using Salsa20 decryption.
 // For Salsa20, decryption is the same as encryption.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if d.Error != nil {
-		return nil, d.Error
+		err = d.Error
+		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
-		return []byte{}, nil
+		return
 	}
 
 	// Create a copy of the key for salsa20.XORKeyStream

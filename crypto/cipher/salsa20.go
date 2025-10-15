@@ -12,7 +12,7 @@ func NewSalsa20Cipher() *Salsa20Cipher {
 	return &Salsa20Cipher{}
 }
 
-// SetNonce sets the nonce for Salsa20 encryption/decryption.
+// SetNonce sets the nonce for the cipher.
 // The nonce must be exactly 8 bytes for Salsa20.
 func (c *Salsa20Cipher) SetNonce(nonce []byte) {
 	c.Nonce = nonce

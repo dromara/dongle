@@ -1163,8 +1163,10 @@ func TestStdEncrypter_Encrypt_ErrorPaths(t *testing.T) {
 		result, err := encrypter.Encrypt([]byte("test"))
 		// The encryption will succeed even with invalid key size because
 		// the cipher interface handles the validation
-		assert.NotEmpty(t, result)
-		assert.Nil(t, err)
+		assert.Empty(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, KeySizeError(3), err)
+
 	})
 
 	t.Run("encrypt with invalid key causing blowfish.NewCipher error", func(t *testing.T) {

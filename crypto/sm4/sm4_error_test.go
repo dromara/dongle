@@ -655,7 +655,7 @@ func TestEncryptPanicPaths(t *testing.T) {
 		src := []byte("short") // Less than BlockSize
 		dst := make([]byte, BlockSize)
 
-		assert.PanicsWithValue(t, "sm4: input not full block", func() {
+		assert.PanicsWithValue(t, "crypto/sm4: input not full block", func() {
 			block.Encrypt(dst, src)
 		})
 	})
@@ -667,7 +667,7 @@ func TestEncryptPanicPaths(t *testing.T) {
 		src := make([]byte, BlockSize)
 		dst := []byte("short") // Less than BlockSize
 
-		assert.PanicsWithValue(t, "sm4: output not full block", func() {
+		assert.PanicsWithValue(t, "crypto/sm4: output not full block", func() {
 			block.Encrypt(dst, src)
 		})
 	})

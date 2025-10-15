@@ -5,6 +5,7 @@ type TeaCipher struct {
 	Rounds int
 }
 
+// NewTeaCipher returns a new Tea cipher.
 func NewTeaCipher(block BlockMode) (c *TeaCipher) {
 	return &TeaCipher{
 		blockCipher: blockCipher{
@@ -15,6 +16,7 @@ func NewTeaCipher(block BlockMode) (c *TeaCipher) {
 	}
 }
 
+// SetRounds sets the number of rounds for the cipher.
 func (c *TeaCipher) SetRounds(rounds int) {
 	c.Rounds = rounds
 }

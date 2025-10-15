@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 )
 
-// PaddingMode represents the different padding schemes available for block ciphers
 type PaddingMode string
 
 // Supported padding modes for block cipher operations

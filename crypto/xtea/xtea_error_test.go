@@ -172,7 +172,7 @@ func TestStdEncrypter_Encrypt_ErrorPaths(t *testing.T) {
 		// The encryption will fail because the key is invalid
 		assert.Empty(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, EncryptError{}, err)
+		assert.IsType(t, KeySizeError(5), err)
 	})
 
 	t.Run("encrypt with invalid key causing xtea.NewCipher error", func(t *testing.T) {
@@ -236,7 +236,7 @@ func TestStdDecrypter_Decrypt_ErrorPaths(t *testing.T) {
 		// The decryption will fail because the key is invalid
 		assert.Empty(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, DecryptError{}, err)
+		assert.IsType(t, KeySizeError(5), err)
 	})
 
 	t.Run("decrypt with invalid key causing xtea.NewCipher error", func(t *testing.T) {

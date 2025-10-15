@@ -44,10 +44,13 @@ func NewStdEncrypter(c *cipher.ChaCha20Cipher) *StdEncrypter {
 // ChaCha20 is a stream cipher and can encrypt any amount of data.
 // Returns empty data when input is empty.
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if e.Error != nil {
-		return nil, e.Error
+		err = e.Error
+		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}
@@ -96,10 +99,13 @@ func NewStdDecrypter(c *cipher.ChaCha20Cipher) *StdDecrypter {
 // ChaCha20 is a stream cipher and can decrypt any amount of data.
 // Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if d.Error != nil {
-		return nil, d.Error
+		err = d.Error
+		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}

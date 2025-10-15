@@ -83,6 +83,14 @@ func TestKeySizeError(t *testing.T) {
 		expected := "crypto/twofish: invalid key size 1000, must be 16, 24, or 32 bytes"
 		assert.Equal(t, expected, err.Error())
 	})
+
+	// Direct test of KeySizeError.Error() method to ensure 100% coverage
+	t.Run("direct KeySizeError Error method test", func(t *testing.T) {
+		err := KeySizeError(16)
+		msg := err.Error()
+		assert.Contains(t, msg, "crypto/twofish: invalid key size 16")
+		assert.Contains(t, msg, "must be 16, 24, or 32 bytes")
+	})
 }
 
 func TestTwofish_ValidKeySizes(t *testing.T) {
@@ -147,6 +155,14 @@ func TestEncryptError(t *testing.T) {
 		expected := "crypto/twofish: failed to encrypt data: "
 		assert.Equal(t, expected, err.Error())
 	})
+
+	// Direct test of EncryptError.Error() method to ensure 100% coverage
+	t.Run("direct EncryptError Error method test", func(t *testing.T) {
+		err := EncryptError{Err: errors.New("test error")}
+		msg := err.Error()
+		assert.Contains(t, msg, "crypto/twofish: failed to encrypt data:")
+		assert.Contains(t, msg, "test error")
+	})
 }
 
 // TestDecryptError tests the DecryptError type and its Error() method
@@ -184,6 +200,14 @@ func TestDecryptError(t *testing.T) {
 		expected := "crypto/twofish: failed to decrypt data: "
 		assert.Equal(t, expected, err.Error())
 	})
+
+	// Direct test of DecryptError.Error() method to ensure 100% coverage
+	t.Run("direct DecryptError Error method test", func(t *testing.T) {
+		err := DecryptError{Err: errors.New("test error")}
+		msg := err.Error()
+		assert.Contains(t, msg, "crypto/twofish: failed to decrypt data:")
+		assert.Contains(t, msg, "test error")
+	})
 }
 
 // TestReadError tests the ReadError type and its Error() method
@@ -220,6 +244,14 @@ func TestReadError(t *testing.T) {
 		err := ReadError{Err: originalErr}
 		expected := "crypto/twofish: failed to read encrypted data: "
 		assert.Equal(t, expected, err.Error())
+	})
+
+	// Direct test of ReadError.Error() method to ensure 100% coverage
+	t.Run("direct ReadError Error method test", func(t *testing.T) {
+		err := ReadError{Err: errors.New("test error")}
+		msg := err.Error()
+		assert.Contains(t, msg, "crypto/twofish: failed to read encrypted data:")
+		assert.Contains(t, msg, "test error")
 	})
 }
 
@@ -277,6 +309,13 @@ func TestBufferError(t *testing.T) {
 		err := BufferError{bufferSize: -5, dataSize: -10}
 		expected := "crypto/twofish: buffer size -5 is too small for data size -10"
 		assert.Equal(t, expected, err.Error())
+	})
+
+	// Direct test of BufferError.Error() method to ensure 100% coverage
+	t.Run("direct BufferError Error method test", func(t *testing.T) {
+		err := BufferError{bufferSize: 5, dataSize: 10}
+		msg := err.Error()
+		assert.Contains(t, msg, "crypto/twofish: buffer size 5 is too small for data size 10")
 	})
 }
 
@@ -450,7 +489,7 @@ func TestStdEncrypter_Encrypt_ErrorPaths(t *testing.T) {
 		// The encryption will fail because the key is invalid
 		assert.Empty(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, EncryptError{}, err)
+		assert.IsType(t, KeySizeError(5), err)
 	})
 
 	t.Run("encrypt with invalid key causing twofish.NewCipher error", func(t *testing.T) {
@@ -499,6 +538,20 @@ func TestStdEncrypter_Encrypt_ErrorPaths(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.IsType(t, EncryptError{}, err)
 	})
+
+	t.Run("encrypt with block==nil path uses cipher.Encrypt", func(t *testing.T) {
+		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetKey(key16Error)
+		c.SetIV(iv16Error)
+		c.SetPadding(cipher.PKCS7)
+
+		e := NewStreamEncrypter(io.Discard, c).(*StreamEncrypter)
+		// force block to nil to execute lazy-create branch
+		e.block = nil
+		n, err := e.Write([]byte("abcd"))
+		assert.NoError(t, err)
+		assert.Equal(t, 4, n)
+	})
 }
 
 func TestStdDecrypter_Decrypt_ErrorHandling(t *testing.T) {
@@ -524,6 +577,19 @@ func TestStdDecrypter_Decrypt_ErrorHandling(t *testing.T) {
 		dst, err := decrypter.Decrypt([]byte{})
 		assert.Empty(t, dst)
 		assert.NoError(t, err)
+	})
+
+	t.Run("decrypt with twofish.NewCipher error -> DecryptError", func(t *testing.T) {
+		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetKey(key16Error)
+		// create a valid decrypter first (no init error)
+		decrypter := NewStdDecrypter(c)
+		assert.Nil(t, decrypter.Error)
+		// sabotage key so twofish.NewCipher fails at call time
+		decrypter.cipher.Key = []byte("invalid")
+		out, err := decrypter.Decrypt([]byte("test data"))
+		assert.Empty(t, out)
+		assert.IsType(t, DecryptError{}, err)
 	})
 }
 

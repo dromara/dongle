@@ -32,13 +32,17 @@ func NewStdEncrypter(kp *keypair.RsaKeyPair) *StdEncrypter {
 }
 
 func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if e.Error != nil {
 		err = e.Error
 		return
 	}
+
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}
+
 	pubKey, err := e.keypair.ParsePublicKey()
 	if err != nil {
 		e.Error = KeyPairError{Err: err}
@@ -85,11 +89,13 @@ func NewStdDecrypter(kp *keypair.RsaKeyPair) *StdDecrypter {
 }
 
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	// Check for existing errors from initialization
 	if d.Error != nil {
 		err = d.Error
 		return
 	}
 
+	// Return empty data for empty input
 	if len(src) == 0 {
 		return
 	}
