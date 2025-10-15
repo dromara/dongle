@@ -58,6 +58,7 @@ func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err e
 		return NewGCMEncrypter(src, c.Nonce, c.AAD, block)
 	}
 
+	// Only CBC/ECB block modes require add padding
 	paddedSrc := padding(c.Padding, src, block.BlockSize())
 	if c.Block == CBC {
 		return NewCBCEncrypter(paddedSrc, c.IV, block)
@@ -82,6 +83,8 @@ func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err e
 	if c.Block == GCM {
 		return NewGCMDecrypter(src, c.Nonce, c.AAD, block)
 	}
+
+	// Only CBC/ECB block modes require remove padding
 	var paddedDst []byte
 	if c.Block == CBC {
 		paddedDst, err = NewCBCDecrypter(src, c.IV, block)
