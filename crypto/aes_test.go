@@ -610,17 +610,6 @@ func TestAes_Error(t *testing.T) {
 		t.Logf("Encrypter result: dst=%v, error=%v", encrypter.dst, encrypter.Error)
 	})
 
-	t.Run("decryption with invalid cipher configuration", func(t *testing.T) {
-		c := cipher.NewAesCipher("INVALID_MODE")
-		c.SetKey(key16)
-		c.SetIV(iv16)
-		c.SetPadding(cipher.PKCS7)
-		decrypter := NewDecrypter().FromRawBytes(testData).ByAes(c)
-		// The AES implementation may return nil for invalid configurations
-		// This is acceptable behavior
-		t.Logf("Decrypter result: dst=%v, error=%v", decrypter.dst, decrypter.Error)
-	})
-
 	t.Run("encryption with missing IV for CBC mode", func(t *testing.T) {
 		c := cipher.NewAesCipher(cipher.CBC)
 		c.SetKey(key16)

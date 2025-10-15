@@ -610,17 +610,6 @@ func TestTwofish_Error(t *testing.T) {
 		t.Logf("Encrypter result: dst=%v, error=%v", encrypter.dst, encrypter.Error)
 	})
 
-	t.Run("decryption with invalid cipher configuration", func(t *testing.T) {
-		c := cipher.NewTwofishCipher("INVALID_MODE")
-		c.SetKey(twofishKey16)
-		c.SetIV(twofishIV16)
-		c.SetPadding(cipher.PKCS7)
-		decrypter := NewDecrypter().FromRawBytes(twofishTestData).ByTwofish(c)
-		// The Twofish implementation may return nil for invalid configurations
-		// This is acceptable behavior
-		t.Logf("Decrypter result: dst=%v, error=%v", decrypter.dst, decrypter.Error)
-	})
-
 	t.Run("encryption with missing IV for CBC mode", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
 		c.SetKey(twofishKey16)

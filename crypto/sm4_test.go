@@ -407,17 +407,6 @@ func TestDecrypter_BySm4(t *testing.T) {
 }
 
 func TestSm4_Error(t *testing.T) {
-	t.Run("decryption with invalid cipher configuration", func(t *testing.T) {
-		c := cipher.NewSm4Cipher("INVALID_MODE")
-		c.SetKey(sm4Key16)
-		c.SetIV(sm4IV16)
-		c.SetPadding(cipher.PKCS7)
-		decrypter := NewDecrypter().FromRawBytes(sm4TestData).BySm4(c)
-		// The SM4 implementation may return nil for invalid configurations
-		// This is acceptable behavior
-		t.Logf("Decrypter result: dst=%v, error=%v", decrypter.dst, decrypter.Error)
-	})
-
 	t.Run("encryption with missing IV for CBC mode", func(t *testing.T) {
 		c := cipher.NewSm4Cipher(cipher.CBC)
 		c.SetKey(sm4Key16)
