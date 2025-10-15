@@ -24,10 +24,6 @@ func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 		return dst, EmptyIVError{mode: CBC}
 	}
 
-	if block == nil {
-		return dst, NilBlockError{mode: CBC}
-	}
-
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
 		return dst, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
@@ -49,10 +45,6 @@ func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CBC}
-	}
-
-	if block == nil {
-		return dst, NilBlockError{mode: CBC}
 	}
 
 	blockSize := block.BlockSize()
@@ -78,10 +70,6 @@ func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 		return dst, EmptyIVError{mode: CTR}
 	}
 
-	if block == nil {
-		return dst, NilBlockError{mode: CTR}
-	}
-
 	// Handle nonce for CTR mode
 	// If IV is 12 bytes (nonce), pad it to 16 bytes with zeros
 	// This matches Python's pycryptodome behavior
@@ -105,10 +93,6 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 		return dst, EmptyIVError{mode: CTR}
 	}
 
-	if block == nil {
-		return dst, NilBlockError{mode: CTR}
-	}
-
 	// Handle nonce for CTR mode
 	// If IV is 12 bytes (nonce), pad it to 16 bytes with zeros
 	// This matches Python's pycryptodome behavior
@@ -130,10 +114,6 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // Note: ECB mode is generally not recommended for secure applications due to
 // its vulnerability to pattern analysis.
 func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
-	if block == nil {
-		return dst, NilBlockError{mode: ECB}
-	}
-
 	blockSize := block.BlockSize()
 	if len(src)%blockSize != 0 {
 		return dst, InvalidSrcError{mode: ECB, src: src, size: blockSize}
@@ -150,10 +130,6 @@ func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 // NewECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
 // ECB decryption decrypts each block independently.
 func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
-	if block == nil {
-		return dst, NilBlockError{mode: ECB}
-	}
-
 	blockSize := block.BlockSize()
 	if len(src)%blockSize != 0 {
 		return dst, InvalidSrcError{mode: ECB, src: src, size: blockSize}
@@ -172,10 +148,6 @@ func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 // and authenticity. It combines CTR mode encryption with a Galois field
 // multiplication for authentication.
 func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
-	if block == nil {
-		return dst, NilBlockError{mode: GCM}
-	}
-
 	if len(nonce) == 0 {
 		return dst, EmptyNonceError{mode: GCM}
 	}
@@ -194,10 +166,6 @@ func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 // NewGCMDecrypter decrypts data using Galois/Counter Mode (GCM).
 // GCM decryption verifies the authentication tag before decrypting the data.
 func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
-	if block == nil {
-		return dst, NilBlockError{mode: GCM}
-	}
-
 	if len(nonce) == 0 {
 		return dst, EmptyNonceError{mode: GCM}
 	}
@@ -225,10 +193,6 @@ func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 		return dst, EmptyIVError{mode: CFB}
 	}
 
-	if block == nil {
-		return dst, NilBlockError{mode: CFB}
-	}
-
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
 		return dst, InvalidIVError{mode: CFB, iv: iv, size: blockSize}
@@ -245,10 +209,6 @@ func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CFB}
-	}
-
-	if block == nil {
-		return dst, NilBlockError{mode: CFB}
 	}
 
 	blockSize := block.BlockSize()
@@ -270,10 +230,6 @@ func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 		return dst, EmptyIVError{mode: OFB}
 	}
 
-	if block == nil {
-		return dst, NilBlockError{mode: OFB}
-	}
-
 	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
 		return dst, InvalidIVError{mode: OFB, iv: iv, size: blockSize}
@@ -290,10 +246,6 @@ func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 func NewOFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: OFB}
-	}
-
-	if block == nil {
-		return dst, NilBlockError{mode: OFB}
 	}
 
 	blockSize := block.BlockSize()

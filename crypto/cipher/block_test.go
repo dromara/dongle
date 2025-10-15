@@ -72,14 +72,6 @@ func TestNewCBCEncrypter(t *testing.T) {
 		assert.Contains(t, err.Error(), "iv cannot be empty")
 	})
 
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCBCEncrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
-	})
-
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
 		result, err := NewCBCEncrypter(src, invalidIV, block)
@@ -118,14 +110,6 @@ func TestNewCBCDecrypter(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
 		assert.Contains(t, err.Error(), "iv cannot be empty")
-	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCBCDecrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
 	})
 
 	t.Run("invalid IV length", func(t *testing.T) {
@@ -177,14 +161,6 @@ func TestNewCTREncrypter(t *testing.T) {
 		assert.IsType(t, EmptyIVError{}, err)
 		assert.Contains(t, err.Error(), "iv cannot be empty")
 	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCTREncrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
-	})
 }
 
 func TestNewCTRDecrypter(t *testing.T) {
@@ -215,14 +191,6 @@ func TestNewCTRDecrypter(t *testing.T) {
 		assert.IsType(t, EmptyIVError{}, err)
 		assert.Contains(t, err.Error(), "iv cannot be empty")
 	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCTRDecrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
-	})
 }
 
 func TestNewECBEncrypter(t *testing.T) {
@@ -236,14 +204,6 @@ func TestNewECBEncrypter(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
 		assert.NotEqual(t, src, result) // Should be encrypted
-	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewECBEncrypter(src, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
 	})
 
 	t.Run("invalid source length", func(t *testing.T) {
@@ -275,14 +235,6 @@ func TestNewECBDecrypter(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, len(src), len(result))
-	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewECBDecrypter(src, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
 	})
 
 	t.Run("invalid source length", func(t *testing.T) {
@@ -323,14 +275,6 @@ func TestNewGCMEncrypter(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.NotEqual(t, src, result) // Should be encrypted
-	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewGCMEncrypter(src, nonce, aad, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
 	})
 
 	t.Run("empty nonce", func(t *testing.T) {
@@ -379,14 +323,6 @@ func TestNewGCMDecrypter(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, []byte("test data"), result)
-	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewGCMDecrypter([]byte("test"), nonce, aad, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
 	})
 
 	t.Run("empty nonce", func(t *testing.T) {
@@ -462,14 +398,6 @@ func TestNewCFBEncrypter(t *testing.T) {
 		assert.Contains(t, err.Error(), "iv cannot be empty")
 	})
 
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCFBEncrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
-	})
-
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
 		result, err := NewCFBEncrypter(src, invalidIV, block)
@@ -506,14 +434,6 @@ func TestNewCFBDecrypter(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
 		assert.Contains(t, err.Error(), "iv cannot be empty")
-	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewCFBDecrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
 	})
 
 	t.Run("invalid IV length", func(t *testing.T) {
@@ -555,14 +475,6 @@ func TestNewOFBEncrypter(t *testing.T) {
 		assert.Contains(t, err.Error(), "iv cannot be empty")
 	})
 
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewOFBEncrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
-	})
-
 	t.Run("invalid IV length", func(t *testing.T) {
 		invalidIV := make([]byte, 8) // Wrong size
 		result, err := NewOFBEncrypter(src, invalidIV, block)
@@ -599,14 +511,6 @@ func TestNewOFBDecrypter(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
 		assert.Contains(t, err.Error(), "iv cannot be empty")
-	})
-
-	t.Run("nil block", func(t *testing.T) {
-		result, err := NewOFBDecrypter(src, iv, nil)
-		assert.Nil(t, result)
-		assert.NotNil(t, err)
-		assert.IsType(t, NilBlockError{}, err)
-		assert.Contains(t, err.Error(), "cipher block cannot be nil")
 	})
 
 	t.Run("invalid IV length", func(t *testing.T) {
@@ -663,13 +567,6 @@ func TestErrorTypes(t *testing.T) {
 		msg := err.Error()
 		assert.Contains(t, msg, "GCM")
 		assert.Contains(t, msg, "nonce cannot be empty")
-	})
-
-	t.Run("NilBlockError", func(t *testing.T) {
-		err := NilBlockError{mode: OFB}
-		msg := err.Error()
-		assert.Contains(t, msg, "OFB")
-		assert.Contains(t, msg, "cipher block cannot be nil")
 	})
 
 	t.Run("CreateCipherError", func(t *testing.T) {

@@ -60,19 +60,6 @@ func (e EmptyNonceError) Error() string {
 	return fmt.Sprintf("%s: nonce cannot be empty", e.mode)
 }
 
-// NilBlockError represents an error when the cipher block is nil.
-// This error occurs when a nil cipher block is passed to encryption
-// or decryption functions, which is not allowed for any cipher operation.
-type NilBlockError struct {
-	mode BlockMode // The cipher mode that was attempted with a nil block
-}
-
-// Error returns a formatted error message indicating that the cipher block
-// cannot be nil for the specified cipher mode.
-func (e NilBlockError) Error() string {
-	return fmt.Sprintf("%s: cipher block cannot be nil", e.mode)
-}
-
 // CreateCipherError represents an error that occurs during cipher creation.
 // This error wraps the underlying error that prevented the cipher from
 // being created successfully, such as invalid key length or unsupported
