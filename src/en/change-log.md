@@ -6,6 +6,15 @@ head:
 ---
 
 # Change Log
+
+## [v1.1.7](https://github.com/dromara/dongle/compare/v1.1.6...v1.1.7) (2025-10-20)
+
+* [chore] Optimize streaming processing logic, add support for `reader` position reset to ensure reading from the beginning of the data source, avoiding position offset issues caused by previous read operations, ensuring completeness and correctness of streaming operations
+* [chore] Change private methods `newXXXEncrypter` and `newXXXDecrypter` series in `crypto/cipher/block.go` to public methods `NewXXXEncrypter` and `NewXXXDecrypter`
+* [chore] Change private methods `newXXXPadding` and `newXXXUnPadding` series in `crypto/cipher/padding.go` to public methods `NewXXXPadding` and `NewXXXUnPadding`
+
+* [feat] Add `sm4` chinese national standard block encryption algorithm support, including standard processing and streaming processing, supporting different block modes and padding modes
+
 ## [v1.1.6](https://github.com/dromara/dongle/compare/v1.1.5...v1.1.6) (2025-10-12)
 
 * [chore] Use `io.CopyBuffer` to simplify streaming processing logic

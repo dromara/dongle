@@ -2,11 +2,11 @@
 layout: home
 
 title: Dongle
-titleTemplate: a simple, semantic and developer-friendly crypto package for golang
+titleTemplate: A simple, semantic and developer-friendly crypto package for golang
 
 hero:
   name: Dongle
-  tagline: a simple, semantic and developer-friendly crypto package for golang
+  tagline: A simple, semantic and developer-friendly crypto package for golang
   actions:
     - theme: brand
       text: Quick Start

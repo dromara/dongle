@@ -6,6 +6,15 @@ head:
 ---
 
 # 更新ログ
+
+## [v1.1.7](https://github.com/dromara/dongle/compare/v1.1.6...v1.1.7) (2025-10-20)
+
+* [chore] ストリーム処理ロジックを最適化し、`reader` 位置リセットサポートを追加してデータソースの先頭から読み取りを保証し、以前の読み取り操作による位置オフセット問題を回避し、ストリーム操作の完全性と正確性を保証
+* [chore] `crypto/cipher/block.go` の `newXXXEncrypter` と `newXXXDecrypter` シリーズのプライベートメソッドを公開メソッド `NewXXXEncrypter` と `NewXXXDecrypter` に変更
+* [chore] `crypto/cipher/padding.go` の `newXXXPadding` と `newXXXUnPadding` シリーズのプライベートメソッドを公開メソッド `NewXXXPadding` と `NewXXXUnPadding` に変更
+
+* [feat] `sm4` 中国国家標準ブロック暗号化アルゴリズムサポートを追加（標準処理とストリーム処理を含み、異なるブロックモードとパディングモードをサポート）
+
 ## [v1.1.6](https://github.com/dromara/dongle/compare/v1.1.5...v1.1.6) (2025-10-12)
 
 * [chore] `io.CopyBuffer` を使用してストリーム処理ロジックを簡素化
