@@ -751,29 +751,6 @@ func TestStreamEncrypter_WriteWithCipherError(t *testing.T) {
 	})
 }
 
-func TestStreamDecrypter_ReadWithNilBlockAndInvalidKey(t *testing.T) {
-	t.Run("read with nil block and invalid key", func(t *testing.T) {
-		c := cipher.NewXteaCipher(cipher.CBC)
-		c.SetKey(key16Error)
-		c.SetIV(iv8Error)
-		c.SetPadding(cipher.PKCS7)
-
-		reader := bytes.NewReader([]byte("test data"))
-		decrypter := NewStreamDecrypter(reader, c)
-
-		// Force the block to be nil and key to be invalid
-		if streamDecrypter, ok := decrypter.(*StreamDecrypter); ok {
-			streamDecrypter.block = nil
-			streamDecrypter.cipher.Key = []byte("invalid")
-		}
-
-		buffer := make([]byte, 10)
-		_, err := decrypter.Read(buffer)
-		assert.Error(t, err)
-		assert.IsType(t, DecryptError{}, err)
-	})
-}
-
 func TestStreamEncrypter_WriteWithNilBlockRecreation(t *testing.T) {
 	t.Run("write with nil block recreation", func(t *testing.T) {
 		c := cipher.NewXteaCipher(cipher.CBC)

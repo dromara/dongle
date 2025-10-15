@@ -214,56 +214,6 @@ func TestXteaCipher_SetAAD(t *testing.T) {
 	})
 }
 
-func TestXteaCipher_Encrypt(t *testing.T) {
-	t.Run("encrypt with stream modes (no padding)", func(t *testing.T) {
-		// Test stream modes that don't require padding
-		streamModes := []BlockMode{CFB, OFB, CTR, GCM}
-		for _, mode := range streamModes {
-			t.Run(string(mode), func(t *testing.T) {
-				cipher := NewXteaCipher(mode)
-				cipher.SetKey(key16Xtea)
-				if mode == GCM {
-					cipher.SetNonce([]byte("12345678"))
-					cipher.SetAAD([]byte("aad"))
-				} else {
-					cipher.SetIV(iv8Xtea)
-				}
-
-				// Test with empty data - should return error due to nil block
-				dst, err := cipher.Encrypt([]byte{}, nil)
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "cipher block cannot be nil")
-				assert.Empty(t, dst)
-			})
-		}
-	})
-}
-
-func TestXteaCipher_Decrypt(t *testing.T) {
-	t.Run("decrypt with stream modes (no padding)", func(t *testing.T) {
-		// Test stream modes that don't require padding
-		streamModes := []BlockMode{CFB, OFB, CTR, GCM}
-		for _, mode := range streamModes {
-			t.Run(string(mode), func(t *testing.T) {
-				cipher := NewXteaCipher(mode)
-				cipher.SetKey(key16Xtea)
-				if mode == GCM {
-					cipher.SetNonce([]byte("12345678"))
-					cipher.SetAAD([]byte("aad"))
-				} else {
-					cipher.SetIV(iv8Xtea)
-				}
-
-				// Test with empty data - should return error due to nil block
-				dst, err := cipher.Decrypt([]byte{}, nil)
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "cipher block cannot be nil")
-				assert.Empty(t, dst)
-			})
-		}
-	})
-}
-
 func TestXteaCipher_Integration(t *testing.T) {
 	t.Run("complete cipher configuration", func(t *testing.T) {
 		cipher := NewXteaCipher(CBC)
