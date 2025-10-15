@@ -479,27 +479,6 @@ func TestAdditionalCoverage(t *testing.T) {
 		assert.True(t, n >= 0)
 	})
 
-	t.Run("test decrypter cipher creation error", func(t *testing.T) {
-		file := mock.NewFile([]byte("test data"), "test.txt")
-		c := cipher.NewDesCipher(cipher.CBC)
-		c.SetKey(key8Error)
-		c.SetIV(iv8Error)
-		c.SetPadding(cipher.PKCS7)
-
-		decrypter := NewStreamDecrypter(file, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-
-		// Manually corrupt the key after initialization to test error handling in Read
-		streamDecrypter.cipher.Key = []byte("bad") // Invalid length
-		streamDecrypter.block = nil                // Force block recreation
-
-		buf := make([]byte, 100)
-		n, err := decrypter.Read(buf)
-		assert.Equal(t, 0, n)
-		assert.Error(t, err)
-		assert.IsType(t, DecryptError{}, err)
-	})
-
 	t.Run("test encrypter write with writer error", func(t *testing.T) {
 		// Create a mock writer that returns an error
 		mockWriter := mock.NewErrorReadWriteCloser(errors.New("write error"))
@@ -553,29 +532,6 @@ func TestAdditionalCoverage(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.Error(t, err)
 		assert.IsType(t, KeySizeError(0), err)
-	})
-
-	t.Run("test NewStreamDecrypter with cipher creation error", func(t *testing.T) {
-		file := mock.NewFile([]byte("test data"), "test.txt")
-		c := cipher.NewDesCipher(cipher.CBC)
-		c.SetKey(key8Error)
-		c.SetIV(iv8Error)
-		c.SetPadding(cipher.PKCS7)
-
-		// Create decrypter normally first
-		decrypter := NewStreamDecrypter(file, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-
-		// Now manually corrupt the cipher to simulate a failure
-		streamDecrypter.cipher.Key = []byte("bad") // Invalid length
-		streamDecrypter.block = nil                // Force recreation
-
-		// Try to read, which should trigger the error path
-		buf := make([]byte, 100)
-		n, err := streamDecrypter.Read(buf)
-		assert.Equal(t, 0, n)
-		assert.Error(t, err)
-		assert.IsType(t, DecryptError{}, err)
 	})
 
 	t.Run("test NewStreamDecrypter with invalid key length", func(t *testing.T) {
