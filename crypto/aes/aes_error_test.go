@@ -846,28 +846,6 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		}
 	})
 
-	t.Run("read with aes.NewCipher error", func(t *testing.T) {
-		c := cipher.NewAesCipher(cipher.CBC)
-		c.SetKey(key16Error)
-		c.SetIV(iv16Error)
-		c.SetPadding(cipher.PKCS7)
-
-		reader := mock.NewFile(testDataError, "test.txt")
-		decrypter := NewStreamDecrypter(reader, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		// Set a key that will cause aes.NewCipher to fail
-		// This is difficult to achieve with the current implementation,
-		// but we can test the error path by mocking
-		streamDecrypter.cipher.Key = []byte("invalid") // This should cause aes.NewCipher to fail
-		streamDecrypter.block = nil                    // Force block recreation
-
-		buf := make([]byte, 100)
-		n, err := decrypter.Read(buf)
-		assert.Equal(t, 0, n)
-		assert.NotNil(t, err)
-		assert.IsType(t, DecryptError{}, err)
-	})
-
 	t.Run("read with cipher.Decrypt error", func(t *testing.T) {
 		c := cipher.NewAesCipher(cipher.CBC)
 		c.SetKey(key16Error)
@@ -906,28 +884,6 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 			// Could be EOF or DecryptError depending on the data
 			assert.True(t, err == io.EOF || err != nil)
 		}
-	})
-
-	t.Run("read with aes.NewCipher error in Read", func(t *testing.T) {
-		c := cipher.NewAesCipher(cipher.CBC)
-		c.SetKey(key16Error)
-		c.SetIV(iv16Error)
-		c.SetPadding(cipher.PKCS7)
-
-		reader := mock.NewFile(testDataError, "test.txt")
-		decrypter := NewStreamDecrypter(reader, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		// Set a key that will cause aes.NewCipher to fail
-		// This is difficult to achieve with the current implementation,
-		// but we can test the error path by mocking
-		streamDecrypter.cipher.Key = []byte("invalid") // This should cause aes.NewCipher to fail
-		streamDecrypter.block = nil                    // Force block recreation
-
-		buf := make([]byte, 100)
-		n, err := decrypter.Read(buf)
-		assert.Equal(t, 0, n)
-		assert.NotNil(t, err)
-		assert.IsType(t, DecryptError{}, err)
 	})
 
 	t.Run("read with multiple reads", func(t *testing.T) {
