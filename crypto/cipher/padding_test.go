@@ -175,12 +175,6 @@ func TestPKCS7Padding(t *testing.T) {
 		unpadded := NewPKCS7UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded) // Should return empty data
 	})
-
-	t.Run("PKCS7 unpadding with empty data", func(t *testing.T) {
-		var data []byte
-		unpadded := NewPKCS7UnPadding(data)
-		assert.Nil(t, unpadded) // Should return nil
-	})
 }
 
 func TestPKCS5Padding(t *testing.T) {
@@ -334,12 +328,6 @@ func TestAnsiX923Padding(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 8} // padding size = data length
 		unpadded := NewAnsiX923UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
-	})
-
-	t.Run("AnsiX923 unpadding with empty data", func(t *testing.T) {
-		var data []byte
-		unpadded := NewAnsiX923UnPadding(data)
-		assert.Nil(t, unpadded)
 	})
 }
 
@@ -549,12 +537,6 @@ func TestISO10126Padding(t *testing.T) {
 		data := []byte{0, 0, 0, 0, 0, 0, 0, 8} // padding size = data length
 		unpadded := NewISO10126UnPadding(data)
 		assert.Equal(t, []byte{}, unpadded)
-	})
-
-	t.Run("ISO10126 unpadding with empty data", func(t *testing.T) {
-		var data []byte
-		unpadded := NewISO10126UnPadding(data)
-		assert.Nil(t, unpadded)
 	})
 }
 

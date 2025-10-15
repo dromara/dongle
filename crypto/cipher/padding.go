@@ -37,11 +37,7 @@ func NewNoUnPadding(src []byte) []byte {
 // NewZeroPadding adds zero padding to the source data.
 // Zero padding adds padding bytes (filled with zeros) to reach the block size.
 // If the data length is already a multiple of block size, no padding is added.
-// For empty data, no padding is added.
 func NewZeroPadding(src []byte, blockSize int) []byte {
-	if len(src) == 0 {
-		return src
-	}
 	paddingSize := blockSize - len(src)%blockSize
 	if paddingSize == blockSize {
 		// Data length is exactly a multiple of block size, no padding needed
@@ -53,9 +49,6 @@ func NewZeroPadding(src []byte, blockSize int) []byte {
 // NewZeroUnPadding removes zero padding from the source data.
 // This function removes trailing zero bytes from the data.
 func NewZeroUnPadding(src []byte) []byte {
-	if len(src) == 0 {
-		return src
-	}
 	lastNonZero := len(src) - 1
 	for lastNonZero >= 0 && src[lastNonZero] == 0 {
 		lastNonZero--
@@ -75,9 +68,6 @@ func NewPKCS7Padding(src []byte, blockSize int) []byte {
 // NewPKCS7UnPadding removes PKCS7 padding from the source data.
 // This function reads the last byte to determine the padding size and removes that many bytes.
 func NewPKCS7UnPadding(src []byte) []byte {
-	if len(src) == 0 {
-		return src
-	}
 	paddingSize := int(src[len(src)-1])
 	if paddingSize > len(src) || paddingSize == 0 {
 		return src // Invalid padding, return original data
@@ -111,9 +101,6 @@ func NewAnsiX923Padding(src []byte, blockSize int) []byte {
 // NewAnsiX923UnPadding removes ANSI X.923 padding from the source data.
 // This function validates that all padding bytes except the last are zero.
 func NewAnsiX923UnPadding(src []byte) []byte {
-	if len(src) == 0 {
-		return src
-	}
 	paddingSize := int(src[len(src)-1])
 	if paddingSize > len(src) || paddingSize == 0 {
 		return src
@@ -139,9 +126,6 @@ func NewISO97971Padding(src []byte, blockSize int) []byte {
 // NewISO97971UnPadding removes ISO/IEC 9797-1 padding method 1 from the source data.
 // This function finds the last 0x80 byte and validates that all bytes after it are zero.
 func NewISO97971UnPadding(src []byte) []byte {
-	if len(src) == 0 {
-		return nil
-	}
 	// Find the last 0x80 byte
 	lastIndex := -1
 	for i := len(src) - 1; i >= 0; i-- {
@@ -180,9 +164,6 @@ func NewISO10126Padding(src []byte, blockSize int) []byte {
 //
 // Note: The random padding bytes are not validated, only the length is used.
 func NewISO10126UnPadding(src []byte) []byte {
-	if len(src) == 0 {
-		return src
-	}
 	paddingSize := int(src[len(src)-1])
 	if paddingSize > len(src) || paddingSize == 0 {
 		return src
