@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 )
 
+// PaddingMode defines a PaddingMode type.
 type PaddingMode string
 
 // Supported padding modes for block cipher operations
@@ -36,11 +37,12 @@ func NewNoUnPadding(src []byte) []byte {
 
 // NewZeroPadding adds zero padding to the source data.
 // Zero padding adds padding bytes (filled with zeros) to reach the block size.
-// If the data length is already a multiple of block size, no padding is added.
+// If the data length is already a multiple of block size and not empty, no padding is added.
+// Empty data always gets padded to a full block.
 func NewZeroPadding(src []byte, blockSize int) []byte {
 	paddingSize := blockSize - len(src)%blockSize
-	if paddingSize == blockSize {
-		// Data length is exactly a multiple of block size, no padding needed
+	if paddingSize == blockSize && len(src) > 0 {
+		// Data length is exactly a multiple of block size and not empty, no padding needed
 		return src
 	}
 	return append(src, make([]byte, paddingSize)...)

@@ -68,8 +68,9 @@ func TestZeroPadding(t *testing.T) {
 	t.Run("Zero padding with empty data", func(t *testing.T) {
 		var data []byte
 		blockSize := 8
+		expected := []byte{0, 0, 0, 0, 0, 0, 0, 0}
 		padded := NewZeroPadding(data, blockSize)
-		assert.Equal(t, data, padded) // Empty data returns as is with zero padding
+		assert.Equal(t, expected, padded) // Empty data should add full block padding
 	})
 
 	t.Run("Zero unpadding with trailing zeros", func(t *testing.T) {
