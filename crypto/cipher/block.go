@@ -4,6 +4,7 @@ import (
 	"crypto/cipher"
 )
 
+// BlockMode defines a BlockMode type.
 type BlockMode string
 
 // Supported block cipher modes
@@ -36,7 +37,7 @@ func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform CBC encryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCBCEncrypter(block, iv).CryptBlocks(dst, src)
-	return dst, nil
+	return
 }
 
 // NewCBCDecrypter decrypts data using Cipher Block Chaining (CBC) mode.
@@ -59,7 +60,7 @@ func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform CBC decryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCBCDecrypter(block, iv).CryptBlocks(dst, src)
-	return dst, nil
+	return
 }
 
 // NewCTREncrypter encrypts data using Counter (CTR) mode.
@@ -83,7 +84,7 @@ func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform CTR encryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCTR(block, ctrIV).XORKeyStream(dst, src)
-	return dst, nil
+	return
 }
 
 // NewCTRDecrypter decrypts data using Counter (CTR) mode.
@@ -106,7 +107,7 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform CTR decryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCTR(block, ctrIV).XORKeyStream(dst, src)
-	return dst, nil
+	return
 }
 
 // NewECBEncrypter encrypts data using Electronic Codebook (ECB) mode.
@@ -124,7 +125,7 @@ func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 	for i := 0; i < len(src); i += blockSize {
 		block.Encrypt(dst[i:i+blockSize], src[i:i+blockSize])
 	}
-	return dst, nil
+	return
 }
 
 // NewECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
@@ -140,7 +141,7 @@ func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 	for i := 0; i < len(src); i += blockSize {
 		block.Decrypt(dst[i:i+blockSize], src[i:i+blockSize])
 	}
-	return dst, nil
+	return
 }
 
 // NewGCMEncrypter encrypts data using Galois/Counter Mode (GCM).
@@ -160,7 +161,7 @@ func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 
 	// Perform GCM encryption with authentication
 	dst = gcm.Seal(nil, nonce, src, aad)
-	return dst, nil
+	return
 }
 
 // NewGCMDecrypter decrypts data using Galois/Counter Mode (GCM).
@@ -177,12 +178,7 @@ func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 	}
 
 	// Perform GCM decryption with authentication verification
-	dst, err = gcm.Open(nil, nonce, src, aad)
-	if err != nil {
-		return dst, CreateCipherError{mode: GCM, err: err}
-	}
-
-	return dst, nil
+	return gcm.Open(nil, nonce, src, aad)
 }
 
 // NewCFBEncrypter encrypts data using Cipher Feedback (CFB) mode.
@@ -201,7 +197,7 @@ func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform CFB encryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCFBEncrypter(block, iv).XORKeyStream(dst, src)
-	return dst, nil
+	return
 }
 
 // NewCFBDecrypter decrypts data using Cipher Feedback (CFB) mode.
@@ -219,7 +215,7 @@ func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform CFB decryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCFBDecrypter(block, iv).XORKeyStream(dst, src)
-	return dst, nil
+	return
 }
 
 // NewOFBEncrypter encrypts data using Output Feedback (OFB) mode.
@@ -238,7 +234,7 @@ func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform OFB encryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewOFB(block, iv).XORKeyStream(dst, src)
-	return dst, nil
+	return
 }
 
 // NewOFBDecrypter decrypts data using Output Feedback (OFB) mode.
@@ -256,5 +252,5 @@ func NewOFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform OFB decryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewOFB(block, iv).XORKeyStream(dst, src)
-	return dst, nil
+	return
 }

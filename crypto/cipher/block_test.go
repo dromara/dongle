@@ -344,8 +344,6 @@ func TestNewGCMDecrypter(t *testing.T) {
 		result, err := NewGCMDecrypter(encrypted, nonce, wrongAAD, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, CreateCipherError{}, err)
-		assert.Contains(t, err.Error(), "failed to create cipher")
 	})
 
 	t.Run("GCM cipher creation error", func(t *testing.T) {
@@ -582,46 +580,38 @@ func TestErrorTypes(t *testing.T) {
 	})
 }
 
-func TestMockBlock(t *testing.T) {
-	t.Run("mock block functionality", func(t *testing.T) {
-		mock := &mockBlock{
-			blockSize: 16,
-			encrypt: func(dst, src []byte) {
-				// Simulate encryption by adding 1 to each byte
-				for i := range src {
-					dst[i] = src[i] + 1
-				}
-			},
-			decrypt: func(dst, src []byte) {
-				// Simulate decryption by subtracting 1 from each byte
-				for i := range src {
-					dst[i] = src[i] - 1
-				}
-			},
+func TestUnsupportedBlockMode(t *testing.T) {
+	key := make([]byte, 16)
+	block, _ := aes.NewCipher(key)
+	src := make([]byte, 16)
+
+	t.Run("encrypt with unsupported block mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   BlockMode("UNSUPPORTED"),
+			Padding: PKCS7,
+			IV:      make([]byte, 16),
 		}
 
-		assert.Equal(t, 16, mock.BlockSize())
-
-		src := []byte("test data")
-		dst := make([]byte, len(src))
-		mock.Encrypt(dst, src)
-		assert.NotEqual(t, src, dst)
-
-		decrypted := make([]byte, len(dst))
-		mock.Decrypt(decrypted, dst)
-		assert.Equal(t, src, decrypted)
+		result, err := cipher.Encrypt(src, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, UnsupportedBlockModeError{}, err)
+		assert.Contains(t, err.Error(), "unsupported block mode")
+		assert.Contains(t, err.Error(), "UNSUPPORTED")
 	})
 
-	t.Run("mock block with nil functions", func(t *testing.T) {
-		mock := &mockBlock{blockSize: 16}
-		src := []byte("test")
-		dst := make([]byte, len(src))
+	t.Run("decrypt with unsupported block mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   BlockMode("UNSUPPORTED"),
+			Padding: PKCS7,
+			IV:      make([]byte, 16),
+		}
 
-		// Should not panic and should copy data
-		mock.Encrypt(dst, src)
-		assert.Equal(t, src, dst)
-
-		mock.Decrypt(dst, src)
-		assert.Equal(t, src, dst)
+		result, err := cipher.Decrypt(src, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, UnsupportedBlockModeError{}, err)
+		assert.Contains(t, err.Error(), "unsupported block mode")
+		assert.Contains(t, err.Error(), "UNSUPPORTED")
 	})
 }
