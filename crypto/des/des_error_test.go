@@ -614,10 +614,10 @@ func TestStreamDecrypter_Read_EOF(t *testing.T) {
 	})
 }
 
-func TestUnsupportedModeError(t *testing.T) {
+func TestUnsupportedBlockModeError(t *testing.T) {
 	t.Run("error message format", func(t *testing.T) {
-		err := UnsupportedModeError{Mode: "GCM"}
-		assert.Equal(t, "crypto/des: unsupported cipher mode 'GCM', DES only supports CBC, CTR, ECB, CFB, and OFB modes", err.Error())
+		err := UnsupportedBlockModeError{Mode: "GCM"}
+		assert.Equal(t, "crypto/des: unsupported block mode 'GCM', DES only supports CBC, CTR, ECB, CFB, and OFB modes", err.Error())
 	})
 }
 
@@ -657,8 +657,8 @@ func TestNewStdEncrypter_ErrorPaths(t *testing.T) {
 		encrypter := NewStdEncrypter(c)
 		assert.NotNil(t, encrypter)
 		assert.NotNil(t, encrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, encrypter.Error)
-		assert.Equal(t, "crypto/des: unsupported cipher mode 'GCM', DES only supports CBC, CTR, ECB, CFB, and OFB modes", encrypter.Error.Error())
+		assert.IsType(t, UnsupportedBlockModeError{}, encrypter.Error)
+		assert.Equal(t, "crypto/des: unsupported block mode 'GCM', DES only supports CBC, CTR, ECB, CFB, and OFB modes", encrypter.Error.Error())
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {
@@ -709,8 +709,8 @@ func TestNewStdDecrypter_ErrorPaths(t *testing.T) {
 		decrypter := NewStdDecrypter(c)
 		assert.NotNil(t, decrypter)
 		assert.NotNil(t, decrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, decrypter.Error)
-		assert.Equal(t, "crypto/des: unsupported cipher mode 'GCM', DES only supports CBC, CTR, ECB, CFB, and OFB modes", decrypter.Error.Error())
+		assert.IsType(t, UnsupportedBlockModeError{}, decrypter.Error)
+		assert.Equal(t, "crypto/des: unsupported block mode 'GCM', DES only supports CBC, CTR, ECB, CFB, and OFB modes", decrypter.Error.Error())
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {
@@ -894,7 +894,7 @@ func TestNewStreamEncrypter_ErrorPaths(t *testing.T) {
 		encrypter := NewStreamEncrypter(&buf, c)
 		streamEncrypter := encrypter.(*StreamEncrypter)
 		assert.NotNil(t, streamEncrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, streamEncrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, streamEncrypter.Error)
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {
@@ -947,7 +947,7 @@ func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, streamDecrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, streamDecrypter.Error)
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {

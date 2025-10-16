@@ -31,9 +31,9 @@ func NewStdEncrypter(c *cipher.TeaCipher) *StdEncrypter {
 		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		e.Error = UnsupportedModeError{Mode: "GCM"}
+		e.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return e
 	}
 	e.block, e.Error = tea.NewCipherWithRounds(c.Key, c.Rounds)
@@ -84,9 +84,9 @@ func NewStdDecrypter(c *cipher.TeaCipher) *StdDecrypter {
 		d.Error = KeySizeError(len(c.Key))
 		return d
 	}
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		d.Error = UnsupportedModeError{Mode: "GCM"}
+		d.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return d
 	}
 	block, err := tea.NewCipherWithRounds(c.Key, c.Rounds)
@@ -145,9 +145,9 @@ func NewStreamEncrypter(w io.Writer, c *cipher.TeaCipher) io.WriteCloser {
 		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		e.Error = UnsupportedModeError{Mode: "GCM"}
+		e.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return e
 	}
 	e.block, e.Error = tea.NewCipherWithRounds(c.Key, c.Rounds)
@@ -237,9 +237,9 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TeaCipher) io.Reader {
 		d.Error = KeySizeError(len(c.Key))
 		return d
 	}
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		d.Error = UnsupportedModeError{Mode: "GCM"}
+		d.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return d
 	}
 	d.block, d.Error = tea.NewCipherWithRounds(c.Key, c.Rounds)

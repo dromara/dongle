@@ -1062,9 +1062,9 @@ func TestErrorTypeAssertions(t *testing.T) {
 		assert.Equal(t, 20, bufferErr.dataSize)
 	})
 
-	t.Run("UnsupportedModeError type assertion", func(t *testing.T) {
-		var err error = UnsupportedModeError{Mode: "GCM"}
-		var unsupportedModeErr UnsupportedModeError
+	t.Run("UnsupportedBlockModeError type assertion", func(t *testing.T) {
+		var err error = UnsupportedBlockModeError{Mode: "GCM"}
+		var unsupportedModeErr UnsupportedBlockModeError
 		ok := errors.As(err, &unsupportedModeErr)
 		assert.True(t, ok)
 		assert.Equal(t, "GCM", unsupportedModeErr.Mode)
@@ -1320,7 +1320,7 @@ func TestNewStreamEncrypter_ErrorPaths(t *testing.T) {
 		encrypter := NewStreamEncrypter(&buf, c)
 		streamEncrypter := encrypter.(*StreamEncrypter)
 		assert.NotNil(t, streamEncrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, streamEncrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, streamEncrypter.Error)
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {
@@ -1373,7 +1373,7 @@ func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, streamDecrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, streamDecrypter.Error)
 	})
 
 	t.Run("valid configuration", func(t *testing.T) {
@@ -1450,10 +1450,10 @@ func TestStreamEncrypter_Close_ErrorPaths(t *testing.T) {
 	})
 }
 
-func TestUnsupportedModeError(t *testing.T) {
+func TestUnsupportedBlockModeError(t *testing.T) {
 	t.Run("unsupported mode error", func(t *testing.T) {
-		err := UnsupportedModeError{Mode: "GCM"}
-		expected := "crypto/blowfish: unsupported cipher mode 'GCM', blowfish only supports CBC, CTR, ECB, CFB, and OFB modes"
+		err := UnsupportedBlockModeError{Mode: "GCM"}
+		expected := "crypto/blowfish: unsupported block mode 'GCM', blowfish only supports CBC, CTR, ECB, CFB, and OFB modes"
 		assert.Equal(t, expected, err.Error())
 	})
 }
@@ -1467,8 +1467,8 @@ func TestNewStdEncrypter_GCMError(t *testing.T) {
 		encrypter := NewStdEncrypter(c)
 		assert.NotNil(t, encrypter)
 		assert.NotNil(t, encrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, encrypter.Error)
-		assert.Contains(t, encrypter.Error.Error(), "unsupported cipher mode 'GCM'")
+		assert.IsType(t, UnsupportedBlockModeError{}, encrypter.Error)
+		assert.Contains(t, encrypter.Error.Error(), "unsupported block mode 'GCM'")
 	})
 }
 
@@ -1481,7 +1481,7 @@ func TestNewStdDecrypter_GCMError(t *testing.T) {
 		decrypter := NewStdDecrypter(c)
 		assert.NotNil(t, decrypter)
 		assert.NotNil(t, decrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, decrypter.Error)
-		assert.Contains(t, decrypter.Error.Error(), "unsupported cipher mode 'GCM'")
+		assert.IsType(t, UnsupportedBlockModeError{}, decrypter.Error)
+		assert.Contains(t, decrypter.Error.Error(), "unsupported block mode 'GCM'")
 	})
 }

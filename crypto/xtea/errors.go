@@ -65,13 +65,13 @@ func (e BufferError) Error() string {
 	return fmt.Sprintf("crypto/xtea: buffer size %d is too small for data size %d", e.bufferSize, e.dataSize)
 }
 
-// UnsupportedModeError represents an error when an unsupported cipher mode is used.
-type UnsupportedModeError struct {
+// UnsupportedBlockModeError represents an error when an unsupported block mode is used.
+type UnsupportedBlockModeError struct {
 	Mode string // The unsupported mode name
 }
 
 // Error returns a formatted error message describing the unsupported mode.
 // The message includes the mode name and explains why it's not supported.
-func (e UnsupportedModeError) Error() string {
-	return fmt.Sprintf("crypto/xtea: unsupported cipher mode '%s', xtea only supports CBC, CTR, ECB, CFB, and OFB modes", e.Mode)
+func (e UnsupportedBlockModeError) Error() string {
+	return fmt.Sprintf("crypto/xtea: unsupported block mode '%s', xtea only supports CBC, CTR, ECB, CFB, and OFB modes", e.Mode)
 }

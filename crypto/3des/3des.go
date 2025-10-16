@@ -33,9 +33,9 @@ func NewStdEncrypter(c *cipher.TripleDesCipher) *StdEncrypter {
 		return e
 	}
 
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		e.Error = UnsupportedModeError{Mode: "GCM"}
+		e.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return e
 	}
 
@@ -92,9 +92,9 @@ func NewStdDecrypter(c *cipher.TripleDesCipher) *StdDecrypter {
 		return d
 	}
 
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		d.Error = UnsupportedModeError{Mode: "GCM"}
+		d.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return d
 	}
 
@@ -153,9 +153,9 @@ func NewStreamEncrypter(w io.Writer, c *cipher.TripleDesCipher) io.WriteCloser {
 		return e
 	}
 
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		e.Error = UnsupportedModeError{Mode: "GCM"}
+		e.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return e
 	}
 
@@ -248,9 +248,9 @@ func NewStreamDecrypter(r io.Reader, c *cipher.TripleDesCipher) io.Reader {
 		return d
 	}
 
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		d.Error = UnsupportedModeError{Mode: "GCM"}
+		d.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return d
 	}
 

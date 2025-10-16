@@ -138,23 +138,23 @@ func TestBufferError(t *testing.T) {
 	})
 }
 
-// TestUnsupportedModeError tests the UnsupportedModeError type and its Error() method
-func TestUnsupportedModeError(t *testing.T) {
+// TestUnsupportedBlockModeError tests the UnsupportedBlockModeError type and its Error() method
+func TestUnsupportedBlockModeError(t *testing.T) {
 	t.Run("GCM mode error", func(t *testing.T) {
-		err := UnsupportedModeError{Mode: "GCM"}
-		expected := "crypto/3des: unsupported cipher mode 'GCM', 3DES only supports CBC, CTR, ECB, CFB, and OFB modes"
+		err := UnsupportedBlockModeError{Mode: "GCM"}
+		expected := "crypto/3des: unsupported block mode 'GCM', 3DES only supports CBC, CTR, ECB, CFB, and OFB modes"
 		assert.Equal(t, expected, err.Error())
 	})
 
 	t.Run("empty mode error", func(t *testing.T) {
-		err := UnsupportedModeError{Mode: ""}
-		expected := "crypto/3des: unsupported cipher mode '', 3DES only supports CBC, CTR, ECB, CFB, and OFB modes"
+		err := UnsupportedBlockModeError{Mode: ""}
+		expected := "crypto/3des: unsupported block mode '', 3DES only supports CBC, CTR, ECB, CFB, and OFB modes"
 		assert.Equal(t, expected, err.Error())
 	})
 
 	t.Run("other unsupported mode", func(t *testing.T) {
-		err := UnsupportedModeError{Mode: "XTS"}
-		expected := "crypto/3des: unsupported cipher mode 'XTS', 3DES only supports CBC, CTR, ECB, CFB, and OFB modes"
+		err := UnsupportedBlockModeError{Mode: "XTS"}
+		expected := "crypto/3des: unsupported block mode 'XTS', 3DES only supports CBC, CTR, ECB, CFB, and OFB modes"
 		assert.Equal(t, expected, err.Error())
 	})
 }
@@ -244,7 +244,7 @@ func TestErrorIntegration(t *testing.T) {
 		encrypter := NewStdEncrypter(c)
 		assert.NotNil(t, encrypter)
 		assert.NotNil(t, encrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, encrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, encrypter.Error)
 	})
 
 	t.Run("unsupported GCM mode for StdDecrypter", func(t *testing.T) {
@@ -256,7 +256,7 @@ func TestErrorIntegration(t *testing.T) {
 		decrypter := NewStdDecrypter(c)
 		assert.NotNil(t, decrypter)
 		assert.NotNil(t, decrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, decrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, decrypter.Error)
 	})
 
 	t.Run("unsupported GCM mode for StreamEncrypter", func(t *testing.T) {
@@ -270,7 +270,7 @@ func TestErrorIntegration(t *testing.T) {
 		streamEncrypter := encrypter.(*StreamEncrypter)
 		assert.NotNil(t, encrypter)
 		assert.NotNil(t, streamEncrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, streamEncrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, streamEncrypter.Error)
 	})
 
 	t.Run("unsupported GCM mode for StreamDecrypter", func(t *testing.T) {
@@ -284,7 +284,7 @@ func TestErrorIntegration(t *testing.T) {
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, decrypter)
 		assert.NotNil(t, streamDecrypter.Error)
-		assert.IsType(t, UnsupportedModeError{}, streamDecrypter.Error)
+		assert.IsType(t, UnsupportedBlockModeError{}, streamDecrypter.Error)
 	})
 }
 
@@ -383,9 +383,9 @@ func TestErrorTypeAssertions(t *testing.T) {
 		assert.Equal(t, 20, bufferErr.dataSize)
 	})
 
-	t.Run("UnsupportedModeError type assertion", func(t *testing.T) {
-		var err error = UnsupportedModeError{Mode: "GCM"}
-		var unsupportedModeErr UnsupportedModeError
+	t.Run("UnsupportedBlockModeError type assertion", func(t *testing.T) {
+		var err error = UnsupportedBlockModeError{Mode: "GCM"}
+		var unsupportedModeErr UnsupportedBlockModeError
 		ok := errors.As(err, &unsupportedModeErr)
 		assert.True(t, ok)
 		assert.Equal(t, "GCM", unsupportedModeErr.Mode)

@@ -29,9 +29,9 @@ func NewStdEncrypter(c *cipher.XteaCipher) *StdEncrypter {
 	if len(c.Key) != 16 {
 		e.Error = KeySizeError(len(c.Key))
 	}
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		e.Error = UnsupportedModeError{Mode: "GCM"}
+		e.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return e
 	}
 	return e
@@ -79,9 +79,9 @@ func NewStdDecrypter(c *cipher.XteaCipher) *StdDecrypter {
 	if len(c.Key) != 16 {
 		d.Error = KeySizeError(len(c.Key))
 	}
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		d.Error = UnsupportedModeError{Mode: "GCM"}
+		d.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return d
 	}
 	return d
@@ -136,9 +136,9 @@ func NewStreamEncrypter(w io.Writer, c *cipher.XteaCipher) io.WriteCloser {
 		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		e.Error = UnsupportedModeError{Mode: "GCM"}
+		e.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return e
 	}
 	e.block, e.Error = xtea.NewCipher(c.Key)
@@ -229,9 +229,9 @@ func NewStreamDecrypter(r io.Reader, c *cipher.XteaCipher) io.Reader {
 		return d
 	}
 
-	// Check for unsupported cipher modes
+	// Check for unsupported block mode
 	if c.Block == cipher.GCM {
-		d.Error = UnsupportedModeError{Mode: "GCM"}
+		d.Error = UnsupportedBlockModeError{Mode: "GCM"}
 		return d
 	}
 
