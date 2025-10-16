@@ -89,7 +89,7 @@ c := cipher.NewAesCipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890")) 
 // 初期化ベクトルを設定（16バイト）
 c.SetIV([]byte("1234567890123456"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
+// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
 c.SetPadding(cipher.PKCS7)
 
 // 文字列平文を暗号化し、16進文字列暗号文を返す
@@ -145,7 +145,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // キー形式を設定（オプション、デフォルトは PKCS8）
 kp.SetFormat(keypair.PKCS8)
-// ハッシュアルゴリズムを設定（オプション、デフォルトは SHA256）
+// ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256）
 kp.SetHash(crypto.SHA256)   
 
 // 秘密鍵を設定

@@ -91,7 +91,7 @@ c := cipher.NewAesCipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890")) 
 // Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))
-// Set padding mode (optional, default is PKCS7)
+// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7)
 
 // Encrypt string plaintext, return hex-encoded string ciphertext
@@ -117,7 +117,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256)
+// Set hash algorithm (optional, default is SHA256, only PKCS8 key format need to set hash algorithm)
 kp.SetHash(crypto.SHA256)   
 
 // Set public key
@@ -147,7 +147,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256)
+// Set hash algorithm (optional, default is SHA256, only PKCS8 key format need to set hash algorithm)
 kp.SetHash(crypto.SHA256)   
 
 // Set private key
