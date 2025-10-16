@@ -11,6 +11,7 @@ import (
 	"github.com/dromara/dongle/utils"
 )
 
+// Decrypter defines a Decrypter struct.
 type Decrypter struct {
 	src    []byte
 	dst    []byte

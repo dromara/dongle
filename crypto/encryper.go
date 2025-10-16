@@ -9,6 +9,7 @@ import (
 	"github.com/dromara/dongle/utils"
 )
 
+// Encrypter defines a Encrypter struct.
 type Encrypter struct {
 	src    []byte
 	dst    []byte

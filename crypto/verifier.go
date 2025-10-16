@@ -9,6 +9,7 @@ import (
 	"github.com/dromara/dongle/utils"
 )
 
+// Verifier defines a Verifier struct.
 type Verifier struct {
 	data   []byte
 	sign   []byte

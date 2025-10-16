@@ -9,6 +9,7 @@ import (
 	"github.com/dromara/dongle/utils"
 )
 
+// Signer defines a Signer struct.
 type Signer struct {
 	data   []byte
 	sign   []byte
