@@ -59,13 +59,18 @@ func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err e
 	}
 
 	// Only CBC/ECB block modes require add padding
-	paddedSrc := padding(c.Padding, src, block.BlockSize())
+	paddedSrc, err := padding(c.Padding, src, block.BlockSize())
+	if err != nil {
+		return
+	}
 	if c.Block == CBC {
 		return NewCBCEncrypter(paddedSrc, c.IV, block)
 	}
 	if c.Block == ECB {
 		return NewECBEncrypter(paddedSrc, block)
 	}
+
+	err = UnsupportedBlockModeError{mode: c.Block}
 	return
 }
 
@@ -87,60 +92,72 @@ func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err e
 	// Only CBC/ECB block modes require remove padding
 	var paddedDst []byte
 	if c.Block == CBC {
-		paddedDst, err = NewCBCDecrypter(src, c.IV, block)
+		if paddedDst, err = NewCBCDecrypter(src, c.IV, block); err != nil {
+			return
+		}
+		return unpadding(c.Padding, paddedDst)
 	}
 	if c.Block == ECB {
-		paddedDst, err = NewECBDecrypter(src, block)
+		if paddedDst, err = NewECBDecrypter(src, block); err != nil {
+			return
+		}
+		return unpadding(c.Padding, paddedDst)
 	}
-	if err != nil {
-		return
-	}
-	dst = unpadding(c.Padding, paddedDst)
+
+	err = UnsupportedBlockModeError{mode: c.Block}
 	return
 }
 
 // padding adds the specified padding mode to the source data.
-func padding(paddingMode PaddingMode, src []byte, blockSize int) []byte {
+func padding(paddingMode PaddingMode, src []byte, blockSize int) (dst []byte, err error) {
 	switch paddingMode {
+	case No:
+		return NewNoPadding(src), nil
 	case Zero:
-		return NewZeroPadding(src, blockSize)
+		return NewZeroPadding(src, blockSize), nil
 	case PKCS5:
-		return NewPKCS5Padding(src)
+		return NewPKCS5Padding(src), nil
 	case PKCS7:
-		return NewPKCS7Padding(src, blockSize)
+		return NewPKCS7Padding(src, blockSize), nil
 	case AnsiX923:
-		return NewAnsiX923Padding(src, blockSize)
+		return NewAnsiX923Padding(src, blockSize), nil
 	case ISO97971:
-		return NewISO97971Padding(src, blockSize)
+		return NewISO97971Padding(src, blockSize), nil
 	case ISO10126:
-		return NewISO10126Padding(src, blockSize)
+		return NewISO10126Padding(src, blockSize), nil
 	case ISO78164:
-		return NewISO78164Padding(src, blockSize)
+		return NewISO78164Padding(src, blockSize), nil
 	case Bit:
-		return NewBitPadding(src, blockSize)
+		return NewBitPadding(src, blockSize), nil
+	default:
+		err = UnsupportedPaddingModeError{mode: paddingMode}
+		return
 	}
-	return src
 }
 
 // unpadding removes the specified padding mode from the source data.
-func unpadding(paddingMode PaddingMode, src []byte) []byte {
+func unpadding(paddingMode PaddingMode, src []byte) (dst []byte, err error) {
 	switch paddingMode {
+	case No:
+		return NewNoUnPadding(src), nil
 	case Zero:
-		return NewZeroUnPadding(src)
+		return NewZeroUnPadding(src), nil
 	case PKCS5:
-		return NewPKCS5UnPadding(src)
+		return NewPKCS5UnPadding(src), nil
 	case PKCS7:
-		return NewPKCS7UnPadding(src)
+		return NewPKCS7UnPadding(src), nil
 	case AnsiX923:
-		return NewAnsiX923UnPadding(src)
+		return NewAnsiX923UnPadding(src), nil
 	case ISO97971:
-		return NewISO97971UnPadding(src)
+		return NewISO97971UnPadding(src), nil
 	case ISO10126:
-		return NewISO10126UnPadding(src)
+		return NewISO10126UnPadding(src), nil
 	case ISO78164:
-		return NewISO78164UnPadding(src)
+		return NewISO78164UnPadding(src), nil
 	case Bit:
-		return NewBitUnPadding(src)
+		return NewBitUnPadding(src), nil
+	default:
+		err = UnsupportedPaddingModeError{mode: paddingMode}
+		return
 	}
-	return src
 }

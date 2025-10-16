@@ -342,8 +342,11 @@ func TestBlockCipher_Encrypt(t *testing.T) {
 		}
 
 		result, err := cipher.Encrypt(testData, block)
-		assert.NoError(t, err)
 		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, UnsupportedBlockModeError{}, err)
+		assert.Contains(t, err.Error(), "unsupported block mode")
+		assert.Contains(t, err.Error(), "UNKNOWN")
 	})
 
 	t.Run("encrypt empty data", func(t *testing.T) {
@@ -820,6 +823,139 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 
 		// Decryption should return error because of empty IV
 		result, err := cipher.Decrypt(testData, block)
+		assert.Error(t, err) // Should have error
+		assert.Nil(t, result)
+	})
+}
+
+func TestBlockCipher_Encrypt_ErrorCases(t *testing.T) {
+	t.Run("encrypt with unsupported padding mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: PaddingMode("UNSUPPORTED"), // Unsupported padding mode
+			IV:      testIV,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		result, err := cipher.Encrypt(testData, block)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.IsType(t, UnsupportedPaddingModeError{}, err)
+		assert.Contains(t, err.Error(), "unsupported padding mode")
+		assert.Contains(t, err.Error(), "UNSUPPORTED")
+	})
+}
+
+func TestBlockCipher_Decrypt_ErrorCases(t *testing.T) {
+	t.Run("decrypt with unsupported padding mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,                        // Use ECB to avoid IV length issues
+			Padding: PaddingMode("UNSUPPORTED"), // Unsupported padding mode
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		// First encrypt some data - this should fail due to unsupported padding
+		encrypted, err := cipher.Encrypt(testData, block)
+		assert.Error(t, err) // Should fail due to unsupported padding
+		assert.Nil(t, encrypted)
+
+		// Try to decrypt with data that is a multiple of block size
+		// This should fail due to unsupported padding mode
+		blockSizeData := make([]byte, 16) // 16 bytes, multiple of block size
+		copy(blockSizeData, "1234567890123456")
+
+		result, err := cipher.Decrypt(blockSizeData, block)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.IsType(t, UnsupportedPaddingModeError{}, err)
+		assert.Contains(t, err.Error(), "unsupported padding mode")
+		assert.Contains(t, err.Error(), "UNSUPPORTED")
+	})
+
+	t.Run("decrypt with CBC error during decryption", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: PKCS7,
+			IV:      []byte{}, // Empty IV to trigger error in CBC decryption
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		// Decryption should return error because of empty IV
+		result, err := cipher.Decrypt(testData, block)
+		assert.Error(t, err) // Should have error
+		assert.Nil(t, result)
+	})
+
+	t.Run("decrypt with ECB error during decryption", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,
+			Padding: PKCS7,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		// Use data that is not a multiple of block size to trigger error
+		invalidData := []byte("short") // 5 bytes, not multiple of 16
+		result, err := cipher.Decrypt(invalidData, block)
 		assert.Error(t, err) // Should have error
 		assert.Nil(t, result)
 	})
