@@ -8,6 +8,7 @@ import (
 	"github.com/dromara/dongle/utils"
 )
 
+// Encoder defines a Encoder struct.
 type Encoder struct {
 	src    []byte
 	dst    []byte

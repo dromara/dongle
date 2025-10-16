@@ -8,6 +8,7 @@ import (
 	"github.com/dromara/dongle/utils"
 )
 
+// Decoder defines a Decoder struct.
 type Decoder struct {
 	src    []byte
 	dst    []byte
