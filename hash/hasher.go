@@ -1,6 +1,6 @@
-// Package hash provides cryptographic hash functions and HMAC operations.
+// Package hash provides cryptographic hash and hmac functions.
 // It supports multiple hash algorithms including MD2, MD4, MD5, SHA1, SHA2, SHA3,
-// BLAKE2b, BLAKE2s, RIPEMD160, and SM3, with both standard and streaming modes.
+// BLAKE2b, BLAKE2s, RIPEMD160, SM3 and so on, with both standard and streaming modes.
 package hash
 
 import (
@@ -17,6 +17,7 @@ import (
 // BufferSize buffer size for streaming (64KB is a good balance)
 var BufferSize = 64 * 1024
 
+// Hasher defines a Hasher struct.
 type Hasher struct {
 	src    []byte
 	dst    []byte
