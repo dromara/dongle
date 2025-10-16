@@ -38,7 +38,7 @@ type RsaKeyPair struct {
 	Error error
 }
 
-// NewRsaKeyPair returns a new RSA key pair instance.
+// NewRsaKeyPair returns a new RsaKeyPair instance.
 // The default format is PKCS8 and the default hash function is SHA256.
 func NewRsaKeyPair() *RsaKeyPair {
 	return &RsaKeyPair{
@@ -47,7 +47,7 @@ func NewRsaKeyPair() *RsaKeyPair {
 	}
 }
 
-// GenKeyPair generates a new RSA key pair with the specified key size.
+// GenKeyPair generates a new RsaKeyPair with the specified key size.
 // The generated keys are formatted according to the current Format setting.
 //
 // Note: The generated keys are automatically formatted in PEM format

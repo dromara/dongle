@@ -29,12 +29,12 @@ type Ed25519KeyPair struct {
 	Error error
 }
 
-// NewEd25519KeyPair returns a new ED25519 key pair instance.
+// NewEd25519KeyPair returns a new Ed25519KeyPair instance.
 func NewEd25519KeyPair() *Ed25519KeyPair {
 	return &Ed25519KeyPair{}
 }
 
-// GenKeyPair generates a new ED25519 key pair.
+// GenKeyPair generates a new Ed25519KeyPair instance.
 // The generated keys are formatted in PEM format using PKCS8 format.
 //
 // Note: The generated keys are automatically formatted in PEM format using PKCS8 format.
