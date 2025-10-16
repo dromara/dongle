@@ -59,7 +59,7 @@ func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err e
 	}
 
 	// Only CBC/ECB block modes require add padding
-	paddedSrc, err := padding(c.Padding, src, block.BlockSize())
+	paddedSrc, err := c.padding(src, block.BlockSize())
 	if err != nil {
 		return
 	}
@@ -95,22 +95,22 @@ func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err e
 		if paddedDst, err = NewCBCDecrypter(src, c.IV, block); err != nil {
 			return
 		}
-		return unpadding(c.Padding, paddedDst)
+		return c.unpadding(paddedDst)
 	}
 	if c.Block == ECB {
 		if paddedDst, err = NewECBDecrypter(src, block); err != nil {
 			return
 		}
-		return unpadding(c.Padding, paddedDst)
+		return c.unpadding(paddedDst)
 	}
 
 	err = UnsupportedBlockModeError{mode: c.Block}
 	return
 }
 
-// padding adds the specified padding mode to the source data.
-func padding(paddingMode PaddingMode, src []byte, blockSize int) (dst []byte, err error) {
-	switch paddingMode {
+// padding adds padding to the source data.
+func (c *blockCipher) padding(src []byte, blockSize int) (dst []byte, err error) {
+	switch c.Padding {
 	case No:
 		return NewNoPadding(src), nil
 	case Zero:
@@ -130,14 +130,14 @@ func padding(paddingMode PaddingMode, src []byte, blockSize int) (dst []byte, er
 	case Bit:
 		return NewBitPadding(src, blockSize), nil
 	default:
-		err = UnsupportedPaddingModeError{mode: paddingMode}
+		err = UnsupportedPaddingModeError{mode: c.Padding}
 		return
 	}
 }
 
-// unpadding removes the specified padding mode from the source data.
-func unpadding(paddingMode PaddingMode, src []byte) (dst []byte, err error) {
-	switch paddingMode {
+// unpadding removes padding from the source data.
+func (c *blockCipher) unpadding(src []byte) (dst []byte, err error) {
+	switch c.Padding {
 	case No:
 		return NewNoUnPadding(src), nil
 	case Zero:
@@ -157,7 +157,7 @@ func unpadding(paddingMode PaddingMode, src []byte) (dst []byte, err error) {
 	case Bit:
 		return NewBitUnPadding(src), nil
 	default:
-		err = UnsupportedPaddingModeError{mode: paddingMode}
+		err = UnsupportedPaddingModeError{mode: c.Padding}
 		return
 	}
 }
