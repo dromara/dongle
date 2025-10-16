@@ -15,20 +15,20 @@ type InvalidSrcError struct {
 // Error returns a formatted error message describing the invalid source data length.
 // The message includes the cipher mode, actual source length, and required block size.
 func (e InvalidSrcError) Error() string {
-	return fmt.Sprintf("%s: src length %d must be a multiple of block size %d", e.mode, len(e.src), e.size)
+	return fmt.Sprintf("src length %d must be a multiple of block size %d in '%s' block mode", len(e.src), e.size, e.mode)
 }
 
 // EmptyIVError represents an error when the initialization vector (IV) is empty
 // for cipher modes that require an IV. This error occurs when the IV is nil
 // or has zero length, which is not allowed for secure cipher operations.
 type EmptyIVError struct {
-	mode BlockMode // The cipher mode that requires a non-empty IV
+	mode BlockMode
 }
 
 // Error returns a formatted error message indicating that the IV cannot be empty
 // for the specified cipher mode.
 func (e EmptyIVError) Error() string {
-	return fmt.Sprintf("%s: iv cannot be empty", e.mode)
+	return fmt.Sprintf("iv cannot be empty in '%s' block mode", e.mode)
 }
 
 // InvalidIVError represents an error when the initialization vector (IV) length
@@ -43,7 +43,7 @@ type InvalidIVError struct {
 // Error returns a formatted error message describing the invalid IV length.
 // The message includes the cipher mode, actual IV length, and required block size.
 func (e InvalidIVError) Error() string {
-	return fmt.Sprintf("%s: iv length %d must equal block size %d", e.mode, len(e.iv), e.size)
+	return fmt.Sprintf("iv length %d must equal block size %d in '%s' block mode", len(e.iv), e.size, e.mode)
 }
 
 // EmptyNonceError represents an error when the nonce (number used once) is empty
@@ -57,7 +57,7 @@ type EmptyNonceError struct {
 // Error returns a formatted error message indicating that the nonce cannot be empty
 // for the specified cipher mode.
 func (e EmptyNonceError) Error() string {
-	return fmt.Sprintf("%s: nonce cannot be empty", e.mode)
+	return fmt.Sprintf("nonce cannot be empty in '%s' block mode", e.mode)
 }
 
 // CreateCipherError represents an error that occurs during cipher creation.
@@ -72,5 +72,27 @@ type CreateCipherError struct {
 // Error returns a formatted error message describing the cipher creation failure.
 // The message includes the cipher mode and the underlying error details.
 func (e CreateCipherError) Error() string {
-	return fmt.Sprintf("%s: failed to create cipher: %v", e.mode, e.err)
+	return fmt.Sprintf("failed to create cipher in '%s' block mode: %v", e.mode, e.err)
+}
+
+// UnsupportedBlockModeError represents an error when an unsupported block mode is used.
+type UnsupportedBlockModeError struct {
+	mode BlockMode
+}
+
+// Error returns a formatted error message describing the unsupported mode.
+// The message includes the mode name and explains why it's not supported.
+func (e UnsupportedBlockModeError) Error() string {
+	return fmt.Sprintf("unsupported block mode '%s'", e.mode)
+}
+
+// UnsupportedPaddingModeError represents an error when an unsupported padding mode is used.
+type UnsupportedPaddingModeError struct {
+	mode PaddingMode
+}
+
+// Error returns a formatted error message describing the unsupported padding mode.
+// The message includes the mode name and explains why it's not supported.
+func (e UnsupportedPaddingModeError) Error() string {
+	return fmt.Sprintf("unsupported padding mode '%s'", e.mode)
 }
