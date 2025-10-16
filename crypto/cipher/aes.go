@@ -1,10 +1,11 @@
 package cipher
 
+// AesCipher defines a AesCipher struct.
 type AesCipher struct {
 	blockCipher
 }
 
-// NewAesCipher returns a new AES cipher instance.
+// NewAesCipher returns a new AesCipher instance.
 func NewAesCipher(block BlockMode) (c *AesCipher) {
 	return &AesCipher{
 		blockCipher{

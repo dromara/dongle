@@ -1,11 +1,12 @@
 package cipher
 
+// TeaCipher defines a TeaCipher struct.
 type TeaCipher struct {
 	blockCipher
 	Rounds int
 }
 
-// NewTeaCipher returns a new Tea cipher.
+// NewTeaCipher returns a new TeaCipher instance.
 func NewTeaCipher(block BlockMode) (c *TeaCipher) {
 	return &TeaCipher{
 		blockCipher: blockCipher{
