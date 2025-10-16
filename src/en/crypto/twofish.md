@@ -52,7 +52,7 @@ c := cipher.NewTwofishCipher(cipher.CBC)
 c.SetKey([]byte("1234567890123456"))
 // Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))
-// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7)
 ```
 

@@ -62,7 +62,7 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256, only PKCS8 key format requires hash algorithm setting)
+// Set hash algorithm (optional, default is SHA256, only PKCS8 key format need to set hash algorithm)
 kp.SetHash(crypto.SHA256)   
 ```
 

@@ -53,7 +53,7 @@ c := cipher.NewXteaCipher(cipher.CBC)
 c.SetKey([]byte("1234567890123456"))
 // Set initialization vector (8 bytes)
 c.SetIV([]byte("12345678"))
-// Set padding mode (optional, default PKCS7, CBC/ECB block modes require padding mode setting)
+// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7)
 ```
 

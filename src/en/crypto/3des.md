@@ -54,7 +54,7 @@ c := cipher.New3DesCipher(cipher.CBC)
 c.SetKey([]byte("123456781234567812345678"))
 // Set initialization vector (8 bytes)
 c.SetIV([]byte("87654321"))
-// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7) 
 ```
 
