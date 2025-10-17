@@ -43,6 +43,7 @@ func (h Hasher) FromBytes(b []byte) Hasher {
 	return h
 }
 
+// FromFile encrypts from file.
 func (h Hasher) FromFile(f fs.File) Hasher {
 	h.reader = f
 	return h
