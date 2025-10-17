@@ -70,8 +70,7 @@ func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err e
 		return NewECBEncrypter(paddedSrc, block)
 	}
 
-	err = UnsupportedBlockModeError{mode: c.Block}
-	return
+	return dst, UnsupportedBlockModeError{mode: c.Block}
 }
 
 // Decrypt decrypts the source data using the specified cipher.
@@ -104,8 +103,7 @@ func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err e
 		return c.unpadding(paddedDst)
 	}
 
-	err = UnsupportedBlockModeError{mode: c.Block}
-	return
+	return dst, UnsupportedBlockModeError{mode: c.Block}
 }
 
 // padding adds padding to the source data.
@@ -130,8 +128,7 @@ func (c *blockCipher) padding(src []byte, blockSize int) (dst []byte, err error)
 	case Bit:
 		return NewBitPadding(src, blockSize), nil
 	default:
-		err = UnsupportedPaddingModeError{mode: c.Padding}
-		return
+		return dst, UnsupportedPaddingModeError{mode: c.Padding}
 	}
 }
 
@@ -157,7 +154,6 @@ func (c *blockCipher) unpadding(src []byte) (dst []byte, err error) {
 	case Bit:
 		return NewBitUnPadding(src), nil
 	default:
-		err = UnsupportedPaddingModeError{mode: c.Padding}
-		return
+		return dst, UnsupportedPaddingModeError{mode: c.Padding}
 	}
 }
