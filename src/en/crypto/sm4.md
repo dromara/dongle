@@ -11,7 +11,7 @@ head:
 
 # SM4
 
-SM4 (Chinese National Standard) is a symmetric encryption algorithm that supports a `16`-byte key length. `dongle` supports both standard and streaming `SM4` encryption, providing multiple block modes, padding modes, and output formats.
+`SM4` is a symmetric encryption algorithm, a commercial symmetric block cipher algorithm published by the Chinese National Cryptography Administration, that supports a `16`-byte key length. `dongle` supports both standard and streaming `SM4` encryption, providing multiple block modes, padding modes, and output formats.
 
 The following block modes are supported:
 
