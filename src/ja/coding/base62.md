@@ -6,7 +6,7 @@ head:
       content: Base62エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: dongle, base62
+      content: エンコード, デコード, base62, base62-encoding, base62-decoding
 ---
 
 # Base62
@@ -17,16 +17,13 @@ Base62は、バイナリデータを`ASCII`文字にエンコードする方法�
 > `base62.StdAlphabet` を設定することでアルファベットをカスタマイズできます
 
 ### データのエンコード
-
 入力データ
 
 ```go
 // 入力文字列
 encoder := dongle.Encode.FromString("hello world").ByBase62()
-
 // 入力バイトスライス
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase62()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase62()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("AAwf93rvy4aWQVw")
 ```
 
 ### データのデコード
-
 入力データ
 
 ```go
 // 入力文字列
 decoder := dongle.Decode.FromString("AAwf93rvy4aWQVw").ByBase62()
-
 // 入力バイトスライス
 decoder := dongle.Decode.FromBytes([]byte("AAwf93rvy4aWQVw")).ByBase62()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase62()

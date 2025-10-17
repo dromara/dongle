@@ -6,7 +6,7 @@ head:
       content: SM3ハッシュアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: ハッシュ, hash, sm3
+      content: ハッシュ, hash, sm3, hash-sm3
 ---
 
 # Hash-Sm3
@@ -18,10 +18,8 @@ head:
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").BySm3()
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).BySm3()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).BySm3()
@@ -38,19 +36,16 @@ if hasher.Error != nil {
 ```go
 // Hexエンコード文字列を出力
 hasher.ToHexString() // 44f0061e69fa6fdfc290c494654a05dc0c053da7e5c52b84ef93a9d67d3fff88
-
 // Hexエンコードバイトスライスを出力
 hasher.ToHexBytes()  // []byte("44f0061e69fa6fdfc290c494654a05dc0c053da7e5c52b84ef93a9d67d3fff88")
 
 // Base64エンコード文字列を出力
 hasher.ToBase64String() // RPAWHmn6b9/CkMSGVUoF3AwFPafly7hO+Trp1tP/+Ig=
-
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("RPAWHmn6b9/CkMSGVUoF3AwFPafly7hO+Trp1tP/+Ig=")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```

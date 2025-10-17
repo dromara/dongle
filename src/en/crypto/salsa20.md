@@ -1,11 +1,12 @@
 ---
+title: Salsa20 Stream Cipher Encryption Algorithm
 head:
   - - meta
     - name: description
       content: Salsa20 encryption algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: salsa20, encryption, decryption, stream cipher, symmetric encryption
+      content: encryption, decryption, Salsa20, symmetric encryption algorithm, stream cipher
 ---
 
 # Salsa20

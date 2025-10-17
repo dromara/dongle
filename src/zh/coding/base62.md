@@ -3,10 +3,10 @@ title: Base62 编码/解码
 head:
   - - meta
     - name: description
-      content: Base62 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Base62 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: dongle, base62
+      content: 编码, 解码, base62, base62-encoding, base62-decoding
 ---
 
 # Base62

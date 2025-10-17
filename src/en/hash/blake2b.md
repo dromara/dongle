@@ -1,20 +1,21 @@
 ---
+title: Blake2b Hash Algorithm
 head:
   - - meta
     - name: description
       content: BLAKE2b Hash Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
   - - meta
     - name: keywords
-      content: hash, blake2b, blake2b-256, blake2b-384, blake2b-512
+      content: hashing, hash, blake2b, blake2b-256, blake2b-384, blake2b-512, hash-blake2b, hash-blake2b-256, hash-blake2b-384, hash-blake2b-512
 ---
 
 # Hash-Blake2b
 
 `Hash-Blake2b` is a series of hash algorithms that produce hash values of different lengths, including `blake2b-256`, `blake2b-384`, and `blake2b-512`. `dongle` supports all three `hash-blake2b` variants.
 
-- [Blake2b-256](#blake2b-256)：Generates 32-byte hash value
-- [Blake2b-384](#blake2b-384)：Generates 48-byte hash value
-- [Blake2b-512](#blake2b-512)：Generates 64-byte hash value
+ - [Blake2b-256](#blake2b-256): Generates 32-byte hash value
+ - [Blake2b-384](#blake2b-384): Generates 48-byte hash value
+ - [Blake2b-512](#blake2b-512): Generates 64-byte hash value
 
 ## Blake2b-256
 

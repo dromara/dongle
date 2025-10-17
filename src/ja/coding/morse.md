@@ -6,7 +6,7 @@ head:
       content: Morse エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
   - - meta
     - name: keywords
-      content: dongle, morse, モールス信号, モールス符号
+      content: エンコード, デコード, morse, モールス信号, モールス符号, morse-encoding, morse-decoding
 ---
 
 # Morse

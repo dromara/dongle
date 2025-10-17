@@ -3,10 +3,10 @@ title: Base45 编码/解码
 head:
   - - meta
     - name: description
-      content: Base45 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Base45 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: dongle, base45
+      content: 编码, 解码, base45, base45-encoding, base45-decoding
 ---
 
 # Base45

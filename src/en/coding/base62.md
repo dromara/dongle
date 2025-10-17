@@ -6,7 +6,7 @@ head:
       content: Base62 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base62
+      content: encoding, decoding, base62, base62-encoding, base62-decoding
 ---
 
 # Base62
@@ -17,16 +17,13 @@ Base62 is an encoding method that converts binary data to `ASCII` characters, us
 > You can customize the alphabet by setting `base62.StdAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase62()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase62()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase62()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("AAwf93rvy4aWQVw")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("AAwf93rvy4aWQVw").ByBase62()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("AAwf93rvy4aWQVw")).ByBase62()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase62()
@@ -76,4 +70,5 @@ Output Data
 decoder.ToString() // hello world
 // Output byte slice
 decoder.ToBytes()  // []byte("hello world")
-``` 
+```
+ 

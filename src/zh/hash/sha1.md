@@ -1,11 +1,12 @@
 ---
+title: SHA1 哈希算法
 head:
   - - meta
     - name: description
-      content: SHA1 哈希算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: SHA1 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: 哈希, hash, sha1
+      content: 哈希, hash, sha1, hash-sha1
 ---
 
 # Hash-Sha1

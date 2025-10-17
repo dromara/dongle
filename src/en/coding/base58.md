@@ -6,7 +6,7 @@ head:
       content: Base58 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base58
+      content: encoding, decoding, base58, base58-encoding, base58-decoding
 ---
 
 # Base58
@@ -17,16 +17,13 @@ Base58 is an encoding method that converts binary data to `ASCII` characters, us
 > You can customize the alphabet by setting `base58.StdAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase58()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase58()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase58()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("StV1DL6CwTryKyV")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("StV1DL6CwTryKyV").ByBase58()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("StV1DL6CwTryKyV")).ByBase58()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase58()
@@ -76,4 +70,5 @@ Output Data
 decoder.ToString() // hello world
 // Output byte slice
 decoder.ToBytes()  // []byte("hello world")
-``` 
+```
+ 

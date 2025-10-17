@@ -6,7 +6,7 @@ head:
       content: HMAC-RIPEMD160アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: HMAC-RIPEMD160
+      content: メッセージ認証コード, hmac, ripemd160, hmac-ripemd160
 ---
 
 # Hmac-Ripemd160
@@ -20,10 +20,8 @@ head:
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByRipemd160()
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByRipemd160()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByRipemd160()
@@ -40,19 +38,16 @@ if hasher.Error != nil {
 ```go
 // Hexエンコード文字列を出力
 hasher.ToHexString() // 3691ad040e80c43dc6e8ffe9bc6ef3d5bd8786b8
-
 // Hexエンコードバイトスライスを出力
 hasher.ToHexBytes()  // []byte("3691ad040e80c43dc6e8ffe9bc6ef3d5bd8786b8")
 
 // Base64エンコード文字列を出力
 hasher.ToBase64String() // NpGtBA6AxD3G6P/pvG7z1b2Hhrg=
-
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("NpGtBA6AxD3G6P/pvG7z1b2Hhrg=")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```

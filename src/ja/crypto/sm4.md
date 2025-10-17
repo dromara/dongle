@@ -1,11 +1,12 @@
 ---
+title: SM4 対称暗号化アルゴリズム
 head:
   - - meta
     - name: description
       content: SM4 暗号化アルゴリズム|軽量で、意味が明確で、開発者にやさしい golang エンコード&暗号化ライブラリ
   - - meta
     - name: keywords
-      content: sm4, 暗号化, 復号, 対称暗号化, ブロック暗号
+      content: 暗号化, 復号化, SM4, 対称暗号化アルゴリズム, 中国国家標準, ブロックモード, パディングモード, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # SM4
@@ -79,19 +80,19 @@ if encrypter.Error != nil {
  出力データ
 
 ```go
-// Hexエンコード文字列の出力
+// Hexエンコード文字列を出力
 encrypter.ToHexString()
-// Hexエンコードバイトスライスの出力
+// Hexエンコードバイトスライスを出力
 encrypter.ToHexBytes()
 
-// Base64エンコード文字列の出力
+// Base64エンコード文字列を出力
 encrypter.ToBase64String()
-// Base64エンコードバイトスライスの出力
+// Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()
 
-// エンコードされていない生文字列の出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードされていない生バイトスライスの出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes()
 ```
 
@@ -116,11 +117,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 生文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 生バイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 生ファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -134,9 +135,9 @@ if decrypter.Error != nil {
  出力データ
 
 ```go
-// 復号後の文字列の出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// 復号後のバイトスライスの出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -173,19 +174,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列の出力
+// Hexエンコード文字列を出力
 encrypter.ToHexString()
-// Hexエンコードバイトスライスの出力
+// Hexエンコードバイトスライスを出力
 encrypter.ToHexBytes()
 
-// Base64エンコード文字列の出力
+// Base64エンコード文字列を出力
 encrypter.ToBase64String()
-// Base64エンコードバイトスライスの出力
+// Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()
 
-// エンコードされていない生文字列の出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードされていない生バイトスライスの出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -209,11 +210,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 生文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 生バイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 生ファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -226,9 +227,9 @@ if decrypter.Error != nil {
 
 出力データ
 ```go
-// 復号後の文字列の出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// 復号後のバイトスライスの出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -265,19 +266,19 @@ if encrypter.Error != nil {
 
  出力データ
 ```go
-// Hexエンコード文字列の出力
+// Hexエンコード文字列を出力
 encrypter.ToHexString()
-// Hexエンコードバイトスライスの出力
+// Hexエンコードバイトスライスを出力
 encrypter.ToHexBytes()
 
-// Base64エンコード文字列の出力
+// Base64エンコード文字列を出力
 encrypter.ToBase64String()
-// Base64エンコードバイトスライスの出力
+// Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()
 
-// エンコードされていない生文字列の出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードされていない生バイトスライスの出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -302,11 +303,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 生文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 生バイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 生ファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -320,9 +321,9 @@ if decrypter.Error != nil {
  出力データ
 
 ```go
-// 文字列の出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスの出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -363,19 +364,19 @@ if encrypter.Error != nil {
 
  出力データ
 ```go
-// Hexエンコード文字列の出力
+// Hexエンコード文字列を出力
 encrypter.ToHexString()
-// Hexエンコードバイトスライスの出力
+// Hexエンコードバイトスライスを出力
 encrypter.ToHexBytes()
 
-// Base64エンコード文字列の出力
+// Base64エンコード文字列を出力
 encrypter.ToBase64String()
-// Base64エンコードバイトスライスの出力
+// Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()
 
-// エンコードされていない生文字列の出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードされていない生バイトスライスの出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -400,11 +401,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 生文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 生バイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 生ファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -417,9 +418,9 @@ if decrypter.Error != nil {
 
  出力データ
 ```go
-// 文字列の出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスの出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -456,19 +457,19 @@ if encrypter.Error != nil {
 
  出力データ
 ```go
-// Hexエンコード文字列の出力
+// Hexエンコード文字列を出力
 encrypter.ToHexString()
-// Hexエンコードバイトスライスの出力
+// Hexエンコードバイトスライスを出力
 encrypter.ToHexBytes()   
 
-// Base64エンコード文字列の出力
+// Base64エンコード文字列を出力
 encrypter.ToBase64String()
-// Base64エンコードバイトスライスの出力
+// Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   
 
-// エンコードされていない生文字列の出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードされていない生バイトスライスの出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -492,11 +493,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 生文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 生バイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 生ファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -509,9 +510,9 @@ if decrypter.Error != nil {
 
  出力データ
 ```go
-// 文字列の出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスの出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -548,19 +549,19 @@ if encrypter.Error != nil {
 
  出力データ
 ```go
-// Hexエンコード文字列の出力
+// Hexエンコード文字列を出力
 encrypter.ToHexString()
-// Hexエンコードバイトスライスの出力
+// Hexエンコードバイトスライスを出力
 encrypter.ToHexBytes()   
 
-// Base64エンコード文字列の出力
+// Base64エンコード文字列を出力
 encrypter.ToBase64String()
-// Base64エンコードバイトスライスの出力
+// Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   
 
-// エンコードされていない生文字列の出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードされていない生バイトスライスの出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -585,11 +586,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// 生文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// 生バイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// 生ファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -602,8 +603,8 @@ if decrypter.Error != nil {
 
  出力データ
 ```go
-// 文字列の出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスの出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```

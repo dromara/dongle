@@ -1,11 +1,12 @@
 ---
+title: MD5 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
       content: HMAC-MD5 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: HMAC-MD5
+      content: message authentication code, hmac, md5, hmac-md5
 ---
 
 # Hmac-Md5
@@ -35,18 +36,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 4790626a275f776956386e5a3ea7b726
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("4790626a275f776956386e5a3ea7b726")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("R5Biaidfd2lWOG5aPqe3Jg==")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

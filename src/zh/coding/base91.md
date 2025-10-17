@@ -3,10 +3,10 @@ title: Base91 编码/解码
 head:
   - - meta
     - name: description
-      content: Base91 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Base91 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: dongle, base91
+      content: 编码, 解码, base91, base91-encoding, base91-decoding
 ---
 
 # Base91

@@ -3,10 +3,10 @@ title: Base100 编码/解码
 head:
   - - meta
     - name: description
-      content: Base100 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Base100 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: dongle, base100, emoji
+      content: 编码, 解码, base100, emoji, base100-encoding, base100-decoding, emoji-encoding, emoji-decoding
 ---
 
 # Base100

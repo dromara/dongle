@@ -1,11 +1,12 @@
 ---
+title: XTEA 対称暗号化アルゴリズム
 head:
   - - meta
     - name: description
       content: XTEA 暗号化アルゴリズム|軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: xtea, 暗号化, 復号化, 対称暗号, ブロック暗号
+      content: 暗号化, 復号化, XTEA, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, CFB, OFB
 ---
 
 # XTEA
@@ -62,11 +63,11 @@ c.SetPadding(cipher.PKCS7)
 入力データ
 
 ```go
-// 入力文字列
+// エンコードされていない生の文字列を入力
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// 入力バイトスライス
+// エンコードされていない生のバイトスライスを入力
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// 入力ファイルストリーム
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -117,11 +118,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -157,11 +158,11 @@ c.SetPadding(cipher.PKCS7)
 
 入力データ
 ```go
-// 入力文字列
+// エンコードされていない生の文字列を入力
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// 入力バイトスライス
+// エンコードされていない生のバイトスライスを入力
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// 入力ファイルストリーム
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -211,13 +212,13 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
 
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
 
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -253,11 +254,11 @@ c.SetIV([]byte("12345678"))
 
 入力データ
 ```go
-// 入力文字列
+// エンコードされていない生の文字列を入力
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// 入力バイトスライス
+// エンコードされていない生のバイトスライスを入力
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// 入力ファイルストリーム
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -307,11 +308,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -325,9 +326,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -347,11 +348,11 @@ c.SetIV([]byte("12345678"))
 
 入力データ
 ```go
-// 入力文字列
+// エンコードされていない生の文字列を入力
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// 入力バイトスライス
+// エンコードされていない生のバイトスライスを入力
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// 入力ファイルストリーム
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -401,11 +402,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -419,9 +420,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -441,11 +442,11 @@ c.SetIV([]byte("12345678"))
 
 入力データ
 ```go
-// 入力文字列
+// エンコードされていない生の文字列を入力
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// 入力バイトスライス
+// エンコードされていない生のバイトスライスを入力
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// 入力ファイルストリーム
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -495,11 +496,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -513,8 +514,8 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```

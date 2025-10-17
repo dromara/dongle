@@ -6,7 +6,7 @@ head:
       content: ChaCha20暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: chacha20, 暗号化, 復号化, ストリーム暗号, 対称暗号
+      content: 暗号化, 復号化, ChaCha20, 対称暗号化アルゴリズム, 流密码
 ---
 
 # ChaCha20
@@ -64,19 +64,19 @@ if encrypter.Error != nil {
  出力データ
 
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 rawBytes := encrypter.ToRawBytes()
 ```
 
@@ -101,11 +101,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByChaCha20(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByChaCha20(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByChaCha20(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByChaCha20(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin") 
 decrypter := dongle.Decrypt.FromRawFile(file).ByChaCha20(c)
 

@@ -1,11 +1,12 @@
 ---
+title: SM3 Hash Algorithm
 head:
   - - meta
     - name: description
-      content: SM3 Hash Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: SM3 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: hash, sm3, cryptography
+      content: hashing, hash, sm3, hash-sm3
 ---
 
 # Hash-Sm3
@@ -33,18 +34,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 44f0061e69fa6fdfc290c494654a05dc0c053da7e5c52b84ef93a9d67d3fff88
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("44f0061e69fa6fdfc290c494654a05dc0c053da7e5c52b84ef93a9d67d3fff88")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // RPAWHmn6b9/CkMSGVUoF3AwFPafly7hO+Trp1tP/+Ig=
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("RPAWHmn6b9/CkMSGVUoF3AwFPafly7hO+Trp1tP/+Ig=")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

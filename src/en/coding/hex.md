@@ -6,7 +6,7 @@ head:
       content: Hex Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, hex, base16
+      content: encoding, decoding, hex, base16, base16-encoding, base16-decoding, hex-encoding, hex-decoding
 ---
 
 # Hex
@@ -14,7 +14,6 @@ head:
 Hex is an encoding method that converts binary data to `ASCII` characters, using `16` characters (0-9, A-F) to represent data. `dongle` supports standard and streaming `Hex` encoding, also known as `Base16` encoding.
 
 ### Encoding Data
-
 Input Data
 
 ```go
@@ -45,7 +44,6 @@ encoder.ToBytes()  // []byte("68656c6c6f20776f726c64")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go

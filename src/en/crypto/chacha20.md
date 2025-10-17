@@ -1,11 +1,12 @@
 ---
+title: ChaCha20 Stream Cipher Encryption Algorithm
 head:
   - - meta
     - name: description
       content: ChaCha20 Encryption Algorithm|A lightweight, semantic, and developer-friendly golang encoding&crypto library
   - - meta
     - name: keywords
-      content: chacha20, encryption, decryption, stream cipher, symmetric encryption
+      content: encryption, decryption, ChaCha20, symmetric encryption algorithm, stream cipher
 ---
 
 # ChaCha20
@@ -63,19 +64,19 @@ if encrypter.Error != nil {
  Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
 // Output hex-encoded byte slice
 hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
 // Output base64-encoded byte slice
 base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
 
-// Output raw unencoded string
+// Output unencoded raw string
 rawString := encrypter.ToRawString()
-// Output raw unencoded byte slice
+// Output unencoded raw byte slice
 rawBytes := encrypter.ToRawBytes()
 ```
 
@@ -100,11 +101,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByChaCha20(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByChaCha20(c)
 
-// Input raw unencoded string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByChaCha20(c)
-// Input raw unencoded byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByChaCha20(c)
-// Input raw unencoded file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin") 
 decrypter := dongle.Decrypt.FromRawFile(file).ByChaCha20(c)
 

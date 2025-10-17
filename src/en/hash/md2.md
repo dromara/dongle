@@ -1,11 +1,12 @@
 ---
+title: MD2 Hash Algorithm
 head:
   - - meta
     - name: description
       content: MD2 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: hash, hash algorithm, md2
+      content: hashing, hash, md2, hash-md2
 ---
 
 # Hash-Md2
@@ -35,18 +36,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // d9cce882ee690a5c1ce70beff3a78c77
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("d9cce882ee690a5c1ce70beff3a78c77")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // 2czogu5pClwc5wvv86eMdw==
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("2czogu5pClwc5wvv86eMdw==")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

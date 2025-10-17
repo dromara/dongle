@@ -1,11 +1,12 @@
 ---
+title: MD5 Hash Algorithm
 head:
   - - meta
     - name: description
       content: MD5 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: hash, hash algorithm, md5
+      content: hashing, hash, md5, hash-md5
 ---
 
 # Hash-Md5
@@ -17,10 +18,8 @@ head:
 ```go
 // Input string
 hasher := dongle.Hash.FromString("hello world").ByMd5()
-
 // Input byte slice
 hasher := dongle.Hash.FromBytes([]byte("hello world")).ByMd5()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).ByMd5()
@@ -35,18 +34,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 5eb63bbbe01eeed093cb22bb8f5acdc3
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("5eb63bbbe01eeed093cb22bb8f5acdc3")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // XrY7u+Ae7tCTyyK7j1rNww==
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("XrY7u+Ae7tCTyyK7j1rNww==")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ``` 

@@ -6,7 +6,7 @@ head:
       content: HMAC-MD2アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: HMAC-MD2
+      content: メッセージ認証コード, hmac, md2, hmac-md2
 ---
 
 # Hmac-Md2
@@ -20,10 +20,8 @@ head:
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd2()
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByMd2()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByMd2()
@@ -40,19 +38,16 @@ if hasher.Error != nil {
 ```go
 // Hexエンコード文字列を出力
 hasher.ToHexString() // 88ed6ef9ab699d03a702f2a6fb1c0673
-
 // Hexエンコードバイトスライスを出力
 hasher.ToHexBytes()  // []byte("88ed6ef9ab699d03a702f2a6fb1c0673")
 
 // Base64エンコード文字列を出力
 hasher.ToBase64String() // iO1u+atpnQOnAvKm+xwGcw==
-
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("iO1u+atpnQOnAvKm+xwGcw==")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```

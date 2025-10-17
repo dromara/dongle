@@ -6,7 +6,7 @@ head:
       content: RC4暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: rc4, 暗号化, 復号化, 対称暗号, ストリーム暗号
+      content: 暗号化, 復号化, RC4, 対称暗号化アルゴリズム, 流密码
 ---
 
 # RC4
@@ -52,19 +52,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 hexString := encrypter.ToHexString() // eba154b4cb5a9038dbbf9d
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hexBytes := encrypter.ToHexBytes()   // []byte("eba154b4cb5a9038dbbf9d")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 base64String := encrypter.ToBase64String() // 66FUtMtakDjbv50=
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 base64Bytes := encrypter.ToBase64Bytes()   // []byte("66FUtMtakDjbv50=")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 rawBytes := encrypter.ToRawBytes() 
 ```
 
@@ -88,11 +88,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByRc4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByRc4(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByRc4(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByRc4(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin") 
 decrypter := dongle.Decrypt.FromRawFile(file).ByRc4(c)
 

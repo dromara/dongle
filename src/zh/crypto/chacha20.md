@@ -1,11 +1,12 @@
 ---
+title: ChaCha20 流密码加密算法
 head:
   - - meta
     - name: description
-      content: ChaCha20 加密算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: ChaCha20 流密码加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: chacha20, 加密, 解密, 流密码, 对称加密
+      content: 加密, 解密, ChaCha20, 对称加密算法,流密码
 ---
 
 # ChaCha20

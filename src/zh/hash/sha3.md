@@ -1,11 +1,12 @@
 ---
+title: SHA3 哈希算法
 head:
   - - meta
     - name: description
-      content: SHA3 哈希算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: SHA3 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: 哈希, hash, sha3, sha224, sha256, sha384, sha512
+      content: 哈希, hash, sha3, sha224, sha256, sha384, sha512, hash-sha3, hash-sha224, hash-sha256, hash-sha384, hash-sha512
 ---
 
 # Hash-Sha3

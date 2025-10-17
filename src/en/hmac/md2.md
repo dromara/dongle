@@ -1,11 +1,12 @@
 ---
+title: MD2 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
       content: HMAC-MD2 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: HMAC-MD2
+      content: message authentication code, hmac, md2, hmac-md2
 ---
 
 # Hmac-Md2
@@ -35,18 +36,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 88ed6ef9ab699d03a702f2a6fb1c0673
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("88ed6ef9ab699d03a702f2a6fb1c0673")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // iO1u+atpnQOnAvKm+xwGcw==
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("iO1u+atpnQOnAvKm+xwGcw==")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

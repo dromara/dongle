@@ -1,19 +1,20 @@
 ---
+title: Blake2s Hash Algorithm
 head:
   - - meta
     - name: description
       content: BLAKE2s Hash Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
   - - meta
     - name: keywords
-      content: hash, blake2s, blake2s-128, blake2s-256
+      content: hashing, hash, blake2s, blake2s-128, blake2s-256, hash-blake2s, hash-blake2s-128, hash-blake2s-256
 ---
 
 # Hash-Blake2s
 
 `Hash-Blake2s` is a series of hash algorithms that produce hash values of different lengths, including `blake2s-128` and `blake2s-256`. `dongle` supports both `hash-blake2s` variants.
 
-- [Blake2s-128](#blake2s-128)：Generates 16-byte hash value
-- [Blake2s-256](#blake2s-256)：Generates 32-byte hash value
+- [Blake2s-128](#blake2s-128): Generates 16-byte hash value
+- [Blake2s-256](#blake2s-256): Generates 32-byte hash value
 
 ## Blake2s-128
 

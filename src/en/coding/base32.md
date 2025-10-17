@@ -6,7 +6,7 @@ head:
       content: Base32 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base32, base32hex
+      content: encoding, decoding, base32, base32hex, base32-encoding, base32-decoding, base32hex-encoding, base32hex-decoding
 ---
 
 # Base32
@@ -21,16 +21,13 @@ Base32 is an encoding method that converts binary data to `ASCII` characters, us
 > You can customize the alphabet by setting `base32.StdAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase32()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase32()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase32()
@@ -52,16 +49,13 @@ encoder.ToBytes()  // []byte("NBSWY3DPEB3W64TMMQ======")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("NBSWY3DPEB3W64TMMQ======").ByBase32()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("NBSWY3DPEB3W64TMMQ======")).ByBase32()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase32()
@@ -88,16 +82,13 @@ decoder.ToBytes()  // []byte("hello world")
 > You can customize the alphabet by setting `base32.HexAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase32Hex()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase32Hex()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase32Hex()
@@ -119,16 +110,13 @@ encoder.ToBytes()  // []byte("D1IMOR3F41RMUSJCCG======")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("D1IMOR3F41RMUSJCCG======").ByBase32Hex()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("D1IMOR3F41RMUSJCCG======")).ByBase32Hex()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase32Hex()

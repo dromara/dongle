@@ -1,11 +1,12 @@
 ---
+title: RC4 Stream Cipher Encryption Algorithm
 head:
   - - meta
     - name: description
       content: RC4 Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: rc4, encryption, decryption, symmetric encryption, stream cipher
+      content: encryption, decryption, RC4, symmetric encryption algorithm, stream cipher
 ---
 
 # RC4
@@ -53,19 +54,19 @@ if encrypter.Error != nil {
 Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hexString := encrypter.ToHexString() // eba154b4cb5a9038dbbf9d
 // Output hex-encoded byte slice
 hexBytes := encrypter.ToHexBytes()   // []byte("eba154b4cb5a9038dbbf9d")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 base64String := encrypter.ToBase64String() // 66FUtMtakDjbv50=
 // Output base64-encoded byte slice
 base64Bytes := encrypter.ToBase64Bytes()   // []byte("66FUtMtakDjbv50=")
 
-// Output raw string
+// Output unencoded raw string
 rawString := encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 rawBytes := encrypter.ToRawBytes()
 ```
 
@@ -90,11 +91,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByRc4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByRc4(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByRc4(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByRc4(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByRc4(c)
 

@@ -1,11 +1,12 @@
 ---
+title: Blake2b ハッシュアルゴリズム
 head:
   - - meta
     - name: description
       content: BLAKE2b ハッシュアルゴリズム|軽量で、セマンティック、開発者フレンドリーな golang エンコーディング&暗号ライブラリ
   - - meta
     - name: keywords
-      content: ハッシュ, hash, blake2b, blake2b-256, blake2b-384, blake2b-512
+      content: ハッシュ, hash, blake2b, blake2b-256, blake2b-384, blake2b-512, hash-blake2b, hash-blake2b-256, hash-blake2b-384, hash-blake2b-512
 ---
 
 # Hash-Blake2b

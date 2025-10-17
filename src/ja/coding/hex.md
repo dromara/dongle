@@ -6,7 +6,7 @@ head:
       content: Hex エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
   - - meta
     - name: keywords
-      content: dongle, hex, base16
+      content: エンコード, デコード, hex, base16, base16-encoding, base16-decoding, hex-encoding, hex-decoding
 ---
 
 # Hex

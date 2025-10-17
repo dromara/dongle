@@ -1,11 +1,12 @@
 ---
+title: ChaCha20-Poly1305 认证加密算法
 head:
   - - meta
     - name: description
-      content: ChaCha20-Poly1305 加密算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: ChaCha20-Poly1305 认证加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: chacha20-poly1305, 加密, 解密, 认证加密, AEAD, 对称加密
+      content: 加密, 解密, ChaCha20-Poly1305, ChaCha20, Poly1305, 对称加密算法, 流密码, 消息认证码, 认证加密, AEAD
 ---
 
 # ChaCha20-Poly1305

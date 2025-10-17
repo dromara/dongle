@@ -1,11 +1,12 @@
 ---
+title: Twofish Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
       content: TWOFISH encryption algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
   - - meta
     - name: keywords
-      content: twofish, encryption, decryption, symmetric encryption, block cipher
+      content: encryption, decryption, Twofish, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # Twofish
@@ -116,11 +117,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -210,11 +211,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -228,9 +229,9 @@ if decrypter.Error != nil {
 Output Data
 
 ```go
-// Output string
+// Output decrypted string
 decrypter.ToString() // hello world
-// Output byte slice
+// Output decrypted byte slice
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -304,13 +305,13 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
 
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
 
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -400,11 +401,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -418,9 +419,9 @@ if decrypter.Error != nil {
 Output Data
 
 ```go
-// Output string
+// Output decrypted string
 decrypter.ToString() // hello world
-// Output byte slice
+// Output decrypted byte slice
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -494,11 +495,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -512,9 +513,9 @@ if decrypter.Error != nil {
 Output Data
 
 ```go
-// Output string
+// Output decrypted string
 decrypter.ToString() // hello world
-// Output byte slice
+// Output decrypted byte slice
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -592,11 +593,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -610,8 +611,8 @@ if decrypter.Error != nil {
 Output Data
 
 ```go
-// Output string
+// Output decrypted string
 decrypter.ToString() // hello world
-// Output byte slice
+// Output decrypted byte slice
 decrypter.ToBytes() // []byte("hello world")
 ```

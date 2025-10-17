@@ -1,11 +1,12 @@
 ---
+title: TripleDES Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
       content: 3DES Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: 3des, TripleDES, 3DES, encryption, decryption, symmetric encryption, block cipher
+      content: encryption, decryption, TripleDES, 3DES, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, CFB, OFB
 ---
 
 # 3DES
@@ -81,19 +82,19 @@ if encrypter.Error != nil {
 Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
@@ -175,19 +176,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
@@ -269,19 +270,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
@@ -363,19 +364,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
@@ -457,19 +458,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 

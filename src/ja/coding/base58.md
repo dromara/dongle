@@ -6,7 +6,7 @@ head:
       content: Base58エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: dongle, base58
+      content: エンコード, デコード, base58, base58-encoding, base58-decoding
 ---
 
 # Base58
@@ -17,16 +17,13 @@ Base58は、バイナリデータを`ASCII`文字にエンコードする方法�
 > `base58.StdAlphabet` を設定することでアルファベットをカスタマイズできます
 
 ### データのエンコード
-
 入力データ
 
 ```go
 // 入力文字列
 encoder := dongle.Encode.FromString("hello world").ByBase58()
-
 // 入力バイトスライス
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase58()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase58()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("StV1DL6CwTryKyV")
 ```
 
 ### データのデコード
-
 入力データ
 
 ```go
 // 入力文字列
 decoder := dongle.Decode.FromString("StV1DL6CwTryKyV").ByBase58()
-
 // 入力バイトスライス
 decoder := dongle.Decode.FromBytes([]byte("StV1DL6CwTryKyV")).ByBase58()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase58()

@@ -1,11 +1,12 @@
 ---
+title: AES Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
       content: AES Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: aes, encryption, decryption, symmetric encryption, block cipher
+      content: encryption, decryption, AES, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # AES
@@ -79,19 +80,19 @@ if encrypter.Error != nil {
  Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
@@ -175,19 +176,19 @@ if encrypter.Error != nil {
  Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
@@ -271,19 +272,19 @@ if encrypter.Error != nil {
  Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
@@ -371,19 +372,19 @@ if encrypter.Error != nil {
  Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
@@ -467,19 +468,19 @@ if encrypter.Error != nil {
  Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
@@ -490,7 +491,7 @@ encrypter.ToRawBytes()
 ```go
 // Input hex-encoded string
 decrypter := dongle.Decrypt.FromHexString(hexString).ByAes(c)
-// Decrypt hex-encoded byte slice
+// Input hex-encoded byte slice
 decrypter := dongle.Decrypt.FromHexBytes(hexBytes).ByAes(c)
 // Input hex-encoded file
 file, _ := os.Open("encrypted.hex")
@@ -563,19 +564,19 @@ if encrypter.Error != nil {
  Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 

@@ -6,7 +6,7 @@ head:
       content: Base85 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base85, ascii85
+      content: encoding, decoding, base85, ascii85, base85-encoding, base85-decoding, ascii85-encoding, ascii85-decoding
 ---
 
 # Base85
@@ -14,16 +14,13 @@ head:
 Base85 is an encoding method that converts binary data to `ASCII` characters, using `85` characters (ASCII 33-117, i.e., ! to u) to represent data. `dongle` supports standard and streaming `Base85` encoding, also known as `ASCII85`, compliant with `Adobe PostScript` and `PDF` specifications.
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase85()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase85()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase85()
@@ -45,16 +42,13 @@ encoder.ToBytes()  // []byte("BOu!rD]j7BEbo7")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("BOu!rD]j7BEbo7").ByBase85()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("BOu!rD]j7BEbo7")).ByBase85()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase85()
@@ -73,4 +67,5 @@ Output Data
 decoder.ToString() // hello world
 // Output byte slice
 decoder.ToBytes()  // []byte("hello world")
-``` 
+```
+ 

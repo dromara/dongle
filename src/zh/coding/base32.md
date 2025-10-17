@@ -3,10 +3,10 @@ title: Base32 编码/解码
 head:
   - - meta
     - name: description
-      content: Base32 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Base32 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: dongle, base32, base32hex
+      content: 编码, 解码, base32, base32hex, base32-encoding, base32-decoding, base32hex-encoding, base32hex-decoding
 ---
 
 # Base32

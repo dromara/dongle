@@ -6,7 +6,7 @@ head:
       content: Base64 エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
   - - meta
     - name: keywords
-      content: dongle, base64, base64url
+      content: エンコード, デコード, base64, base64Url, base64-encoding, base64-decoding, base64Url-encoding, base64Url-decoding
 ---
 
 # Base64

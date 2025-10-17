@@ -1,11 +1,12 @@
 ---
+title: ChaCha20-Poly1305 Authenticated Encryption Algorithm
 head:
   - - meta
     - name: description
       content: ChaCha20-Poly1305 encryption algorithm|A lightweight, semantic, developer-friendly golang encoding&crypto library
   - - meta
     - name: keywords
-      content: chacha20-poly1305, encryption, decryption, authenticated encryption, AEAD, symmetric encryption
+      content: encryption, decryption, ChaCha20-Poly1305, ChaCha20, Poly1305, symmetric encryption algorithm, stream cipher, message authentication code, authenticated encryption, AEAD
 ---
 
 # ChaCha20-Poly1305
@@ -66,19 +67,19 @@ if encrypter.Error != nil {
 Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c...
 // Output hex-encoded byte slice
 hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c...")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 base64String := encrypter.ToBase64String() // ShyPLT5aa3w=...
 // Output base64-encoded byte slice
 base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=...")
 
-// Output raw string
+// Output unencoded raw string
 rawString := encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 rawBytes := encrypter.ToRawBytes()
 ```
 
@@ -103,11 +104,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByChaCha20Poly1305(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByChaCha20Poly1305(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByChaCha20Poly1305(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByChaCha20Poly1305(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin") 
 decrypter := dongle.Decrypt.FromRawFile(file).ByChaCha20Poly1305(c)
 

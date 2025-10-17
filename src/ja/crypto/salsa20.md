@@ -1,11 +1,12 @@
 ---
+title: Salsa20 流密码暗号化アルゴリズム
 head:
   - - meta
     - name: description
       content: Salsa20 暗号化アルゴリズム | 軽量、セマンティック、開発者フレンドリーな golang エンコーディング&暗号ライブラリ
   - - meta
     - name: keywords
-      content: salsa20, 暗号化, 復号化, ストリーム暗号, 対称暗号
+      content: 暗号化, 復号化, Salsa20, 対称暗号化アルゴリズム, 流密码
 ---
 
 # Salsa20
@@ -63,19 +64,19 @@ if encrypter.Error != nil {
 ### 出力データ
 
 ```go
-// Hex エンコード文字列出力
+// Hex エンコード文字列を出力
 hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
-// Hex エンコードバイトスライス出力
+// Hex エンコードバイトスライスを出力
 hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
 
-// Base64 エンコード文字列出力
+// Base64 エンコード文字列を出力
 base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
-// Base64 エンコードバイトスライス出力
+// Base64 エンコードバイトスライスを出力
 base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
 
-// エンコードされていない生文字列出力
+// エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()
-// エンコードされていない生バイトスライス出力
+// エンコードされていない生のバイトスライスを出力
 rawBytes := encrypter.ToRawBytes()
 ```
 
@@ -100,11 +101,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySalsa20(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySalsa20(c)
 
-// エンコードされていない生文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).BySalsa20(c)
-// エンコードされていない生バイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySalsa20(c)
-// エンコードされていない生ファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin") 
 decrypter := dongle.Decrypt.FromRawFile(file).BySalsa20(c)
 
@@ -118,8 +119,8 @@ if decrypter.Error != nil {
 ### 出力データ
 
 ```go
-// 復号化された文字列出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// 復号化されたバイトスライス出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```

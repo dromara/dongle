@@ -1,11 +1,12 @@
 ---
+title: SM3 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
       content: HMAC-SM3 Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
   - - meta
     - name: keywords
-      content: HMAC-SM3
+      content: message authentication code, hmac, sm3, hmac-sm3
 ---
 
 # Hmac-Sm3
@@ -35,18 +36,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 8c733aae1d553c466a08c3e9e5daac3e99ae220181c7c1bc8c2564961de751b3
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("8c733aae1d553c466a08c3e9e5daac3e99ae220181c7c1bc8c2564961de751b3")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // jHM6rh1VPEZqCMPp5dqsPpmuIgGBx8G8jCVklh3nUbM=
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("jHM6rh1VPEZqCMPp5dqsPpmuIgGBx8G8jCVklh3nUbM=")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

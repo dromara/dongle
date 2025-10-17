@@ -1,12 +1,11 @@
 ---
-title: RSAデジタル署名アルゴリズム
 head:
   - - meta
     - name: description
       content: RSAデジタル署名アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: rsa, デジタル署名, 署名検証, 非対称暗号, 公開鍵署名
+      content: 署名, 検証, RSA, デジタル署名, 秘密鍵署名, 公開鍵検証, PKCS#1, PKCS#8
 ---
 
 # RSA
@@ -169,9 +168,10 @@ rawBytes := signer.ToRawBytes()
 ```
 
 ## 公開鍵検証
-> 注意：`WithXxxSign` メソッドは `ByRsa` の前に呼び出す必要があります
 
 ### 入力データ
+
+> 注意：`WithXxxSign` メソッドは `ByRsa` の前に呼び出す必要があります
 
 ```go
 // 入力文字列
@@ -183,9 +183,9 @@ file, _ := os.Open("test.txt")
 verifier := dongle.Verify.FromFile(file)
 
 // Hexエンコード署名を設定
-verifier.WithHexSign(hexString).ByRsa(kp)
+verifier.WithHexSign(rawBytes).ByRsa(kp)
 // Base64エンコード署名を設定
-verifier.WithBase64Sign(base64String).ByRsa(kp)
+verifier.WithBase64Sign(rawBytes).ByRsa(kp)
 // エンコードなし生署名を設定
 verifier.WithRawSign(rawBytes).ByRsa(kp)
 

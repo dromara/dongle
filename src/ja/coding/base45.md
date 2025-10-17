@@ -6,7 +6,7 @@ head:
       content: Base45エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: dongle, base45
+      content: エンコード, デコード, base45, base45-encoding, base45-decoding
 ---
 
 # Base45
@@ -17,16 +17,13 @@ Base45は、バイナリデータを`ASCII`文字にエンコードする方法�
 > `base45.StdAlphabet` を設定することでアルファベットをカスタマイズできます
 
 ### データのエンコード
-
 入力データ
 
 ```go
 // 入力文字列
 encoder := dongle.Encode.FromString("hello world").ByBase45()
-
 // 入力バイトスライス
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase45()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase45()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("+8D VD82EK4F.KEA2")
 ```
 
 ### データのデコード
-
 入力データ
 
 ```go
 // 入力文字列
 decoder := dongle.Decode.FromString("+8D VD82EK4F.KEA2").ByBase45()
-
 // 入力バイトスライス
 decoder := dongle.Decode.FromBytes([]byte("+8D VD82EK4F.KEA2")).ByBase45()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase45()

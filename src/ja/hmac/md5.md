@@ -6,7 +6,7 @@ head:
       content: HMAC-MD5アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: HMAC-MD5
+      content: メッセージ認証コード, hmac, md5, hmac-md5
 ---
 
 # Hmac-Md5
@@ -20,10 +20,8 @@ head:
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByMd5()
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByMd5()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByMd5()
@@ -40,19 +38,16 @@ if hasher.Error != nil {
 ```go
 // Hexエンコード文字列を出力
 hasher.ToHexString() // 4790626a275f776956386e5a3ea7b726
-
 // Hexエンコードバイトスライスを出力
 hasher.ToHexBytes()  // []byte("4790626a275f776956386e5a3ea7b726")
 
 // Base64エンコード文字列を出力
 hasher.ToBase64String() // R5Biaidfd2lWOG5aPqe3Jg==
-
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("R5Biaidfd2lWOG5aPqe3Jg==")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```

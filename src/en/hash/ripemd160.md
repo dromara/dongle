@@ -1,11 +1,12 @@
 ---
+title: Ripemd160 Hash Algorithm
 head:
   - - meta
     - name: description
       content: Ripemd160 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: hash, hash algorithm, ripemd160
+      content: hashing, hash, ripemd160, hash-ripemd160
 ---
 
 # Hash-Ripemd160
@@ -17,10 +18,8 @@ head:
 ```go
 // Input string
 hasher := dongle.Hash.FromString("hello world").ByRipemd160()
-
 // Input byte slice
 hasher := dongle.Hash.FromBytes([]byte("hello world")).ByRipemd160()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).ByRipemd160()
@@ -35,18 +34,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 98c615784ccb5fe5936fbc0cbe9dfdb408d92f0f
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("98c615784ccb5fe5936fbc0cbe9dfdb408d92f0f")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // mMYVeEzLX+WTb7wMvp39tAjZLw8=
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("mMYVeEzLX+WTb7wMvp39tAjZLw8=")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

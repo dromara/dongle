@@ -1,11 +1,12 @@
 ---
+title: SHA1 消息认证码算法
 head:
   - - meta
     - name: description
-      content: HMAC-SHA1算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: SHA1 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: HMAC-SHA1
+      content: 消息认证码, hmac, sha1, hmac-sha1
 ---
 
 # Hmac-Sha1

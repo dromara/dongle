@@ -6,7 +6,7 @@ head:
       content: BLOWFISH暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: blowfish, 暗号化, 復号化, 対称暗号, ブロック暗号
+      content: 暗号化, 復号化, Blowfish, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, CFB, OFB
 ---
 
 # Blowfish
@@ -81,19 +81,19 @@ if encrypter.Error != nil {
 出力データ
 
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes()
 ```
 
@@ -175,19 +175,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -230,9 +230,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -269,19 +269,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -362,19 +362,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -417,9 +417,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -456,19 +456,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -511,8 +511,8 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```

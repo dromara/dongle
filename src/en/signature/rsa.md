@@ -1,12 +1,11 @@
 ---
-title: RSA Digital Signature Algorithm
 head:
   - - meta
     - name: description
       content: RSA Digital Signature Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: rsa, digital signature, signature verification, asymmetric encryption, public key signature
+      content: 签名, 验证, RSA, 数字签名, 私钥签名, 公钥验证, PKCS#1, PKCS#8
 ---
 
 # RSA
@@ -170,9 +169,9 @@ rawBytes := signer.ToRawBytes()
 
 ## Public key verification
 
-Note: The `WithXxxSign` method must be called before `ByRsa`
-
 ### Input data
+
+> Note: The `WithXxxSign` method must be called before `ByRsa`
 
 ```go
 // Input string
@@ -184,9 +183,9 @@ file, _ := os.Open("test.txt")
 verifier := dongle.Verify.FromFile(file)
 
 // Set Hex-encoded signature
-verifier.WithHexSign(hexString).ByRsa(kp)
+verifier.WithHexSign(rawBytes).ByRsa(kp)
 // Set Base64-encoded signature
-verifier.WithBase64Sign(base64String).ByRsa(kp)
+verifier.WithBase64Sign(rawBytes).ByRsa(kp)
 // Set raw signature
 verifier.WithRawSign(rawBytes).ByRsa(kp)
 

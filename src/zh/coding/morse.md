@@ -6,7 +6,7 @@ head:
       content: Morse 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
   - - meta
     - name: keywords
-      content: dongle, morse, 摩尔斯电码, 摩斯码
+      content: 编码, 解码, morse, 摩尔斯电码, 摩斯码, morse-encoding, morse-decoding
 ---
 
 # Morse

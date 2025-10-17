@@ -6,7 +6,7 @@ head:
       content: 3DES暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: 3des, TripleDES, 3DES, 暗号化, 復号化, 対称暗号, ブロック暗号
+      content: 暗号化, 復号化, TripleDES, 3DES, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, CFB, OFB
 ---
 
 # 3DES
@@ -92,9 +92,9 @@ encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes()
 ```
 
@@ -186,9 +186,9 @@ encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -231,9 +231,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -280,9 +280,9 @@ encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -376,9 +376,9 @@ encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -421,9 +421,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -470,9 +470,9 @@ encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -515,8 +515,8 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```

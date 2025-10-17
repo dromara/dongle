@@ -1,11 +1,12 @@
 ---
+title: SM4 Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
       content: SM4 Encryption Algorithm | A lightweight, semantic, developer-friendly golang encoding & cryptography library
   - - meta
     - name: keywords
-      content: sm4, encryption, decryption, symmetric encryption, block cipher
+      content: encryption, decryption, SM4, symmetric encryption algorithm, Chinese National Standard, block mode, padding mode, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # SM4
@@ -116,11 +117,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -209,11 +210,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -302,11 +303,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -400,11 +401,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -492,11 +493,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 
@@ -585,11 +586,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).BySm4(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).BySm4(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).BySm4(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).BySm4(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).BySm4(c)
 

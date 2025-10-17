@@ -6,21 +6,21 @@ head:
       content: HMAC-SHA3アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: HMAC-SHA3
+      content: メッセージ認証コード, hmac, sha3, sha224, sha256, sha384, sha512, hmac-sha3, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512
 ---
 
 # Hmac-Sha3
 
-`Hmac-Sha3` は `sha3` ベースのメッセージ認証コードアルゴリズムです。`dongle` は標準およびストリーミング `sha3` メッセージ認証コードアルゴリズムをサポートし、複数の出力形式を提供します。
+`Hmac-Sha3` は `sha3` ベースのメッセージ認証コードアルゴリズムです。`dongle` は標準 `sha3` メッセージ認証コードアルゴリズムをサポートし、複数の出力形式を提供します。
 
 > 注意：`WithKey` メソッドは `BySha3` の前に呼び出す必要があります
 
 ## サポートされるハッシュアルゴリズム
 
-- [Sha3-224](#sha3-224)：28バイトのハッシュ値を生成
-- [Sha3-256](#sha3-256)：32バイトのハッシュ値を生成
-- [Sha3-384](#sha3-384)：48バイトのハッシュ値を生成
-- [Sha3-512](#sha3-512)：64バイトのハッシュ値を生成
+ - [Sha3-224](#sha3-224): 28バイトのハッシュ値を生成
+ - [Sha3-256](#sha3-256): 32バイトのハッシュ値を生成
+ - [Sha3-384](#sha3-384): 48バイトのハッシュ値を生成
+ - [Sha3-512](#sha3-512): 64バイトのハッシュ値を生成
 
 ## Sha3-224
 
@@ -29,10 +29,8 @@ head:
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).BySha3(224)
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).BySha3(224)
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).BySha3(224)
@@ -57,9 +55,9 @@ hasher.ToBase64String() // +48GHZ0d3dL107kGSl6Y4+S23yfqk85nYnWDzg==
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("+48GHZ0d3dL107kGSl6Y4+S23yfqk85nYnWDzg==")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```
 
@@ -70,10 +68,8 @@ hasher.ToRawBytes()
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).BySha3(256)
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).BySha3(256)
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).BySha3(256)
@@ -98,9 +94,9 @@ hasher.ToBase64String() // gZM2f94oz1xGCttEmgSz3ZwYT0iL3Mur8FJsVPkMRGA=
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("gZM2f94oz1xGCttEmgSz3ZwYT0iL3Mur8FJsVPkMRGA=")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```
 
@@ -111,10 +107,8 @@ hasher.ToRawBytes()
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).BySha3(384)
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).BySha3(384)
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).BySha3(384)
@@ -139,9 +133,9 @@ hasher.ToBase64String() // P3b1zaacraPuazP4RYzUmLBjB12yY92LM/KjmSqIBPlWmnyG/6K48
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("P3b1zaacraPuazP4RYzUmLBjB12yY92LM/KjmSqIBPlWmnyG/6K48HSLq+t6b8Dn")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```
 
@@ -152,10 +146,8 @@ hasher.ToRawBytes()
 ```go
 // 入力文字列
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).BySha3(512)
-
 // 入力バイトスライス
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).BySha3(512)
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).BySha3(512)
@@ -180,8 +172,8 @@ hasher.ToBase64String() // qZZT0EB9ZZ7M3u1Du3zM0uKwWiw0/TRnxBmM8q0mpGZzhRPoiDn7V
 // Base64エンコードバイトスライスを出力
 hasher.ToBase64Bytes()  // []byte("qZZT0EB9ZZ7M3u1Du3zM0uKwWiw0/TRnxBmM8q0mpGZzhRPoiDn7VeZOtJ32W8Uu0P7Cd1vZ4Ibt1PtAJK3Uog==")
 
-// エンコードなしの生文字列を出力
+// エンコードされていない生の文字列を出力
 hasher.ToRawString()
-// エンコードなしの生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 hasher.ToRawBytes()
 ```

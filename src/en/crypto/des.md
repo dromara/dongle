@@ -1,11 +1,12 @@
 ---
+title: DES Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
       content: DES Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: des, encryption, decryption, symmetric encryption, block cipher
+      content: encryption, decryption, DES, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, CFB, OFB
 ---
 
 # DES
@@ -51,7 +52,7 @@ import (
 c := cipher.NewDesCipher(cipher.CBC)
 // Set key (8 bytes)
 c.SetKey([]byte("12345678"))
-// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+// Set initialization vector (8 bytes)
 c.SetIV([]byte("87654321"))
 // Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7)
@@ -80,19 +81,19 @@ if encrypter.Error != nil {
 Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
@@ -117,11 +118,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByDes(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByDes(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByDes(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByDes(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByDes(c)
 
@@ -174,19 +175,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
@@ -211,11 +212,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByDes(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByDes(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByDes(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByDes(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByDes(c)
 
@@ -268,19 +269,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
@@ -305,11 +306,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByDes(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByDes(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByDes(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByDes(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByDes(c)
 
@@ -362,19 +363,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
@@ -399,11 +400,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByDes(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByDes(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByDes(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByDes(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByDes(c)
 
@@ -456,19 +457,19 @@ if encrypter.Error != nil {
 
 Output Data
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
 encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
 encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
-// Output raw string
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
@@ -493,11 +494,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByDes(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByDes(c)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByDes(c)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByDes(c)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByDes(c)
 

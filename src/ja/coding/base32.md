@@ -6,7 +6,7 @@ head:
       content: Base32 エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
   - - meta
     - name: keywords
-      content: dongle, base32, base32hex
+      content: エンコード, デコード, base32, base32hex, base32-encoding, base32-decoding, base32hex-encoding, base32hex-decoding
 ---
 
 # Base32

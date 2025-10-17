@@ -5,7 +5,7 @@ head:
       content: RSA 数字签名算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
   - - meta
     - name: keywords
-      content: rsa, 数字签名, 签名验证, 非对称加密, 公钥签名
+      content: 签名, 验证, RSA, 数字签名, 私钥签名, 公钥验证, PKCS#1, PKCS#8
 ---
 
 # RSA

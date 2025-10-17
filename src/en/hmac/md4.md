@@ -1,11 +1,12 @@
 ---
+title: MD4 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
       content: HMAC-MD4 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: HMAC-MD4
+      content: message authentication code, hmac, md4, hmac-md4
 ---
 
 # Hmac-Md4
@@ -35,18 +36,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 7a9df5247cbf76a8bc17c9c4f5a75b6b
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("7a9df5247cbf76a8bc17c9c4f5a75b6b")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // ep31JHy/dqi8F8nE9adbaw==
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("ep31JHy/dqi8F8nE9adbaw==")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

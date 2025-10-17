@@ -6,7 +6,7 @@ head:
       content: Base91 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base91
+      content: encoding, decoding, base91, base91-encoding, base91-decoding
 ---
 
 # Base91
@@ -17,16 +17,13 @@ Base91 is an encoding method that converts binary data to `ASCII` characters, us
 > which can be customized by setting `base91.StdAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase91()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase91()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase91()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("TPwJh>Io2Tv!lE")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("TPwJh>Io2Tv!lE").ByBase91()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("TPwJh>Io2Tv!lE")).ByBase91()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase91()
@@ -76,4 +70,5 @@ Output Data
 decoder.ToString() // hello world
 // Output byte slice
 decoder.ToBytes()  // []byte("hello world")
-``` 
+```
+ 

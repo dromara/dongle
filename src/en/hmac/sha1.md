@@ -1,11 +1,12 @@
 ---
+title: SHA1 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
       content: HMAC-SHA1 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: HMAC-SHA1
+      content: message authentication code, hmac, sha1, hmac-sha1
 ---
 
 # Hmac-Sha1
@@ -35,18 +36,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 91c103ef93ba7420902b0d1bf0903251c94b4a62
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("91c103ef93ba7420902b0d1bf0903251c94b4a62")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // kcED75O6dCCQKw0b8JAyUclLSmI=
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("kcED75O6dCCQKw0b8JAyUclLSmI=")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

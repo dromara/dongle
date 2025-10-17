@@ -3,10 +3,10 @@ title: Base85 编码/解码
 head:
   - - meta
     - name: description
-      content: Base85 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Base85 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: dongle, base85, ascii85
+      content: 编码, 解码, base85, ascii85, base85-encoding, base85-decoding, ascii85-encoding, ascii85-decoding
 ---
 
 # Base85

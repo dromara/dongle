@@ -1,11 +1,12 @@
 ---
+title: Blake2s 哈希算法
 head:
   - - meta
     - name: description
-      content: BLAKE2s 哈希算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: BLAKE2s 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: 哈希, hash, blake2s, blake2s-128, blake2s-256
+      content: 哈希, hash, blake2s, blake2s-128, blake2s-256, hash-blake2s, hash-blake2s-128, hash-blake256
 ---
 
 # Hash-Blake2s

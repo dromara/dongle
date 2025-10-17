@@ -6,7 +6,7 @@ head:
       content: Base64 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base64, base64url
+      content: encoding, decoding, base64, base64Url, base64-encoding, base64-decoding, base64Url-encoding, base64Url-decoding
 ---
 
 # Base64
@@ -21,16 +21,13 @@ Base64 is an encoding method that converts binary data to `ASCII` characters, us
 > You can customize the alphabet by setting `base64.StdAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase64()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase64()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase64()
@@ -52,16 +49,13 @@ encoder.ToBytes()  // []byte("aGVsbG8gd29ybGQ=")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("aGVsbG8gd29ybGQ=").ByBase64()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("aGVsbG8gd29ybGQ=")).ByBase64()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase64()
@@ -88,16 +82,13 @@ decoder.ToBytes()  // []byte("hello world")
 > You can customize the alphabet by setting `base64.URLAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("https://dongle.go-pkg.com/api/v1/data+test").ByBase64Url()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("https://dongle.go-pkg.com/api/v1/data+test")).ByBase64Url()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase64Url()
@@ -119,16 +110,13 @@ encoder.ToBytes()  // []byte("aHR0cHM6Ly9kb25nbGUuZ28tcGtnLmNvbS9hcGkvdjEvZGF0YS
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("aHR0cHM6Ly9kb25nbGUuZ28tcGtnLmNvbS9hcGkvdjEvZGF0YSt0ZXN0").ByBase64Url()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("aHR0cHM6Ly9kb25nbGUuZ28tcGtnLmNvbS9hcGkvdjEvZGF0YSt0ZXN0")).ByBase64Url()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase64Url()
@@ -148,3 +136,4 @@ decoder.ToString() // https://dongle.go-pkg.com/api/v1/data+test
 // Output byte slice
 decoder.ToBytes()  // []byte("https://dongle.go-pkg.com/api/v1/data+test")
 ```
+

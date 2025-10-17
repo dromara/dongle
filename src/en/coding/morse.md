@@ -6,7 +6,7 @@ head:
       content: Morse Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, morse, morse code, international morse code
+      content: encoding, decoding, morse, morse code, international morse code, morse-encoding, morse-decoding
 ---
 
 # Morse
@@ -16,14 +16,12 @@ Morse is an encoding method that converts text to sequences of dots and dashes, 
 > You can customize the separator by setting `morse.StdSeparator`
 
 ### Encoding Data
-
+Input Data
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByMorse()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByMorse()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByMorse()
@@ -45,16 +43,13 @@ encoder.ToBytes()  // []byte(".... . .-.. .-.. --- / .-- --- .-. .-.. -..")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString(".... . .-.. .-.. --- / .-- --- .-. .-.. -..").ByMorse()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte(".... . .-.. .-.. --- / .-- --- .-. .-.. -..")).ByMorse()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByMorse()

@@ -1,11 +1,12 @@
 ---
+title: SHA3 消息认证码算法
 head:
   - - meta
     - name: description
-      content: HMAC-SHA3算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: SHA3 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: HMAC-SHA3
+      content: 消息认证码, hmac, sha3, sha224, sha256, sha384, sha512, hmac-sha3, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512
 ---
 
 # Hmac-Sha3

@@ -1,11 +1,12 @@
 ---
+title: SM3 消息认证码算法
 head:
   - - meta
     - name: description
-      content: HMAC-SM3算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: SM3 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: HMAC-SM3
+      content: 消息认证码, hmac, sm3, hmac-sm3
 ---
 
 # Hmac-Sm3

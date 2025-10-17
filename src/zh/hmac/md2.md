@@ -1,11 +1,12 @@
 ---
+title: MD2 消息认证码算法
 head:
   - - meta
     - name: description
-      content: HMAC-MD2算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: MD2 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: HMAC-MD2
+      content: 消息认证码, hmac, md2, hmac-md2
 ---
 
 # Hmac-Md2

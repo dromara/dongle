@@ -6,7 +6,7 @@ head:
       content: Base45 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base45
+      content: encoding, decoding, base45, base45-encoding, base45-decoding
 ---
 
 # Base45
@@ -17,16 +17,13 @@ Base45 is an encoding method that converts binary data to `ASCII` characters, us
 > You can customize the alphabet by setting `base45.StdAlphabet`
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase45()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase45()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase45()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("+8D VD82EK4F.KEA2")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("+8D VD82EK4F.KEA2").ByBase45()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("+8D VD82EK4F.KEA2")).ByBase45()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase45()
@@ -77,3 +71,4 @@ decoder.ToString() // hello world
 // Output byte slice
 decoder.ToBytes()  // []byte("hello world")
 ```
+

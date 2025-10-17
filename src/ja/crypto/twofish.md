@@ -1,11 +1,12 @@
 ---
+title: Twofish 対称暗号化アルゴリズム
 head:
   - - meta
     - name: description
       content: TWOFISH暗号化アルゴリズム|軽量で、セマンティック、開発者に優しいgolangエンコーディング&暗号化ライブラリ
   - - meta
     - name: keywords
-      content: twofish, 暗号化, 復号化, 対称暗号, ブロック暗号
+      content: 暗号化, 復号化, Twofish, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # Twofish
@@ -116,11 +117,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// 生の文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// 生のバイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// 生のファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -210,11 +211,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// 生の文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// 生のバイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// 生のファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -228,9 +229,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -304,13 +305,13 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// 生の文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
 
-// 生のバイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
 
-// 生のファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -400,11 +401,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// 生の文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// 生のバイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// 生のファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -418,9 +419,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -494,11 +495,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// 生の文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// 生のバイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// 生のファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -512,9 +513,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -592,11 +593,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTwofish(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTwofish(c)
 
-// 生の文字列入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTwofish(c)
-// 生のバイトスライス入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTwofish(c)
-// 生のファイルストリーム入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTwofish(c)
 
@@ -610,8 +611,8 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```

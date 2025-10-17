@@ -3,10 +3,10 @@ title: Base58 编码/解码
 head:
   - - meta
     - name: description
-      content: Base58 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Base58 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: dongle, base58
+      content: 编码, 解码, base58, base58-encoding, base58-decoding
 ---
 
 # Base58

@@ -1,11 +1,12 @@
 ---
+title: XTEA Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
       content: XTEA encryption algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
   - - meta
     - name: keywords
-      content: xtea, encryption, decryption, symmetric encryption, block cipher
+      content: encryption, decryption, XTEA, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, CFB, OFB
 ---
 
 # XTEA
@@ -62,11 +63,11 @@ c.SetPadding(cipher.PKCS7)
 Input data
 
 ```go
-// Input string
+// Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// Input byte slice
+// Input unencoded raw byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// Input file stream
+// Input unencoded raw file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -117,11 +118,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// Input raw string without encoding
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// Input raw byte slice without encoding
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// Input raw file stream without encoding
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -157,11 +158,11 @@ c.SetPadding(cipher.PKCS7)
 
 Input data
 ```go
-// Input string
+// Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// Input byte slice
+// Input unencoded raw byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// Input file stream
+// Input unencoded raw file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -211,13 +212,13 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// Input raw string without encoding
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
 
-// Input raw byte slice without encoding
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
 
-// Input raw file stream without encoding
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -253,11 +254,11 @@ c.SetIV([]byte("12345678"))
 
 Input data
 ```go
-// Input string
+// Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// Input byte slice
+// Input unencoded raw byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// Input file stream
+// Input unencoded raw file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -307,11 +308,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// Input raw string without encoding
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// Input raw byte slice without encoding
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// Input raw file stream without encoding
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -325,9 +326,9 @@ if decrypter.Error != nil {
 Output data
 
 ```go
-// Output string
+// Output decrypted string
 decrypter.ToString() // hello world
-// Output byte slice
+// Output decrypted byte slice
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -347,11 +348,11 @@ c.SetIV([]byte("12345678"))
 
 Input data
 ```go
-// Input string
+// Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// Input byte slice
+// Input unencoded raw byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// Input file stream
+// Input unencoded raw file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -401,11 +402,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// Input raw string without encoding
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// Input raw byte slice without encoding
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// Input raw file stream without encoding
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -419,9 +420,9 @@ if decrypter.Error != nil {
 Output data
 
 ```go
-// Output string
+// Output decrypted string
 decrypter.ToString() // hello world
-// Output byte slice
+// Output decrypted byte slice
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -441,11 +442,11 @@ c.SetIV([]byte("12345678"))
 
 Input data
 ```go
-// Input string
+// Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// Input byte slice
+// Input unencoded raw byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// Input file stream
+// Input unencoded raw file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -495,11 +496,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByXtea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
-// Input raw string without encoding
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-// Input raw byte slice without encoding
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-// Input raw file stream without encoding
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
 
@@ -513,8 +514,8 @@ if decrypter.Error != nil {
 Output data
 
 ```go
-// Output string
+// Output decrypted string
 decrypter.ToString() // hello world
-// Output byte slice
+// Output decrypted byte slice
 decrypter.ToBytes() // []byte("hello world")
 ```

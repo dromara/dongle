@@ -1,11 +1,12 @@
 ---
+title: HMAC-BLAKE2s Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-BLAKE2s Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: HMAC-BLAKE2s Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: HMAC-BLAKE2s
+      content: hmac, blake2s, blake2s-128, blake2s-256, hmac-blake2s, hmac-blake2s-128, hmac-blake2s-256
 ---
 
 # Hmac-Blake2s
@@ -16,8 +17,8 @@ head:
 
 ## Supported Hash Algorithms
 
-- [Blake2s-128](#blake2s-128)：Generates 16-byte hash value
-- [Blake2s-256](#blake2s-256)：Generates 32-byte hash value
+- [Blake2s-128](#blake2s-128): Generates 16-byte hash value
+- [Blake2s-256](#blake2s-256): Generates 32-byte hash value
 
 ## Blake2s-128
 
@@ -26,10 +27,8 @@ head:
 ```go
 // Input string
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByBlake2s(128)
-
 // Input byte slice
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByBlake2s(128)
-
 // Input file stream
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByBlake2s(128)
@@ -67,10 +66,8 @@ hasher.ToRawBytes()
 ```go
 // Input string
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByBlake2s(256)
-
 // Input byte slice
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByBlake2s(256)
-
 // Input file stream
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByBlake2s(256)

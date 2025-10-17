@@ -1,11 +1,12 @@
 ---
+title: HMAC-BLAKE2b Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-BLAKE2b Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: HMAC-BLAKE2b Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: HMAC-BLAKE2b
+      content: message authentication code, hmac, blake2b, blake2b-256, blake2b-384, blake2b-512, hmac-blake2b, hmac-blake2b-256, hmac-blake2b-384, hmac-blake2b-512
 ---
 
 # Hmac-Blake2b
@@ -16,9 +17,9 @@ head:
 
 ## Supported Hash Algorithms
 
-- [Blake2b-256](#blake2b-256)：Generates 32-byte hash value
-- [Blake2b-384](#blake2b-384)：Generates 48-byte hash value
-- [Blake2b-512](#blake2b-512)：Generates 64-byte hash value
+- [Blake2b-256](#blake2b-256): Generates 32-byte hash value
+- [Blake2b-384](#blake2b-384): Generates 48-byte hash value
+- [Blake2b-512](#blake2b-512): Generates 64-byte hash value
 
 ## Blake2b-256
 
@@ -27,10 +28,8 @@ head:
 ```go
 // Input string
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByBlake2b(256)
-
 // Input byte slice
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByBlake2b(256)
-
 // Input file stream
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByBlake2b(256)
@@ -68,10 +67,8 @@ hasher.ToRawBytes()
 ```go
 // Input string
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByBlake2b(384)
-
 // Input byte slice
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByBlake2b(384)
-
 // Input file stream
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByBlake2b(384)
@@ -109,10 +106,8 @@ hasher.ToRawBytes()
 ```go
 // Input string
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByBlake2b(512)
-
 // Input byte slice
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByBlake2b(512)
-
 // Input file stream
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByBlake2b(512)

@@ -6,7 +6,7 @@ head:
       content: AES暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: aes, 暗号化, 復号化, 対称暗号, ブロック暗号
+      content: 暗号化, 復号化, AES, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # AES
@@ -80,19 +80,19 @@ if encrypter.Error != nil {
 出力データ
 
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes()
 ```
 
@@ -174,19 +174,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -229,9 +229,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -268,19 +268,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -323,9 +323,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -366,19 +366,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -420,9 +420,9 @@ if decrypter.Error != nil {
 
 出力データ
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -460,19 +460,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -513,9 +513,9 @@ if decrypter.Error != nil {
 
 出力データ
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -552,19 +552,19 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// Hexエンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
-// Hexエンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
-// Base64エンコード文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
-// Base64エンコードバイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -606,9 +606,9 @@ if decrypter.Error != nil {
 
 出力データ
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 

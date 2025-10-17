@@ -1,11 +1,12 @@
 ---
+title: Blowfish 对称加密算法
 head:
   - - meta
     - name: description
-      content: BLOWFISH 加密算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Blowfish 对称加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: blowfish, 加密, 解密, 对称加密, 分组密码
+      content: 加密, 解密, Blowfish, 对称加密算法, 分组模式, 填充模式, CBC, ECB, CTR, CFB, OFB
 ---
 
 # Blowfish

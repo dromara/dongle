@@ -1,11 +1,12 @@
 ---
+title: HMAC-BLAKE2sアルゴリズム
 head:
   - - meta
     - name: description
-      content: HMAC-BLAKE2sアルゴリズム|軽量で、セマンティック、開発者フレンドリーな golang エンコーディング&暗号ライブラリ
+      content: HMAC-BLAKE2sアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: HMAC-BLAKE2s
+      content: メッセージ認証コード, hmac, blake2s, blake2s-128, blake2s-256, hmac-blake2s, hmac-blake2s-128, hmac-blake2s-256
 ---
 
 # Hmac-Blake2s
@@ -16,8 +17,8 @@ head:
 
 ## サポートされているハッシュアルゴリズム
 
-- [Blake2s-128](#blake2s-128)：16バイトのハッシュ値を生成
-- [Blake2s-256](#blake2s-256)：32バイトのハッシュ値を生成
+- [Blake2s-128](#blake2s-128): 16バイトのハッシュ値を生成
+- [Blake2s-256](#blake2s-256): 32バイトのハッシュ値を生成
 
 ## Blake2s-128
 
@@ -26,10 +27,8 @@ head:
 ```go
 // 文字列入力
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByBlake2s(128)
-
 // バイトスライス入力
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByBlake2s(128)
-
 // ファイルストリーム入力
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByBlake2s(128)
@@ -67,10 +66,8 @@ hasher.ToRawBytes()
 ```go
 // 文字列入力
 hasher := dongle.Hash.FromString("hello world").WithKey([]byte("dongle")).ByBlake2s(256)
-
 // バイトスライス入力
 hasher := dongle.Hash.FromBytes([]byte("hello world")).WithKey([]byte("dongle")).ByBlake2s(256)
-
 // ファイルストリーム入力
 file, _ := os.Open("test.txt")
 hasher := dongle.Hash.FromFile(file).WithKey([]byte("dongle")).ByBlake2s(256)

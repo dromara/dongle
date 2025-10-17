@@ -1,11 +1,12 @@
 ---
+title: MD4 哈希算法
 head:
   - - meta
     - name: description
-      content: MD4 哈希算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: MD4 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: 哈希, hash, md4
+      content: 哈希, hash, md4, hash-md4
 ---
 
 # Hash-Md4

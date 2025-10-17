@@ -6,7 +6,7 @@ head:
       content: Base91エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: dongle, base91
+      content: エンコード, デコード, base91, base91-encoding, base91-decoding
 ---
 
 # Base91
@@ -17,16 +17,13 @@ Base91は、バイナリデータを`ASCII`文字にエンコードする方法�
 > `base91.StdAlphabet` を設定することで文字セットをカスタマイズできます
 
 ### データのエンコード
-
 入力データ
 
 ```go
 // 入力文字列
 encoder := dongle.Encode.FromString("hello world").ByBase91()
-
 // 入力バイトスライス
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase91()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase91()
@@ -48,16 +45,13 @@ encoder.ToBytes()  // []byte("TPwJh>Io2Tv!lE")
 ```
 
 ### データのデコード
-
 入力データ
 
 ```go
 // 入力文字列
 decoder := dongle.Decode.FromString("TPwJh>Io2Tv!lE").ByBase91()
-
 // 入力バイトスライス
 decoder := dongle.Decode.FromBytes([]byte("TPwJh>Io2Tv!lE")).ByBase91()
-
 // 入力ファイルストリーム
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase91()

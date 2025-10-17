@@ -1,11 +1,12 @@
 ---
+title: MD2 哈希算法
 head:
   - - meta
     - name: description
-      content: MD2 哈希算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: MD2 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: 哈希, hash, md2
+      content: 哈希, hash, md2, hash-md2
 ---
 
 # Hash-Md2

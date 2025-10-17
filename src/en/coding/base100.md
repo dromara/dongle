@@ -6,7 +6,7 @@ head:
       content: Base100 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: dongle, base100, emoji
+      content: encoding, decoding, base100, emoji, base100-encoding, base100-decoding, emoji-encoding, emoji-decoding
 ---
 
 # Base100
@@ -14,16 +14,13 @@ head:
 Base100 is an encoding method that converts binary data to `Emoji` characters, where each byte is converted to a `4-byte` UTF-8 sequence representing an emoji symbol. `dongle` supports standard and streaming `Base100` encoding.
 
 ### Encoding Data
-
 Input Data
 
 ```go
 // Input string
 encoder := dongle.Encode.FromString("hello world").ByBase100()
-
 // Input byte slice
 encoder := dongle.Encode.FromBytes([]byte("hello world")).ByBase100()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 encoder := dongle.Encode.FromFile(file).ByBase100()
@@ -45,16 +42,13 @@ encoder.ToBytes()  // []byte("👟👜👣👣👦🐗👮👦👩👣👛")
 ```
 
 ### Decoding Data
-
 Input Data
 
 ```go
 // Input string
 decoder := dongle.Decode.FromString("👟👜👣👣👦🐗👮👦👩👣👛").ByBase100()
-
 // Input byte slice
 decoder := dongle.Decode.FromBytes([]byte("👟👜👣👣👦🐗👮👦👩👣👛")).ByBase100()
-
 // Input file stream
 file, _ := os.Open("test.txt")
 decoder := dongle.Decode.FromFile(file).ByBase100()
@@ -73,4 +67,5 @@ Output Data
 decoder.ToString() // hello world
 // Output byte slice
 decoder.ToBytes()  // []byte("hello world")
-``` 
+```
+ 

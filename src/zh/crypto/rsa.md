@@ -1,11 +1,12 @@
 ---
+title: RSA 非对称加密算法
 head:
   - - meta
     - name: description
-      content: RSA 加密算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: RSA 非对称加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: rsa, 加密, 解密, 签名, 验证, 非对称加密, 公钥加密
+      content: 加密, 解密, RSA, 非对称加密算法, 公钥加密, 私钥解密, PKCS#1, PKCS#8
 ---
 
 # RSA

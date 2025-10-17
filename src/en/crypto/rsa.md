@@ -1,11 +1,12 @@
 ---
+title: RSA Asymmetric Encryption Algorithm
 head:
   - - meta
     - name: description
       content: RSA Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: rsa, encryption, decryption, signature, verification, asymmetric encryption, public key encryption
+      content: encryption, decryption, RSA, asymmetric encryption algorithm, public key encryption, private key decryption, PKCS#1, PKCS#8
 ---
 
 # RSA
@@ -151,19 +152,19 @@ if encrypter.Error != nil {
 Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hexString := encrypter.ToHexString() // e.g.: 7fae94fd1a8b880d8d5454dd8df30c40...
 // Output hex-encoded byte slice
 hexBytes := encrypter.ToHexBytes()  // e.g.: []byte("7fae94fd1a8b880d8d5454dd8df30c40...")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 base64String := encrypter.ToBase64String() // e.g.: f66U/RqLiA2NVFTdjfMMQA==...
 // Output base64-encoded byte slice
 base64Bytes := encrypter.ToBase64Bytes()  // e.g.: []byte("f66U/RqLiA2NVFTdjfMMQA==...")
 
-// Output raw string
+// Output unencoded raw string
 rawString := encrypter.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 rawBytes := encrypter.ToRawBytes()
 ```
 
@@ -188,11 +189,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByRsa(kp)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByRsa(kp)
 
-// Input raw string
+// Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByRsa(kp)
-// Input raw byte slice
+// Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByRsa(kp)
-// Input raw file stream
+// Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByRsa(kp)
 

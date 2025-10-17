@@ -1,11 +1,12 @@
 ---
+title: MD4 消息认证码算法
 head:
   - - meta
     - name: description
-      content: HMAC-MD4算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: MD4 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
   - - meta
     - name: keywords
-      content: HMAC-MD4
+      content: 消息认证码, hmac, md4, hmac-md4
 ---
 
 # Hmac-Md4

@@ -6,7 +6,7 @@ head:
       content: RSA暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: rsa, 暗号化, 復号化, 署名, 検証, 非対称暗号, 公開鍵暗号
+      content: 暗号化, 復号化, RSA, 非対称暗号化アルゴリズム, 公開鍵暗号化, 秘密鍵復号化, PKCS#1, PKCS#8
 ---
 
 # RSA
@@ -160,9 +160,9 @@ base64String := encrypter.ToBase64String() // 例：f66U/RqLiA2NVFTdjfMMQA==...
 // Base64エンコードバイトスライスを出力
 base64Bytes := encrypter.ToBase64Bytes()  // 例：[]byte("f66U/RqLiA2NVFTdjfMMQA==...")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 rawBytes := encrypter.ToRawBytes()  
 ```
 ## 秘密鍵復号化
@@ -185,11 +185,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByRsa(kp)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByRsa(kp)
 
-// 生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByRsa(kp)
-// 生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByRsa(kp)
-// 生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByRsa(kp)
 

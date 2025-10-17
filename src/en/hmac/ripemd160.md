@@ -1,11 +1,12 @@
 ---
+title: Ripemd160 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
       content: HMAC-RIPEMD160 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
   - - meta
     - name: keywords
-      content: HMAC-RIPEMD160
+      content: message authentication code, hmac, ripemd160, hmac-ripemd160
 ---
 
 # Hmac-Ripemd160
@@ -35,18 +36,18 @@ if hasher.Error != nil {
 ## Output Data
 
 ```go
-// Output hex-encoded string
+// Output Hex encoded string
 hasher.ToHexString() // 3691ad040e80c43dc6e8ffe9bc6ef3d5bd8786b8
-// Output hex-encoded byte slice
+// Output Hex encoded byte slice
 hasher.ToHexBytes()  // []byte("3691ad040e80c43dc6e8ffe9bc6ef3d5bd8786b8")
 
-// Output base64-encoded string
+// Output Base64 encoded string
 hasher.ToBase64String() // NpGtBA6AxD3G6P/pvG7z1b2Hhrg=
-// Output base64-encoded byte slice
+// Output Base64 encoded byte slice
 hasher.ToBase64Bytes()  // []byte("NpGtBA6AxD3G6P/pvG7z1b2Hhrg=")
 
-// Output raw string
+// Output unencoded raw string
 hasher.ToRawString()
-// Output raw byte slice
+// Output unencoded raw byte slice
 hasher.ToRawBytes()
 ```

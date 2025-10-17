@@ -6,7 +6,7 @@ head:
       content: TEA暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
   - - meta
     - name: keywords
-      content: tea, 暗号化, 復号化, 対称暗号, ブロック暗号
+      content: 暗号化, 復号化, TEA, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, CFB, OFB
 ---
 
 # TEA
@@ -93,9 +93,9 @@ encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes()
 ```
 
@@ -120,11 +120,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTea(c)
 
@@ -189,9 +189,9 @@ encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -216,13 +216,13 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTea(c)
 
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTea(c)
 
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTea(c)
 
@@ -287,9 +287,9 @@ encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -314,11 +314,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTea(c)
 
@@ -332,9 +332,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
@@ -383,9 +383,9 @@ encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -410,11 +410,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTea(c)
 
@@ -428,9 +428,9 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
 
@@ -479,9 +479,9 @@ encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
 
-// エンコードなし生文字列を出力
+// エンコードされていない生の文字列を出力
 encrypter.ToRawString()
-// エンコードなし生バイトスライスを出力
+// エンコードされていない生のバイトスライスを出力
 encrypter.ToRawBytes() 
 ```
 
@@ -506,11 +506,11 @@ decrypter := dongle.Decrypt.FromBase64Bytes(base64Bytes).ByTea(c)
 file, _ := os.Open("encrypted.base64")
 decrypter := dongle.Decrypt.FromBase64File(file).ByTea(c)
 
-// エンコードなし生文字列を入力
+// エンコードされていない生の文字列を入力
 decrypter := dongle.Decrypt.FromRawString(rawString).ByTea(c)
-// エンコードなし生バイトスライスを入力
+// エンコードされていない生のバイトスライスを入力
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByTea(c)
-// エンコードなし生ファイルストリームを入力
+// エンコードされていない生のファイルストリームを入力
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByTea(c)
 
@@ -524,8 +524,8 @@ if decrypter.Error != nil {
 出力データ
 
 ```go
-// 文字列を出力
+// 復号化後の文字列を出力
 decrypter.ToString() // hello world
-// バイトスライスを出力
+// 復号化後のバイトスライスを出力
 decrypter.ToBytes() // []byte("hello world")
 ```
