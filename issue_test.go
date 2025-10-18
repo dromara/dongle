@@ -1,6 +1,7 @@
 package dongle
 
 import (
+	"crypto"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/hash"
 	"github.com/stretchr/testify/assert"
 )
@@ -138,5 +140,121 @@ func TestIssue29(t *testing.T) {
 				assert.True(t, dongleSuccess, "Dongle library should decrypt %d chars with OFB mode correctly", length)
 			})
 		}
+	})
+}
+
+// https://github.com/dromara/dongle/issues/30
+func TestIssue30(t *testing.T) {
+	// Test 1: Invalid public key test
+	t.Run("invalid_public_key_test", func(t *testing.T) {
+		kp := keypair.NewRsaKeyPair()
+		kp.SetHash(crypto.SHA256)
+		kp.SetFormat(keypair.PKCS8)
+		kp.GenKeyPair(2048)
+
+		kp2 := keypair.NewRsaKeyPair()
+		kp2.SetHash(crypto.SHA256)
+		kp2.SetFormat(keypair.PKCS8)
+		kp2.PublicKey = []byte("123") // Invalid public key
+
+		// Test 1: kp signs, kp verifies - should be true
+		base64Bytes1 := Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes()
+		result1 := Verify.FromString("hello world").WithBase64Sign(base64Bytes1).ByRsa(kp).ToBool()
+		assert.True(t, result1, "test1: kp signs, kp verifies should be true")
+
+		// Test 2: kp2 signs, kp2 verifies - should be false (invalid public key)
+		base64Bytes2 := Sign.FromString("hello world").ByRsa(kp2).ToBase64Bytes()
+		result2 := Verify.FromString("hello world").WithBase64Sign(base64Bytes2).ByRsa(kp2).ToBool()
+		assert.False(t, result2, "test2: kp2 signs, kp2 verifies should be false (invalid public key)")
+
+		// Test 3: kp signs, kp2 verifies - should be false (kp2 has invalid public key)
+		base64Bytes3 := Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes()
+		result3 := Verify.FromString("hello world").WithBase64Sign(base64Bytes3).ByRsa(kp2).ToBool()
+		assert.False(t, result3, "test3: kp signs, kp2 verifies should be false (kp2 has invalid public key)")
+
+		// Test 4: kp2 signs, kp verifies - should be false (kp2 cannot sign with invalid key)
+		base64Bytes4 := Sign.FromString("hello world").ByRsa(kp2).ToBase64Bytes()
+		result4 := Verify.FromString("hello world").WithBase64Sign(base64Bytes4).ByRsa(kp).ToBool()
+		assert.False(t, result4, "test4: kp2 signs, kp verifies should be false (kp2 cannot sign with invalid key)")
+	})
+
+	// Test 2: Same public key test
+	t.Run("same_public_key_test", func(t *testing.T) {
+		kp := keypair.NewRsaKeyPair()
+		kp.SetHash(crypto.SHA256)
+		kp.SetFormat(keypair.PKCS8)
+		kp.GenKeyPair(2048)
+
+		kp2 := keypair.NewRsaKeyPair()
+		kp2.SetHash(crypto.SHA256)
+		kp2.SetFormat(keypair.PKCS8)
+		kp2.PublicKey = kp.PublicKey // Same public key
+
+		// Test 1: kp signs, kp verifies - should be true
+		base64Bytes1 := Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes()
+		result1 := Verify.FromString("hello world").WithBase64Sign(base64Bytes1).ByRsa(kp).ToBool()
+		assert.True(t, result1, "test1: kp signs, kp verifies should be true")
+
+		// Test 2: kp2 signs, kp2 verifies - should be false (kp2 has no private key)
+		base64Bytes2 := Sign.FromString("hello world").ByRsa(kp2).ToBase64Bytes()
+		result2 := Verify.FromString("hello world").WithBase64Sign(base64Bytes2).ByRsa(kp2).ToBool()
+		assert.False(t, result2, "test2: kp2 signs, kp2 verifies should be false (kp2 has no private key)")
+
+		// Test 3: kp signs, kp2 verifies - should be true (kp2 has same public key)
+		base64Bytes3 := Sign.FromString("hello world").ByRsa(kp).ToBase64Bytes()
+		result3 := Verify.FromString("hello world").WithBase64Sign(base64Bytes3).ByRsa(kp2).ToBool()
+		assert.True(t, result3, "test3: kp signs, kp2 verifies should be true (kp2 has same public key)")
+
+		// Test 4: kp2 signs, kp verifies - should be false (kp2 cannot sign without private key)
+		base64Bytes4 := Sign.FromString("hello world").ByRsa(kp2).ToBase64Bytes()
+		result4 := Verify.FromString("hello world").WithBase64Sign(base64Bytes4).ByRsa(kp).ToBool()
+		assert.False(t, result4, "test4: kp2 signs, kp verifies should be false (kp2 cannot sign without private key)")
+	})
+
+	// Test 3: Cross-verification test with different key pairs
+	t.Run("cross_verification_test", func(t *testing.T) {
+		kp1 := keypair.NewRsaKeyPair()
+		kp1.SetHash(crypto.SHA256)
+		kp1.SetFormat(keypair.PKCS8)
+		kp1.GenKeyPair(2048)
+
+		kp2 := keypair.NewRsaKeyPair()
+		kp2.SetHash(crypto.SHA256)
+		kp2.SetFormat(keypair.PKCS8)
+		kp2.GenKeyPair(2048)
+
+		// Test: kp1 signs, kp2 verifies - should be false (different key pairs)
+		base64Bytes := Sign.FromString("hello world").ByRsa(kp1).ToBase64Bytes()
+		result := Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp2).ToBool()
+		assert.False(t, result, "Cross-verification with different key pairs should be false")
+
+		// Test: kp1 signs, kp1 verifies - should be true (same key pair)
+		result2 := Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp1).ToBool()
+		assert.True(t, result2, "Verification with same key pair should be true")
+	})
+
+	// Test 4: Empty signature test
+	t.Run("empty_signature_test", func(t *testing.T) {
+		kp := keypair.NewRsaKeyPair()
+		kp.SetHash(crypto.SHA256)
+		kp.SetFormat(keypair.PKCS8)
+		kp.GenKeyPair(2048)
+
+		// Test with empty signature
+		result := Verify.FromString("hello world").WithBase64Sign([]byte{}).ByRsa(kp).ToBool()
+		assert.False(t, result, "Verification with empty signature should be false")
+	})
+
+	// Test 5: Invalid signature test
+	t.Run("invalid_signature_test", func(t *testing.T) {
+		kp := keypair.NewRsaKeyPair()
+		kp.SetHash(crypto.SHA256)
+		kp.SetFormat(keypair.PKCS8)
+		kp.GenKeyPair(2048)
+
+		// Test with invalid signature
+		invalidSignature := []byte("invalid_signature_data")
+		result := Verify.FromString("hello world").WithRawSign(invalidSignature).ByRsa(kp).ToBool()
+		assert.False(t, result, "Verification with invalid signature should be false")
 	})
 }
