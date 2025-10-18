@@ -101,7 +101,7 @@ func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 
 	// Standard verification mode
 	if len(v.data) > 0 {
-		signature := kp.Sign
+		signature := v.sign
 		if len(signature) == 0 {
 			v.Error = &rsa.NoSignatureError{}
 			return v
@@ -112,10 +112,8 @@ func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 			v.Error = err
 			return v
 		}
-
 		if valid {
 			v.data = []byte{1} // true
-			v.sign = signature // Set the signature for ToBool() to work
 		}
 	}
 
