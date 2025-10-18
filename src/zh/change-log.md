@@ -9,6 +9,8 @@ head:
 
 ## [v1.1.7](https://github.com/dromara/dongle/compare/v1.1.6...v1.1.7) (2025-10-20)
 
+* [fix] 修复 `RSA` 数字签名算法中验签错误的 bug [#30](https://github.com/dromara/dongle/issues)
+
 * [chore] 优化流式处理逻辑，添加对 `reader` 位置重置的支持，确保从数据源的开头开始读取，避免因之前读取操作导致的位置偏移问题，保证流式操作的完整性和正确性
 * [chore] `crypto/cipher/block.go` 中 `newXXXEncrypter` 和 `newXXXDecrypter` 系列私有方法更改成公开方法 `NewXXXEncrypter` 和 `NewXXXDecrypter`
 * [chore] `crypto/cipher/padding.go` 中 `newXXXPadding` 和 `newXXXUnPadding` 系列私有方法更改成公开方法 `NewXXXPadding` 和 `NewXXXUnPadding`
