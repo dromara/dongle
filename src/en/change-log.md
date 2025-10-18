@@ -10,11 +10,9 @@ head:
 ## [v1.1.7](https://github.com/dromara/dongle/compare/v1.1.6...v1.1.7) (2025-10-20)
 
 * [fix] Fix bug in `RSA` digital signature algorithm verification [#30](https://github.com/dromara/dongle/issues)
-
 * [chore] Optimize streaming processing logic, add support for `reader` position reset to ensure reading from the beginning of the data source, avoiding position offset issues caused by previous read operations, ensuring completeness and correctness of streaming operations
 * [chore] Change private methods `newXXXEncrypter` and `newXXXDecrypter` series in `crypto/cipher/block.go` to public methods `NewXXXEncrypter` and `NewXXXDecrypter`
 * [chore] Change private methods `newXXXPadding` and `newXXXUnPadding` series in `crypto/cipher/padding.go` to public methods `NewXXXPadding` and `NewXXXUnPadding`
-
 * [feat] Add `sm4` chinese national standard block encryption algorithm support, including standard processing and streaming processing, supporting different block modes and padding modes
 
 ## [v1.1.6](https://github.com/dromara/dongle/compare/v1.1.5...v1.1.6) (2025-10-12)
@@ -39,7 +37,6 @@ head:
 * [chore] Optimize `3DES` symmetric encryption algorithm validation for unsupported `GCM` mode
 * [chore] Optimize `Blowfish` symmetric encryption algorithm validation for unsupported `GCM` mode
 * [chore] Update `testify` dependency to `v1.11.1`
-
 * [feat] Add `Salsa20` encryption algorithm support, including standard processing and streaming processing
 
 ## [v1.1.2](https://github.com/dromara/dongle/compare/v1.1.1...v1.1.2) (2025-09-08)
@@ -47,7 +44,6 @@ head:
 * [chore] Encoding/decoding support customizing file stream buffer size via `coding.BufferSize` global variable
 * [chore] Encryption/decryption support customizing file stream buffer size via `crypto.BufferSize` global variable
 * [chore] Hash/Hmac algorithms support customizing file stream buffer size via `hash.BufferSize` global variable
-
 * [feat] Add `Blake2b` hash algorithm support, including `blake2b-256`, `blake2b-384` and `blake2b-512`
 * [feat] Add `Blake2s` hash algorithm support, including `blake2s-128` and `blake2s-256`
 * [feat] Add `ChaCha20` encryption algorithm support
@@ -59,7 +55,6 @@ head:
 * [refactor] Change toolkit package name from `utils` to `util`
 * [refactor] Encoding/decoding, encryption/decryption, Hash/Hmac, signature/verification support true streaming processing
 * [refactor] When input data is empty, return empty data directly without executing subsequent operations
-
 * [feat] Add `ED25519` digital signature and verification support
 * [feat] Add `SM3` hash algorithm support
 * [feat] Add `mock/hash.go` to simulate errors in `hash.Hash` interface
@@ -75,7 +70,6 @@ head:
 * [refactor] Message authentication code algorithm (`hmac`) calling method changed from `dongle.Encrypt.ByHmacXXX()` to `dongle.Hash.WithKey().ByXXX()`
 * [refactor] Refactor `AES`, `DES`, `3DES`, `Blowfish` and other symmetric encryption/decryption methods, uniformly use `cipher.NewXXXCipher()`
 * [refactor] Refactor `RSA` and other asymmetric encryption/decryption methods, uniformly use `keypair.NewXXXKeyPair()`
-
 * [feat] Add support for `file stream` encoding/decoding, encryption/decryption, Hash/HMAC, signature/verification
 * [feat] Add new `ByBase32Hex` encoding/decoding method
 * [feat] Add support for `base32/base32Hex` encoding custom character

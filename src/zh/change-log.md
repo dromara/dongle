@@ -10,11 +10,9 @@ head:
 ## [v1.1.7](https://github.com/dromara/dongle/compare/v1.1.6...v1.1.7) (2025-10-20)
 
 * [fix] 修复 `RSA` 数字签名算法中验签错误的 bug [#30](https://github.com/dromara/dongle/issues)
-
 * [chore] 优化流式处理逻辑，添加对 `reader` 位置重置的支持，确保从数据源的开头开始读取，避免因之前读取操作导致的位置偏移问题，保证流式操作的完整性和正确性
 * [chore] `crypto/cipher/block.go` 中 `newXXXEncrypter` 和 `newXXXDecrypter` 系列私有方法更改成公开方法 `NewXXXEncrypter` 和 `NewXXXDecrypter`
 * [chore] `crypto/cipher/padding.go` 中 `newXXXPadding` 和 `newXXXUnPadding` 系列私有方法更改成公开方法 `NewXXXPadding` 和 `NewXXXUnPadding`
-
 * [feat] 增加 `sm4` 中国国家标准分组加密算法支持，包括标准处理和流式处理，支持不同分块模式和填充模式
 
 ## [v1.1.6](https://github.com/dromara/dongle/compare/v1.1.5...v1.1.6) (2025-10-12)
@@ -39,7 +37,6 @@ head:
 * [chore] 优化 `3DES` 对称加密算法对不支持的 `GCM` 模式的校验
 * [chore] 优化 `Blowfish` 对称加密算法对不支持的 `GCM` 模式的校验
 * [chore] 更新 `testify` 依赖至 `v1.11.1` 
-
 * [feat] 增加 `Salsa20` 加密算法支持，包括标准处理和流式处理
 
 ## [v1.1.2](https://github.com/dromara/dongle/compare/v1.1.1...v1.1.2) (2025-09-08)
@@ -47,7 +44,6 @@ head:
 * [chore] 编码/解码支持通过 `coding.BufferSize` 全局变量自定义文件流缓冲区大小
 * [chore] 加密/解密支持通过 `crypto.BufferSize` 全局变量自定义文件流缓冲区大小
 * [chore] Hash/Hmac 算法支持通过 `hash.BufferSize` 全局变量自定义文件流缓冲区大小
-
 * [feat] 增加 `Blake2b` 哈希算法支持，包括 `blake2b-256`、`blake2b-384` 和 `blake2b-512`
 * [feat] 增加 `Blake2s` 哈希算法支持，包括 `blake2s-128` 和 `blake2s-256`
 * [feat] 增加 `ChaCha20` 加密算法支持
@@ -59,7 +55,6 @@ head:
 * [refactor] 将工具包名从 `utils` 改成 `util`
 * [refactor] 编码/解码、加密/解密、Hash/Hmac、签名/验签支持真正的流式处理
 * [refactor] 当输入数据为空时，直接返回空数据而不执行后续操作
-
 * [feat] 增加 `ED25519` 数字签名和验证支持
 * [feat] 增加 `SM3` 哈希算法支持
 * [feat] 增加 `mock/hash.go` 来模拟 `hash.Hash` 接口的错误
@@ -75,7 +70,6 @@ head:
 * [refactor] 消息认证码算法(`hmac`)调用方式从 `dongle.Encrypt.ByHmacXXX()` 改成 `dongle.Hash.WithKey().ByXXX()`
 * [refactor] 重构 `AES`, `DES`, `3DES`, `Blowfish` 等对称加密/解密方法，统一使用 `cipher.NewXXXCipher()`
 * [refactor] 重构 `RSA` 等非对称加密/解密方法，统一使用 `keypair.NewXXXKeyPair()`
-
 * [feat] 增加对 `文件流` 编码/解码、加密/解密、Hash/Hmac、签名/验签的支持
 * [feat] 新增`ByBase32Hex` 编码/解码方法
 * [feat] `base32/base32Hex` 编码增加对自定义字符集的支持
