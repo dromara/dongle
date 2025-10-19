@@ -14,7 +14,7 @@ import (
 // For safety, prefer []byte(s) if you need a writable copy.
 func String2Bytes(s string) []byte {
 	if len(s) == 0 {
-		return []byte("")
+		return []byte{}
 	}
 	return *(*[]byte)(unsafe.Pointer(
 		&struct {
