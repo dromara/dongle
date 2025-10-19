@@ -13,11 +13,6 @@ func (s Signer) ByEd25519(kp *keypair.Ed25519KeyPair) Signer {
 		return s
 	}
 
-	if kp == nil {
-		s.Error = &ed25519.NilKeyPairError{}
-		return s
-	}
-
 	// Streaming signing mode
 	if s.reader != nil {
 		s.sign, s.Error = s.stream(func(w io.Writer) io.WriteCloser {
@@ -40,39 +35,36 @@ func (v Verifier) ByEd25519(kp *keypair.Ed25519KeyPair) Verifier {
 		return v
 	}
 
-	if kp == nil {
-		v.Error = &ed25519.NilKeyPairError{}
-		return v
-	}
-
 	// Streaming verification mode
 	if v.reader != nil {
-		signature := kp.Sign
+		signature := v.sign
 		if len(signature) == 0 {
 			v.Error = &ed25519.NoSignatureError{}
 			return v
 		}
 
 		// Create a stream verifier
-		streamVerifier := ed25519.NewStreamVerifier(v.reader, kp)
-		defer streamVerifier.Close()
+		verifier := ed25519.NewStreamVerifier(v.reader, kp)
+		defer verifier.Close()
 
 		// Write data to the stream verifier
 		if len(v.data) > 0 {
-			_, v.Error = streamVerifier.Write(v.data)
-			if v.Error != nil {
-				return v
-			}
+			_, v.Error = verifier.Write(v.data)
 		}
 
-		// Set verification result
-		v.data = []byte{1} // true
+		// Close the verifier to perform verification
+		v.Error = verifier.Close()
+		if v.Error != nil {
+			return v
+		}
+
+		v.verify = true
 		return v
 	}
 
 	// Standard verification mode
 	if len(v.data) > 0 {
-		signature := kp.Sign
+		signature := v.sign
 		if len(signature) == 0 {
 			v.Error = &ed25519.NoSignatureError{}
 			return v
@@ -83,10 +75,8 @@ func (v Verifier) ByEd25519(kp *keypair.Ed25519KeyPair) Verifier {
 			v.Error = err
 			return v
 		}
-
 		if valid {
-			v.data = []byte{1} // true
-			v.sign = signature // Set the signature for ToBool() to work
+			v.verify = true
 		}
 	}
 

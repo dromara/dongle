@@ -94,8 +94,7 @@ func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 			return v
 		}
 
-		// Set verification result
-		v.data = []byte{1} // true
+		v.verify = true
 		return v
 	}
 
@@ -113,7 +112,7 @@ func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 			return v
 		}
 		if valid {
-			v.data = []byte{1} // true
+			v.verify = true
 		}
 	}
 

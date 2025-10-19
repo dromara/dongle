@@ -13,6 +13,7 @@ import (
 type Verifier struct {
 	data   []byte
 	sign   []byte
+	verify bool
 	reader io.Reader
 	Error  error
 }
@@ -63,7 +64,7 @@ func (v Verifier) ToBool() bool {
 	if len(v.data) == 0 || len(v.sign) == 0 {
 		return false
 	}
-	return v.Error == nil
+	return v.Error == nil && v.verify
 }
 
 func (v Verifier) stream(fn func(io.Writer) io.WriteCloser) ([]byte, error) {

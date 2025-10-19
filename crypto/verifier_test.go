@@ -188,6 +188,7 @@ func TestVerifier_ToBool(t *testing.T) {
 		verifier.data = []byte("hello world")
 		verifier.sign = []byte("signature")
 		verifier.Error = nil
+		verifier.verify = true
 
 		result := verifier.ToBool()
 		assert.True(t, result)
