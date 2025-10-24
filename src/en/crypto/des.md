@@ -34,6 +34,7 @@ Supported padding modes:
 - **ISO10126**: ISO/IEC 10126 padding, fills with random bytes except the last byte, the last byte indicates the number of padding bytes
 - **ISO78164**: ISO/IEC 7816-4 padding, first byte is 0x80, rest filled with 0x00
 - **Bit**: Bit padding, adds a 1 bit at the end of plaintext, then fills with 0 bits to block boundary
+- **TBC**: Trailing Bit Complement padding, determines padding bytes based on the most significant bit of the last data byte (MSB=0 uses 0x00, MSB=1 uses 0xFF)
 
 > **Note**: Only `CBC/ECB` block modes require padding
 

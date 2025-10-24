@@ -7,6 +7,10 @@ head:
 
 # 更新日志
 
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-10-27)
+* [feat] 增加 `Unicode` 编码解码支持，包括标准处理和流式处理
+* [feat] 对称分组加密算法增加 `TBC` 填充模式支持
+
 ## [v1.1.7](https://github.com/dromara/dongle/compare/v1.1.6...v1.1.7) (2025-10-20)
 
 * [fix] 修复非对称数字签名算法中验签错误的 bug [#30](https://github.com/dromara/dongle/issues)

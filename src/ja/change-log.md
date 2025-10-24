@@ -7,6 +7,10 @@ head:
 
 # 更新ログ
 
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-10-27)
+* [feat] `Unicode` エンコード/デコードサポートを追加（標準処理とストリーム処理を含む）
+* [feat] 対称ブロック暗号化アルゴリズムに `TBC` パディングモードサポートを追加
+
 ## [v1.1.7](https://github.com/dromara/dongle/compare/v1.1.6...v1.1.7) (2025-10-20)
 * [fix] 非対称デジタル署名アルゴリズムの検証エラーのバグを修正 [#30](https://github.com/dromara/dongle/issues)
 * [chore] ストリーム処理ロジックを最適化し、`reader` 位置リセットサポートを追加してデータソースの先頭から読み取りを保証し、以前の読み取り操作による位置オフセット問題を回避し、ストリーム操作の完全性と正確性を保証
