@@ -188,7 +188,7 @@ func TestBlockCipher_Encrypt(t *testing.T) {
 	})
 
 	t.Run("encrypt with different padding modes", func(t *testing.T) {
-		paddings := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit}
+		paddings := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit, TBC}
 		for _, padding := range paddings {
 			t.Run(string(padding), func(t *testing.T) {
 				cipher := &blockCipher{
@@ -251,6 +251,7 @@ func TestBlockCipher_Encrypt(t *testing.T) {
 			{"ISO10126 padding", ISO10126, testIV, 16},
 			{"ISO78164 padding", ISO78164, testIV, 16},
 			{"Bit padding", Bit, testIV, 16},
+			{"TBC padding", TBC, testIV, 16},
 		}
 
 		for _, tc := range testCases {
@@ -483,7 +484,7 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 	})
 
 	t.Run("decrypt with different padding modes", func(t *testing.T) {
-		paddings := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit}
+		paddings := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit, TBC}
 		for _, padding := range paddings {
 			t.Run(string(padding), func(t *testing.T) {
 				cipher := &blockCipher{
@@ -551,6 +552,7 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 			{"ISO10126 padding", ISO10126, testIV, 16},
 			{"ISO78164 padding", ISO78164, testIV, 16},
 			{"Bit padding", Bit, testIV, 16},
+			{"TBC padding", TBC, testIV, 16},
 		}
 
 		for _, tc := range testCases {
@@ -748,7 +750,7 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 	})
 
 	t.Run("decrypt with all padding modes", func(t *testing.T) {
-		paddings := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit}
+		paddings := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit, TBC}
 		for _, padding := range paddings {
 			t.Run(string(padding), func(t *testing.T) {
 				cipher := &blockCipher{
@@ -859,6 +861,34 @@ func TestBlockCipher_Encrypt_ErrorCases(t *testing.T) {
 		assert.Contains(t, err.Error(), "unsupported padding mode")
 		assert.Contains(t, err.Error(), "UNSUPPORTED")
 	})
+
+	t.Run("encrypt with TBC padding mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: TBC,
+			IV:      testIV,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		result, err := cipher.Encrypt(testData, block)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+	})
 }
 
 func TestBlockCipher_Decrypt_ErrorCases(t *testing.T) {
@@ -958,5 +988,101 @@ func TestBlockCipher_Decrypt_ErrorCases(t *testing.T) {
 		result, err := cipher.Decrypt(invalidData, block)
 		assert.Error(t, err) // Should have error
 		assert.Nil(t, result)
+	})
+
+	t.Run("decrypt with TBC padding mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: TBC,
+			IV:      testIV,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		// First encrypt some data
+		encrypted, err := cipher.Encrypt(testData, block)
+		assert.NoError(t, err)
+		assert.NotNil(t, encrypted)
+
+		// Then decrypt
+		result, err := cipher.Decrypt(encrypted, block)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+	})
+}
+
+func TestBlockCipher_Padding(t *testing.T) {
+	t.Run("padding with all supported modes", func(t *testing.T) {
+		cipher := &blockCipher{}
+		blockSize := 16
+		testData := []byte("test data")
+
+		paddingModes := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit, TBC}
+
+		for _, mode := range paddingModes {
+			t.Run(string(mode), func(t *testing.T) {
+				cipher.Padding = mode
+				result, err := cipher.padding(testData, blockSize)
+				assert.NoError(t, err)
+				assert.NotNil(t, result)
+			})
+		}
+	})
+
+	t.Run("padding with unsupported mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Padding: PaddingMode("UNSUPPORTED"),
+		}
+		blockSize := 16
+		testData := []byte("test data")
+
+		result, err := cipher.padding(testData, blockSize)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.IsType(t, UnsupportedPaddingModeError{}, err)
+	})
+}
+
+func TestBlockCipher_UnPadding(t *testing.T) {
+	t.Run("unpadding with all supported modes", func(t *testing.T) {
+		cipher := &blockCipher{}
+		testData := []byte("test data")
+
+		paddingModes := []PaddingMode{No, Zero, PKCS5, PKCS7, AnsiX923, ISO97971, ISO10126, ISO78164, Bit, TBC}
+
+		for _, mode := range paddingModes {
+			t.Run(string(mode), func(t *testing.T) {
+				cipher.Padding = mode
+				result, err := cipher.unpadding(testData)
+				assert.NoError(t, err)
+				assert.NotNil(t, result)
+			})
+		}
+	})
+
+	t.Run("unpadding with unsupported mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Padding: PaddingMode("UNSUPPORTED"),
+		}
+		testData := []byte("test data")
+
+		result, err := cipher.unpadding(testData)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.IsType(t, UnsupportedPaddingModeError{}, err)
 	})
 }

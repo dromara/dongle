@@ -127,6 +127,8 @@ func (c *blockCipher) padding(src []byte, blockSize int) (dst []byte, err error)
 		return NewISO78164Padding(src, blockSize), nil
 	case Bit:
 		return NewBitPadding(src, blockSize), nil
+	case TBC:
+		return NewTBCPadding(src, blockSize), nil
 	default:
 		return dst, UnsupportedPaddingModeError{mode: c.Padding}
 	}
@@ -153,6 +155,8 @@ func (c *blockCipher) unpadding(src []byte) (dst []byte, err error) {
 		return NewISO78164UnPadding(src), nil
 	case Bit:
 		return NewBitUnPadding(src), nil
+	case TBC:
+		return NewTBCUnPadding(src), nil
 	default:
 		return dst, UnsupportedPaddingModeError{mode: c.Padding}
 	}

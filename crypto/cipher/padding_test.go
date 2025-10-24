@@ -706,4 +706,187 @@ func TestPaddingModes(t *testing.T) {
 	t.Run("Bit padding mode", func(t *testing.T) {
 		assert.Equal(t, PaddingMode("Bit"), Bit)
 	})
+
+	t.Run("TBC padding mode", func(t *testing.T) {
+		assert.Equal(t, PaddingMode("TBC"), TBC)
+	})
+}
+
+func TestTBCPadding(t *testing.T) {
+	t.Run("TBC padding with MSB=0 (should use 0x00)", func(t *testing.T) {
+		data := []byte{0x7F} // MSB = 0
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 8, len(padded))
+		assert.Equal(t, data, padded[:1])
+		// All padding bytes should be 0x00
+		for i := 1; i < 8; i++ {
+			assert.Equal(t, byte(0x00), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with MSB=1 (should use 0xFF)", func(t *testing.T) {
+		data := []byte{0x80} // MSB = 1
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 8, len(padded))
+		assert.Equal(t, data, padded[:1])
+		// All padding bytes should be 0xFF
+		for i := 1; i < 8; i++ {
+			assert.Equal(t, byte(0xFF), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with multiple bytes, last byte MSB=0", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x7F} // Last byte MSB = 0
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 8, len(padded))
+		assert.Equal(t, data, padded[:4])
+		// All padding bytes should be 0x00
+		for i := 4; i < 8; i++ {
+			assert.Equal(t, byte(0x00), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with multiple bytes, last byte MSB=1", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x80} // Last byte MSB = 1
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 8, len(padded))
+		assert.Equal(t, data, padded[:4])
+		// All padding bytes should be 0xFF
+		for i := 4; i < 8; i++ {
+			assert.Equal(t, byte(0xFF), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with exact block size", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0x7F} // 8 bytes, last MSB = 0
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 16, len(padded)) // Adds full block
+		assert.Equal(t, data, padded[:8])
+		// All padding bytes should be 0x00
+		for i := 8; i < 16; i++ {
+			assert.Equal(t, byte(0x00), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with exact block size, last byte MSB=1", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0x80} // 8 bytes, last MSB = 1
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 16, len(padded)) // Adds full block
+		assert.Equal(t, data, padded[:8])
+		// All padding bytes should be 0xFF
+		for i := 8; i < 16; i++ {
+			assert.Equal(t, byte(0xFF), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with empty data (default to 0x00)", func(t *testing.T) {
+		var data []byte
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 8, len(padded))
+		// All padding bytes should be 0x00 (default for empty data)
+		for i := 0; i < 8; i++ {
+			assert.Equal(t, byte(0x00), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with different block sizes", func(t *testing.T) {
+		data := []byte{0x7F} // MSB = 0
+		blockSize := 4
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 4, len(padded))
+		assert.Equal(t, data, padded[:1])
+		// All padding bytes should be 0x00
+		for i := 1; i < 4; i++ {
+			assert.Equal(t, byte(0x00), padded[i])
+		}
+	})
+
+	t.Run("TBC padding with single byte padding", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE} // 7 bytes, last MSB = 1
+		blockSize := 8
+		padded := NewTBCPadding(data, blockSize)
+		assert.Equal(t, 8, len(padded))
+		assert.Equal(t, data, padded[:7])
+		// Last padding byte should be 0xFF
+		assert.Equal(t, byte(0xFF), padded[7])
+	})
+}
+
+func TestTBCUnPadding(t *testing.T) {
+	t.Run("TBC unpadding with 0xFF padding", func(t *testing.T) {
+		data := []byte{0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+		expected := []byte{0x7F}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, expected, unpadded)
+	})
+
+	t.Run("TBC unpadding with 0x00 padding", func(t *testing.T) {
+		data := []byte{0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+		expected := []byte{0x80}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, expected, unpadded)
+	})
+
+	t.Run("TBC unpadding with mixed padding bytes", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF, 0xFF, 0xFF}
+		expected := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, expected, unpadded)
+	})
+
+	t.Run("TBC unpadding with no padding", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x78}
+		// TBC unpadding removes all trailing bytes equal to the last byte
+		// Since 0x78 appears only once at the end, it will be removed
+		expected := []byte{0x12, 0x34, 0x56}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, expected, unpadded)
+	})
+
+	t.Run("TBC unpadding with all same bytes", func(t *testing.T) {
+		data := []byte{0xFF, 0xFF, 0xFF, 0xFF}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, []byte{}, unpadded)
+	})
+
+	t.Run("TBC unpadding with all zeros", func(t *testing.T) {
+		data := []byte{0x00, 0x00, 0x00, 0x00}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, []byte{}, unpadded)
+	})
+
+	t.Run("TBC unpadding with empty data", func(t *testing.T) {
+		var data []byte
+		unpadded := NewTBCUnPadding(data)
+		assert.Nil(t, unpadded)
+	})
+
+	t.Run("TBC unpadding with single byte", func(t *testing.T) {
+		data := []byte{0x42}
+		// TBC unpadding removes all trailing bytes equal to the last byte
+		// Since there's only one byte, it will be removed
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, []byte{}, unpadded)
+	})
+
+	t.Run("TBC unpadding with alternating bytes", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF}
+		expected := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, expected, unpadded)
+	})
+
+	t.Run("TBC unpadding with complex pattern", func(t *testing.T) {
+		data := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+		expected := []byte{0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE}
+		unpadded := NewTBCUnPadding(data)
+		assert.Equal(t, expected, unpadded)
+	})
 }

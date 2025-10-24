@@ -19,6 +19,7 @@ const (
 	ISO10126 PaddingMode = "ISO10126"  // ISO/IEC 10126 padding - random + length byte
 	ISO78164 PaddingMode = "ISO7816-4" // ISO/IEC 7816-4 padding - same as ISO9797-1
 	Bit      PaddingMode = "Bit"       // Bit padding - 0x80 + zeros
+	TBC      PaddingMode = "TBC"       // TBC padding - 0x00 if last byte MSB=1, else 0xFF
 )
 
 // NewNoPadding adds no padding to the source data.
@@ -200,4 +201,36 @@ func NewBitPadding(src []byte, blockSize int) []byte {
 // This function calls ISO9797-1 unpadding since they are identical.
 func NewBitUnPadding(src []byte) []byte {
 	return NewISO97971UnPadding(src)
+}
+
+// NewTBCPadding adds TBC (Trailing Bit Complement) padding to the source data.
+// TBC padding fills the padding bytes with 0x00 if the most significant bit
+// (MSB) of the last data byte is 0; otherwise it fills with 0xFF.
+// If the data length is already a multiple of block size, a full block
+// of padding is added following the same rule.
+func NewTBCPadding(src []byte, blockSize int) []byte {
+	paddingSize := blockSize - len(src)%blockSize
+	// Determine pad byte based on MSB of last data byte. For empty data,
+	// default to 0x00 as if last data byte MSB were 0.
+	paddingBytes := byte(0x00)
+	if len(src) > 0 && src[len(src)-1]&0x80 != 0 {
+		paddingBytes = 0xFF
+	}
+	repeatBytes := bytes.Repeat([]byte{paddingBytes}, paddingSize)
+	return append(src, repeatBytes...)
+}
+
+// NewTBCUnPadding removes TBC padding from the source data by stripping all
+// trailing bytes equal to the last byte value. This mirrors the ambiguity of
+// zero padding removal and does not perform strict validation.
+func NewTBCUnPadding(src []byte) []byte {
+	if len(src) == 0 {
+		return src
+	}
+	paddingBytes := src[len(src)-1]
+	i := len(src) - 1
+	for i >= 0 && src[i] == paddingBytes {
+		i--
+	}
+	return src[:i+1]
 }
