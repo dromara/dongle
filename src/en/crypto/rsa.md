@@ -155,12 +155,12 @@ Output Data
 // Output Hex encoded string
 hexString := encrypter.ToHexString() // e.g.: 7fae94fd1a8b880d8d5454dd8df30c40...
 // Output hex-encoded byte slice
-hexBytes := encrypter.ToHexBytes()  // e.g.: []byte("7fae94fd1a8b880d8d5454dd8df30c40...")
+hexBytes := encrypter.ToHexBytes()   // e.g.: []byte("7fae94fd1a8b880d8d5454dd8df30c40...")
 
 // Output Base64 encoded string
 base64String := encrypter.ToBase64String() // e.g.: f66U/RqLiA2NVFTdjfMMQA==...
 // Output base64-encoded byte slice
-base64Bytes := encrypter.ToBase64Bytes()  // e.g.: []byte("f66U/RqLiA2NVFTdjfMMQA==...")
+base64Bytes := encrypter.ToBase64Bytes()   // e.g.: []byte("f66U/RqLiA2NVFTdjfMMQA==...")
 
 // Output unencoded raw string
 rawString := encrypter.ToRawString()
@@ -210,5 +210,5 @@ Output Data
 // Output decrypted string
 decrypter.ToString() // hello world
 // Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```

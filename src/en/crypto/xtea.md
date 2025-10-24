@@ -84,12 +84,12 @@ Output data
 // Output Hex encoded string
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // obLD1OX2eJA=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // Output raw string without encoding
 encrypter.ToRawString()
@@ -178,12 +178,12 @@ Output data
 // Output Hex encoded string
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // obLD1OX2eJA=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // Output raw string without encoding
 encrypter.ToRawString()
@@ -235,7 +235,7 @@ Output data
 // Output decrypted string
 decrypter.ToString() // hello world
 // Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CTR Mode
@@ -274,12 +274,12 @@ Output data
 // Output Hex encoded string
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // obLD1OX2eJA=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // Output raw string without encoding
 encrypter.ToRawString()
@@ -368,12 +368,12 @@ Output data
 // Output Hex encoded string
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // obLD1OX2eJA=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // Output raw string without encoding
 encrypter.ToRawString()
@@ -423,7 +423,7 @@ Output data
 // Output decrypted string
 decrypter.ToString() // hello world
 // Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## OFB Mode
@@ -462,12 +462,12 @@ Output data
 // Output Hex encoded string
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // obLD1OX2eJA=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // Output raw string without encoding
 encrypter.ToRawString()
@@ -517,5 +517,5 @@ Output data
 // Output decrypted string
 decrypter.ToString() // hello world
 // Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```

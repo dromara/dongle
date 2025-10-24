@@ -81,14 +81,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -175,14 +175,14 @@ if encrypter.Error != nil {
 Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -267,14 +267,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -365,14 +365,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -458,14 +458,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -550,14 +550,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()

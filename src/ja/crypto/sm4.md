@@ -81,14 +81,14 @@ if encrypter.Error != nil {
 
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -175,14 +175,14 @@ if encrypter.Error != nil {
 出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -267,14 +267,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -365,14 +365,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -458,14 +458,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -550,14 +550,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString()
+encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   
+encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String()
+encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   
+encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()

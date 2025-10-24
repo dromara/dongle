@@ -153,12 +153,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 hexString := encrypter.ToHexString() // 例如：7fae94fd1a8b880d8d5454dd8df30c40...
 // 输出 Hex 编码字节切片
-hexBytes := encrypter.ToHexBytes()  // 例如：[]byte("7fae94fd1a8b880d8d5454dd8df30c40...")
+hexBytes := encrypter.ToHexBytes()   // 例如：[]byte("7fae94fd1a8b880d8d5454dd8df30c40...")
 
 // 输出 Base64 编码字符串
 base64String := encrypter.ToBase64String() // 例如：f66U/RqLiA2NVFTdjfMMQA==...
 // 输出 Base64 编码字节切片
-base64Bytes := encrypter.ToBase64Bytes()  // 例如：[]byte("f66U/RqLiA2NVFTdjfMMQA==...")
+base64Bytes := encrypter.ToBase64Bytes()   // 例如：[]byte("f66U/RqLiA2NVFTdjfMMQA==...")
 
 // 输出未编码原始字符串
 rawString := encrypter.ToRawString()
@@ -205,5 +205,5 @@ if decrypter.Error != nil {
 // 输出解密后的字符串
 decrypter.ToString() // hello world
 // 输出解密后的字节切片
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```

@@ -83,12 +83,12 @@ if encrypter.Error != nil {
 // Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -138,7 +138,7 @@ if decrypter.Error != nil {
 // Output decrypted string
 decrypter.ToString() // hello world
 // Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## ECB Mode
@@ -179,12 +179,12 @@ if encrypter.Error != nil {
 // Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -234,7 +234,7 @@ if decrypter.Error != nil {
 // Output decrypted string
 decrypter.ToString() // hello world
 // Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CTR Mode
@@ -275,12 +275,12 @@ if encrypter.Error != nil {
 // Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -375,12 +375,12 @@ if encrypter.Error != nil {
 // Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -471,12 +471,12 @@ if encrypter.Error != nil {
 // Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -567,7 +567,7 @@ if encrypter.Error != nil {
 // Output Hex encoded string
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==

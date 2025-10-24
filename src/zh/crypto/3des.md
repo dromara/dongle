@@ -85,12 +85,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -179,12 +179,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -236,7 +236,7 @@ if decrypter.Error != nil {
 // 输出解密后的字符串
 decrypter.ToString() // hello world
 // 输出解密后的字节切片
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CTR 模式
@@ -275,12 +275,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -369,12 +369,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -463,12 +463,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()

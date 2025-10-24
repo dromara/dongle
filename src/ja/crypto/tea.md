@@ -86,12 +86,12 @@ if encrypter.Error != nil {
 // Hexエンコード文字列を出力
 encrypter.ToHexString() // a97fc8fdda9bebc7
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("a97fc8fdda9bebc7")
+encrypter.ToHexBytes()  // []byte("a97fc8fdda9bebc7")
 
 // Base64エンコード文字列を出力
 encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
+encrypter.ToBase64Bytes()  // []byte("qX/I/dqb68c=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -182,12 +182,12 @@ if encrypter.Error != nil {
 // Hexエンコード文字列を出力
 encrypter.ToHexString() // a97fc8fdda9bebc7
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("a97fc8fdda9bebc7")
+encrypter.ToHexBytes()  // []byte("a97fc8fdda9bebc7")
 
 // Base64エンコード文字列を出力
 encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
+encrypter.ToBase64Bytes()  // []byte("qX/I/dqb68c=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -239,7 +239,7 @@ if decrypter.Error != nil {
 // 復号化後の文字列を出力
 decrypter.ToString() // hello world
 // 復号化後のバイトスライスを出力
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CTRモード
@@ -280,12 +280,12 @@ if encrypter.Error != nil {
 // Hexエンコード文字列を出力
 encrypter.ToHexString() // a97fc8fdda9bebc7
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("a97fc8fdda9bebc7")
+encrypter.ToHexBytes()  // []byte("a97fc8fdda9bebc7")
 
 // Base64エンコード文字列を出力
 encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
+encrypter.ToBase64Bytes()  // []byte("qX/I/dqb68c=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -376,12 +376,12 @@ if encrypter.Error != nil {
 // Hexエンコード文字列を出力
 encrypter.ToHexString() // a97fc8fdda9bebc7
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("a97fc8fdda9bebc7")
+encrypter.ToHexBytes()  // []byte("a97fc8fdda9bebc7")
 
 // Base64エンコード文字列を出力
 encrypter.ToBase64String() // qX/I/dqb68c=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("qX/I/dqb68c=")
+encrypter.ToBase64Bytes()  // []byte("qX/I/dqb68c=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -431,7 +431,7 @@ if decrypter.Error != nil {
 // 復号化後の文字列を出力
 decrypter.ToString() // hello world
 // 復号化後のバイトスライスを出力
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## OFBモード
@@ -472,7 +472,7 @@ if encrypter.Error != nil {
 // Hexエンコード文字列を出力
 encrypter.ToHexString() // a97fc8fdda9bebc7
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("a97fc8fdda9bebc7")
+encrypter.ToHexBytes()  // []byte("a97fc8fdda9bebc7")
 
 // Base64エンコード文字列を出力
 encrypter.ToBase64String() // qX/I/dqb68c=
@@ -527,5 +527,5 @@ if decrypter.Error != nil {
 // 復号化後の文字列を出力
 decrypter.ToString() // hello world
 // 復号化後のバイトスライスを出力
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```

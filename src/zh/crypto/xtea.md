@@ -84,12 +84,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // obLD1OX2eJA=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -178,12 +178,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // obLD1OX2eJA=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -235,7 +235,7 @@ if decrypter.Error != nil {
 // 输出解密后的字符串
 decrypter.ToString() // hello world
 // 输出解密后的字节切片
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CTR 模式
@@ -274,12 +274,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // obLD1OX2eJA=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -368,12 +368,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // obLD1OX2eJA=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -423,7 +423,7 @@ if decrypter.Error != nil {
 // 输出字符串
 decrypter.ToString() // hello world
 // 输出字节切片
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## OFB 模式
@@ -462,12 +462,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // a1b2c3d4e5f67890
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // obLD1OX2eJA=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -517,5 +517,5 @@ if decrypter.Error != nil {
 // 输出字符串
 decrypter.ToString() // hello world
 // 输出字节切片
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```

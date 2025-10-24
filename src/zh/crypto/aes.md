@@ -83,12 +83,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -138,7 +138,7 @@ if decrypter.Error != nil {
 // 输出解密后的字符串
 decrypter.ToString() // hello world
 // 输出解密后的字节切片
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## ECB 模式
@@ -177,12 +177,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -230,7 +230,7 @@ if decrypter.Error != nil {
 // 输出解密后的字符串
 decrypter.ToString() // hello world
 // 输出解密后的字节切片
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CTR 模式
@@ -269,12 +269,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -367,12 +367,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -460,12 +460,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -552,12 +552,12 @@ if encrypter.Error != nil {
 // 输出 Hex 编码字符串
 encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
 
 // 输出 Base64 编码字符串
 encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()

@@ -84,12 +84,12 @@ Output Data
 // Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -178,12 +178,12 @@ Output Data
 // Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -272,12 +272,12 @@ Output Data
 // Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -327,7 +327,7 @@ Output Data
 // Output decrypted string
 decrypter.ToString() // hello world
 // Output decrypted byte slice
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CFB Mode
@@ -366,12 +366,12 @@ Output Data
 // Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -460,12 +460,12 @@ Output Data
 // Output Hex encoded string
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // Output Base64 encoded string
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // Output unencoded raw string
 encrypter.ToRawString()

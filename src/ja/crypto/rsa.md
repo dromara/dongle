@@ -153,12 +153,12 @@ if encrypter.Error != nil {
 // Hexエンコード文字列を出力
 hexString := encrypter.ToHexString() // 例：7fae94fd1a8b880d8d5454dd8df30c40...
 // Hexエンコードバイトスライスを出力
-hexBytes := encrypter.ToHexBytes()  // 例：[]byte("7fae94fd1a8b880d8d5454dd8df30c40...")
+hexBytes := encrypter.ToHexBytes()   // 例：[]byte("7fae94fd1a8b880d8d5454dd8df30c40...")
 
 // Base64エンコード文字列を出力
 base64String := encrypter.ToBase64String() // 例：f66U/RqLiA2NVFTdjfMMQA==...
 // Base64エンコードバイトスライスを出力
-base64Bytes := encrypter.ToBase64Bytes()  // 例：[]byte("f66U/RqLiA2NVFTdjfMMQA==...")
+base64Bytes := encrypter.ToBase64Bytes()   // 例：[]byte("f66U/RqLiA2NVFTdjfMMQA==...")
 
 // エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()
@@ -205,5 +205,5 @@ if decrypter.Error != nil {
 // 復号化後の文字列を出力
 decrypter.ToString() // hello world
 // 復号化後のバイトスライスを出力
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```

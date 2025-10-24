@@ -84,12 +84,12 @@ if encrypter.Error != nil {
 // エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -178,12 +178,12 @@ if encrypter.Error != nil {
 // エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -272,12 +272,12 @@ if encrypter.Error != nil {
 // エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -327,7 +327,7 @@ if decrypter.Error != nil {
 // 復号化後の文字列を出力
 decrypter.ToString() // hello world
 // 復号化後のバイトスライスを出力
-decrypter.ToBytes() // []byte("hello world")
+decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CFB モード
@@ -366,12 +366,12 @@ if encrypter.Error != nil {
 // エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -460,12 +460,12 @@ if encrypter.Error != nil {
 // エンコードされていない生の文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
 // エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
