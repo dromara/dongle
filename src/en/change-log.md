@@ -7,7 +7,7 @@ head:
 
 # Change Log
 
-## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-10-27)
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-01)
 * [feat] Add `Unicode` encoding/decoding support, including standard processing and streaming processing
 * [feat] Add `TBC` padding mode support for symmetric block encryption algorithms
 

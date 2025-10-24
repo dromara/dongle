@@ -7,7 +7,7 @@ head:
 
 # 更新日志
 
-## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-10-27)
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-01)
 * [feat] 增加 `Unicode` 编码解码支持，包括标准处理和流式处理
 * [feat] 对称分组加密算法增加 `TBC` 填充模式支持
 

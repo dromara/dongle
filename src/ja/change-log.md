@@ -7,7 +7,7 @@ head:
 
 # 更新ログ
 
-## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-10-27)
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-01)
 * [feat] `Unicode` エンコード/デコードサポートを追加（標準処理とストリーム処理を含む）
 * [feat] 対称ブロック暗号化アルゴリズムに `TBC` パディングモードサポートを追加
 
