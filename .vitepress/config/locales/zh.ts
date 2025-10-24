@@ -104,6 +104,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 {text: 'base91', link: 'coding/base91'},
                 {text: 'base100', link: 'coding/base100'},
                 {text: 'morse', link: 'coding/morse'},
+                {text: 'unicode', link: 'coding/unicode'},
             ]
         },
         {
