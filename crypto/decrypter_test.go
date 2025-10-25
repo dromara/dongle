@@ -132,7 +132,7 @@ func TestDecrypter_FromBase64String(t *testing.T) {
 		assert.Nil(t, result.src)
 		assert.Nil(t, result.dst)
 		assert.Nil(t, result.reader)
-		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.Error) // Should have error for invalid base64
 	})
 
 	t.Run("from binary base64 string", func(t *testing.T) {
@@ -180,7 +180,7 @@ func TestDecrypter_FromBase64Bytes(t *testing.T) {
 		assert.Nil(t, result.src)
 		assert.Nil(t, result.dst)
 		assert.Nil(t, result.reader)
-		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.Error) // Should have error for invalid base64
 	})
 
 	t.Run("from binary base64 bytes", func(t *testing.T) {
@@ -228,7 +228,7 @@ func TestDecrypter_FromHexString(t *testing.T) {
 		assert.Nil(t, result.src)
 		assert.Nil(t, result.dst)
 		assert.Nil(t, result.reader)
-		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.Error) // Should have error for invalid hex
 	})
 
 	t.Run("from binary hex string", func(t *testing.T) {
@@ -276,7 +276,7 @@ func TestDecrypter_FromHexBytes(t *testing.T) {
 		assert.Nil(t, result.src)
 		assert.Nil(t, result.dst)
 		assert.Nil(t, result.reader)
-		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.Error) // Should have error for invalid hex
 	})
 
 	t.Run("from binary hex bytes", func(t *testing.T) {

@@ -46,6 +46,7 @@ func (d Decrypter) FromRawFile(f fs.File) Decrypter {
 func (d Decrypter) FromBase64String(s string) Decrypter {
 	decode := coding.NewDecoder().FromString(s).ByBase64()
 	if decode.Error != nil {
+		d.Error = decode.Error
 		return d
 	}
 	d.src = decode.ToBytes()
@@ -56,6 +57,7 @@ func (d Decrypter) FromBase64String(s string) Decrypter {
 func (d Decrypter) FromBase64Bytes(b []byte) Decrypter {
 	decode := coding.NewDecoder().FromBytes(b).ByBase64()
 	if decode.Error != nil {
+		d.Error = decode.Error
 		return d
 	}
 	d.src = decode.ToBytes()
@@ -82,6 +84,7 @@ func (d Decrypter) FromBase64File(f fs.File) Decrypter {
 func (d Decrypter) FromHexString(s string) Decrypter {
 	decode := coding.NewDecoder().FromString(s).ByHex()
 	if decode.Error != nil {
+		d.Error = decode.Error
 		return d
 	}
 	d.src = decode.ToBytes()
@@ -92,6 +95,7 @@ func (d Decrypter) FromHexString(s string) Decrypter {
 func (d Decrypter) FromHexBytes(b []byte) Decrypter {
 	decode := coding.NewDecoder().FromBytes(b).ByHex()
 	if decode.Error != nil {
+		d.Error = decode.Error
 		return d
 	}
 	d.src = decode.ToBytes()
@@ -116,12 +120,15 @@ func (d Decrypter) FromHexFile(f fs.File) Decrypter {
 
 // ToString outputs as string.
 func (d Decrypter) ToString() string {
+	if len(d.dst) == 0 || d.Error != nil {
+		return ""
+	}
 	return utils.Bytes2String(d.dst)
 }
 
 // ToBytes outputs as byte slice.
 func (d Decrypter) ToBytes() []byte {
-	if len(d.dst) == 0 {
+	if len(d.dst) == 0 || d.Error != nil {
 		return []byte{}
 	}
 	return d.dst
