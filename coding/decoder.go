@@ -41,12 +41,15 @@ func (d Decoder) FromFile(f fs.File) Decoder {
 
 // ToString outputs as string.
 func (d Decoder) ToString() string {
+	if len(d.dst) == 0 || d.Error != nil {
+		return ""
+	}
 	return utils.Bytes2String(d.dst)
 }
 
 // ToBytes outputs as byte slice.
 func (d Decoder) ToBytes() []byte {
-	if len(d.dst) == 0 {
+	if len(d.dst) == 0 || d.Error != nil {
 		return []byte{}
 	}
 	return d.dst
