@@ -109,39 +109,53 @@ func TestSigner_FromFile(t *testing.T) {
 }
 
 func TestSigner_ToRawString(t *testing.T) {
-	t.Run("to raw string", func(t *testing.T) {
+	t.Run("to raw string with valid data", func(t *testing.T) {
 		signer := NewSigner()
-		signer.sign = []byte("hello world")
+		signer.data = []byte("hello world")
+		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
 		result := signer.ToRawString()
-		assert.Equal(t, "hello world", result)
+		assert.Equal(t, "\x00\x01\x02\x03", result)
 	})
 
-	t.Run("to raw string empty", func(t *testing.T) {
+	t.Run("to raw string empty data", func(t *testing.T) {
 		signer := NewSigner()
+		signer.data = []byte{}
+		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
+		result := signer.ToRawString()
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("to raw string nil data", func(t *testing.T) {
+		signer := NewSigner()
+		signer.data = nil
+		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
+		result := signer.ToRawString()
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("to raw string with error", func(t *testing.T) {
+		signer := NewSigner()
+		signer.data = []byte("hello world")
+		signer.sign = []byte{0x00, 0x01, 0x02, 0x03}
+		signer.Error = assert.AnError
+		result := signer.ToRawString()
+		assert.Equal(t, "", result)
+	})
+
+	t.Run("to raw string empty sign", func(t *testing.T) {
+		signer := NewSigner()
+		signer.data = []byte("hello world")
 		signer.sign = []byte{}
 		result := signer.ToRawString()
 		assert.Equal(t, "", result)
 	})
 
-	t.Run("to raw string nil", func(t *testing.T) {
+	t.Run("to raw string nil sign", func(t *testing.T) {
 		signer := NewSigner()
+		signer.data = []byte("hello world")
 		signer.sign = nil
 		result := signer.ToRawString()
 		assert.Equal(t, "", result)
-	})
-
-	t.Run("to raw string unicode", func(t *testing.T) {
-		signer := NewSigner()
-		signer.sign = []byte("你好世界")
-		result := signer.ToRawString()
-		assert.Equal(t, "你好世界", result)
-	})
-
-	t.Run("to raw string binary", func(t *testing.T) {
-		signer := NewSigner()
-		signer.sign = []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}
-		result := signer.ToRawString()
-		assert.Equal(t, string([]byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}), result)
 	})
 }
 

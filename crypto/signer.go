@@ -42,12 +42,15 @@ func (s Signer) FromFile(f fs.File) Signer {
 
 // ToRawString outputs as raw string.
 func (s Signer) ToRawString() string {
+	if len(s.data) == 0 || s.Error != nil {
+		return ""
+	}
 	return utils.Bytes2String(s.sign)
 }
 
 // ToRawBytes outputs as raw byte slice.
 func (s Signer) ToRawBytes() []byte {
-	if len(s.data) == 0 {
+	if len(s.data) == 0 || s.Error != nil {
 		return []byte{}
 	}
 	return s.sign
