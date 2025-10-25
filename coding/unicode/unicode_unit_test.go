@@ -110,6 +110,14 @@ func TestStdEncoder_Encode(t *testing.T) {
 		assert.NotEmpty(t, result)
 		assert.Nil(t, encoder.Error)
 	})
+
+	t.Run("encode with existing error", func(t *testing.T) {
+		encoder := &StdEncoder{Error: errors.New("test error")}
+		result := encoder.Encode([]byte("hello"))
+		assert.Empty(t, result)
+		assert.NotNil(t, encoder.Error)
+		assert.Equal(t, "test error", encoder.Error.Error())
+	})
 }
 
 func TestStdDecoder_Decode(t *testing.T) {
@@ -706,5 +714,28 @@ func TestStreamError(t *testing.T) {
 		n, err := decoder.Read(buf)
 		assert.Equal(t, 0, n)
 		assert.Equal(t, io.ErrUnexpectedEOF, err)
+	})
+}
+
+func TestErrorTypes(t *testing.T) {
+	t.Run("DecodeFailedError", func(t *testing.T) {
+		err := DecodeFailedError{Input: "test input"}
+		msg := err.Error()
+		assert.Contains(t, msg, "coding/unicode: failed to decode data")
+		assert.Contains(t, msg, "test input")
+	})
+
+	t.Run("InvalidUnicodeError", func(t *testing.T) {
+		err := InvalidUnicodeError{Char: "invalid char"}
+		msg := err.Error()
+		assert.Contains(t, msg, "coding/unicode: invalid unicode character")
+		assert.Contains(t, msg, "invalid char")
+	})
+
+	t.Run("EncodeFailedError", func(t *testing.T) {
+		err := EncodeFailedError{Input: "test input"}
+		msg := err.Error()
+		assert.Contains(t, msg, "coding/unicode: failed to encode data")
+		assert.Contains(t, msg, "test input")
 	})
 }

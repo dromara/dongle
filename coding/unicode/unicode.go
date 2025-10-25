@@ -66,6 +66,8 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	quoted := "\"" + string(src) + "\""
 	unquoted, err := strconv.Unquote(quoted)
 	if err != nil {
+		d.Error = DecodeFailedError{Input: string(src)}
+		err = DecodeFailedError{Input: string(src)}
 		return
 	}
 	return []byte(unquoted), nil
@@ -200,12 +202,14 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 }
 
 // decodeChunk decodes a chunk of unicode-encoded data.
-func (d *StreamDecoder) decodeChunk(data []byte) ([]byte, error) {
+func (d *StreamDecoder) decodeChunk(data []byte) (dst []byte, err error) {
 	// Add quotes around the unicode string for proper unquoting
 	quoted := "\"" + string(data) + "\""
 	unquoted, err := strconv.Unquote(quoted)
 	if err != nil {
-		return nil, err
+		d.Error = DecodeFailedError{Input: string(data)}
+		err = DecodeFailedError{Input: string(data)}
+		return
 	}
 	return []byte(unquoted), nil
 }
