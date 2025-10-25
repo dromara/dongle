@@ -356,11 +356,11 @@ func TestVerifier_WithHexSign(t *testing.T) {
 		invalidHex := []byte("invalid_hex_string")
 		result := verifier.WithHexSign(invalidHex)
 
-		// Invalid hex will result in empty bytes from the decoder
-		assert.Equal(t, []byte{}, result.sign)
+		// Invalid hex will result in empty bytes from the decoder and an error
+		assert.Empty(t, result.sign)
 		assert.Nil(t, result.data)
 		assert.Nil(t, result.reader)
-		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.Error)
 	})
 }
 
@@ -401,11 +401,11 @@ func TestVerifier_WithBase64Sign(t *testing.T) {
 		invalidBase64 := []byte("invalid_base64!")
 		result := verifier.WithBase64Sign(invalidBase64)
 
-		// Invalid base64 will result in empty bytes from the decoder
-		assert.Equal(t, []byte{}, result.sign)
+		// Invalid base64 will result in empty bytes from the decoder and an error
+		assert.Empty(t, result.sign)
 		assert.Nil(t, result.data)
 		assert.Nil(t, result.reader)
-		assert.Nil(t, result.Error)
+		assert.NotNil(t, result.Error)
 	})
 }
 

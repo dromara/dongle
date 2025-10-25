@@ -43,13 +43,23 @@ func (v Verifier) FromFile(f fs.File) Verifier {
 
 // WithHexSign verifies with hex sign.
 func (v Verifier) WithHexSign(s []byte) Verifier {
-	v.sign = coding.NewDecoder().FromBytes(s).ByHex().ToBytes()
+	decode := coding.NewDecoder().FromBytes(s).ByHex()
+	if decode.Error != nil {
+		v.Error = decode.Error
+		return v
+	}
+	v.sign = decode.ToBytes()
 	return v
 }
 
 // WithBase64Sign verifies with base64 sign.
 func (v Verifier) WithBase64Sign(s []byte) Verifier {
-	v.sign = coding.NewDecoder().FromBytes(s).ByBase64().ToBytes()
+	decode := coding.NewDecoder().FromBytes(s).ByBase64()
+	if decode.Error != nil {
+		v.Error = decode.Error
+		return v
+	}
+	v.sign = decode.ToBytes()
 	return v
 }
 
