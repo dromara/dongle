@@ -145,21 +145,39 @@ func TestNewCTREncrypter(t *testing.T) {
 		assert.NotEqual(t, src, result) // Should be encrypted
 	})
 
-	t.Run("successful encryption with 12-byte nonce", func(t *testing.T) {
-		nonce := make([]byte, 12)
-		result, err := NewCTREncrypter(src, nonce, block)
-		assert.Nil(t, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, len(src), len(result))
-		assert.NotEqual(t, src, result) // Should be encrypted
-	})
-
 	t.Run("empty IV", func(t *testing.T) {
 		result, err := NewCTREncrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
 		assert.Contains(t, err.Error(), "iv cannot be empty")
+	})
+
+	t.Run("invalid IV length - too short", func(t *testing.T) {
+		invalidIV := make([]byte, 8) // Too short
+		result, err := NewCTREncrypter(src, invalidIV, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidIVError{}, err)
+		assert.Contains(t, err.Error(), "iv length 8 must equal block size 16")
+	})
+
+	t.Run("invalid IV length - too long", func(t *testing.T) {
+		invalidIV := make([]byte, 20) // Too long
+		result, err := NewCTREncrypter(src, invalidIV, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidIVError{}, err)
+		assert.Contains(t, err.Error(), "iv length 20 must equal block size 16")
+	})
+
+	t.Run("invalid IV length - 15 bytes", func(t *testing.T) {
+		invalidIV := make([]byte, 15) // Neither 12 nor 16
+		result, err := NewCTREncrypter(src, invalidIV, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidIVError{}, err)
+		assert.Contains(t, err.Error(), "iv length 15 must equal block size 16")
 	})
 }
 
@@ -176,20 +194,39 @@ func TestNewCTRDecrypter(t *testing.T) {
 		assert.Equal(t, len(src), len(result))
 	})
 
-	t.Run("successful decryption with 12-byte nonce", func(t *testing.T) {
-		nonce := make([]byte, 12)
-		result, err := NewCTRDecrypter(src, nonce, block)
-		assert.Nil(t, err)
-		assert.NotNil(t, result)
-		assert.Equal(t, len(src), len(result))
-	})
-
 	t.Run("empty IV", func(t *testing.T) {
 		result, err := NewCTRDecrypter(src, []byte{}, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, EmptyIVError{}, err)
 		assert.Contains(t, err.Error(), "iv cannot be empty")
+	})
+
+	t.Run("invalid IV length - too short", func(t *testing.T) {
+		invalidIV := make([]byte, 8) // Too short
+		result, err := NewCTRDecrypter(src, invalidIV, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidIVError{}, err)
+		assert.Contains(t, err.Error(), "iv length 8 must equal block size 16")
+	})
+
+	t.Run("invalid IV length - too long", func(t *testing.T) {
+		invalidIV := make([]byte, 20) // Too long
+		result, err := NewCTRDecrypter(src, invalidIV, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidIVError{}, err)
+		assert.Contains(t, err.Error(), "iv length 20 must equal block size 16")
+	})
+
+	t.Run("invalid IV length - 15 bytes", func(t *testing.T) {
+		invalidIV := make([]byte, 15) // Neither 12 nor 16
+		result, err := NewCTRDecrypter(src, invalidIV, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidIVError{}, err)
+		assert.Contains(t, err.Error(), "iv length 15 must equal block size 16")
 	})
 }
 
@@ -291,6 +328,24 @@ func TestNewGCMEncrypter(t *testing.T) {
 		assert.NotNil(t, result)
 		assert.True(t, len(result) > 0) // GCM adds authentication tag even for empty data
 	})
+
+	t.Run("successful encryption with 8-byte nonce", func(t *testing.T) {
+		nonce8 := make([]byte, 8)
+		result, err := NewGCMEncrypter(src, nonce8, aad, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.NotEqual(t, src, result)        // Should be encrypted
+		assert.True(t, len(result) > len(src)) // GCM adds authentication tag
+	})
+
+	t.Run("successful encryption with 16-byte nonce", func(t *testing.T) {
+		nonce16 := make([]byte, 16)
+		result, err := NewGCMEncrypter(src, nonce16, aad, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.NotEqual(t, src, result)        // Should be encrypted
+		assert.True(t, len(result) > len(src)) // GCM adds authentication tag
+	})
 }
 
 func TestNewGCMDecrypter(t *testing.T) {
@@ -344,6 +399,34 @@ func TestNewGCMDecrypter(t *testing.T) {
 		result, err := NewGCMDecrypter(encrypted, nonce, wrongAAD, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
+	})
+
+	t.Run("successful decryption with 8-byte nonce", func(t *testing.T) {
+		nonce8 := make([]byte, 8)
+		// First encrypt some data with 8-byte nonce
+		encrypted, err := NewGCMEncrypter([]byte("test data"), nonce8, aad, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, encrypted)
+
+		// Then decrypt it with 8-byte nonce
+		result, err := NewGCMDecrypter(encrypted, nonce8, aad, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, []byte("test data"), result)
+	})
+
+	t.Run("successful decryption with 16-byte nonce", func(t *testing.T) {
+		nonce16 := make([]byte, 16)
+		// First encrypt some data with 16-byte nonce
+		encrypted, err := NewGCMEncrypter([]byte("test data"), nonce16, aad, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, encrypted)
+
+		// Then decrypt it with 16-byte nonce
+		result, err := NewGCMDecrypter(encrypted, nonce16, aad, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, []byte("test data"), result)
 	})
 
 	t.Run("GCM cipher creation error", func(t *testing.T) {

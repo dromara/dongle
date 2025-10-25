@@ -291,34 +291,6 @@ func TestBlockCipher_Encrypt(t *testing.T) {
 		}
 	})
 
-	t.Run("encrypt with CTR mode using 12-byte nonce", func(t *testing.T) {
-		cipher := &blockCipher{
-			Block:   CTR,
-			Padding: PKCS7,
-			IV:      []byte("123456789012"), // 12-byte nonce for CTR
-		}
-
-		block := &mockBlock{
-			blockSize: 16,
-			encrypt: func(dst, src []byte) {
-				// Simple mock encryption: XOR with 0x55
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-			decrypt: func(dst, src []byte) {
-				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-		}
-
-		result, err := cipher.Encrypt(testData, block)
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
-	})
-
 	t.Run("encrypt with unknown block mode", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   BlockMode("UNKNOWN"), // Unknown block mode
@@ -595,39 +567,6 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 				assert.NotNil(t, result)
 			})
 		}
-	})
-
-	t.Run("decrypt with CTR mode using 12-byte nonce", func(t *testing.T) {
-		cipher := &blockCipher{
-			Block:   CTR,
-			Padding: PKCS7,
-			IV:      []byte("123456789012"), // 12-byte nonce for CTR
-		}
-
-		block := &mockBlock{
-			blockSize: 16,
-			encrypt: func(dst, src []byte) {
-				// Simple mock encryption: XOR with 0x55
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-			decrypt: func(dst, src []byte) {
-				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
-				for i := range src {
-					dst[i] = src[i] ^ 0x55
-				}
-			},
-		}
-
-		// First encrypt
-		encrypted, err := cipher.Encrypt(testData, block)
-		assert.NoError(t, err)
-
-		// Then decrypt
-		result, err := cipher.Decrypt(encrypted, block)
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
 	})
 
 	t.Run("round trip encryption/decryption", func(t *testing.T) {

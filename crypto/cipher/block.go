@@ -71,19 +71,14 @@ func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 		return dst, EmptyIVError{mode: CTR}
 	}
 
-	// Handle nonce for CTR mode
-	// If IV is 12 bytes (nonce), pad it to 16 bytes with zeros
-	// This matches Python's pycryptodome behavior
-	ctrIV := iv
-	if len(iv) == 12 {
-		ctrIV = make([]byte, 16)
-		copy(ctrIV, iv)
-		// The remaining 4 bytes are set to zero (counter starts at 0)
+	blockSize := block.BlockSize()
+	if len(iv) != blockSize {
+		return dst, InvalidIVError{mode: CTR, iv: iv, size: blockSize}
 	}
 
 	// Perform CTR encryption using the standard library implementation
 	dst = make([]byte, len(src))
-	cipher.NewCTR(block, ctrIV).XORKeyStream(dst, src)
+	cipher.NewCTR(block, iv).XORKeyStream(dst, src)
 	return
 }
 
@@ -94,19 +89,14 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 		return dst, EmptyIVError{mode: CTR}
 	}
 
-	// Handle nonce for CTR mode
-	// If IV is 12 bytes (nonce), pad it to 16 bytes with zeros
-	// This matches Python's pycryptodome behavior
-	ctrIV := iv
-	if len(iv) == 12 {
-		ctrIV = make([]byte, 16)
-		copy(ctrIV, iv)
-		// The remaining 4 bytes are set to zero (counter starts at 0)
+	blockSize := block.BlockSize()
+	if len(iv) != blockSize {
+		return dst, InvalidIVError{mode: CTR, iv: iv, size: blockSize}
 	}
 
 	// Perform CTR decryption using the standard library implementation
 	dst = make([]byte, len(src))
-	cipher.NewCTR(block, ctrIV).XORKeyStream(dst, src)
+	cipher.NewCTR(block, iv).XORKeyStream(dst, src)
 	return
 }
 
@@ -154,7 +144,14 @@ func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 	}
 
 	// Create GCM cipher from the underlying block cipher
-	gcm, err := cipher.NewGCM(block)
+	var gcm cipher.AEAD
+	if len(nonce) == 12 {
+		// Use standard GCM for 12-byte nonce (optimal performance)
+		gcm, err = cipher.NewGCM(block)
+	} else {
+		// Use custom nonce size for other lengths
+		gcm, err = cipher.NewGCMWithNonceSize(block, len(nonce))
+	}
 	if err != nil {
 		return dst, CreateCipherError{mode: GCM, err: err}
 	}
@@ -172,7 +169,14 @@ func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 	}
 
 	// Create GCM cipher from the underlying block cipher
-	gcm, err := cipher.NewGCM(block)
+	var gcm cipher.AEAD
+	if len(nonce) == 12 {
+		// Use standard GCM for 12-byte nonce (optimal performance)
+		gcm, err = cipher.NewGCM(block)
+	} else {
+		// Use custom nonce size for other lengths
+		gcm, err = cipher.NewGCMWithNonceSize(block, len(nonce))
+	}
 	if err != nil {
 		return dst, CreateCipherError{mode: GCM, err: err}
 	}
