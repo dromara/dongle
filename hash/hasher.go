@@ -66,7 +66,7 @@ func (h Hasher) ToRawString() string {
 
 // ToRawBytes outputs as raw byte slice without encoding.
 func (h Hasher) ToRawBytes() []byte {
-	if len(h.dst) == 0 {
+	if len(h.dst) == 0 || h.Error != nil {
 		return []byte{}
 	}
 	return h.dst
@@ -74,7 +74,7 @@ func (h Hasher) ToRawBytes() []byte {
 
 // ToBase64String outputs as base64 string.
 func (h Hasher) ToBase64String() string {
-	if len(h.dst) == 0 {
+	if len(h.dst) == 0 || h.Error != nil {
 		return ""
 	}
 	return coding.NewEncoder().FromBytes(h.dst).ByBase64().ToString()
@@ -82,7 +82,7 @@ func (h Hasher) ToBase64String() string {
 
 // ToBase64Bytes outputs as base64 byte slice.
 func (h Hasher) ToBase64Bytes() []byte {
-	if len(h.dst) == 0 {
+	if len(h.dst) == 0 || h.Error != nil {
 		return []byte{}
 	}
 	return coding.NewEncoder().FromBytes(h.dst).ByBase64().ToBytes()
@@ -90,7 +90,7 @@ func (h Hasher) ToBase64Bytes() []byte {
 
 // ToHexString outputs as hex string.
 func (h Hasher) ToHexString() string {
-	if len(h.dst) == 0 {
+	if len(h.dst) == 0 || h.Error != nil {
 		return ""
 	}
 	return coding.NewEncoder().FromBytes(h.dst).ByHex().ToString()
@@ -98,7 +98,7 @@ func (h Hasher) ToHexString() string {
 
 // ToHexBytes outputs as hex byte slice.
 func (h Hasher) ToHexBytes() []byte {
-	if len(h.dst) == 0 {
+	if len(h.dst) == 0 || h.Error != nil {
 		return []byte{}
 	}
 	return coding.NewEncoder().FromBytes(h.dst).ByHex().ToBytes()
