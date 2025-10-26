@@ -82,7 +82,6 @@ func NewStdDecrypter(c *cipher.AesCipher) *StdDecrypter {
 // to perform the decryption operation with proper error handling.
 // Returns empty data when input is empty.
 func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
-	// Check for existing errors from initialization
 	if d.Error != nil {
 		err = d.Error
 		return
