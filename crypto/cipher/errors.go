@@ -2,20 +2,36 @@ package cipher
 
 import "fmt"
 
-// InvalidSrcError represents an error when the source data length is invalid
-// for the specified block cipher mode. This error occurs when the source
-// data length is not a multiple of the block size, which is required for
-// most block cipher operations.
-type InvalidSrcError struct {
+// InvalidPlaintextError represents an error when the plaintext length is invalid
+// for the specified block cipher mode. This error occurs when the plaintext
+// length is not a multiple of the block size, which is required for most
+// block cipher operations.
+type InvalidPlaintextError struct {
 	mode BlockMode // The cipher mode that caused the error
 	src  []byte    // The source data that has invalid length
 	size int       // The required block size for the cipher
 }
 
-// Error returns a formatted error message describing the invalid source data length.
-// The message includes the cipher mode, actual source length, and required block size.
-func (e InvalidSrcError) Error() string {
-	return fmt.Sprintf("src length %d must be a multiple of block size %d in '%s' block mode", len(e.src), e.size, e.mode)
+// Error returns a formatted error message describing the invalid plaintext length.
+// The message includes the cipher mode, actual plaintext length, and required block size.
+func (e InvalidPlaintextError) Error() string {
+	return fmt.Sprintf("plaintext length %d must be a multiple of block size %d in '%s' block mode", len(e.src), e.size, e.mode)
+}
+
+// InvalidCiphertextError represents an error when the ciphertext length is invalid
+// for the specified block cipher mode. This error occurs when the ciphertext
+// length is not a multiple of the block size, which is required for most
+// block cipher operations.
+type InvalidCiphertextError struct {
+	mode BlockMode // The cipher mode that caused the error
+	src  []byte    // The source data that has invalid length
+	size int       // The required block size for the cipher
+}
+
+// Error returns a formatted error message describing the invalid ciphertext length.
+// The message includes the ciphertext length, required block size, and cipher mode.
+func (e InvalidCiphertextError) Error() string {
+	return fmt.Sprintf("raw ciphertext by decoding length %d must be a multiple of block size %d in '%s' block mode", len(e.src), e.size, e.mode)
 }
 
 // EmptyIVError represents an error when the initialization vector (IV) is empty
