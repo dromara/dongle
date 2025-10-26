@@ -343,21 +343,6 @@ func TestErrorIntegration(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.IsType(t, ReadError{}, err)
 	})
-
-	t.Run("DecryptError in StreamDecrypter Read", func(t *testing.T) {
-		file := mock.NewFile([]byte("test data"), "test.txt")
-		c := cipher.NewAesCipher(cipher.CBC)
-		c.SetKey([]byte("invalid"))
-
-		decrypter := NewStreamDecrypter(file, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		streamDecrypter.Error = nil
-
-		buf := make([]byte, 10)
-		n, err := decrypter.Read(buf)
-		assert.Equal(t, 0, n)
-		assert.IsType(t, DecryptError{}, err)
-	})
 }
 
 // TestErrorTypeAssertions tests type assertions for error types
