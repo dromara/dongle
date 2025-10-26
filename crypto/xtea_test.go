@@ -96,6 +96,7 @@ func TestXteaStreaming(t *testing.T) {
 	t.Run("streaming encryption", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for XTEA
 		xteaCipher := cipher.NewXteaCipher(cipher.CBC)
+		xteaCipher.SetPadding(cipher.PKCS7)
 		xteaCipher.SetKey(key)
 		xteaCipher.SetIV([]byte("12345678")) // 8-byte IV for XTEA
 
@@ -124,6 +125,7 @@ func TestXteaStreaming(t *testing.T) {
 	t.Run("streaming decryption", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for XTEA
 		xteaCipher := cipher.NewXteaCipher(cipher.CBC)
+		xteaCipher.SetPadding(cipher.PKCS7)
 		xteaCipher.SetKey(key)
 		xteaCipher.SetIV([]byte("12345678")) // 8-byte IV for XTEA
 

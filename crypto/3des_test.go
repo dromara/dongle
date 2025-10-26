@@ -400,8 +400,7 @@ func TestDecrypter_By3Des(t *testing.T) {
 		// Don't set IV - should cause error
 		c.SetPadding(cipher.PKCS7)
 		decrypter := NewDecrypter().FromRawBytes(testdata3des).By3Des(c)
-		assert.NotNil(t, decrypter.Error)
-		assert.Contains(t, decrypter.Error.Error(), "iv cannot be empty")
+		assert.IsType(t, cipher.InvalidCiphertextError{}, decrypter.Error)
 	})
 
 	t.Run("decryption with wrong key", func(t *testing.T) {

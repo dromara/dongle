@@ -149,6 +149,7 @@ func TestTeaErrorHandling(t *testing.T) {
 	t.Run("encryption with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
 		teaCipher := cipher.NewTeaCipher(cipher.ECB)
+		teaCipher.SetPadding(cipher.PKCS7)
 		teaCipher.SetKey(key)
 		// 7-byte data (not multiple of 8 bytes) - should be padded
 		plaintext := []byte("1234567")
@@ -163,6 +164,7 @@ func TestTeaErrorHandling(t *testing.T) {
 	t.Run("decryption with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
 		teaCipher := cipher.NewTeaCipher(cipher.ECB)
+		teaCipher.SetPadding(cipher.PKCS7)
 		teaCipher.SetKey(key)
 		// 7-byte data (not multiple of 8 bytes) - should be padded
 		plaintext := []byte("1234567")
@@ -263,6 +265,7 @@ func TestTeaStdEncrypter(t *testing.T) {
 	t.Run("std encrypter encrypt with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
 		teaCipher := cipher.NewTeaCipher(cipher.ECB)
+		teaCipher.SetPadding(cipher.PKCS7)
 		teaCipher.SetKey(key)
 		plaintext := []byte("1234567") // 7-byte data (not multiple of 8) - should be padded
 
@@ -327,6 +330,7 @@ func TestTeaStdDecrypter(t *testing.T) {
 	t.Run("std decrypter decrypt with padding", func(t *testing.T) {
 		key := []byte("1234567890123456") // 16-byte key for TEA
 		teaCipher := cipher.NewTeaCipher(cipher.ECB)
+		teaCipher.SetPadding(cipher.PKCS7)
 		teaCipher.SetKey(key)
 		plaintext := []byte("1234567") // 7-byte data (not multiple of 8) - should be padded
 
@@ -536,6 +540,7 @@ func TestTeaEdgeCases(t *testing.T) {
 func TestTeaWithDifferentDataSizes(t *testing.T) {
 	key := []byte("1234567890123456") // 16-byte key for TEA
 	teaCipher := cipher.NewTeaCipher(cipher.ECB)
+	teaCipher.SetPadding(cipher.PKCS7)
 	teaCipher.SetKey(key)
 
 	t.Run("8-byte data", func(t *testing.T) {
