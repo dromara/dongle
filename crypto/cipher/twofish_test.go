@@ -144,7 +144,7 @@ func TestNewTwofishCipher(t *testing.T) {
 				cipher := NewTwofishCipher(mode)
 				assert.NotNil(t, cipher)
 				assert.Equal(t, mode, cipher.Block)
-				assert.Equal(t, PKCS7, cipher.Padding) // Default padding
+				assert.Equal(t, No, cipher.Padding) // Default padding
 			})
 		}
 	})
@@ -153,7 +153,7 @@ func TestNewTwofishCipher(t *testing.T) {
 		cipher := NewTwofishCipher("INVALID_MODE")
 		assert.NotNil(t, cipher)
 		assert.Equal(t, BlockMode("INVALID_MODE"), cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
+		assert.Equal(t, No, cipher.Padding) // Default padding
 	})
 }
 

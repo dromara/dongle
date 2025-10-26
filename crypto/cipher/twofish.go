@@ -6,11 +6,9 @@ type TwofishCipher struct {
 }
 
 // NewTwofishCipher returns a new TwofishCipher instance.
-func NewTwofishCipher(block BlockMode) (c *TwofishCipher) {
-	return &TwofishCipher{
-		blockCipher{
-			Block:   block,
-			Padding: PKCS7,
-		},
-	}
+func NewTwofishCipher(block BlockMode) *TwofishCipher {
+	c := &TwofishCipher{}
+	c.Block = block
+	c.Padding = No
+	return c
 }

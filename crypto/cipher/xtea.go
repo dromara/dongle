@@ -6,11 +6,9 @@ type XteaCipher struct {
 }
 
 // NewXteaCipher returns a new XteaCipher instance.
-func NewXteaCipher(block BlockMode) (c *XteaCipher) {
-	return &XteaCipher{
-		blockCipher{
-			Block:   block,
-			Padding: PKCS7,
-		},
-	}
+func NewXteaCipher(block BlockMode) *XteaCipher {
+	c := &XteaCipher{}
+	c.Block = block
+	c.Padding = No
+	return c
 }

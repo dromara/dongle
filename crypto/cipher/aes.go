@@ -6,11 +6,9 @@ type AesCipher struct {
 }
 
 // NewAesCipher returns a new AesCipher instance.
-func NewAesCipher(block BlockMode) (c *AesCipher) {
-	return &AesCipher{
-		blockCipher{
-			Block:   block,
-			Padding: PKCS7,
-		},
-	}
+func NewAesCipher(block BlockMode) *AesCipher {
+	c := &AesCipher{}
+	c.Block = block
+	c.Padding = No
+	return c
 }

@@ -6,11 +6,9 @@ type DesCipher struct {
 }
 
 // NewDesCipher returns a new DesCipher instance.
-func NewDesCipher(block BlockMode) (c *DesCipher) {
-	return &DesCipher{
-		blockCipher{
-			Block:   block,
-			Padding: PKCS7,
-		},
-	}
+func NewDesCipher(block BlockMode) *DesCipher {
+	c := &DesCipher{}
+	c.Block = block
+	c.Padding = No
+	return c
 }

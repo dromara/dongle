@@ -21,7 +21,7 @@ func TestNewSm4Cipher(t *testing.T) {
 				cipher := NewSm4Cipher(mode)
 				assert.NotNil(t, cipher)
 				assert.Equal(t, mode, cipher.Block)
-				assert.Equal(t, PKCS7, cipher.Padding)
+				assert.Equal(t, No, cipher.Padding)
 			})
 		}
 	})
@@ -30,7 +30,7 @@ func TestNewSm4Cipher(t *testing.T) {
 		cipher := NewSm4Cipher(CBC)
 		assert.NotNil(t, cipher)
 		assert.Equal(t, CBC, cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding)
+		assert.Equal(t, No, cipher.Padding)
 		assert.Nil(t, cipher.Key)
 		assert.Nil(t, cipher.IV)
 		assert.Nil(t, cipher.Nonce)

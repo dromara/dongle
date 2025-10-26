@@ -6,11 +6,9 @@ type Sm4Cipher struct {
 }
 
 // NewSm4Cipher returns a new Sm4Cipher instance.
-func NewSm4Cipher(block BlockMode) (c *Sm4Cipher) {
-	return &Sm4Cipher{
-		blockCipher{
-			Block:   block,
-			Padding: PKCS7,
-		},
-	}
+func NewSm4Cipher(block BlockMode) *Sm4Cipher {
+	c := &Sm4Cipher{}
+	c.Block = block
+	c.Padding = No
+	return c
 }

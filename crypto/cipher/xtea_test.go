@@ -20,7 +20,7 @@ func TestNewXteaCipher(t *testing.T) {
 				cipher := NewXteaCipher(mode)
 				assert.NotNil(t, cipher)
 				assert.Equal(t, mode, cipher.Block)
-				assert.Equal(t, PKCS7, cipher.Padding) // Default padding should be PKCS7
+				assert.Equal(t, No, cipher.Padding) // Default padding should be PKCS7
 			})
 		}
 	})
@@ -29,7 +29,7 @@ func TestNewXteaCipher(t *testing.T) {
 		cipher := NewXteaCipher(BlockMode(""))
 		assert.NotNil(t, cipher)
 		assert.Equal(t, BlockMode(""), cipher.Block)
-		assert.Equal(t, PKCS7, cipher.Padding)
+		assert.Equal(t, No, cipher.Padding)
 	})
 }
 
@@ -131,7 +131,7 @@ func TestXteaCipher_SetPadding(t *testing.T) {
 
 	t.Run("overwrite existing padding", func(t *testing.T) {
 		cipher := NewXteaCipher(CBC)
-		assert.Equal(t, PKCS7, cipher.Padding) // Default padding
+		assert.Equal(t, No, cipher.Padding) // Default padding
 
 		cipher.SetPadding(Zero)
 		assert.Equal(t, Zero, cipher.Padding)

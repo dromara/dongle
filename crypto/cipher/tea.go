@@ -7,14 +7,12 @@ type TeaCipher struct {
 }
 
 // NewTeaCipher returns a new TeaCipher instance.
-func NewTeaCipher(block BlockMode) (c *TeaCipher) {
-	return &TeaCipher{
-		blockCipher: blockCipher{
-			Block:   block,
-			Padding: PKCS7,
-		},
-		Rounds: 64,
-	}
+func NewTeaCipher(block BlockMode) *TeaCipher {
+	c := &TeaCipher{}
+	c.Block = block
+	c.Padding = No
+	c.Rounds = 64
+	return c
 }
 
 // SetRounds sets the number of rounds for the cipher.

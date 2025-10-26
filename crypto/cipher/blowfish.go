@@ -6,11 +6,9 @@ type BlowfishCipher struct {
 }
 
 // NewBlowfishCipher returns a new BlowfishCipher instance.
-func NewBlowfishCipher(block BlockMode) (c *BlowfishCipher) {
-	return &BlowfishCipher{
-		blockCipher{
-			Block:   block,
-			Padding: PKCS7,
-		},
-	}
+func NewBlowfishCipher(block BlockMode) *BlowfishCipher {
+	c := &BlowfishCipher{}
+	c.Block = block
+	c.Padding = No
+	return c
 }
