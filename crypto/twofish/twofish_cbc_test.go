@@ -19,6 +19,7 @@ var (
 func TestTwofishCBC_Encrypt(t *testing.T) {
 	t.Run("encrypt with 128-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey128)
 		c.SetIV(twofishIV)
 
@@ -32,6 +33,7 @@ func TestTwofishCBC_Encrypt(t *testing.T) {
 
 	t.Run("encrypt with 192-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey192)
 		c.SetIV(twofishIV)
 
@@ -45,6 +47,7 @@ func TestTwofishCBC_Encrypt(t *testing.T) {
 
 	t.Run("encrypt with 256-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey256)
 		c.SetIV(twofishIV)
 
@@ -72,6 +75,7 @@ func TestTwofishCBC_Encrypt(t *testing.T) {
 func TestTwofishCBC_Decrypt(t *testing.T) {
 	t.Run("decrypt with 128-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey128)
 		c.SetIV(twofishIV)
 
@@ -90,6 +94,7 @@ func TestTwofishCBC_Decrypt(t *testing.T) {
 
 	t.Run("decrypt with 192-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey192)
 		c.SetIV(twofishIV)
 
@@ -108,6 +113,7 @@ func TestTwofishCBC_Decrypt(t *testing.T) {
 
 	t.Run("decrypt with 256-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey256)
 		c.SetIV(twofishIV)
 
@@ -140,6 +146,7 @@ func TestTwofishCBC_Decrypt(t *testing.T) {
 func TestTwofishCBC_RoundTrip(t *testing.T) {
 	t.Run("round trip with 128-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey128)
 		c.SetIV(twofishIV)
 
@@ -156,6 +163,7 @@ func TestTwofishCBC_RoundTrip(t *testing.T) {
 
 	t.Run("round trip with 192-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey192)
 		c.SetIV(twofishIV)
 
@@ -172,6 +180,7 @@ func TestTwofishCBC_RoundTrip(t *testing.T) {
 
 	t.Run("round trip with 256-bit key", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey(twofishKey256)
 		c.SetIV(twofishIV)
 

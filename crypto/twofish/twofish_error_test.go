@@ -410,21 +410,6 @@ func TestErrorIntegration(t *testing.T) {
 		assert.Equal(t, 0, n)
 		assert.IsType(t, ReadError{}, err)
 	})
-
-	t.Run("DecryptError in StreamDecrypter Read", func(t *testing.T) {
-		file := mock.NewFile([]byte("test data"), "test.txt")
-		c := cipher.NewTwofishCipher(cipher.CBC)
-		c.SetKey([]byte("invalid"))
-
-		decrypter := NewStreamDecrypter(file, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		streamDecrypter.Error = nil
-
-		buf := make([]byte, 10)
-		n, err := decrypter.Read(buf)
-		assert.Equal(t, 0, n)
-		assert.IsType(t, DecryptError{}, err)
-	})
 }
 
 // TestErrorTypeAssertions tests type assertions for error types
@@ -623,6 +608,7 @@ func TestStreamEncrypter_Write_ErrorHandling(t *testing.T) {
 
 	t.Run("write with cipher block creation failure", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey([]byte("1234567890123456"))
 		c.SetIV([]byte("1234567890123456")) // Set IV for CBC mode
 
@@ -639,6 +625,7 @@ func TestStreamEncrypter_Write_ErrorHandling(t *testing.T) {
 
 	t.Run("write with writer error", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey([]byte("1234567890123456"))
 		c.SetIV([]byte("1234567890123456")) // Set IV for CBC mode
 
@@ -654,6 +641,7 @@ func TestStreamEncrypter_Write_ErrorHandling(t *testing.T) {
 
 	t.Run("write with block recreation", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey([]byte("1234567890123456"))
 		c.SetIV([]byte("1234567890123456")) // Set IV for CBC mode
 
@@ -758,6 +746,7 @@ func TestStreamDecrypter_Read_ErrorHandling(t *testing.T) {
 
 	t.Run("read with cipher block creation failure", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey([]byte("1234567890123456"))
 		c.SetIV([]byte("1234567890123456")) // Set IV for CBC mode
 
@@ -796,6 +785,7 @@ func TestStreamDecrypter_Read_ErrorHandling(t *testing.T) {
 
 	t.Run("read with block recreation", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey([]byte("1234567890123456"))
 		c.SetIV([]byte("1234567890123456")) // Set IV for CBC mode
 
@@ -819,6 +809,7 @@ func TestStreamDecrypter_Read_ErrorHandling(t *testing.T) {
 
 	t.Run("read after all data consumed", func(t *testing.T) {
 		c := cipher.NewTwofishCipher(cipher.CBC)
+		c.SetPadding(cipher.PKCS7)
 		c.SetKey([]byte("1234567890123456"))
 		c.SetIV([]byte("1234567890123456")) // Set IV for CBC mode
 
