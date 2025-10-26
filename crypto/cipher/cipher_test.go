@@ -12,7 +12,7 @@ var (
 	testIV     = []byte("testiv1234567890") // 16-byte IV for 16-byte block size
 	testIV8    = []byte("testiv12")         // 8-byte IV for 8-byte block size
 	testAAD    = []byte("testaad")
-	testData   = []byte("testdata")
+	testData   = []byte("testdata12345678") // 16-byte data for block size alignment
 	testData16 = []byte("testdata12345678") // 16-byte data for No padding
 )
 

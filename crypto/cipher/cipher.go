@@ -45,65 +45,51 @@ func (c *blockCipher) SetAAD(aad []byte) {
 
 // Encrypt encrypts the source data using the specified cipher.
 func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err error) {
-	if c.Block == CFB {
-		return NewCFBEncrypter(src, c.IV, block)
-	}
-	if c.Block == OFB {
-		return NewOFBEncrypter(src, c.IV, block)
-	}
-	if c.Block == CTR {
-		return NewCTREncrypter(src, c.IV, block)
-	}
-	if c.Block == GCM {
-		return NewGCMEncrypter(src, c.Nonce, c.AAD, block)
-	}
-
-	// Only CBC/ECB block modes require add padding
 	paddedSrc, err := c.padding(src, block.BlockSize())
 	if err != nil {
 		return
 	}
-	if c.Block == CBC {
-		return NewCBCEncrypter(paddedSrc, c.IV, block)
+	switch c.Block {
+	case CBC:
+		dst, err = NewCBCEncrypter(paddedSrc, c.IV, block)
+	case ECB:
+		dst, err = NewECBEncrypter(paddedSrc, block)
+	case CTR:
+		dst, err = NewCTREncrypter(paddedSrc, c.IV, block)
+	case GCM:
+		dst, err = NewGCMEncrypter(paddedSrc, c.Nonce, c.AAD, block)
+	case CFB:
+		dst, err = NewCFBEncrypter(paddedSrc, c.IV, block)
+	case OFB:
+		dst, err = NewOFBEncrypter(paddedSrc, c.IV, block)
+	default:
+		err = UnsupportedBlockModeError{mode: c.Block}
 	}
-	if c.Block == ECB {
-		return NewECBEncrypter(paddedSrc, block)
-	}
-
-	return dst, UnsupportedBlockModeError{mode: c.Block}
+	return
 }
 
 // Decrypt decrypts the source data using the specified cipher.
 func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err error) {
-	if c.Block == CFB {
-		return NewCFBDecrypter(src, c.IV, block)
+	switch c.Block {
+	case CBC:
+		dst, err = NewCBCDecrypter(src, c.IV, block)
+	case ECB:
+		dst, err = NewECBDecrypter(src, block)
+	case CTR:
+		dst, err = NewCTRDecrypter(src, c.IV, block)
+	case GCM:
+		dst, err = NewGCMDecrypter(src, c.Nonce, c.AAD, block)
+	case CFB:
+		dst, err = NewCFBDecrypter(src, c.IV, block)
+	case OFB:
+		dst, err = NewOFBDecrypter(src, c.IV, block)
+	default:
+		err = UnsupportedBlockModeError{mode: c.Block}
 	}
-	if c.Block == OFB {
-		return NewOFBDecrypter(src, c.IV, block)
+	if err != nil {
+		return
 	}
-	if c.Block == CTR {
-		return NewCTRDecrypter(src, c.IV, block)
-	}
-	if c.Block == GCM {
-		return NewGCMDecrypter(src, c.Nonce, c.AAD, block)
-	}
-
-	// Only CBC/ECB block modes require remove padding
-	var paddedDst []byte
-	if c.Block == CBC {
-		if paddedDst, err = NewCBCDecrypter(src, c.IV, block); err != nil {
-			return
-		}
-		return c.unpadding(paddedDst)
-	}
-	if c.Block == ECB {
-		if paddedDst, err = NewECBDecrypter(src, block); err != nil {
-			return
-		}
-		return c.unpadding(paddedDst)
-	}
-
-	return dst, UnsupportedBlockModeError{mode: c.Block}
+	return c.unpadding(dst)
 }
 
 // padding adds padding to the source data.
