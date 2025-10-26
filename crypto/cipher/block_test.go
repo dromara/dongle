@@ -86,8 +86,7 @@ func TestNewCBCEncrypter(t *testing.T) {
 		result, err := NewCBCEncrypter(invalidSrc, iv, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, InvalidSrcError{}, err)
-		assert.Contains(t, err.Error(), "src length 17 must be a multiple of block size 16")
+		assert.IsType(t, InvalidPlaintextError{}, err)
 	})
 }
 
@@ -126,8 +125,7 @@ func TestNewCBCDecrypter(t *testing.T) {
 		result, err := NewCBCDecrypter(invalidSrc, iv, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, InvalidSrcError{}, err)
-		assert.Contains(t, err.Error(), "src length 17 must be a multiple of block size 16")
+		assert.IsType(t, InvalidCiphertextError{}, err)
 	})
 }
 
@@ -248,8 +246,7 @@ func TestNewECBEncrypter(t *testing.T) {
 		result, err := NewECBEncrypter(invalidSrc, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, InvalidSrcError{}, err)
-		assert.Contains(t, err.Error(), "src length 17 must be a multiple of block size 16")
+		assert.IsType(t, InvalidPlaintextError{}, err)
 	})
 
 	t.Run("single block encryption", func(t *testing.T) {
@@ -279,8 +276,7 @@ func TestNewECBDecrypter(t *testing.T) {
 		result, err := NewECBDecrypter(invalidSrc, block)
 		assert.Nil(t, result)
 		assert.NotNil(t, err)
-		assert.IsType(t, InvalidSrcError{}, err)
-		assert.Contains(t, err.Error(), "src length 17 must be a multiple of block size 16")
+		assert.IsType(t, InvalidCiphertextError{}, err)
 	})
 
 	t.Run("single block decryption", func(t *testing.T) {
@@ -613,14 +609,13 @@ func TestNewOFBDecrypter(t *testing.T) {
 
 func TestErrorTypes(t *testing.T) {
 	t.Run("InvalidSrcError", func(t *testing.T) {
-		err := InvalidSrcError{
+		err := InvalidCiphertextError{
 			mode: CBC,
 			src:  []byte("test"),
 			size: 16,
 		}
 		msg := err.Error()
 		assert.Contains(t, msg, "CBC")
-		assert.Contains(t, msg, "src length 4")
 		assert.Contains(t, msg, "block size 16")
 	})
 
@@ -660,6 +655,170 @@ func TestErrorTypes(t *testing.T) {
 		assert.Contains(t, msg, "ECB")
 		assert.Contains(t, msg, "failed to create cipher")
 		assert.Contains(t, msg, underlyingErr.Error())
+	})
+}
+
+func TestInvalidPlaintextErrorScenarios(t *testing.T) {
+	key := make([]byte, 16)
+	block, _ := aes.NewCipher(key)
+	iv := make([]byte, 16)
+
+	t.Run("CBC with No padding and invalid data length", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use data that is not a multiple of block size
+		invalidData := make([]byte, 17) // 17 bytes, not multiple of 16
+		result, err := cipher.Encrypt(invalidData, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidPlaintextError{}, err)
+		assert.Contains(t, err.Error(), "plaintext length 17 must be a multiple of block size 16")
+		assert.Contains(t, err.Error(), "CBC")
+	})
+
+	t.Run("ECB with No padding and invalid data length", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use data that is not a multiple of block size
+		invalidData := make([]byte, 15) // 15 bytes, not multiple of 16
+		result, err := cipher.Encrypt(invalidData, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidPlaintextError{}, err)
+		assert.Contains(t, err.Error(), "plaintext length 15 must be a multiple of block size 16")
+		assert.Contains(t, err.Error(), "ECB")
+	})
+
+	t.Run("CBC with No padding and single byte data", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use single byte data
+		invalidData := []byte("a") // 1 byte, not multiple of 16
+		result, err := cipher.Encrypt(invalidData, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidPlaintextError{}, err)
+		assert.Contains(t, err.Error(), "plaintext length 1 must be a multiple of block size 16")
+		assert.Contains(t, err.Error(), "CBC")
+	})
+
+	t.Run("ECB with No padding and single byte data", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use single byte data
+		invalidData := []byte("b") // 1 byte, not multiple of 16
+		result, err := cipher.Encrypt(invalidData, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, InvalidPlaintextError{}, err)
+		assert.Contains(t, err.Error(), "plaintext length 1 must be a multiple of block size 16")
+		assert.Contains(t, err.Error(), "ECB")
+	})
+
+	t.Run("CBC with No padding and empty data", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use empty data - 0 is considered a multiple of any number
+		emptyData := []byte{} // 0 bytes, 0 is multiple of 16
+		result, err := cipher.Encrypt(emptyData, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, 0, len(result))
+	})
+
+	t.Run("ECB with No padding and empty data", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use empty data - 0 is considered a multiple of any number
+		emptyData := []byte{} // 0 bytes, 0 is multiple of 16
+		result, err := cipher.Encrypt(emptyData, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, 0, len(result))
+	})
+
+	t.Run("CBC with No padding and data length equals block size", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use data that is exactly block size
+		validData := make([]byte, 16) // 16 bytes, exactly block size
+		result, err := cipher.Encrypt(validData, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, len(validData), len(result))
+	})
+
+	t.Run("ECB with No padding and data length equals block size", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use data that is exactly block size
+		validData := make([]byte, 16) // 16 bytes, exactly block size
+		result, err := cipher.Encrypt(validData, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, len(validData), len(result))
+	})
+
+	t.Run("CBC with No padding and data length equals multiple of block size", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use data that is multiple of block size
+		validData := make([]byte, 32) // 32 bytes, 2 * block size
+		result, err := cipher.Encrypt(validData, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, len(validData), len(result))
+	})
+
+	t.Run("ECB with No padding and data length equals multiple of block size", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,
+			Padding: No,
+			IV:      iv,
+		}
+
+		// Use data that is multiple of block size
+		validData := make([]byte, 32) // 32 bytes, 2 * block size
+		result, err := cipher.Encrypt(validData, block)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, len(validData), len(result))
 	})
 }
 

@@ -21,17 +21,15 @@ const (
 // CBC mode encrypts each block of plaintext by XORing it with the previous
 // ciphertext block before applying the block cipher algorithm.
 func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	blockSize := block.BlockSize()
+	if len(src)%blockSize != 0 {
+		return dst, InvalidPlaintextError{mode: CBC, src: src, size: blockSize}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CBC}
 	}
-
-	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
 		return dst, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
-	}
-
-	if len(src)%blockSize != 0 {
-		return dst, InvalidSrcError{mode: CBC, src: src, size: blockSize}
 	}
 
 	// Perform CBC encryption using the standard library implementation
@@ -44,22 +42,54 @@ func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // CBC decryption reverses the encryption process by applying the block cipher
 // and then XORing with the previous ciphertext block.
 func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	blockSize := block.BlockSize()
+	if len(src)%blockSize != 0 {
+		return dst, InvalidCiphertextError{mode: CBC, src: src, size: blockSize}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CBC}
 	}
-
-	blockSize := block.BlockSize()
 	if len(iv) != blockSize {
 		return dst, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
-	}
-
-	if len(src)%blockSize != 0 {
-		return dst, InvalidSrcError{mode: CBC, src: src, size: blockSize}
 	}
 
 	// Perform CBC decryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCBCDecrypter(block, iv).CryptBlocks(dst, src)
+	return
+}
+
+// NewECBEncrypter encrypts data using Electronic Codebook (ECB) mode.
+// ECB mode encrypts each block of plaintext independently using the same key.
+// Note: ECB mode is generally not recommended for secure applications due to
+// its vulnerability to pattern analysis.
+func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
+	blockSize := block.BlockSize()
+	if len(src)%blockSize != 0 {
+		return dst, InvalidPlaintextError{mode: ECB, src: src, size: blockSize}
+	}
+
+	// Perform ECB encryption - encrypt each block independently
+	dst = make([]byte, len(src))
+	for i := 0; i < len(src); i += blockSize {
+		block.Encrypt(dst[i:i+blockSize], src[i:i+blockSize])
+	}
+	return
+}
+
+// NewECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
+// ECB decryption decrypts each block independently.
+func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
+	blockSize := block.BlockSize()
+	if len(src)%blockSize != 0 {
+		return dst, InvalidCiphertextError{mode: ECB, src: src, size: blockSize}
+	}
+
+	// Perform ECB decryption - decrypt each block independently
+	dst = make([]byte, len(src))
+	for i := 0; i < len(src); i += blockSize {
+		block.Decrypt(dst[i:i+blockSize], src[i:i+blockSize])
+	}
 	return
 }
 
@@ -97,40 +127,6 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 	// Perform CTR decryption using the standard library implementation
 	dst = make([]byte, len(src))
 	cipher.NewCTR(block, iv).XORKeyStream(dst, src)
-	return
-}
-
-// NewECBEncrypter encrypts data using Electronic Codebook (ECB) mode.
-// ECB mode encrypts each block of plaintext independently using the same key.
-// Note: ECB mode is generally not recommended for secure applications due to
-// its vulnerability to pattern analysis.
-func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
-	blockSize := block.BlockSize()
-	if len(src)%blockSize != 0 {
-		return dst, InvalidSrcError{mode: ECB, src: src, size: blockSize}
-	}
-
-	// Perform ECB encryption - encrypt each block independently
-	dst = make([]byte, len(src))
-	for i := 0; i < len(src); i += blockSize {
-		block.Encrypt(dst[i:i+blockSize], src[i:i+blockSize])
-	}
-	return
-}
-
-// NewECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
-// ECB decryption decrypts each block independently.
-func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
-	blockSize := block.BlockSize()
-	if len(src)%blockSize != 0 {
-		return dst, InvalidSrcError{mode: ECB, src: src, size: blockSize}
-	}
-
-	// Perform ECB decryption - decrypt each block independently
-	dst = make([]byte, len(src))
-	for i := 0; i < len(src); i += blockSize {
-		block.Decrypt(dst[i:i+blockSize], src[i:i+blockSize])
-	}
 	return
 }
 
