@@ -16,7 +16,6 @@ type ofbTestCast struct {
 	plaintext        []byte
 	key              []byte
 	iv               []byte
-	padding          cipher.PaddingMode
 	hexCiphertext    string
 	base64Ciphertext string
 }
@@ -26,7 +25,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world12345"), // 16 bytes for No padding
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.No,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9ebda15d0942",
 		base64Ciphertext: "2OawrMbWPLaIjp69oV0JQg==",
 	},
@@ -34,7 +32,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world"),
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.Zero,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9e",
 		base64Ciphertext: "2OawrMbWPLaIjp4=",
 	},
@@ -42,7 +39,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world"),
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.PKCS5,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9e",
 		base64Ciphertext: "2OawrMbWPLaIjp4=",
 	},
@@ -50,7 +46,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world"),
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.PKCS7,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9e",
 		base64Ciphertext: "2OawrMbWPLaIjp4=",
 	},
@@ -58,7 +53,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world"),
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.AnsiX923,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9e",
 		base64Ciphertext: "2OawrMbWPLaIjp4=",
 	},
@@ -66,7 +60,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world"),
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.ISO97971,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9e",
 		base64Ciphertext: "2OawrMbWPLaIjp4=",
 	},
@@ -74,7 +67,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world"),
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.ISO78164,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9e",
 		base64Ciphertext: "2OawrMbWPLaIjp4=",
 	},
@@ -82,7 +74,6 @@ var ofbTestCases = []ofbTestCast{
 		plaintext:        []byte("hello world"),
 		key:              []byte("1234567890123456"),
 		iv:               []byte("1234567890123456"),
-		padding:          cipher.Bit,
 		hexCiphertext:    "d8e6b0acc6d63cb6888e9e",
 		base64Ciphertext: "2OawrMbWPLaIjp4=",
 	},
@@ -95,7 +86,6 @@ func TestOFBStdEncryption(t *testing.T) {
 			c := cipher.NewSm4Cipher(cipher.OFB)
 			c.SetKey(tc.key)
 			c.SetIV(tc.iv)
-			c.SetPadding(tc.padding)
 
 			// Test std encryption
 			encrypter := NewStdEncrypter(c)
@@ -125,7 +115,6 @@ func TestOFBStdDecryption(t *testing.T) {
 			c := cipher.NewSm4Cipher(cipher.OFB)
 			c.SetKey(tc.key)
 			c.SetIV(tc.iv)
-			c.SetPadding(tc.padding)
 
 			// Test decryption from hex
 			if tc.hexCiphertext != "" {
@@ -155,17 +144,11 @@ func TestOFBStreamEncryption(t *testing.T) {
 			c := cipher.NewSm4Cipher(cipher.OFB)
 			c.SetKey(tc.key)
 			c.SetIV(tc.iv)
-			c.SetPadding(tc.padding)
 
 			// Test stream encryption
 			var buf bytes.Buffer
 			encrypter := NewStreamEncrypter(&buf, c)
 			_, err := encrypter.Write(tc.plaintext)
-
-			if tc.padding == cipher.No && len(tc.plaintext)%16 != 0 {
-				assert.Error(t, err)
-				return
-			}
 
 			assert.NoError(t, err)
 			err = encrypter.Close()
@@ -194,7 +177,6 @@ func TestOFBStreamDecryption(t *testing.T) {
 			c := cipher.NewSm4Cipher(cipher.OFB)
 			c.SetKey(tc.key)
 			c.SetIV(tc.iv)
-			c.SetPadding(tc.padding)
 
 			// Test decryption from hex
 			if tc.hexCiphertext != "" {

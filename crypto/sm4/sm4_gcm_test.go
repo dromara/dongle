@@ -56,7 +56,6 @@ func TestGCMStdEncryption(t *testing.T) {
 			c.SetKey(tc.key)
 			c.SetNonce(tc.nonce)
 			c.SetAAD(tc.aad)
-			c.SetPadding(cipher.No)
 
 			// Test std encryption
 			encrypter := NewStdEncrypter(c)
@@ -87,7 +86,6 @@ func TestGCMStdDecryption(t *testing.T) {
 			c.SetKey(tc.key)
 			c.SetNonce(tc.nonce)
 			c.SetAAD(tc.aad)
-			c.SetPadding(cipher.No)
 
 			// Test decryption from hex
 			if tc.hexCiphertext != "" {
@@ -118,7 +116,6 @@ func TestGCMStreamEncryption(t *testing.T) {
 			c.SetKey(tc.key)
 			c.SetNonce(tc.nonce)
 			c.SetAAD(tc.aad)
-			c.SetPadding(cipher.No)
 
 			// Test stream encryption
 			var buf bytes.Buffer
@@ -153,7 +150,6 @@ func TestGCMStreamDecryption(t *testing.T) {
 			c.SetKey(tc.key)
 			c.SetNonce(tc.nonce)
 			c.SetAAD(tc.aad)
-			c.SetPadding(cipher.No)
 
 			// Test decryption from hex
 			if tc.hexCiphertext != "" {
@@ -186,7 +182,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		c.SetKey([]byte("invalid")) // Invalid key size
 		c.SetNonce([]byte("123456789012"))
 		c.SetAAD([]byte("authenticated data"))
-		c.SetPadding(cipher.No)
 
 		// Create encrypter
 		encrypter := NewStdEncrypter(c)
@@ -205,7 +200,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		c.SetKey([]byte("invalid")) // Invalid key size
 		c.SetNonce([]byte("123456789012"))
 		c.SetAAD([]byte("authenticated data"))
-		c.SetPadding(cipher.No)
 
 		// Create decrypter
 		decrypter := NewStdDecrypter(c)
@@ -224,7 +218,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		c.SetKey([]byte("1234567890123456"))
 		c.SetNonce([]byte{}) // Empty nonce
 		c.SetAAD([]byte("authenticated data"))
-		c.SetPadding(cipher.No)
 
 		// Create encrypter
 		encrypter := NewStdEncrypter(c)
@@ -244,7 +237,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		c.SetKey([]byte("1234567890123456"))
 		c.SetNonce([]byte{}) // Empty nonce
 		c.SetAAD([]byte("authenticated data"))
-		c.SetPadding(cipher.No)
 
 		// Create decrypter
 		decrypter := NewStdDecrypter(c)
@@ -264,7 +256,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		c.SetKey([]byte("1234567890123456"))
 		c.SetNonce([]byte("123456789012"))
 		c.SetAAD([]byte("authenticated data"))
-		c.SetPadding(cipher.No)
 
 		// Create encrypter
 		encrypter := NewStdEncrypter(c)
@@ -286,7 +277,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		d.SetKey([]byte("1234567890123456"))
 		d.SetNonce([]byte("123456789012"))
 		d.SetAAD([]byte("authenticated data"))
-		d.SetPadding(cipher.No)
 
 		// Create decrypter
 		decrypter := NewStdDecrypter(d)
@@ -304,7 +294,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		c.SetKey([]byte("1234567890123456"))
 		c.SetNonce([]byte("123456789012"))
 		c.SetAAD([]byte("authenticated data"))
-		c.SetPadding(cipher.No)
 
 		// Create encrypter
 		encrypter := NewStdEncrypter(c)
@@ -319,7 +308,6 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		d.SetKey([]byte("1234567890123456"))
 		d.SetNonce([]byte("123456789012"))
 		d.SetAAD([]byte("wrong aad")) // Wrong AAD
-		d.SetPadding(cipher.No)
 
 		// Create decrypter
 		decrypter := NewStdDecrypter(d)
