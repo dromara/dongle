@@ -345,8 +345,8 @@ func TestBlockCipher_Encrypt(t *testing.T) {
 			},
 		}
 		result, err := cipher.Encrypt([]byte{}, block)
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		assert.IsType(t, EmptySrcError{}, err)
+		assert.True(t, len(result) == 0)
 	})
 
 	t.Run("encrypt nil data", func(t *testing.T) {
@@ -372,8 +372,8 @@ func TestBlockCipher_Encrypt(t *testing.T) {
 			},
 		}
 		result, err := cipher.Encrypt(nil, block)
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		assert.IsType(t, EmptySrcError{}, err)
+		assert.True(t, len(result) == 0)
 	})
 }
 
@@ -739,6 +739,62 @@ func TestBlockCipher_Decrypt(t *testing.T) {
 		}
 	})
 
+	t.Run("decrypt empty data", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: PKCS7,
+			IV:      testIV,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		result, err := cipher.Decrypt([]byte{}, block)
+		assert.IsType(t, EmptySrcError{}, err)
+		assert.True(t, len(result) == 0)
+	})
+
+	t.Run("decrypt nil data", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   CBC,
+			Padding: PKCS7,
+			IV:      testIV,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		result, err := cipher.Decrypt(nil, block)
+		assert.IsType(t, EmptySrcError{}, err)
+		assert.True(t, len(result) == 0)
+	})
+
 	t.Run("decrypt with function error", func(t *testing.T) {
 		cipher := &blockCipher{
 			Block:   CBC,
@@ -961,6 +1017,149 @@ func TestBlockCipher_Decrypt_ErrorCases(t *testing.T) {
 		result, err := cipher.Decrypt(encrypted, block)
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
+	})
+
+	t.Run("decrypt with unknown block mode", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   BlockMode("UNKNOWN"), // Unknown block mode
+			Padding: PKCS7,
+			IV:      testIV,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		result, err := cipher.Decrypt(testData, block)
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.IsType(t, UnsupportedBlockModeError{}, err)
+		assert.Contains(t, err.Error(), "unsupported block mode")
+		assert.Contains(t, err.Error(), "UNKNOWN")
+	})
+
+	t.Run("decrypt with error path testing early return", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   ECB,
+			Padding: PKCS7,
+		}
+
+		// Create data that will cause an error during decryption
+		// Use very short data that's not a multiple of block size
+		invalidData := []byte("123456789012345") // 15 bytes, not multiple of 16
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				// Simple mock encryption: XOR with 0x55
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				// Simple mock decryption: XOR with 0x55 (same as encryption for this mock)
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		// This should fail during ECB decryption
+		result, err := cipher.Decrypt(invalidData, block)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	// Test each block mode individually to ensure all switch cases are covered
+	t.Run("decrypt with each block mode individually", func(t *testing.T) {
+		testModes := []BlockMode{CBC, ECB, CTR, GCM, CFB, OFB}
+		for _, mode := range testModes {
+			t.Run(string(mode), func(t *testing.T) {
+				cipher := &blockCipher{
+					Block:   mode,
+					Padding: PKCS7,
+					IV:      testIV,
+				}
+
+				if mode == GCM {
+					cipher.Nonce = []byte("123456789012")
+					cipher.AAD = testAAD
+				}
+				if mode == ECB {
+					cipher.IV = nil
+				}
+
+				block := &mockBlock{
+					blockSize: 16,
+					encrypt: func(dst, src []byte) {
+						for i := range src {
+							dst[i] = src[i] ^ 0x55
+						}
+					},
+					decrypt: func(dst, src []byte) {
+						for i := range src {
+							dst[i] = src[i] ^ 0x55
+						}
+					},
+				}
+
+				// Encrypt first
+				encrypted, err := cipher.Encrypt(testData, block)
+				assert.NoError(t, err)
+				assert.NotNil(t, encrypted)
+
+				// Then decrypt
+				decrypted, err := cipher.Decrypt(encrypted, block)
+				assert.NoError(t, err)
+				assert.NotNil(t, decrypted)
+			})
+		}
+	})
+
+	t.Run("decrypt with error propagation - GCM mode with wrong AAD", func(t *testing.T) {
+		cipher := &blockCipher{
+			Block:   GCM,
+			Padding: PKCS7,
+			Nonce:   []byte("123456789012"),
+			AAD:     testAAD,
+		}
+
+		block := &mockBlock{
+			blockSize: 16,
+			encrypt: func(dst, src []byte) {
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+			decrypt: func(dst, src []byte) {
+				for i := range src {
+					dst[i] = src[i] ^ 0x55
+				}
+			},
+		}
+
+		// Encrypt with original AAD
+		encrypted, err := cipher.Encrypt(testData, block)
+		assert.NoError(t, err)
+		assert.NotNil(t, encrypted)
+
+		// Try to decrypt with wrong AAD - this will cause an error
+		cipher.AAD = []byte("wrong aad")
+		result, err := cipher.Decrypt(encrypted, block)
+		assert.Error(t, err)
+		assert.Nil(t, result)
 	})
 }
 

@@ -21,12 +21,16 @@ const (
 // CBC mode encrypts each block of plaintext by XORing it with the previous
 // ciphertext block before applying the block cipher algorithm.
 func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	blockSize := block.BlockSize()
-	if len(src)%blockSize != 0 {
-		return dst, InvalidPlaintextError{mode: CBC, src: src, size: blockSize}
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: CBC}
 	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CBC}
+	}
+
+	blockSize := block.BlockSize()
+	if len(src)%blockSize != 0 {
+		return dst, InvalidPlaintextError{mode: CBC, src: src, size: blockSize}
 	}
 	if len(iv) != blockSize {
 		return dst, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
@@ -42,12 +46,16 @@ func NewCBCEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // CBC decryption reverses the encryption process by applying the block cipher
 // and then XORing with the previous ciphertext block.
 func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
-	blockSize := block.BlockSize()
-	if len(src)%blockSize != 0 {
-		return dst, InvalidCiphertextError{mode: CBC, src: src, size: blockSize}
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: CBC}
 	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CBC}
+	}
+
+	blockSize := block.BlockSize()
+	if len(src)%blockSize != 0 {
+		return dst, InvalidCiphertextError{mode: CBC, src: src, size: blockSize}
 	}
 	if len(iv) != blockSize {
 		return dst, InvalidIVError{mode: CBC, iv: iv, size: blockSize}
@@ -64,6 +72,10 @@ func NewCBCDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // Note: ECB mode is generally not recommended for secure applications due to
 // its vulnerability to pattern analysis.
 func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: ECB}
+	}
+
 	blockSize := block.BlockSize()
 	if len(src)%blockSize != 0 {
 		return dst, InvalidPlaintextError{mode: ECB, src: src, size: blockSize}
@@ -80,6 +92,10 @@ func NewECBEncrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 // NewECBDecrypter decrypts data using Electronic Codebook (ECB) mode.
 // ECB decryption decrypts each block independently.
 func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: ECB}
+	}
+
 	blockSize := block.BlockSize()
 	if len(src)%blockSize != 0 {
 		return dst, InvalidCiphertextError{mode: ECB, src: src, size: blockSize}
@@ -97,6 +113,9 @@ func NewECBDecrypter(src []byte, block cipher.Block) (dst []byte, err error) {
 // CTR mode transforms a block cipher into a stream cipher by encrypting
 // a counter value and XORing the result with the plaintext.
 func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: CTR}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CTR}
 	}
@@ -115,6 +134,9 @@ func NewCTREncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // NewCTRDecrypter decrypts data using Counter (CTR) mode.
 // In CTR mode, decryption is identical to encryption since it's a stream cipher.
 func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: CTR}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CTR}
 	}
@@ -135,6 +157,9 @@ func NewCTRDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // and authenticity. It combines CTR mode encryption with a Galois field
 // multiplication for authentication.
 func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: GCM}
+	}
 	if len(nonce) == 0 {
 		return dst, EmptyNonceError{mode: GCM}
 	}
@@ -160,6 +185,9 @@ func NewGCMEncrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 // NewGCMDecrypter decrypts data using Galois/Counter Mode (GCM).
 // GCM decryption verifies the authentication tag before decrypting the data.
 func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: GCM}
+	}
 	if len(nonce) == 0 {
 		return dst, EmptyNonceError{mode: GCM}
 	}
@@ -185,6 +213,9 @@ func NewGCMDecrypter(src, nonce, aad []byte, block cipher.Block) (dst []byte, er
 // CFB mode transforms a block cipher into a stream cipher by encrypting
 // the previous ciphertext block and XORing the result with the plaintext.
 func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: CFB}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CFB}
 	}
@@ -203,6 +234,9 @@ func NewCFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // NewCFBDecrypter decrypts data using Cipher Feedback (CFB) mode.
 // In CFB mode, decryption is identical to encryption since it's a stream cipher.
 func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: CFB}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: CFB}
 	}
@@ -222,6 +256,9 @@ func NewCFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // OFB mode transforms a block cipher into a stream cipher by repeatedly
 // encrypting the initialization vector and using the output as a keystream.
 func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: OFB}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: OFB}
 	}
@@ -240,6 +277,9 @@ func NewOFBEncrypter(src, iv []byte, block cipher.Block) (dst []byte, err error)
 // NewOFBDecrypter decrypts data using Output Feedback (OFB) mode.
 // In OFB mode, decryption is identical to encryption since it's a stream cipher.
 func NewOFBDecrypter(src, iv []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		return dst, EmptySrcError{mode: OFB}
+	}
 	if len(iv) == 0 {
 		return dst, EmptyIVError{mode: OFB}
 	}

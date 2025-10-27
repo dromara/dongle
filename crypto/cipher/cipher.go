@@ -45,6 +45,10 @@ func (c *blockCipher) SetAAD(aad []byte) {
 
 // Encrypt encrypts the source data using the specified cipher.
 func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		err = EmptySrcError{mode: c.Block}
+		return
+	}
 	paddedSrc, err := c.padding(src, block.BlockSize())
 	if err != nil {
 		return
@@ -70,6 +74,10 @@ func (c *blockCipher) Encrypt(src []byte, block cipher.Block) (dst []byte, err e
 
 // Decrypt decrypts the source data using the specified cipher.
 func (c *blockCipher) Decrypt(src []byte, block cipher.Block) (dst []byte, err error) {
+	if len(src) == 0 {
+		err = EmptySrcError{mode: c.Block}
+		return
+	}
 	switch c.Block {
 	case CBC:
 		dst, err = NewCBCDecrypter(src, c.IV, block)
