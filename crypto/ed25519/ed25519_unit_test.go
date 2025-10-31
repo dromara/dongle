@@ -1327,3 +1327,152 @@ func TestStreamSignerWriteBufferGrowth(t *testing.T) {
 		assert.True(t, cap(streamSigner.buffer) >= initialCap)
 	})
 }
+
+// TestStreamSignerWriteEdgeCases tests edge cases for StreamSigner Write method
+func TestStreamSignerWriteEdgeCases(t *testing.T) {
+	t.Run("write with initialization error", func(t *testing.T) {
+		// Create a signer with initialization error
+		var buf bytes.Buffer
+		signer := NewStreamSigner(&buf, nil)
+
+		// Try to write data - should return error immediately
+		data := []byte("test data")
+		n, err := signer.Write(data)
+		assert.NotNil(t, err)
+		assert.Equal(t, 0, n)
+		assert.IsType(t, NilKeyPairError{}, err)
+	})
+
+	t.Run("write with empty data", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStreamSigner(&buf, kp)
+		n, err := signer.Write([]byte{})
+		assert.Nil(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("write with nil data", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStreamSigner(&buf, kp)
+		n, err := signer.Write(nil)
+		assert.Nil(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("write with buffer growth - newCap < 2*cap case", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStreamSigner(&buf, kp)
+		streamSigner, ok := signer.(*StreamSigner)
+		assert.True(t, ok)
+
+		// Write initial data to create buffer
+		initialData := make([]byte, 100)
+		n, err := signer.Write(initialData)
+		assert.Nil(t, err)
+		assert.Equal(t, 100, n)
+
+		// Write data that requires expansion but newCap < 2*cap
+		// This should trigger the first branch: newCap = len(s.buffer) + len(p)
+		expansionData := make([]byte, 50) // This will make newCap = 150, which is < 2*100
+		n, err = signer.Write(expansionData)
+		assert.Nil(t, err)
+		assert.Equal(t, 50, n)
+		assert.Equal(t, 150, len(streamSigner.buffer))
+		// Capacity should be expanded to at least what's needed
+		assert.True(t, cap(streamSigner.buffer) >= 150)
+	})
+
+	t.Run("write with buffer growth - newCap >= 2*cap case", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStreamSigner(&buf, kp)
+		streamSigner, ok := signer.(*StreamSigner)
+		assert.True(t, ok)
+
+		// Write initial data to create buffer
+		initialData := make([]byte, 100)
+		n, err := signer.Write(initialData)
+		assert.Nil(t, err)
+		assert.Equal(t, 100, n)
+
+		// Write data that requires expansion and newCap >= 2*cap
+		// This should trigger the second branch: newCap = 2 * cap(s.buffer)
+		largeExpansionData := make([]byte, 150) // This will make newCap = 250, which is >= 2*100
+		n, err = signer.Write(largeExpansionData)
+		assert.Nil(t, err)
+		assert.Equal(t, 150, n)
+		assert.Equal(t, 250, len(streamSigner.buffer))
+		// When newCap >= 2*cap, capacity should be expanded to 2 * cap(s.buffer)
+		assert.True(t, cap(streamSigner.buffer) >= 200)
+	})
+
+	t.Run("write with buffer growth - edge case", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStreamSigner(&buf, kp)
+		streamSigner, ok := signer.(*StreamSigner)
+		assert.True(t, ok)
+
+		// Write initial data to create buffer with specific capacity
+		initialData := make([]byte, 10)
+		n, err := signer.Write(initialData)
+		assert.Nil(t, err)
+		assert.Equal(t, 10, n)
+
+		// Write data that triggers the exact 2*cap condition
+		exactExpansionData := make([]byte, 10) // This will make newCap = 20, which equals 2*10
+		n, err = signer.Write(exactExpansionData)
+		assert.Nil(t, err)
+		assert.Equal(t, 10, n)
+		assert.Equal(t, 20, len(streamSigner.buffer))
+		// When newCap = 2*cap, capacity should be expanded appropriately
+		assert.True(t, cap(streamSigner.buffer) >= 20)
+	})
+
+	t.Run("write with buffer growth - multiple expansions", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStreamSigner(&buf, kp)
+		streamSigner, ok := signer.(*StreamSigner)
+		assert.True(t, ok)
+
+		// Write data in multiple chunks to test different expansion scenarios
+		chunk1 := make([]byte, 50)
+		n, err := signer.Write(chunk1)
+		assert.Nil(t, err)
+		assert.Equal(t, 50, n)
+
+		chunk2 := make([]byte, 100) // This will trigger expansion
+		n, err = signer.Write(chunk2)
+		assert.Nil(t, err)
+		assert.Equal(t, 100, n)
+		assert.Equal(t, 150, len(streamSigner.buffer))
+
+		chunk3 := make([]byte, 50) // This will fit within existing capacity
+		n, err = signer.Write(chunk3)
+		assert.Nil(t, err)
+		assert.Equal(t, 50, n)
+		assert.Equal(t, 200, len(streamSigner.buffer))
+
+		chunk4 := make([]byte, 100) // This will trigger expansion again
+		n, err = signer.Write(chunk4)
+		assert.Nil(t, err)
+		assert.Equal(t, 100, n)
+		assert.Equal(t, 300, len(streamSigner.buffer))
+	})
+}
