@@ -33,7 +33,6 @@ func NewStdSigner(kp *keypair.Ed25519KeyPair) *StdSigner {
 
 // Sign generates a signature for the given data using the ED25519 private key
 func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
-	// Check for existing errors from initialization
 	if s.Error != nil {
 		err = s.Error
 		return
@@ -132,7 +131,6 @@ func NewStreamSigner(w io.Writer, kp *keypair.Ed25519KeyPair) io.WriteCloser {
 
 // Write accumulates data for signing using efficient buffer management.
 func (s *StreamSigner) Write(p []byte) (n int, err error) {
-	// Check for existing errors from initialization
 	if s.Error != nil {
 		err = s.Error
 		return
@@ -233,7 +231,6 @@ func NewStreamVerifier(r io.Reader, kp *keypair.Ed25519KeyPair) io.WriteCloser {
 
 // Write accumulates data for verification using efficient buffer management.
 func (v *StreamVerifier) Write(p []byte) (n int, err error) {
-	// Check for existing errors from initialization
 	if v.Error != nil {
 		err = v.Error
 		return
