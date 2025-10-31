@@ -7,8 +7,8 @@ import (
 	"encoding/pem"
 	"io"
 	"io/fs"
+	"strings"
 
-	"github.com/dromara/dongle/coding"
 	"github.com/dromara/dongle/utils"
 )
 
@@ -60,13 +60,13 @@ func (k *Ed25519KeyPair) GenKeyPair() *Ed25519KeyPair {
 // SetPublicKey sets the public key and formats it in PKCS8 format.
 // The input key is expected to be in PEM format and will be reformatted if necessary.
 func (k *Ed25519KeyPair) SetPublicKey(publicKey []byte) {
-	k.PublicKey = k.formatPublicKey(publicKey)
+	k.PublicKey = k.FormatPublicKey(publicKey)
 }
 
 // SetPrivateKey sets the private key and formats it in PKCS8 format.
 // The input key is expected to be in PEM format and will be reformatted if necessary.
 func (k *Ed25519KeyPair) SetPrivateKey(privateKey []byte) {
-	k.PrivateKey = k.formatPrivateKey(privateKey)
+	k.PrivateKey = k.FormatPrivateKey(privateKey)
 }
 
 // LoadPublicKey loads a public key from a file.
@@ -97,24 +97,6 @@ func (k *Ed25519KeyPair) LoadPrivateKey(f fs.File) {
 		return
 	}
 	k.PrivateKey, k.Error = io.ReadAll(f)
-}
-
-// SetRawSign sets the signature in raw byte format.
-// This method directly assigns the signature bytes without any decoding or conversion.
-func (k *Ed25519KeyPair) SetRawSign(sign []byte) {
-	k.Sign = sign
-}
-
-// SetHexSign sets the signature in hexadecimal format.
-// This method decodes the hex string to raw bytes before setting the signature.
-func (k *Ed25519KeyPair) SetHexSign(sign []byte) {
-	k.Sign = coding.NewDecoder().FromBytes(sign).ByHex().ToBytes()
-}
-
-// SetBase64Sign sets the signature in Base64 format.
-// This method decodes the Base64 string to raw bytes before setting the signature.
-func (k *Ed25519KeyPair) SetBase64Sign(sign []byte) {
-	k.Sign = coding.NewDecoder().FromBytes(sign).ByBase64().ToBytes()
 }
 
 // ParsePublicKey parses the public key from PEM format and returns a Go crypto/ed25519.PublicKey.
@@ -168,60 +150,78 @@ func (k *Ed25519KeyPair) ParsePrivateKey() (pri ed25519.PrivateKey, err error) {
 	return
 }
 
-// formatPublicKey formats a public key according to the specified format.
-// It decodes the input PEM key and reformats it with the appropriate headers.
-func (k *Ed25519KeyPair) formatPublicKey(publicKey []byte) []byte {
+// FormatPublicKey formats the public key into the specified PEM format.
+func (k *Ed25519KeyPair) FormatPublicKey(publicKey []byte) []byte {
 	if len(publicKey) == 0 {
-		return nil
-	}
-
-	// Decode the PEM block to get the raw key bytes
-	block, _ := pem.Decode(publicKey)
-	if block == nil {
-		return nil
+		return []byte{}
 	}
 
 	// ED25519 only supports PKCS8 format
 	header := "-----BEGIN PUBLIC KEY-----\n"
 	tail := "-----END PUBLIC KEY-----\n"
 
-	return k.formatKeyBody(block.Bytes, header, tail)
+	return formatKeyBody(publicKey, header, tail)
 }
 
-// formatPrivateKey formats a private key according to the specified format.
-// It decodes the input PEM key and reformats it with the appropriate headers.
-func (k *Ed25519KeyPair) formatPrivateKey(privateKey []byte) []byte {
+// FormatPrivateKey formats the private key into the specified PEM format.
+func (k *Ed25519KeyPair) FormatPrivateKey(privateKey []byte) []byte {
 	if len(privateKey) == 0 {
-		return nil
-	}
-
-	// Decode the PEM block to get the raw key bytes
-	block, _ := pem.Decode(privateKey)
-	if block == nil {
-		return nil
+		return []byte{}
 	}
 
 	// ED25519 only supports PKCS8 format
 	header := "-----BEGIN PRIVATE KEY-----\n"
 	tail := "-----END PRIVATE KEY-----\n"
 
-	return k.formatKeyBody(block.Bytes, header, tail)
+	return formatKeyBody(privateKey, header, tail)
 }
 
-// formatKeyBody formats the key body into 64-character lines with the specified header and tail.
-// This is a helper function used by formatPublicKey and formatPrivateKey.
-func (k *Ed25519KeyPair) formatKeyBody(keyBody []byte, header, tail string) []byte {
-	bodyStr := utils.Bytes2String(keyBody)
-	formatted := header
+// CompressPublicKey removes the PEM headers and footers from the public key.
+// It supports PKCS8 format and removes all whitespace characters.
+// The resulting byte slice contains only the base64-encoded key data.
+func (k *Ed25519KeyPair) CompressPublicKey(publicKey []byte) []byte {
+	// Convert byte slice to string for easier manipulation
+	keyStr := utils.Bytes2String(publicKey)
 
-	// Split the key body into 64-character lines
-	for i := 0; i < len(bodyStr); i += 64 {
-		end := i + 64
-		if end > len(bodyStr) {
-			end = len(bodyStr)
-		}
-		formatted += bodyStr[i:end] + "\n"
-	}
-	formatted += tail
-	return utils.String2Bytes(formatted)
+	// Remove the PEM headers (only PKCS8 for ED25519)
+	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PUBLIC KEY-----", "")
+
+	// Remove the PEM footers (only PKCS8 for ED25519)
+	keyStr = strings.ReplaceAll(keyStr, "-----END PUBLIC KEY-----", "")
+
+	// Remove all newline characters and whitespace
+	keyStr = strings.ReplaceAll(keyStr, "\n", "")
+	keyStr = strings.ReplaceAll(keyStr, "\r", "")
+	keyStr = strings.ReplaceAll(keyStr, " ", "")
+	keyStr = strings.ReplaceAll(keyStr, "\t", "")
+
+	// Remove any remaining whitespace that might be present
+	keyStr = strings.TrimSpace(keyStr)
+
+	return utils.String2Bytes(keyStr)
+}
+
+// CompressPrivateKey removes the PEM headers and footers from the private key.
+// It supports PKCS8 format and removes all whitespace characters.
+// The resulting byte slice contains only the base64-encoded key data.
+func (k *Ed25519KeyPair) CompressPrivateKey(privateKey []byte) []byte {
+	// Convert byte slice to string for easier manipulation
+	keyStr := utils.Bytes2String(privateKey)
+
+	// Remove the PEM headers (only PKCS8 for ED25519)
+	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PRIVATE KEY-----", "")
+
+	// Remove the PEM footers (only PKCS8 for ED25519)
+	keyStr = strings.ReplaceAll(keyStr, "-----END PRIVATE KEY-----", "")
+
+	// Remove all newline characters and whitespace
+	keyStr = strings.ReplaceAll(keyStr, "\n", "")
+	keyStr = strings.ReplaceAll(keyStr, "\r", "")
+	keyStr = strings.ReplaceAll(keyStr, " ", "")
+	keyStr = strings.ReplaceAll(keyStr, "\t", "")
+
+	// Remove any remaining whitespace that might be present
+	keyStr = strings.TrimSpace(keyStr)
+
+	return utils.String2Bytes(keyStr)
 }

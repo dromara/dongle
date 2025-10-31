@@ -52,14 +52,7 @@ func TestEd25519KeyPairSetPublicKey(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		kp.SetPublicKey([]byte{})
 
-		assert.Nil(t, kp.PublicKey)
-	})
-
-	t.Run("set invalid public key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.SetPublicKey([]byte("invalid key"))
-
-		assert.Nil(t, kp.PublicKey)
+		assert.Empty(t, kp.PublicKey)
 	})
 }
 
@@ -80,99 +73,7 @@ func TestEd25519KeyPairSetPrivateKey(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		kp.SetPrivateKey([]byte{})
 
-		assert.Nil(t, kp.PrivateKey)
-	})
-
-	t.Run("set invalid private key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.SetPrivateKey([]byte("invalid key"))
-
-		assert.Nil(t, kp.PrivateKey)
-	})
-}
-
-// TestEd25519KeyPairSetRawSign tests the SetRawSign method
-func TestEd25519KeyPairSetRawSign(t *testing.T) {
-	t.Run("set raw signature", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		signature := []byte("test signature")
-		kp.SetRawSign(signature)
-		assert.Equal(t, signature, kp.Sign)
-	})
-
-	t.Run("set empty raw signature", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.SetRawSign([]byte{})
-		assert.Equal(t, []byte{}, kp.Sign)
-	})
-
-	t.Run("set nil raw signature", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.SetRawSign(nil)
-		assert.Nil(t, kp.Sign)
-	})
-
-	t.Run("overwrite existing signature with raw", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		originalSignature := []byte("original signature")
-		kp.SetRawSign(originalSignature)
-		assert.Equal(t, originalSignature, kp.Sign)
-
-		newSignature := []byte("new signature")
-		kp.SetRawSign(newSignature)
-		assert.Equal(t, newSignature, kp.Sign)
-	})
-}
-
-// TestEd25519KeyPairSetHexSign tests the SetHexSign method
-func TestEd25519KeyPairSetHexSign(t *testing.T) {
-	t.Run("set hex signature", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		hexSignature := []byte("74657374207369676e6174757265") // "test signature" in hex
-		kp.SetHexSign(hexSignature)
-		assert.Equal(t, []byte("test signature"), kp.Sign)
-	})
-
-	t.Run("set empty hex signature", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.SetHexSign([]byte{})
-		assert.Equal(t, []byte{}, kp.Sign)
-	})
-
-	t.Run("overwrite existing signature with hex", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		originalSignature := []byte("original signature")
-		kp.Sign = originalSignature
-
-		hexSignature := []byte("6e6577207369676e6174757265") // "new signature" in hex
-		kp.SetHexSign(hexSignature)
-		assert.Equal(t, []byte("new signature"), kp.Sign)
-	})
-}
-
-// TestEd25519KeyPairSetBase64Sign tests the SetBase64Sign method
-func TestEd25519KeyPairSetBase64Sign(t *testing.T) {
-	t.Run("set base64 signature", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		base64Signature := []byte("dGVzdCBzaWduYXR1cmU=") // "test signature" in base64
-		kp.SetBase64Sign(base64Signature)
-		assert.Equal(t, []byte("test signature"), kp.Sign)
-	})
-
-	t.Run("set empty base64 signature", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.SetBase64Sign([]byte{})
-		assert.Equal(t, []byte{}, kp.Sign)
-	})
-
-	t.Run("overwrite existing signature with base64", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		originalSignature := []byte("original signature")
-		kp.Sign = originalSignature
-
-		base64Signature := []byte("bmV3IHNpZ25hdHVyZQ==") // "new signature" in base64
-		kp.SetBase64Sign(base64Signature)
-		assert.Equal(t, []byte("new signature"), kp.Sign)
+		assert.Empty(t, kp.PrivateKey)
 	})
 }
 
@@ -416,5 +317,179 @@ func TestErrorTypes(t *testing.T) {
 		errorMsg := err.Error()
 		assert.NotEmpty(t, errorMsg)
 		assert.Contains(t, errorMsg, "invalid private key")
+	})
+}
+
+// TestEd25519KeyPairCompressPublicKey tests the CompressPublicKey method
+func TestEd25519KeyPairCompressPublicKey(t *testing.T) {
+	t.Run("compress PKCS8 public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		compressed := kp.CompressPublicKey(kp.PublicKey)
+		assert.NotNil(t, compressed)
+
+		// Ensure the compressed key doesn't contain PEM headers
+		compressedStr := string(compressed)
+		assert.NotContains(t, compressedStr, "-----BEGIN PUBLIC KEY-----")
+		assert.NotContains(t, compressedStr, "-----END PUBLIC KEY-----")
+
+		// Ensure the compressed key doesn't contain newlines or spaces
+		assert.NotContains(t, compressedStr, "\n")
+		assert.NotContains(t, compressedStr, "\r")
+		assert.NotContains(t, compressedStr, " ")
+	})
+
+	t.Run("compress empty public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		compressed := kp.CompressPublicKey([]byte{})
+		assert.Empty(t, compressed)
+	})
+
+	t.Run("compress nil public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		compressed := kp.CompressPublicKey(nil)
+		assert.Empty(t, compressed)
+	})
+
+	t.Run("compress malformed public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		malformedKey := []byte("-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEANs0R/+1w1lk4sA==\n-----END PUBLIC KEY-----")
+		compressed := kp.CompressPublicKey(malformedKey)
+
+		// Should remove headers and newlines
+		compressedStr := string(compressed)
+		assert.NotContains(t, compressedStr, "-----BEGIN PUBLIC KEY-----")
+		assert.NotContains(t, compressedStr, "-----END PUBLIC KEY-----")
+		assert.NotContains(t, compressedStr, "\n")
+	})
+
+	t.Run("compress public key with extra whitespace", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		keyWithWhitespace := []byte("-----BEGIN PUBLIC KEY-----  \n  MCowBQYDK2VwAyEANs0R/+1w1lk4sA==  \n  -----END PUBLIC KEY-----  ")
+		compressed := kp.CompressPublicKey(keyWithWhitespace)
+
+		// Should remove headers, newlines, and whitespace
+		compressedStr := string(compressed)
+		assert.NotContains(t, compressedStr, "-----BEGIN PUBLIC KEY-----")
+		assert.NotContains(t, compressedStr, "-----END PUBLIC KEY-----")
+		assert.NotContains(t, compressedStr, "\n")
+		assert.NotContains(t, compressedStr, " ")
+		assert.NotContains(t, compressedStr, "\t")
+	})
+}
+
+// TestEd25519KeyPairCompressPrivateKey tests the CompressPrivateKey method
+func TestEd25519KeyPairCompressPrivateKey(t *testing.T) {
+	t.Run("compress PKCS8 private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		compressed := kp.CompressPrivateKey(kp.PrivateKey)
+		assert.NotNil(t, compressed)
+
+		// Ensure the compressed key doesn't contain PEM headers
+		compressedStr := string(compressed)
+		assert.NotContains(t, compressedStr, "-----BEGIN PRIVATE KEY-----")
+		assert.NotContains(t, compressedStr, "-----END PRIVATE KEY-----")
+
+		// Ensure the compressed key doesn't contain newlines or spaces
+		assert.NotContains(t, compressedStr, "\n")
+		assert.NotContains(t, compressedStr, "\r")
+		assert.NotContains(t, compressedStr, " ")
+	})
+
+	t.Run("compress empty private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		compressed := kp.CompressPrivateKey([]byte{})
+		assert.Empty(t, compressed)
+	})
+
+	t.Run("compress nil private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		compressed := kp.CompressPrivateKey(nil)
+		assert.Empty(t, compressed)
+	})
+
+	t.Run("compress malformed private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		malformedKey := []byte("-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIN5invalid\n-----END PRIVATE KEY-----")
+		compressed := kp.CompressPrivateKey(malformedKey)
+
+		// Should remove headers and newlines
+		compressedStr := string(compressed)
+		assert.NotContains(t, compressedStr, "-----BEGIN PRIVATE KEY-----")
+		assert.NotContains(t, compressedStr, "-----END PRIVATE KEY-----")
+		assert.NotContains(t, compressedStr, "\n")
+	})
+
+	t.Run("compress private key with extra whitespace", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		keyWithWhitespace := []byte("-----BEGIN PRIVATE KEY-----  \n  MC4CAQAwBQYDK2VwBCIEIN5invalid  \n  -----END PRIVATE KEY-----  ")
+		compressed := kp.CompressPrivateKey(keyWithWhitespace)
+
+		// Should remove headers, newlines, and whitespace
+		compressedStr := string(compressed)
+		assert.NotContains(t, compressedStr, "-----BEGIN PRIVATE KEY-----")
+		assert.NotContains(t, compressedStr, "-----END PRIVATE KEY-----")
+		assert.NotContains(t, compressedStr, "\n")
+		assert.NotContains(t, compressedStr, " ")
+		assert.NotContains(t, compressedStr, "\t")
+	})
+}
+
+// TestEd25519KeyPairFormatPublicKey tests the FormatPublicKey method
+func TestEd25519KeyPairFormatPublicKey(t *testing.T) {
+	t.Run("format valid public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		// Create a simple test key body
+		testKeyBody := []byte("test public key body")
+
+		formatted := kp.FormatPublicKey(testKeyBody)
+		assert.NotNil(t, formatted)
+		assert.Contains(t, string(formatted), "-----BEGIN PUBLIC KEY-----")
+		assert.Contains(t, string(formatted), "-----END PUBLIC KEY-----")
+	})
+
+	t.Run("format empty public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		formatted := kp.FormatPublicKey([]byte{})
+		assert.Empty(t, formatted)
+	})
+
+	t.Run("format nil public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		formatted := kp.FormatPublicKey(nil)
+		assert.Empty(t, formatted)
+	})
+}
+
+// TestEd25519KeyPairFormatPrivateKey tests the FormatPrivateKey method
+func TestEd25519KeyPairFormatPrivateKey(t *testing.T) {
+	t.Run("format valid private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		// Create a simple test key body
+		testKeyBody := []byte("test private key body")
+
+		formatted := kp.FormatPrivateKey(testKeyBody)
+		assert.NotNil(t, formatted)
+		assert.Contains(t, string(formatted), "-----BEGIN PRIVATE KEY-----")
+		assert.Contains(t, string(formatted), "-----END PRIVATE KEY-----")
+	})
+
+	t.Run("format empty private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		formatted := kp.FormatPrivateKey([]byte{})
+		assert.Empty(t, formatted)
+	})
+
+	t.Run("format nil private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		formatted := kp.FormatPrivateKey(nil)
+		assert.Empty(t, formatted)
 	})
 }
