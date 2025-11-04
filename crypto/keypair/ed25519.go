@@ -95,50 +95,46 @@ func (k *Ed25519KeyPair) LoadPrivateKey(f fs.File) error {
 // It supports PKCS8 format.
 //
 // Note: This method automatically detects the key format from the PEM headers.
-func (k *Ed25519KeyPair) ParsePublicKey() (pub ed25519.PublicKey, err error) {
+func (k *Ed25519KeyPair) ParsePublicKey() (ed25519.PublicKey, error) {
 	publicKey := k.PublicKey
 	block, _ := pem.Decode(publicKey)
 	if block == nil {
-		err = NilPemBlockError{}
-		return
+		return nil, NilPemBlockError{}
 	}
 
 	// Parse based on the PEM block type
 	if block.Type == "PUBLIC KEY" {
 		// PKCS8 format public key
-		pubInterface, err8 := x509.ParsePKIXPublicKey(block.Bytes)
-		if err8 != nil {
-			err = InvalidPublicKeyError{Err: err8}
-			return
+		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return nil, InvalidPublicKeyError{Err: err}
 		}
-		pub, err = pubInterface.(ed25519.PublicKey), nil
+		return pub.(ed25519.PublicKey), nil
 	}
-	return
+	return nil, nil
 }
 
 // ParsePrivateKey parses the private key from PEM format and returns a Go crypto/ed25519.PrivateKey.
 // It supports PKCS8 format.
 //
 // Note: This method automatically detects the key format from the PEM headers.
-func (k *Ed25519KeyPair) ParsePrivateKey() (pri ed25519.PrivateKey, err error) {
+func (k *Ed25519KeyPair) ParsePrivateKey() (ed25519.PrivateKey, error) {
 	privateKey := k.PrivateKey
 	block, _ := pem.Decode(privateKey)
 	if block == nil {
-		err = NilPemBlockError{}
-		return
+		return nil, NilPemBlockError{}
 	}
 
 	// Parse based on the PEM block type
 	if block.Type == "PRIVATE KEY" {
 		// PKCS8 format private key
-		pri8, err8 := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err8 != nil {
-			err = InvalidPrivateKeyError{Err: err8}
-			return
+		pri8, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, InvalidPrivateKeyError{Err: err}
 		}
-		pri, err = pri8.(ed25519.PrivateKey), nil
+		return pri8.(ed25519.PrivateKey), nil
 	}
-	return
+	return nil, nil
 }
 
 // formatPublicKey formats the public key into the specified PEM format.
