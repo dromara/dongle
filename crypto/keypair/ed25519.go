@@ -7,9 +7,6 @@ import (
 	"encoding/pem"
 	"io"
 	"io/fs"
-	"strings"
-
-	"github.com/dromara/dongle/utils"
 )
 
 // Ed25519KeyPair represents an ED25519 key pair with public and private keys.
@@ -24,9 +21,6 @@ type Ed25519KeyPair struct {
 
 	// Sign contains the signature bytes for verification
 	Sign []byte
-
-	// Error stores any error that occurred during key operations
-	Error error
 }
 
 // NewEd25519KeyPair returns a new Ed25519KeyPair instance.
@@ -38,7 +32,7 @@ func NewEd25519KeyPair() *Ed25519KeyPair {
 // The generated keys are formatted in PEM format using PKCS8 format.
 //
 // Note: The generated keys are automatically formatted in PEM format using PKCS8 format.
-func (k *Ed25519KeyPair) GenKeyPair() *Ed25519KeyPair {
+func (k *Ed25519KeyPair) GenKeyPair() {
 	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
 
 	// ED25519 only supports PKCS8 format
@@ -53,20 +47,18 @@ func (k *Ed25519KeyPair) GenKeyPair() *Ed25519KeyPair {
 		Type:  "PUBLIC KEY",
 		Bytes: publicBytes,
 	})
-
-	return k
 }
 
 // SetPublicKey sets the public key and formats it in PKCS8 format.
 // The input key is expected to be in PEM format and will be reformatted if necessary.
 func (k *Ed25519KeyPair) SetPublicKey(publicKey []byte) {
-	k.PublicKey = k.FormatPublicKey(publicKey)
+	k.PublicKey = k.formatPublicKey(publicKey)
 }
 
 // SetPrivateKey sets the private key and formats it in PKCS8 format.
 // The input key is expected to be in PEM format and will be reformatted if necessary.
 func (k *Ed25519KeyPair) SetPrivateKey(privateKey []byte) {
-	k.PrivateKey = k.FormatPrivateKey(privateKey)
+	k.PrivateKey = k.formatPrivateKey(privateKey)
 }
 
 // LoadPublicKey loads a public key from a file.
@@ -75,14 +67,13 @@ func (k *Ed25519KeyPair) SetPrivateKey(privateKey []byte) {
 //
 // Note: The file format is automatically detected from the PEM headers.
 // Only PKCS8 format is supported for ED25519.
-func (k *Ed25519KeyPair) LoadPublicKey(f fs.File) {
-	if f == nil {
-		k.Error = NilPemBlockError{}
-		return
+func (k *Ed25519KeyPair) LoadPublicKey(f fs.File) error {
+	key, err := io.ReadAll(f)
+	if err == nil {
+		k.PublicKey = key
+		return nil
 	}
-	// Read the entire file content
-	k.PublicKey, k.Error = io.ReadAll(f)
-	return
+	return err
 }
 
 // LoadPrivateKey loads a private key from a file.
@@ -91,12 +82,13 @@ func (k *Ed25519KeyPair) LoadPublicKey(f fs.File) {
 //
 // Note: The file format is automatically detected from the PEM headers.
 // Only PKCS8 format is supported for ED25519.
-func (k *Ed25519KeyPair) LoadPrivateKey(f fs.File) {
-	if f == nil {
-		k.Error = NilPemBlockError{}
-		return
+func (k *Ed25519KeyPair) LoadPrivateKey(f fs.File) error {
+	key, err := io.ReadAll(f)
+	if err == nil {
+		k.PrivateKey = key
+		return nil
 	}
-	k.PrivateKey, k.Error = io.ReadAll(f)
+	return err
 }
 
 // ParsePublicKey parses the public key from PEM format and returns a Go crypto/ed25519.PublicKey.
@@ -146,12 +138,11 @@ func (k *Ed25519KeyPair) ParsePrivateKey() (pri ed25519.PrivateKey, err error) {
 		}
 		pri, err = pri8.(ed25519.PrivateKey), nil
 	}
-	// For unknown key formats, return nil without error (consistent with ParsePublicKey)
 	return
 }
 
-// FormatPublicKey formats the public key into the specified PEM format.
-func (k *Ed25519KeyPair) FormatPublicKey(publicKey []byte) []byte {
+// formatPublicKey formats the public key into the specified PEM format.
+func (k *Ed25519KeyPair) formatPublicKey(publicKey []byte) []byte {
 	if len(publicKey) == 0 {
 		return []byte{}
 	}
@@ -163,8 +154,8 @@ func (k *Ed25519KeyPair) FormatPublicKey(publicKey []byte) []byte {
 	return formatKeyBody(publicKey, header, tail)
 }
 
-// FormatPrivateKey formats the private key into the specified PEM format.
-func (k *Ed25519KeyPair) FormatPrivateKey(privateKey []byte) []byte {
+// formatPrivateKey formats the private key into the specified PEM format.
+func (k *Ed25519KeyPair) formatPrivateKey(privateKey []byte) []byte {
 	if len(privateKey) == 0 {
 		return []byte{}
 	}
@@ -174,54 +165,4 @@ func (k *Ed25519KeyPair) FormatPrivateKey(privateKey []byte) []byte {
 	tail := "-----END PRIVATE KEY-----\n"
 
 	return formatKeyBody(privateKey, header, tail)
-}
-
-// CompressPublicKey removes the PEM headers and footers from the public key.
-// It supports PKCS8 format and removes all whitespace characters.
-// The resulting byte slice contains only the base64-encoded key data.
-func (k *Ed25519KeyPair) CompressPublicKey(publicKey []byte) []byte {
-	// Convert byte slice to string for easier manipulation
-	keyStr := utils.Bytes2String(publicKey)
-
-	// Remove the PEM headers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PUBLIC KEY-----", "")
-
-	// Remove the PEM footers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----END PUBLIC KEY-----", "")
-
-	// Remove all newline characters and whitespace
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-
-	// Remove any remaining whitespace that might be present
-	keyStr = strings.TrimSpace(keyStr)
-
-	return utils.String2Bytes(keyStr)
-}
-
-// CompressPrivateKey removes the PEM headers and footers from the private key.
-// It supports PKCS8 format and removes all whitespace characters.
-// The resulting byte slice contains only the base64-encoded key data.
-func (k *Ed25519KeyPair) CompressPrivateKey(privateKey []byte) []byte {
-	// Convert byte slice to string for easier manipulation
-	keyStr := utils.Bytes2String(privateKey)
-
-	// Remove the PEM headers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PRIVATE KEY-----", "")
-
-	// Remove the PEM footers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----END PRIVATE KEY-----", "")
-
-	// Remove all newline characters and whitespace
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-
-	// Remove any remaining whitespace that might be present
-	keyStr = strings.TrimSpace(keyStr)
-
-	return utils.String2Bytes(keyStr)
 }

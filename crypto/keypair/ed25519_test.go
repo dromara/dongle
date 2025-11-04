@@ -15,7 +15,6 @@ func TestNewEd25519KeyPair(t *testing.T) {
 		assert.NotNil(t, kp)
 		assert.Nil(t, kp.PublicKey)
 		assert.Nil(t, kp.PrivateKey)
-		assert.Nil(t, kp.Error)
 	})
 }
 
@@ -23,10 +22,8 @@ func TestNewEd25519KeyPair(t *testing.T) {
 func TestEd25519KeyPairGenKeyPair(t *testing.T) {
 	t.Run("generate ED25519 key pair", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		result := kp.GenKeyPair()
+		kp.GenKeyPair()
 
-		assert.Equal(t, kp, result)
-		assert.Nil(t, kp.Error)
 		assert.NotNil(t, kp.PublicKey)
 		assert.NotNil(t, kp.PrivateKey)
 		assert.Contains(t, string(kp.PublicKey), "-----BEGIN PUBLIC KEY-----")
@@ -210,21 +207,9 @@ func TestEd25519KeyPairLoadPublicKey(t *testing.T) {
 		defer file.Close()
 
 		// Load public key from file
-		kp.LoadPublicKey(file)
-
-		assert.Nil(t, kp.Error)
+		err := kp.LoadPublicKey(file)
+		assert.Nil(t, err)
 		assert.NotNil(t, kp.PublicKey)
-		assert.Contains(t, string(kp.PublicKey), "-----BEGIN PUBLIC KEY-----")
-	})
-
-	t.Run("load public key from nil file", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-
-		// Load public key from nil file
-		kp.LoadPublicKey(nil)
-
-		assert.NotNil(t, kp.Error)
-		assert.IsType(t, NilPemBlockError{}, kp.Error)
 	})
 
 	t.Run("load public key from file with read error", func(t *testing.T) {
@@ -235,9 +220,10 @@ func TestEd25519KeyPairLoadPublicKey(t *testing.T) {
 		defer file.Close()
 
 		// Load public key from file
-		kp.LoadPublicKey(file)
+		err := kp.LoadPublicKey(file)
 
-		assert.NotNil(t, kp.Error)
+		assert.NotNil(t, err)
+		assert.Nil(t, kp.PublicKey)
 	})
 }
 
@@ -252,21 +238,10 @@ func TestEd25519KeyPairLoadPrivateKey(t *testing.T) {
 		defer file.Close()
 
 		// Load private key from file
-		kp.LoadPrivateKey(file)
+		err := kp.LoadPrivateKey(file)
 
-		assert.Nil(t, kp.Error)
+		assert.Nil(t, err)
 		assert.NotNil(t, kp.PrivateKey)
-		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
-	})
-
-	t.Run("load private key from nil file", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-
-		// Load private key from nil file
-		kp.LoadPrivateKey(nil)
-
-		assert.NotNil(t, kp.Error)
-		assert.IsType(t, NilPemBlockError{}, kp.Error)
 	})
 
 	t.Run("load private key from file with read error", func(t *testing.T) {
@@ -277,9 +252,9 @@ func TestEd25519KeyPairLoadPrivateKey(t *testing.T) {
 		defer file.Close()
 
 		// Load private key from file
-		kp.LoadPrivateKey(file)
-
-		assert.NotNil(t, kp.Error)
+		err := kp.LoadPrivateKey(file)
+		assert.NotNil(t, err)
+		assert.Nil(t, kp.PrivateKey)
 	})
 }
 
@@ -320,124 +295,6 @@ func TestErrorTypes(t *testing.T) {
 	})
 }
 
-// TestEd25519KeyPairCompressPublicKey tests the CompressPublicKey method
-func TestEd25519KeyPairCompressPublicKey(t *testing.T) {
-	t.Run("compress PKCS8 public key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		compressed := kp.CompressPublicKey(kp.PublicKey)
-		assert.NotNil(t, compressed)
-
-		// Ensure the compressed key doesn't contain PEM headers
-		compressedStr := string(compressed)
-		assert.NotContains(t, compressedStr, "-----BEGIN PUBLIC KEY-----")
-		assert.NotContains(t, compressedStr, "-----END PUBLIC KEY-----")
-
-		// Ensure the compressed key doesn't contain newlines or spaces
-		assert.NotContains(t, compressedStr, "\n")
-		assert.NotContains(t, compressedStr, "\r")
-		assert.NotContains(t, compressedStr, " ")
-	})
-
-	t.Run("compress empty public key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		compressed := kp.CompressPublicKey([]byte{})
-		assert.Empty(t, compressed)
-	})
-
-	t.Run("compress nil public key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		compressed := kp.CompressPublicKey(nil)
-		assert.Empty(t, compressed)
-	})
-
-	t.Run("compress malformed public key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		malformedKey := []byte("-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEANs0R/+1w1lk4sA==\n-----END PUBLIC KEY-----")
-		compressed := kp.CompressPublicKey(malformedKey)
-
-		// Should remove headers and newlines
-		compressedStr := string(compressed)
-		assert.NotContains(t, compressedStr, "-----BEGIN PUBLIC KEY-----")
-		assert.NotContains(t, compressedStr, "-----END PUBLIC KEY-----")
-		assert.NotContains(t, compressedStr, "\n")
-	})
-
-	t.Run("compress public key with extra whitespace", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		keyWithWhitespace := []byte("-----BEGIN PUBLIC KEY-----  \n  MCowBQYDK2VwAyEANs0R/+1w1lk4sA==  \n  -----END PUBLIC KEY-----  ")
-		compressed := kp.CompressPublicKey(keyWithWhitespace)
-
-		// Should remove headers, newlines, and whitespace
-		compressedStr := string(compressed)
-		assert.NotContains(t, compressedStr, "-----BEGIN PUBLIC KEY-----")
-		assert.NotContains(t, compressedStr, "-----END PUBLIC KEY-----")
-		assert.NotContains(t, compressedStr, "\n")
-		assert.NotContains(t, compressedStr, " ")
-		assert.NotContains(t, compressedStr, "\t")
-	})
-}
-
-// TestEd25519KeyPairCompressPrivateKey tests the CompressPrivateKey method
-func TestEd25519KeyPairCompressPrivateKey(t *testing.T) {
-	t.Run("compress PKCS8 private key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		compressed := kp.CompressPrivateKey(kp.PrivateKey)
-		assert.NotNil(t, compressed)
-
-		// Ensure the compressed key doesn't contain PEM headers
-		compressedStr := string(compressed)
-		assert.NotContains(t, compressedStr, "-----BEGIN PRIVATE KEY-----")
-		assert.NotContains(t, compressedStr, "-----END PRIVATE KEY-----")
-
-		// Ensure the compressed key doesn't contain newlines or spaces
-		assert.NotContains(t, compressedStr, "\n")
-		assert.NotContains(t, compressedStr, "\r")
-		assert.NotContains(t, compressedStr, " ")
-	})
-
-	t.Run("compress empty private key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		compressed := kp.CompressPrivateKey([]byte{})
-		assert.Empty(t, compressed)
-	})
-
-	t.Run("compress nil private key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		compressed := kp.CompressPrivateKey(nil)
-		assert.Empty(t, compressed)
-	})
-
-	t.Run("compress malformed private key", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		malformedKey := []byte("-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIN5invalid\n-----END PRIVATE KEY-----")
-		compressed := kp.CompressPrivateKey(malformedKey)
-
-		// Should remove headers and newlines
-		compressedStr := string(compressed)
-		assert.NotContains(t, compressedStr, "-----BEGIN PRIVATE KEY-----")
-		assert.NotContains(t, compressedStr, "-----END PRIVATE KEY-----")
-		assert.NotContains(t, compressedStr, "\n")
-	})
-
-	t.Run("compress private key with extra whitespace", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		keyWithWhitespace := []byte("-----BEGIN PRIVATE KEY-----  \n  MC4CAQAwBQYDK2VwBCIEIN5invalid  \n  -----END PRIVATE KEY-----  ")
-		compressed := kp.CompressPrivateKey(keyWithWhitespace)
-
-		// Should remove headers, newlines, and whitespace
-		compressedStr := string(compressed)
-		assert.NotContains(t, compressedStr, "-----BEGIN PRIVATE KEY-----")
-		assert.NotContains(t, compressedStr, "-----END PRIVATE KEY-----")
-		assert.NotContains(t, compressedStr, "\n")
-		assert.NotContains(t, compressedStr, " ")
-		assert.NotContains(t, compressedStr, "\t")
-	})
-}
-
 // TestEd25519KeyPairFormatPublicKey tests the FormatPublicKey method
 func TestEd25519KeyPairFormatPublicKey(t *testing.T) {
 	t.Run("format valid public key", func(t *testing.T) {
@@ -447,7 +304,7 @@ func TestEd25519KeyPairFormatPublicKey(t *testing.T) {
 		// Create a simple test key body
 		testKeyBody := []byte("test public key body")
 
-		formatted := kp.FormatPublicKey(testKeyBody)
+		formatted := kp.formatPublicKey(testKeyBody)
 		assert.NotNil(t, formatted)
 		assert.Contains(t, string(formatted), "-----BEGIN PUBLIC KEY-----")
 		assert.Contains(t, string(formatted), "-----END PUBLIC KEY-----")
@@ -455,13 +312,13 @@ func TestEd25519KeyPairFormatPublicKey(t *testing.T) {
 
 	t.Run("format empty public key", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.FormatPublicKey([]byte{})
+		formatted := kp.formatPublicKey([]byte{})
 		assert.Empty(t, formatted)
 	})
 
 	t.Run("format nil public key", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.FormatPublicKey(nil)
+		formatted := kp.formatPublicKey(nil)
 		assert.Empty(t, formatted)
 	})
 }
@@ -475,7 +332,7 @@ func TestEd25519KeyPairFormatPrivateKey(t *testing.T) {
 		// Create a simple test key body
 		testKeyBody := []byte("test private key body")
 
-		formatted := kp.FormatPrivateKey(testKeyBody)
+		formatted := kp.formatPrivateKey(testKeyBody)
 		assert.NotNil(t, formatted)
 		assert.Contains(t, string(formatted), "-----BEGIN PRIVATE KEY-----")
 		assert.Contains(t, string(formatted), "-----END PRIVATE KEY-----")
@@ -483,13 +340,13 @@ func TestEd25519KeyPairFormatPrivateKey(t *testing.T) {
 
 	t.Run("format empty private key", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.FormatPrivateKey([]byte{})
+		formatted := kp.formatPrivateKey([]byte{})
 		assert.Empty(t, formatted)
 	})
 
 	t.Run("format nil private key", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.FormatPrivateKey(nil)
+		formatted := kp.formatPrivateKey(nil)
 		assert.Empty(t, formatted)
 	})
 }
