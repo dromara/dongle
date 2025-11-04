@@ -10,9 +10,6 @@ import (
 	"encoding/pem"
 	"io"
 	"io/fs"
-	"strings"
-
-	"github.com/dromara/dongle/utils"
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.
@@ -34,9 +31,6 @@ type RsaKeyPair struct {
 	// Hash specifies the hash function used for RSA operations
 	// This is used for OAEP padding in encryption and for signature generation/verification
 	Hash crypto.Hash
-
-	// Error stores any error that occurred during key operations
-	Error error
 }
 
 // NewRsaKeyPair returns a new RsaKeyPair instance.
@@ -53,12 +47,11 @@ func NewRsaKeyPair() *RsaKeyPair {
 //
 // Note: The generated keys are automatically formatted in PEM format
 // according to the current Format setting (PKCS1 or PKCS8).
-func (k *RsaKeyPair) GenKeyPair(size int) *RsaKeyPair {
+func (k *RsaKeyPair) GenKeyPair(size int) error {
 	// Generate a new RSA private key
 	key, err := rsa.GenerateKey(rand.Reader, size)
 	if err != nil {
-		k.Error = err
-		return k
+		return err
 	}
 
 	// Format keys according to the specified format
@@ -89,19 +82,19 @@ func (k *RsaKeyPair) GenKeyPair(size int) *RsaKeyPair {
 			Bytes: publicBytes,
 		})
 	}
-	return k
+	return nil
 }
 
 // SetPublicKey sets the public key and formats it according to the current format.
 // The input key is expected to be in PEM format and will be reformatted if necessary.
 func (k *RsaKeyPair) SetPublicKey(publicKey []byte) {
-	k.PublicKey = k.FormatPublicKey(publicKey)
+	k.PublicKey = k.formatPublicKey(publicKey)
 }
 
 // SetPrivateKey sets the private key and formats it according to the current format.
 // The input key is expected to be in PEM format and will be reformatted if necessary.
 func (k *RsaKeyPair) SetPrivateKey(privateKey []byte) {
-	k.PrivateKey = k.FormatPrivateKey(privateKey)
+	k.PrivateKey = k.formatPrivateKey(privateKey)
 }
 
 // LoadPublicKey loads a public key from a file.
@@ -110,14 +103,13 @@ func (k *RsaKeyPair) SetPrivateKey(privateKey []byte) {
 //
 // Note: The file format is automatically detected from the PEM headers.
 // Both PKCS1 and PKCS8 formats are supported.
-func (k *RsaKeyPair) LoadPublicKey(f fs.File) {
-	if f == nil {
-		k.Error = NilPemBlockError{}
-		return
+func (k *RsaKeyPair) LoadPublicKey(f fs.File) error {
+	key, err := io.ReadAll(f)
+	if err == nil {
+		k.PublicKey = key
+		return nil
 	}
-	// Read the entire file content
-	k.PublicKey, k.Error = io.ReadAll(f)
-	return
+	return err
 }
 
 // LoadPrivateKey loads a private key from a file.
@@ -126,12 +118,13 @@ func (k *RsaKeyPair) LoadPublicKey(f fs.File) {
 //
 // Note: The file format is automatically detected from the PEM headers.
 // Both PKCS1 and PKCS8 formats are supported.
-func (k *RsaKeyPair) LoadPrivateKey(f fs.File) {
-	if f == nil {
-		k.Error = NilPemBlockError{}
-		return
+func (k *RsaKeyPair) LoadPrivateKey(f fs.File) error {
+	key, err := io.ReadAll(f)
+	if err == nil {
+		k.PrivateKey = key
+		return nil
 	}
-	k.PrivateKey, k.Error = io.ReadAll(f)
+	return err
 }
 
 // SetFormat sets the key format for the RSA key pair.
@@ -209,8 +202,8 @@ func (k *RsaKeyPair) ParsePrivateKey() (*rsa.PrivateKey, error) {
 	return nil, nil
 }
 
-// FormatPublicKey formats the public key into the specified PEM format.
-func (k *RsaKeyPair) FormatPublicKey(publicKey []byte) []byte {
+// formatPublicKey formats the public key into the specified PEM format.
+func (k *RsaKeyPair) formatPublicKey(publicKey []byte) []byte {
 	if len(publicKey) == 0 {
 		return []byte{}
 	}
@@ -229,8 +222,8 @@ func (k *RsaKeyPair) FormatPublicKey(publicKey []byte) []byte {
 	return formatKeyBody(publicKey, header, tail)
 }
 
-// FormatPrivateKey formats the private key into the specified PEM format.
-func (k *RsaKeyPair) FormatPrivateKey(privateKey []byte) []byte {
+// formatPrivateKey formats the private key into the specified PEM format.
+func (k *RsaKeyPair) formatPrivateKey(privateKey []byte) []byte {
 	if len(privateKey) == 0 {
 		return []byte{}
 	}
@@ -247,58 +240,4 @@ func (k *RsaKeyPair) FormatPrivateKey(privateKey []byte) []byte {
 	}
 
 	return formatKeyBody(privateKey, header, tail)
-}
-
-// CompressPublicKey removes the PEM headers and footers from the public key.
-// It supports both PKCS1 and PKCS8 formats and removes all whitespace characters.
-// The resulting byte slice contains only the base64-encoded key data.
-func (k *RsaKeyPair) CompressPublicKey(publicKey []byte) []byte {
-	// Convert byte slice to string for easier manipulation
-	keyStr := utils.Bytes2String(publicKey)
-
-	// Remove the PEM headers (both PKCS1 and PKCS8)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PUBLIC KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN RSA PUBLIC KEY-----", "")
-
-	// Remove the PEM footers (both PKCS1 and PKCS8)
-	keyStr = strings.ReplaceAll(keyStr, "-----END PUBLIC KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----END RSA PUBLIC KEY-----", "")
-
-	// Remove all newline characters and whitespace
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-
-	// Remove any remaining whitespace that might be present
-	keyStr = strings.TrimSpace(keyStr)
-
-	return utils.String2Bytes(keyStr)
-}
-
-// CompressPrivateKey removes the PEM headers and footers from the private key.
-// It supports both PKCS1 and PKCS8 formats and removes all whitespace characters.
-// The resulting byte slice contains only the base64-encoded key data.
-func (k *RsaKeyPair) CompressPrivateKey(privateKey []byte) []byte {
-	// Convert byte slice to string for easier manipulation
-	keyStr := utils.Bytes2String(privateKey)
-
-	// Remove the PEM headers (both PKCS1 and PKCS8)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PRIVATE KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN RSA PRIVATE KEY-----", "")
-
-	// Remove the PEM footers (both PKCS1 and PKCS8)
-	keyStr = strings.ReplaceAll(keyStr, "-----END PRIVATE KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----END RSA PRIVATE KEY-----", "")
-
-	// Remove all newline characters and whitespace
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-
-	// Remove any remaining whitespace that might be present
-	keyStr = strings.TrimSpace(keyStr)
-
-	return utils.String2Bytes(keyStr)
 }
