@@ -71,16 +71,19 @@ func (k *RsaKeyPair) GenKeyPair(size int) error {
 
 	if k.Format == PKCS8 {
 		// PKCS8 format: Use generic headers
-		privateBytes, _ := x509.MarshalPKCS8PrivateKey(key)
-		k.PrivateKey = pem.EncodeToMemory(&pem.Block{
-			Type:  "PRIVATE KEY",
-			Bytes: privateBytes,
-		})
-		publicBytes, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		k.PublicKey = pem.EncodeToMemory(&pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: publicBytes,
-		})
+		if privateBytes, err := x509.MarshalPKCS8PrivateKey(key); err == nil {
+			k.PrivateKey = pem.EncodeToMemory(&pem.Block{
+				Type:  "PRIVATE KEY",
+				Bytes: privateBytes,
+			})
+		}
+
+		if publicBytes, err := x509.MarshalPKIXPublicKey(&key.PublicKey); err == nil {
+			k.PublicKey = pem.EncodeToMemory(&pem.Block{
+				Type:  "PUBLIC KEY",
+				Bytes: publicBytes,
+			})
+		}
 	}
 	return nil
 }
