@@ -36,17 +36,19 @@ func (k *Ed25519KeyPair) GenKeyPair() {
 	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
 
 	// ED25519 only supports PKCS8 format
-	privateBytes, _ := x509.MarshalPKCS8PrivateKey(privateKey)
-	k.PrivateKey = pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
-		Bytes: privateBytes,
-	})
+	if privateBytes, err := x509.MarshalPKCS8PrivateKey(privateKey); err == nil {
+		k.PrivateKey = pem.EncodeToMemory(&pem.Block{
+			Type:  "PRIVATE KEY",
+			Bytes: privateBytes,
+		})
+	}
 
-	publicBytes, _ := x509.MarshalPKIXPublicKey(publicKey)
-	k.PublicKey = pem.EncodeToMemory(&pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: publicBytes,
-	})
+	if publicBytes, err := x509.MarshalPKIXPublicKey(publicKey); err == nil {
+		k.PublicKey = pem.EncodeToMemory(&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: publicBytes,
+		})
+	}
 }
 
 // SetPublicKey sets the public key and formats it in PKCS8 format.
@@ -128,11 +130,11 @@ func (k *Ed25519KeyPair) ParsePrivateKey() (ed25519.PrivateKey, error) {
 	// Parse based on the PEM block type
 	if block.Type == "PRIVATE KEY" {
 		// PKCS8 format private key
-		pri8, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		pri, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
 			return nil, InvalidPrivateKeyError{Err: err}
 		}
-		return pri8.(ed25519.PrivateKey), nil
+		return pri.(ed25519.PrivateKey), nil
 	}
 	return nil, nil
 }
