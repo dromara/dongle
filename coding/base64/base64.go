@@ -116,11 +116,12 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // It provides efficient encoding for large data streams by processing data
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
-	writer   io.Writer        // Underlying writer for encoded output
-	encoder  *base64.Encoding // Base64 encoding implementation
-	alphabet string           // The alphabet used for encoding
-	buffer   []byte           // Buffer for accumulating partial bytes (0-2 bytes)
-	Error    error            // Error field for storing encoding errors
+	writer    io.Writer        // Underlying writer for encoded output
+	encoder   *base64.Encoding // Base64 encoding implementation
+	alphabet  string           // The alphabet used for encoding
+	buffer    []byte           // Buffer for accumulating partial bytes (0-2 bytes)
+	encodeBuf [4]byte          // Reusable buffer for encoding output (3 bytes -> 4 chars)
+	Error     error            // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base64 encoder that writes encoded data
@@ -134,7 +135,6 @@ func NewStreamEncoder(w io.Writer, alphabet string) io.WriteCloser {
 		writer:   w,
 		encoder:  base64.NewEncoding(alphabet),
 		alphabet: alphabet,
-		buffer:   make([]byte, 0, 1024), // Pre-allocate buffer with reasonable capacity
 	}
 }
 
@@ -162,8 +162,9 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 
 	for i := 0; i < chunks*chunkSize; i += chunkSize {
 		chunk := data[i : i+chunkSize]
-		encoded := e.encoder.EncodeToString(chunk)
-		if _, err = e.writer.Write([]byte(encoded)); err != nil {
+		// Use reusable buffer for encoding to avoid allocations
+		e.encoder.Encode(e.encodeBuf[:], chunk)
+		if _, err = e.writer.Write(e.encodeBuf[:]); err != nil {
 			return len(p), err
 		}
 	}
@@ -187,8 +188,12 @@ func (e *StreamEncoder) Close() error {
 
 	// Encode any remaining bytes (1-2 bytes) from the last Write
 	if len(e.buffer) > 0 {
-		encoded := e.encoder.EncodeToString(e.buffer)
-		if _, err := e.writer.Write([]byte(encoded)); err != nil {
+		// For final encoding with padding, we need to use a temporary buffer
+		// since the output might be less than 4 bytes for incomplete blocks
+		encodedLen := e.encoder.EncodedLen(len(e.buffer))
+		encoded := make([]byte, encodedLen)
+		e.encoder.Encode(encoded, e.buffer)
+		if _, err := e.writer.Write(encoded); err != nil {
 			return err
 		}
 		e.buffer = nil
@@ -206,6 +211,7 @@ type StreamDecoder struct {
 	alphabet string           // The alphabet used for decoding
 	buffer   []byte           // Buffer for decoded data not yet read
 	pos      int              // Current position in the decoded buffer
+	readBuf  [1024]byte       // Reusable buffer for reading encoded data
 	Error    error            // Error field for storing decoding errors
 }
 
@@ -220,8 +226,6 @@ func NewStreamDecoder(r io.Reader, alphabet string) io.Reader {
 		reader:   r,
 		decoder:  base64.NewEncoding(alphabet),
 		alphabet: alphabet,
-		buffer:   make([]byte, 0, 1024), // Pre-allocate buffer for decoded data
-		pos:      0,
 	}
 }
 
@@ -240,9 +244,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	// Read encoded data in chunks using reusable buffer
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -251,11 +254,15 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	// Decode the data using the configured decoder
-	decoded, err := d.decoder.DecodeString(string(readBuf[:rn]))
+	// Decode the data directly using the configured decoder
+	// Estimate decoded size for pre-allocation
+	decodedLen := d.decoder.DecodedLen(rn)
+	decoded := make([]byte, decodedLen)
+	dn, err := d.decoder.Decode(decoded, d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
+	decoded = decoded[:dn]
 
 	// Copy decoded data to the provided buffer
 	copied := copy(p, decoded)

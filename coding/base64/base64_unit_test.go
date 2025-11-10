@@ -255,16 +255,16 @@ func TestStdDecoder_Decode(t *testing.T) {
 
 func TestNewStreamEncoder(t *testing.T) {
 	t.Run("new stream encoder", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 		assert.NotNil(t, encoder)
 	})
 }
 
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 		data := []byte("hello world")
 		n, err := encoder.Write(data)
 		assert.NoError(t, err)
@@ -272,36 +272,36 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("hello"))
 		encoder.Write([]byte(" world"))
 
 		err := encoder.Close()
 		assert.NoError(t, err)
-		assert.Equal(t, "aGVsbG8gd29ybGQ=", buf.String())
+		assert.Equal(t, "aGVsbG8gd29ybGQ=", string(file.Bytes()))
 	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 		encoder.Write([]byte("hello world"))
 
 		err := encoder.Close()
 		assert.NoError(t, err)
-		assert.Equal(t, "aGVsbG8gd29ybGQ=", buf.String())
+		assert.Equal(t, "aGVsbG8gd29ybGQ=", string(file.Bytes()))
 	})
 
 	t.Run("close without data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		err := encoder.Close()
 		assert.NoError(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("close with write error", func(t *testing.T) {
@@ -571,8 +571,8 @@ func TestEdgeCases(t *testing.T) {
 	})
 
 	t.Run("stream encoder with empty alphabet", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, "")
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, "")
 		// Type assert to access Error field
 		streamEncoder := encoder.(*StreamEncoder)
 		assert.NotNil(t, streamEncoder.Error)
@@ -589,9 +589,9 @@ func TestEdgeCases(t *testing.T) {
 	})
 
 	t.Run("stream encoder with very long alphabet", func(t *testing.T) {
-		var buf bytes.Buffer
+		file := mock.NewFile(nil, "test.txt")
 		longAlphabet := string(make([]byte, 100)) // 100 bytes
-		encoder := NewStreamEncoder(&buf, longAlphabet)
+		encoder := NewStreamEncoder(file, longAlphabet)
 		// Type assert to access Error field
 		streamEncoder := encoder.(*StreamEncoder)
 		assert.NotNil(t, streamEncoder.Error)
@@ -639,27 +639,27 @@ func TestEdgeCases(t *testing.T) {
 	})
 
 	t.Run("stream encoder write with nil buffer", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 		n, err := encoder.Write(nil)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, n)
 	})
 
 	t.Run("stream encoder write with empty buffer", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 		n, err := encoder.Write([]byte{})
 		assert.NoError(t, err)
 		assert.Equal(t, 0, n)
 	})
 
 	t.Run("stream encoder close with empty buffer", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 		err := encoder.Close()
 		assert.NoError(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("stream decoder read with nil buffer", func(t *testing.T) {
