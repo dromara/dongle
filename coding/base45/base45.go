@@ -21,6 +21,19 @@ const (
 // space, $, %, *, +, -, ., /, and : for a total of 45 characters.
 var StdAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
 
+// stdDecodeMap is a pre-initialized global decode map to avoid repeated initialization.
+var stdDecodeMap [256]byte
+
+func init() {
+	// Initialize global decode map once at package initialization
+	for i := range stdDecodeMap {
+		stdDecodeMap[i] = 0xFF
+	}
+	for i, char := range StdAlphabet {
+		stdDecodeMap[byte(char)] = byte(i)
+	}
+}
+
 // StdEncoder represents a base45 encoder for standard encoding operations.
 // It implements the base45 encoding algorithm as specified in RFC 9285,
 // providing efficient encoding of binary data to base45 strings.
@@ -52,7 +65,8 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 	// Pre-calculate output size for better memory allocation
 	outputSize := e.getOutputSize(len(src))
 
-	result := make([]byte, 0, outputSize)
+	result := make([]byte, outputSize)
+	pos := 0
 
 	for i := 0; i < len(src); i += 2 {
 		if i+1 < len(src) {
@@ -60,12 +74,17 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 			n := uint16(src[i])<<8 | uint16(src[i+1])
 			v, x := n/baseSquare, n%baseSquare
 			d, c := x/baseRadix, x%baseRadix
-			result = append(result, e.encodeMap[c], e.encodeMap[d], e.encodeMap[v])
+			result[pos] = e.encodeMap[c]
+			result[pos+1] = e.encodeMap[d]
+			result[pos+2] = e.encodeMap[v]
+			pos += 3
 		} else {
 			// Single byte: encode as uint8 using base45
 			n := uint16(src[i])
 			d, c := n/baseRadix, n%baseRadix
-			result = append(result, e.encodeMap[c], e.encodeMap[d])
+			result[pos] = e.encodeMap[c]
+			result[pos+1] = e.encodeMap[d]
+			pos += 2
 		}
 	}
 	return result
@@ -92,17 +111,11 @@ type StdDecoder struct {
 }
 
 // NewStdDecoder creates a new base45 decoder using the standard alphabet.
-// Initializes the decoding lookup table for efficient character mapping.
+// Uses the pre-initialized global decode map for better performance.
 func NewStdDecoder() *StdDecoder {
 	d := &StdDecoder{alphabet: StdAlphabet}
-	// Initialize all values to invalid (0xFF)
-	for i := range d.decodeMap {
-		d.decodeMap[i] = 0xFF
-	}
-	// Set valid values for the alphabet
-	for i, char := range StdAlphabet {
-		d.decodeMap[byte(char)] = byte(i)
-	}
+	// Copy the pre-initialized global decode map
+	d.decodeMap = stdDecodeMap
 	return d
 }
 
@@ -126,37 +139,54 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		return
 	}
 
-	bytes := make([]byte, 0, size)
+	decoded := make([]byte, estimatedSize)
+	outPos := 0
 
-	for pos, char := range src {
-		v := d.decodeMap[char]
-		if v == 0xFF {
-			err = InvalidCharacterError{Char: rune(char), Position: pos}
-			return
-		}
-		bytes = append(bytes, v)
-	}
-
-	decoded := make([]byte, 0, estimatedSize)
-	for i := 0; i < len(bytes); i += 3 {
-		if i+2 < len(bytes) {
+	for i := 0; i < size; i += 3 {
+		if i+2 < size {
 			// Three characters: decode to 2 bytes
-			c, v, e := int(bytes[i]), int(bytes[i+1]), int(bytes[i+2])
-			n := c + v*baseRadix + e*baseSquare
+			c := d.decodeMap[src[i]]
+			v := d.decodeMap[src[i+1]]
+			e := d.decodeMap[src[i+2]]
+			if c == 0xFF {
+				err = InvalidCharacterError{Char: rune(src[i]), Position: i}
+				return
+			}
+			if v == 0xFF {
+				err = InvalidCharacterError{Char: rune(src[i+1]), Position: i + 1}
+				return
+			}
+			if e == 0xFF {
+				err = InvalidCharacterError{Char: rune(src[i+2]), Position: i + 2}
+				return
+			}
+			n := int(c) + int(v)*baseRadix + int(e)*baseSquare
 			if n > maxUint16 {
 				err = CorruptInputError(int64(i / 3))
 				return
 			}
-			decoded = append(decoded, byte(n>>8), byte(n&0xFF))
-		} else if i+1 < len(bytes) {
+			decoded[outPos] = byte(n >> 8)
+			decoded[outPos+1] = byte(n & 0xFF)
+			outPos += 2
+		} else if i+1 < size {
 			// Two characters: decode to 1 byte
-			c, v := int(bytes[i]), int(bytes[i+1])
-			n := c + v*baseRadix
+			c := d.decodeMap[src[i]]
+			v := d.decodeMap[src[i+1]]
+			if c == 0xFF {
+				err = InvalidCharacterError{Char: rune(src[i]), Position: i}
+				return
+			}
+			if v == 0xFF {
+				err = InvalidCharacterError{Char: rune(src[i+1]), Position: i + 1}
+				return
+			}
+			n := int(c) + int(v)*baseRadix
 			if n > 255 {
 				err = CorruptInputError(int64(i / 3))
 				return
 			}
-			decoded = append(decoded, byte(n))
+			decoded[outPos] = byte(n)
+			outPos++
 		}
 	}
 	return decoded, nil
@@ -177,10 +207,11 @@ func (d *StdDecoder) getDecodedSize(encodedLen int) int {
 // It provides efficient encoding for large data streams by processing data
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
-	writer   io.Writer // Underlying writer for encoded output
-	buffer   []byte    // Buffer for accumulating partial bytes (0-1 bytes)
-	alphabet string    // The alphabet used for encoding
-	Error    error     // Error field for storing encoding errors
+	writer    io.Writer // Underlying writer for encoded output
+	buffer    []byte    // Buffer for accumulating partial bytes (0-1 bytes)
+	alphabet  string    // The alphabet used for encoding
+	encodeBuf [3]byte   // Reusable buffer for encoding output
+	Error     error     // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base45 encoder that writes encoded data
@@ -215,8 +246,10 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 		v, x := val/baseSquare, val%baseSquare
 		d, c := x/baseRadix, x%baseRadix
 
-		encoded := []byte{StdAlphabet[c], StdAlphabet[d], StdAlphabet[v]}
-		if _, err = e.writer.Write(encoded); err != nil {
+		e.encodeBuf[0] = StdAlphabet[c]
+		e.encodeBuf[1] = StdAlphabet[d]
+		e.encodeBuf[2] = StdAlphabet[v]
+		if _, err = e.writer.Write(e.encodeBuf[:]); err != nil {
 			return len(p), err
 		}
 	}
@@ -256,17 +289,27 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader   io.Reader // Underlying reader for encoded input
-	buffer   []byte    // Buffer for decoded data not yet read
-	pos      int       // Current position in the decoded buffer
-	alphabet string    // The alphabet used for decoding
-	Error    error     // Error field for storing decoding errors
+	reader    io.Reader  // Underlying reader for encoded input
+	buffer    []byte     // Buffer for decoded data not yet read
+	pos       int        // Current position in the decoded buffer
+	alphabet  string     // The alphabet used for decoding
+	readBuf   [1024]byte // Reusable buffer for reading encoded data
+	decodeMap [256]byte  // Reusable decode map to avoid creating decoders
+	Error     error      // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming base45 decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard base45 alphabet.
 func NewStreamDecoder(r io.Reader) io.Reader {
-	return &StreamDecoder{reader: r, alphabet: StdAlphabet}
+	d := &StreamDecoder{reader: r, alphabet: StdAlphabet}
+	// Initialize decode map once
+	for i := range d.decodeMap {
+		d.decodeMap[i] = 0xFF
+	}
+	for i, char := range StdAlphabet {
+		d.decodeMap[byte(char)] = byte(i)
+	}
+	return d
 }
 
 // Read implements the io.Reader interface for streaming base45 decoding.
@@ -285,8 +328,7 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -295,9 +337,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	// Decode the data using the configured decoder
-	decoder := NewStdDecoder()
-	decoded, err := decoder.Decode(readBuf[:rn])
+	// Decode the data directly using our decode map
+	decoded, err := d.decode(d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
@@ -311,4 +352,67 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	return n, nil
+}
+
+// decode decodes base45 data using the internal decode map
+func (d *StreamDecoder) decode(src []byte) ([]byte, error) {
+	size := len(src)
+	if size == 0 {
+		return nil, nil
+	}
+
+	mod := size % 3
+	if mod != 0 && mod != 2 {
+		return nil, InvalidLengthError{Length: size, Mod: mod}
+	}
+
+	estimatedSize := (size / 3) * 2
+	if mod == 2 {
+		estimatedSize++
+	}
+
+	decoded := make([]byte, estimatedSize)
+	outPos := 0
+
+	for i := 0; i < size; i += 3 {
+		if i+2 < size {
+			// Three characters: decode to 2 bytes
+			c := d.decodeMap[src[i]]
+			v := d.decodeMap[src[i+1]]
+			e := d.decodeMap[src[i+2]]
+			if c == 0xFF {
+				return nil, InvalidCharacterError{Char: rune(src[i]), Position: i}
+			}
+			if v == 0xFF {
+				return nil, InvalidCharacterError{Char: rune(src[i+1]), Position: i + 1}
+			}
+			if e == 0xFF {
+				return nil, InvalidCharacterError{Char: rune(src[i+2]), Position: i + 2}
+			}
+			n := int(c) + int(v)*baseRadix + int(e)*baseSquare
+			if n > maxUint16 {
+				return nil, CorruptInputError(int64(i / 3))
+			}
+			decoded[outPos] = byte(n >> 8)
+			decoded[outPos+1] = byte(n & 0xFF)
+			outPos += 2
+		} else if i+1 < size {
+			// Two characters: decode to 1 byte
+			c := d.decodeMap[src[i]]
+			v := d.decodeMap[src[i+1]]
+			if c == 0xFF {
+				return nil, InvalidCharacterError{Char: rune(src[i]), Position: i}
+			}
+			if v == 0xFF {
+				return nil, InvalidCharacterError{Char: rune(src[i+1]), Position: i + 1}
+			}
+			n := int(c) + int(v)*baseRadix
+			if n > 255 {
+				return nil, CorruptInputError(int64(i / 3))
+			}
+			decoded[outPos] = byte(n)
+			outPos++
+		}
+	}
+	return decoded, nil
 }

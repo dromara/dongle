@@ -97,8 +97,8 @@ func TestStdEncoder_Encode(t *testing.T) {
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		data1 := []byte("hello")
 		data2 := []byte(" world")
@@ -113,51 +113,51 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.Equal(t, "+8D VD82EK4F.KEA2", buf.String())
+		assert.Equal(t, "+8D VD82EK4F.KEA2", string(file.Bytes()))
 	})
 
 	t.Run("close with data success", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("test"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "7WE QE", buf.String())
+		assert.Equal(t, "7WE QE", string(file.Bytes()))
 	})
 
 	t.Run("close with single byte", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("a"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "72", buf.String())
+		assert.Equal(t, "72", string(file.Bytes()))
 	})
 
 	t.Run("close with two bytes", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("ab"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "0EC", buf.String())
+		assert.Equal(t, "0EC", string(file.Bytes()))
 	})
 
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("hello"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "+8D VDL2", buf.String())
+		assert.Equal(t, "+8D VDL2", string(file.Bytes()))
 	})
 
 	// Test getOutputSize with zero length input
@@ -400,8 +400,8 @@ func TestInternalSizeHelpers(t *testing.T) {
 
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		data := []byte("hello")
 		n, err := encoder.Write(data)
@@ -411,8 +411,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		data1 := []byte("hello")
 		data2 := []byte(" world")
@@ -438,8 +438,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write empty data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		var data []byte
 		n, err := encoder.Write(data)
@@ -463,22 +463,22 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with remainder buffering", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Write 1 byte (incomplete pair)
 		data1 := []byte("a")
 		n1, err1 := encoder.Write(data1)
 		assert.Equal(t, 1, n1)
 		assert.Nil(t, err1)
-		assert.Empty(t, buf.String()) // Nothing written yet
+		assert.Empty(t, string(file.Bytes())) // Nothing written yet
 
 		// Write 1 more byte to complete the pair
 		data2 := []byte("b")
 		n2, err2 := encoder.Write(data2)
 		assert.Equal(t, 1, n2)
 		assert.Nil(t, err2)
-		assert.Equal(t, "0EC", buf.String()) // Now the pair is encoded
+		assert.Equal(t, "0EC", string(file.Bytes())) // Now the pair is encoded
 
 		// Close to handle any remaining bytes
 		err := encoder.Close()
@@ -486,15 +486,15 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with buffer and new data combination", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Write 1 byte (buffered)
 		data1 := []byte("a")
 		n1, err1 := encoder.Write(data1)
 		assert.Equal(t, 1, n1)
 		assert.Nil(t, err1)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 
 		// Write 3 bytes (1 buffered + 3 new = 4 bytes = 2 pairs)
 		data2 := []byte("bcd")
@@ -502,29 +502,29 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, 3, n2)
 		assert.Nil(t, err2)
 		// Should have encoded 2 pairs: "ab" and "cd"
-		assert.Contains(t, buf.String(), "0EC") // "ab" encoded
+		assert.Contains(t, string(file.Bytes()), "0EC") // "ab" encoded
 	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("hello"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "+8D VDL2", buf.String())
+		assert.Equal(t, "+8D VDL2", string(file.Bytes()))
 	})
 
 	t.Run("close without data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("close with error", func(t *testing.T) {
@@ -770,8 +770,8 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream encoder with existing error", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 		encoder.(*StreamEncoder).Error = assert.AnError
 
 		n, err := encoder.Write([]byte("test"))
@@ -780,8 +780,8 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream encoder close with existing error", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 		encoder.(*StreamEncoder).Error = assert.AnError
 
 		err := encoder.Close()
@@ -797,5 +797,145 @@ func TestStreamError(t *testing.T) {
 		n, err := decoder.Read(buf)
 		assert.Error(t, err)
 		assert.Equal(t, 0, n)
+	})
+}
+
+// TestDecodeInvalidCharacterPositions tests invalid characters at different positions
+func TestDecodeInvalidCharacterPositions(t *testing.T) {
+	t.Run("decode with invalid third character in triplet", func(t *testing.T) {
+		decoder := NewStdDecoder()
+		// Create input with invalid character at position 2 (third character)
+		input := []byte("AB\x7F") // \x7F is not in base45 alphabet
+		result, err := decoder.Decode(input)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid character")
+		assert.Contains(t, err.Error(), "position: 2")
+	})
+
+	t.Run("decode with invalid first character in pair", func(t *testing.T) {
+		decoder := NewStdDecoder()
+		// Create input with 2 characters where first is invalid
+		input := []byte("\x7FA") // \x7F is not in base45 alphabet
+		result, err := decoder.Decode(input)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid character")
+		assert.Contains(t, err.Error(), "position: 0")
+	})
+
+	t.Run("decode with invalid second character in pair", func(t *testing.T) {
+		decoder := NewStdDecoder()
+		// Create input with 2 characters where second is invalid
+		input := []byte("A\x7F") // \x7F is not in base45 alphabet
+		result, err := decoder.Decode(input)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid character")
+		assert.Contains(t, err.Error(), "position: 1")
+	})
+}
+
+// TestStreamDecoderInternalDecode tests StreamDecoder.decode internal method
+func TestStreamDecoderInternalDecode(t *testing.T) {
+	t.Run("decode empty data through stream decoder", func(t *testing.T) {
+		// Create a stream decoder that will call decode with empty data
+		file := mock.NewFile([]byte(""), "test.txt")
+		decoder := NewStreamDecoder(file)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, io.EOF, err)
+	})
+
+	t.Run("stream decode with invalid second character in triplet", func(t *testing.T) {
+		// Create input with invalid character at position 1
+		encoded := []byte("A\x7FB")
+		file := mock.NewFile(encoded, "test.txt")
+		decoder := NewStreamDecoder(file)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid character")
+	})
+
+	t.Run("stream decode with invalid third character in triplet", func(t *testing.T) {
+		// Create input with invalid character at position 2
+		encoded := []byte("AB\x7F")
+		file := mock.NewFile(encoded, "test.txt")
+		decoder := NewStreamDecoder(file)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid character")
+	})
+
+	t.Run("stream decode with value exceeding maxUint16", func(t *testing.T) {
+		// Create triplet that decodes to value > 0xFFFF
+		encoded := []byte(":::") // All colons (value 44 in base45)
+		file := mock.NewFile(encoded, "test.txt")
+		decoder := NewStreamDecoder(file)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "illegal data")
+	})
+
+	t.Run("stream decode with invalid first character in pair", func(t *testing.T) {
+		// Create pair with invalid first character
+		encoded := []byte("\x7FA")
+		file := mock.NewFile(encoded, "test.txt")
+		decoder := NewStreamDecoder(file)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid character")
+	})
+
+	t.Run("stream decode with invalid second character in pair", func(t *testing.T) {
+		// Create pair with invalid second character
+		encoded := []byte("A\x7F")
+		file := mock.NewFile(encoded, "test.txt")
+		decoder := NewStreamDecoder(file)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid character")
+	})
+
+	t.Run("stream decode with value exceeding 255 in pair", func(t *testing.T) {
+		// Create pair that decodes to value > 255
+		encoded := []byte("::") // Two colons
+		file := mock.NewFile(encoded, "test.txt")
+		decoder := NewStreamDecoder(file)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.Equal(t, 0, n)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "illegal data")
+	})
+
+	t.Run("direct call to decode with empty slice", func(t *testing.T) {
+		// Directly test the decode method with empty input
+		// This covers the size == 0 branch that's not reachable through normal Read flow
+		file := mock.NewFile([]byte("ABC"), "test.txt")
+		decoder := NewStreamDecoder(file).(*StreamDecoder)
+
+		// Call decode directly with empty slice
+		result, err := decoder.decode([]byte{})
+		assert.Nil(t, result)
+		assert.Nil(t, err)
 	})
 }
