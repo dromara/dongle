@@ -308,3 +308,51 @@ func (e *ErrorReadWriteCloser) Write(p []byte) (int, error) { return 0, e.Err }
 // Close always returns the configured error, simulating a close failure.
 // This method implements the io.Closer interface for consistent error testing.
 func (e *ErrorReadWriteCloser) Close() error { return e.Err }
+
+// ErrorWriteAfterN is a mock io.Writer that succeeds for the first N writes
+// and then returns an error for all subsequent writes. This is useful for testing
+// scenarios where a writer works initially but fails after a certain number of operations,
+// such as disk full errors or connection drops.
+type ErrorWriteAfterN struct {
+	N          int   // Number of successful writes before returning error
+	Err        error // The error to return after N successful writes
+	writeCount int   // Internal counter for tracking number of writes
+	totalBytes int   // Total bytes written successfully (for testing/debugging)
+}
+
+// NewErrorWriteAfterN creates a new ErrorWriteAfterN that will allow N successful
+// writes before returning the specified error. This is commonly used to test partial
+// write scenarios and error recovery in streaming operations.
+func NewErrorWriteAfterN(n int, err error) *ErrorWriteAfterN {
+	return &ErrorWriteAfterN{
+		N:   n,
+		Err: err,
+	}
+}
+
+// Write implements the io.Writer interface. It succeeds for the first N calls
+// and returns the configured error for all subsequent calls.
+func (e *ErrorWriteAfterN) Write(p []byte) (int, error) {
+	e.writeCount++
+	if e.writeCount > e.N {
+		return 0, e.Err
+	}
+	e.totalBytes += len(p)
+	return len(p), nil
+}
+
+// WriteCount returns the number of write operations attempted (for testing).
+func (e *ErrorWriteAfterN) WriteCount() int {
+	return e.writeCount
+}
+
+// TotalBytes returns the total number of bytes successfully written (for testing).
+func (e *ErrorWriteAfterN) TotalBytes() int {
+	return e.totalBytes
+}
+
+// Reset resets the write counter and total bytes, allowing the mock to be reused.
+func (e *ErrorWriteAfterN) Reset() {
+	e.writeCount = 0
+	e.totalBytes = 0
+}

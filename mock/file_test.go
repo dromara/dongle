@@ -675,3 +675,184 @@ func TestErrorReadWriteCloser(t *testing.T) {
 		assert.Nil(t, err)
 	})
 }
+
+func TestErrorWriteAfterN(t *testing.T) {
+	t.Run("test NewErrorWriteAfterN", func(t *testing.T) {
+		testErr := errors.New("write error")
+		writer := NewErrorWriteAfterN(3, testErr)
+
+		assert.NotNil(t, writer)
+		assert.Equal(t, 3, writer.N)
+		assert.Equal(t, testErr, writer.Err)
+		assert.Equal(t, 0, writer.writeCount)
+		assert.Equal(t, 0, writer.totalBytes)
+	})
+
+	t.Run("test successful writes before N", func(t *testing.T) {
+		testErr := errors.New("write error after 3")
+		writer := NewErrorWriteAfterN(3, testErr)
+
+		// First write should succeed
+		data1 := []byte("test1")
+		n, err := writer.Write(data1)
+		assert.NoError(t, err)
+		assert.Equal(t, len(data1), n)
+		assert.Equal(t, 1, writer.WriteCount())
+		assert.Equal(t, len(data1), writer.TotalBytes())
+
+		// Second write should succeed
+		data2 := []byte("test2")
+		n, err = writer.Write(data2)
+		assert.NoError(t, err)
+		assert.Equal(t, len(data2), n)
+		assert.Equal(t, 2, writer.WriteCount())
+		assert.Equal(t, len(data1)+len(data2), writer.TotalBytes())
+
+		// Third write should succeed
+		data3 := []byte("test3")
+		n, err = writer.Write(data3)
+		assert.NoError(t, err)
+		assert.Equal(t, len(data3), n)
+		assert.Equal(t, 3, writer.WriteCount())
+		assert.Equal(t, len(data1)+len(data2)+len(data3), writer.TotalBytes())
+	})
+
+	t.Run("test error after N writes", func(t *testing.T) {
+		testErr := errors.New("write error after 2")
+		writer := NewErrorWriteAfterN(2, testErr)
+
+		// First two writes should succeed
+		writer.Write([]byte("data1"))
+		writer.Write([]byte("data2"))
+
+		// Third write should fail
+		n, err := writer.Write([]byte("data3"))
+		assert.Error(t, err)
+		assert.Equal(t, testErr, err)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, 3, writer.WriteCount())
+
+		// Fourth write should also fail
+		n, err = writer.Write([]byte("data4"))
+		assert.Error(t, err)
+		assert.Equal(t, testErr, err)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, 4, writer.WriteCount())
+	})
+
+	t.Run("test Write with N=0 (always fails)", func(t *testing.T) {
+		testErr := errors.New("immediate error")
+		writer := NewErrorWriteAfterN(0, testErr)
+
+		// First write should fail immediately
+		n, err := writer.Write([]byte("data"))
+		assert.Error(t, err)
+		assert.Equal(t, testErr, err)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, 1, writer.WriteCount())
+		assert.Equal(t, 0, writer.TotalBytes())
+	})
+
+	t.Run("test Write with N=1", func(t *testing.T) {
+		testErr := errors.New("error after one")
+		writer := NewErrorWriteAfterN(1, testErr)
+
+		// First write succeeds
+		data := []byte("first")
+		n, err := writer.Write(data)
+		assert.NoError(t, err)
+		assert.Equal(t, len(data), n)
+		assert.Equal(t, 1, writer.WriteCount())
+		assert.Equal(t, len(data), writer.TotalBytes())
+
+		// Second write fails
+		n, err = writer.Write([]byte("second"))
+		assert.Error(t, err)
+		assert.Equal(t, testErr, err)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, 2, writer.WriteCount())
+		assert.Equal(t, len(data), writer.TotalBytes()) // Total bytes unchanged
+	})
+
+	t.Run("test Reset method", func(t *testing.T) {
+		testErr := errors.New("error after reset")
+		writer := NewErrorWriteAfterN(2, testErr)
+
+		// Perform some writes
+		writer.Write([]byte("data1"))
+		writer.Write([]byte("data2"))
+		assert.Equal(t, 2, writer.WriteCount())
+		assert.Greater(t, writer.TotalBytes(), 0)
+
+		// Reset the counters
+		writer.Reset()
+		assert.Equal(t, 0, writer.WriteCount())
+		assert.Equal(t, 0, writer.TotalBytes())
+
+		// Should be able to write again successfully
+		n, err := writer.Write([]byte("new data"))
+		assert.NoError(t, err)
+		assert.Equal(t, 8, n)
+		assert.Equal(t, 1, writer.WriteCount())
+		assert.Equal(t, 8, writer.TotalBytes())
+	})
+
+	t.Run("test WriteCount and TotalBytes tracking", func(t *testing.T) {
+		writer := NewErrorWriteAfterN(10, errors.New("error"))
+
+		// Write different sized data
+		sizes := []int{5, 10, 15, 20}
+		totalBytes := 0
+
+		for i, size := range sizes {
+			data := make([]byte, size)
+			n, err := writer.Write(data)
+			assert.NoError(t, err)
+			assert.Equal(t, size, n)
+			totalBytes += size
+
+			assert.Equal(t, i+1, writer.WriteCount())
+			assert.Equal(t, totalBytes, writer.TotalBytes())
+		}
+	})
+
+	t.Run("test with empty data writes", func(t *testing.T) {
+		testErr := errors.New("error")
+		writer := NewErrorWriteAfterN(2, testErr)
+
+		// Write empty data (should still count as a write)
+		n, err := writer.Write([]byte{})
+		assert.NoError(t, err)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, 1, writer.WriteCount())
+		assert.Equal(t, 0, writer.TotalBytes())
+
+		// Second write with empty data
+		n, err = writer.Write([]byte{})
+		assert.NoError(t, err)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, 2, writer.WriteCount())
+		assert.Equal(t, 0, writer.TotalBytes())
+
+		// Third write should fail
+		n, err = writer.Write([]byte{})
+		assert.Error(t, err)
+		assert.Equal(t, testErr, err)
+		assert.Equal(t, 0, n)
+		assert.Equal(t, 3, writer.WriteCount())
+	})
+
+	t.Run("test with large N value", func(t *testing.T) {
+		writer := NewErrorWriteAfterN(1000, errors.New("error"))
+
+		// Should succeed for many writes
+		for i := 0; i < 100; i++ {
+			n, err := writer.Write([]byte("data"))
+			assert.NoError(t, err)
+			assert.Equal(t, 4, n)
+		}
+
+		assert.Equal(t, 100, writer.WriteCount())
+		assert.Equal(t, 400, writer.TotalBytes())
+	})
+}
