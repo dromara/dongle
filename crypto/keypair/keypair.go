@@ -1,11 +1,7 @@
-// Package keypair provides cryptographic key pair management functionality.
-// It supports key generation, formatting, parsing, and manipulation for various
-// cryptographic algorithms with different key formats.
+// Package keypair manages cryptographic key pairs (RSA, SM2):
+// generate, parse and format keys. SM2 uses PKCS#8 (private), PKIX/SPKI (public),
+// and CipherOrder to control C1/C2/C3 ciphertext order.
 package keypair
-
-import (
-	"github.com/dromara/dongle/utils"
-)
 
 // KeyFormat represents the format of RSA keys.
 // It can be either PKCS1 or PKCS8 format.
@@ -22,20 +18,18 @@ const (
 	PKCS8 KeyFormat = "pkcs8"
 )
 
-// formatKeyBody formats the key body into 64-character lines with the specified header and tail.
-// This is a helper function used by formatPublicKey and formatPrivateKey.
-func formatKeyBody(keyBody []byte, header, tail string) []byte {
-	bodyStr := utils.Bytes2String(keyBody)
-	formatted := header
+// CipherOrder specifies the concatenation order of SM2 ciphertext
+// components. It controls how the library assembles (encrypt) and
+// interprets (decrypt) the C1, C2, C3 parts.
+//
+// C1: EC point (x1||y1) in uncompressed form; C2: XORed plaintext;
+// C3: SM3 digest over x2 || M || y2.
+type CipherOrder string
 
-	// Split the key body into 64-character lines
-	for i := 0; i < len(bodyStr); i += 64 {
-		end := i + 64
-		if end > len(bodyStr) {
-			end = len(bodyStr)
-		}
-		formatted += bodyStr[i:end] + "\n"
-	}
-	formatted += tail
-	return utils.String2Bytes(formatted)
-}
+// Supported SM2 ciphertext orders.
+const (
+	// C1C2C3 means ciphertext bytes are C1 || C2 || C3.
+	C1C2C3 CipherOrder = "c1c2c3"
+	// C1C3C2 means ciphertext bytes are C1 || C3 || C2.
+	C1C3C2 CipherOrder = "c1c3c2"
+)
