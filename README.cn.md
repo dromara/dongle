@@ -94,7 +94,7 @@ c := cipher.NewAesCipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890")) 
 // 设置初始化向量（16 字节)
 c.SetIV([]byte("1234567890123456"))
-// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+// 设置填充模式（只有 CBC/ECB 分组模式才需要设置填充模式）
 c.SetPadding(cipher.PKCS7)
 
 // 对字符串明文进行加密, 返回 hex 编码字符串密文

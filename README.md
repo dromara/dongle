@@ -91,7 +91,7 @@ c := cipher.NewAesCipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890")) 
 // Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))
-// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
+// Set padding mode (only CBC/ECB block modes need to set padding mode)
 c.SetPadding(cipher.PKCS7)
 
 // Encrypt string plaintext, return hex-encoded string ciphertext
