@@ -76,31 +76,31 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 
 	// Pre-allocate buffer with exact size needed
 	dst = make([]byte, len(src)/4)
-	for i := 0; i != len(src); i += 4 {
-		if src[i+0] != 0xf0 || src[i+1] != 0x9f {
+	outPos := 0
+	for i := 0; i < len(src); i += 4 {
+		if src[i] != 0xf0 || src[i+1] != 0x9f {
 			return nil, CorruptInputError(int64(i))
 		}
-		dst[i/4] = (src[i+2]-0x8f)*64 + src[i+3] - 0x80 - 55
+		dst[outPos] = (src[i+2]-0x8f)*64 + src[i+3] - 0x80 - 55
+		outPos++
 	}
 	return dst, nil
 }
 
 // StreamEncoder represents a streaming base100 encoder that implements io.WriteCloser.
 // It provides efficient encoding for large data streams by processing data
-// in chunks and writing encoded output immediately.
+// immediately without buffering.
 type StreamEncoder struct {
-	writer  io.Writer   // Underlying writer for encoded output
-	buffer  []byte      // Buffer for accumulating partial bytes (0-3 bytes)
-	encoder *StdEncoder // Reuse encoder instance to avoid repeated creation
-	Error   error       // Error field for storing encoding errors
+	writer    io.Writer // Underlying writer for encoded output
+	encodeBuf [4]byte   // Reusable buffer for encoding a single byte
+	Error     error     // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base100 encoder that writes encoded data
 // to the provided io.Writer. The encoder uses the standard base100 encoding algorithm.
 func NewStreamEncoder(w io.Writer) io.WriteCloser {
 	return &StreamEncoder{
-		writer:  w,
-		encoder: NewStdEncoder(),
+		writer: w,
 	}
 }
 
@@ -116,28 +116,16 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 		return 0, nil
 	}
 
-	// Combine any leftover bytes from previous write with new data
-	// This is necessary for true streaming across multiple Write calls
-	data := append(e.buffer, p...)
-	e.buffer = nil // Clear buffer after combining
-
-	// Process data in chunks of 4 bytes (optimal for base100 encoding)
-	// Base100 encoding converts 1 byte to 4 bytes (emoji)
-	chunkSize := 4
-	chunks := len(data) / chunkSize
-
-	for i := 0; i < chunks*chunkSize; i += chunkSize {
-		chunk := data[i : i+chunkSize]
-		encoded := e.encoder.Encode(chunk)
-		if _, err = e.writer.Write(encoded); err != nil {
+	// Process each byte directly from input
+	for _, v := range p {
+		// Encode byte inline using base100 algorithm
+		e.encodeBuf[0] = 0xf0
+		e.encodeBuf[1] = 0x9f
+		e.encodeBuf[2] = byte((uint16(v)+55)/64 + 0x8f)
+		e.encodeBuf[3] = (v+55)%64 + 0x80
+		if _, err = e.writer.Write(e.encodeBuf[:]); err != nil {
 			return len(p), err
 		}
-	}
-
-	// Buffer remaining 0-3 bytes for next write or close
-	remainder := len(data) % chunkSize
-	if remainder > 0 {
-		e.buffer = data[len(data)-remainder:]
 	}
 
 	return len(p), nil
@@ -151,14 +139,7 @@ func (e *StreamEncoder) Close() error {
 		return e.Error
 	}
 
-	// Encode any remaining bytes (1-3 bytes) from the last Write
-	if len(e.buffer) > 0 {
-		encoded := e.encoder.Encode(e.buffer)
-		if _, err := e.writer.Write(encoded); err != nil {
-			return err
-		}
-		e.buffer = nil
-	}
+	// No buffering needed for base100, all data is processed immediately
 
 	return nil
 }
@@ -171,6 +152,7 @@ type StreamDecoder struct {
 	buffer  []byte      // Buffer for decoded data not yet read
 	pos     int         // Current position in the decoded buffer
 	decoder *StdDecoder // Reuse decoder instance to avoid repeated creation
+	readBuf [1024]byte  // Reusable buffer for reading encoded data
 	Error   error       // Error field for storing decoding errors
 }
 
@@ -180,8 +162,6 @@ func NewStreamDecoder(r io.Reader) io.Reader {
 	return &StreamDecoder{
 		reader:  r,
 		decoder: NewStdDecoder(),
-		buffer:  make([]byte, 0, 1024), // Pre-allocate buffer for decoded data
-		pos:     0,
 	}
 }
 
@@ -200,9 +180,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	// Read encoded data in chunks using reusable buffer
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -212,7 +191,7 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	// Decode the data using the configured decoder
-	decoded, err := d.decoder.Decode(readBuf[:rn])
+	decoded, err := d.decoder.Decode(d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
