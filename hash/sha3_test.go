@@ -37,7 +37,7 @@ var (
 )
 
 func TestHasher_BySha3_Hash(t *testing.T) {
-	t.Run("hash string SHA3-224", func(t *testing.T) {
+	t.Run("hash string 224", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HashSrc)).BySha3(224)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hash224HexDst, hasher.ToHexString())
@@ -47,7 +47,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, sha3Hash224Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string SHA3-256", func(t *testing.T) {
+	t.Run("hash string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HashSrc)).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hash256HexDst, hasher.ToHexString())
@@ -57,7 +57,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, sha3Hash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string SHA3-384", func(t *testing.T) {
+	t.Run("hash string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HashSrc)).BySha3(384)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hash384HexDst, hasher.ToHexString())
@@ -67,7 +67,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, sha3Hash384Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string SHA3-512", func(t *testing.T) {
+	t.Run("hash string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HashSrc)).BySha3(512)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hash512HexDst, hasher.ToHexString())
@@ -77,7 +77,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, sha3Hash512Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash bytes SHA3-256", func(t *testing.T) {
+	t.Run("hash bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(sha3HashSrc).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hash256HexDst, hasher.ToHexString())
@@ -87,7 +87,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, sha3Hash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash file SHA3-256", func(t *testing.T) {
+	t.Run("hash file", func(t *testing.T) {
 		file := mock.NewFile(sha3HashSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -99,49 +99,49 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, sha3Hash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("empty string SHA3-224", func(t *testing.T) {
+	t.Run("hash empty string 224", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha3(224)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty string SHA3-256", func(t *testing.T) {
+	t.Run("hash empty string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty string SHA3-384", func(t *testing.T) {
+	t.Run("hash empty string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha3(384)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty string SHA3-512", func(t *testing.T) {
+	t.Run("hash empty string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha3(512)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty bytes SHA3-256", func(t *testing.T) {
+	t.Run("hash empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("nil bytes SHA3-256", func(t *testing.T) {
+	t.Run("hash nil bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(nil).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("large data SHA3-256", func(t *testing.T) {
+	t.Run("hash large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -152,7 +152,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("unicode data SHA3-256", func(t *testing.T) {
+	t.Run("hash unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -163,7 +163,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("binary data SHA3-256", func(t *testing.T) {
+	t.Run("hash binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -174,7 +174,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("empty file SHA3-256", func(t *testing.T) {
+	t.Run("hash empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -182,7 +182,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("no data no reader no key SHA3-256", func(t *testing.T) {
+	t.Run("hash no data", func(t *testing.T) {
 		hasher := NewHasher().BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
@@ -191,7 +191,7 @@ func TestHasher_BySha3_Hash(t *testing.T) {
 }
 
 func TestHasher_BySha3_HMAC(t *testing.T) {
-	t.Run("hmac string SHA3-224", func(t *testing.T) {
+	t.Run("hmac string 224", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HmacSrc)).WithKey(sha3HmacKey).BySha3(224)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hmac224HexDst, hasher.ToHexString())
@@ -201,7 +201,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, sha3Hmac224Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string SHA3-256", func(t *testing.T) {
+	t.Run("hmac string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HmacSrc)).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hmac256HexDst, hasher.ToHexString())
@@ -211,7 +211,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, sha3Hmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string SHA3-384", func(t *testing.T) {
+	t.Run("hmac string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HmacSrc)).WithKey(sha3HmacKey).BySha3(384)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hmac384HexDst, hasher.ToHexString())
@@ -221,7 +221,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, sha3Hmac384Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string SHA3-512", func(t *testing.T) {
+	t.Run("hmac string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha3HmacSrc)).WithKey(sha3HmacKey).BySha3(512)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hmac512HexDst, hasher.ToHexString())
@@ -231,7 +231,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, sha3Hmac512Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac bytes SHA3-256", func(t *testing.T) {
+	t.Run("hmac bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(sha3HmacSrc).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha3Hmac256HexDst, hasher.ToHexString())
@@ -241,7 +241,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, sha3Hmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac file SHA3-256", func(t *testing.T) {
+	t.Run("hmac file", func(t *testing.T) {
 		file := mock.NewFile(sha3HmacSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -253,7 +253,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, sha3Hmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac empty string SHA3-256", func(t *testing.T) {
+	t.Run("hmac empty string", func(t *testing.T) {
 		hasher := NewHasher().FromString("").WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		// Calculate expected HMAC for empty string using the same method
@@ -263,7 +263,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac empty bytes SHA3-256", func(t *testing.T) {
+	t.Run("hmac empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
 		// Calculate expected HMAC for empty bytes using the same method
@@ -273,7 +273,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac large data SHA3-256", func(t *testing.T) {
+	t.Run("hmac large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -284,7 +284,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac unicode data SHA3-256", func(t *testing.T) {
+	t.Run("hmac unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -295,7 +295,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac binary data SHA3-256", func(t *testing.T) {
+	t.Run("hmac binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -306,7 +306,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac empty file SHA3-256", func(t *testing.T) {
+	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).WithKey(sha3HmacKey).BySha3(256)
 		assert.Nil(t, hasher.Error)
@@ -318,7 +318,7 @@ func TestHasher_BySha3_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac with large key SHA3-256", func(t *testing.T) {
+	t.Run("hmac with large key", func(t *testing.T) {
 		largeKey := strings.Repeat("secret", 100)
 		hasher := NewHasher().FromString(string(sha3HmacSrc)).WithKey([]byte(largeKey)).BySha3(256)
 		assert.Nil(t, hasher.Error)

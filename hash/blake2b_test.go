@@ -33,7 +33,7 @@ var (
 )
 
 func TestHasher_ByBlake2b_Hash(t *testing.T) {
-	t.Run("hash string BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2bHashSrc)).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHash256HexDst, hasher.ToHexString())
@@ -43,7 +43,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, blake2bHash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string BLAKE2b-384", func(t *testing.T) {
+	t.Run("hash string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2bHashSrc)).ByBlake2b(384)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHash384HexDst, hasher.ToHexString())
@@ -53,7 +53,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, blake2bHash384Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string BLAKE2b-512", func(t *testing.T) {
+	t.Run("hash string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2bHashSrc)).ByBlake2b(512)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHash512HexDst, hasher.ToHexString())
@@ -63,7 +63,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, blake2bHash512Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash bytes BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(blake2bHashSrc).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHash256HexDst, hasher.ToHexString())
@@ -73,7 +73,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, blake2bHash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash file BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash file", func(t *testing.T) {
 		file := mock.NewFile(blake2bHashSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -85,28 +85,28 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, blake2bHash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("empty string BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash empty string", func(t *testing.T) {
 		hasher := NewHasher().FromString("").ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty bytes BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("nil bytes BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash nil bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(nil).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("large data BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -117,7 +117,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("unicode data BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -128,7 +128,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("binary data BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -139,7 +139,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("empty file BLAKE2b-256", func(t *testing.T) {
+	t.Run("hash empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -147,7 +147,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("no data no reader no key", func(t *testing.T) {
+	t.Run("hash no data", func(t *testing.T) {
 		hasher := NewHasher().ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
@@ -156,7 +156,7 @@ func TestHasher_ByBlake2b_Hash(t *testing.T) {
 }
 
 func TestHasher_ByBlake2b_HMAC(t *testing.T) {
-	t.Run("hmac string BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2bHmacSrc)).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHmac256HexDst, hasher.ToHexString())
@@ -166,7 +166,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, blake2bHmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string BLAKE2b-384", func(t *testing.T) {
+	t.Run("hmac string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2bHmacSrc)).WithKey(blake2bHmacKey).ByBlake2b(384)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHmac384HexDst, hasher.ToHexString())
@@ -176,7 +176,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, blake2bHmac384Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string BLAKE2b-512", func(t *testing.T) {
+	t.Run("hmac string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2bHmacSrc)).WithKey(blake2bHmacKey).ByBlake2b(512)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHmac512HexDst, hasher.ToHexString())
@@ -186,7 +186,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, blake2bHmac512Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac bytes BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(blake2bHmacSrc).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2bHmac256HexDst, hasher.ToHexString())
@@ -196,7 +196,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, blake2bHmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac file BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac file", func(t *testing.T) {
 		file := mock.NewFile(blake2bHmacSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -208,21 +208,21 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, blake2bHmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac empty string BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac empty string", func(t *testing.T) {
 		hasher := NewHasher().FromString("").WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("hmac empty bytes BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("hmac large data BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -233,7 +233,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac unicode data BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -244,7 +244,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac binary data BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -255,7 +255,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac empty file BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).WithKey(blake2bHmacKey).ByBlake2b(256)
 		assert.Nil(t, hasher.Error)
@@ -267,7 +267,7 @@ func TestHasher_ByBlake2b_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac with large key BLAKE2b-256", func(t *testing.T) {
+	t.Run("hmac with large key", func(t *testing.T) {
 		key := make([]byte, 1000)
 		for i := range key {
 			key[i] = byte(i % 256)

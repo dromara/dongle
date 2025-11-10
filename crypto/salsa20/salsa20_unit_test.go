@@ -21,7 +21,7 @@ var (
 )
 
 func TestNewStdEncrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)
@@ -30,7 +30,7 @@ func TestNewStdEncrypter(t *testing.T) {
 		assert.Nil(t, encrypter.Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
 		c.SetNonce(nonce8Salsa20)
@@ -40,7 +40,7 @@ func TestNewStdEncrypter(t *testing.T) {
 		assert.Contains(t, encrypter.Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce([]byte("short")) // 5 bytes
@@ -52,7 +52,7 @@ func TestNewStdEncrypter(t *testing.T) {
 }
 
 func TestNewStdDecrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)
@@ -61,7 +61,7 @@ func TestNewStdDecrypter(t *testing.T) {
 		assert.Nil(t, decrypter.Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
 		c.SetNonce(nonce8Salsa20)
@@ -71,7 +71,7 @@ func TestNewStdDecrypter(t *testing.T) {
 		assert.Contains(t, decrypter.Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce([]byte("short")) // 5 bytes
@@ -83,7 +83,7 @@ func TestNewStdDecrypter(t *testing.T) {
 }
 
 func TestStdEncrypter_Encrypt(t *testing.T) {
-	t.Run("successful_encryption", func(t *testing.T) {
+	t.Run("successful encryption", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)
@@ -96,7 +96,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		assert.NotEqual(t, testdataSalsa20, result) // Should be encrypted
 	})
 
-	t.Run("encrypt_empty_data", func(t *testing.T) {
+	t.Run("encrypt empty data", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)
@@ -107,7 +107,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		assert.Empty(t, result)
 	})
 
-	t.Run("encrypt_with_existing_error", func(t *testing.T) {
+	t.Run("encrypt with existing error", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // Invalid key
 		c.SetNonce(nonce8Salsa20)
@@ -121,7 +121,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 }
 
 func TestStdDecrypter_Decrypt(t *testing.T) {
-	t.Run("successful_decryption", func(t *testing.T) {
+	t.Run("successful decryption", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)
@@ -138,7 +138,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		assert.Equal(t, testdataSalsa20, result)
 	})
 
-	t.Run("decrypt_empty_data", func(t *testing.T) {
+	t.Run("decrypt empty data", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)
@@ -149,7 +149,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		assert.Empty(t, result)
 	})
 
-	t.Run("decrypt_with_existing_error", func(t *testing.T) {
+	t.Run("decrypt with existing error", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // Invalid key
 		c.SetNonce(nonce8Salsa20)
@@ -163,7 +163,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 }
 
 func TestNewStreamEncrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -174,7 +174,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 		assert.Nil(t, streamEncrypter.Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
@@ -186,7 +186,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 		assert.Contains(t, streamEncrypter.Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -200,7 +200,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 }
 
 func TestStreamEncrypter_Write(t *testing.T) {
-	t.Run("successful_write", func(t *testing.T) {
+	t.Run("successful write", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -213,7 +213,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.NotEmpty(t, buf.Bytes())
 	})
 
-	t.Run("write_empty_data", func(t *testing.T) {
+	t.Run("write empty data", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -226,7 +226,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.Empty(t, buf.Bytes())
 	})
 
-	t.Run("write_with_existing_error", func(t *testing.T) {
+	t.Run("write with existing error", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // Invalid key
@@ -238,7 +238,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("write_with_writer_error", func(t *testing.T) {
+	t.Run("write with writer error", func(t *testing.T) {
 		writer := mock.NewErrorReadWriteCloser(io.ErrClosedPipe)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -252,7 +252,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 }
 
 func TestStreamEncrypter_Close(t *testing.T) {
-	t.Run("close_with_closer", func(t *testing.T) {
+	t.Run("close with closer", func(t *testing.T) {
 		closer := mock.NewErrorReadWriteCloser(nil)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -263,7 +263,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("close_without_closer", func(t *testing.T) {
+	t.Run("close without closer", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -274,7 +274,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("close_with_existing_error", func(t *testing.T) {
+	t.Run("close with existing error", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // Invalid key
@@ -288,7 +288,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 }
 
 func TestNewStreamDecrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		reader := bytes.NewReader(testdataSalsa20)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -299,7 +299,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		assert.Nil(t, streamDecrypter.Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		reader := bytes.NewReader(testdataSalsa20)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
@@ -311,7 +311,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		assert.Contains(t, streamDecrypter.Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		reader := bytes.NewReader(testdataSalsa20)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -325,7 +325,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 }
 
 func TestStreamDecrypter_Read(t *testing.T) {
-	t.Run("successful_read", func(t *testing.T) {
+	t.Run("successful read", func(t *testing.T) {
 		// First encrypt some data
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -346,7 +346,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, testdataSalsa20, buf)
 	})
 
-	t.Run("read_empty_data", func(t *testing.T) {
+	t.Run("read empty data", func(t *testing.T) {
 		reader := bytes.NewReader(testdataEmpty)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -359,7 +359,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("read_with_existing_error", func(t *testing.T) {
+	t.Run("read with existing error", func(t *testing.T) {
 		reader := bytes.NewReader(testdataSalsa20)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey([]byte("short")) // Invalid key
@@ -372,7 +372,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("read_with_reader_error", func(t *testing.T) {
+	t.Run("read with reader error", func(t *testing.T) {
 		reader := mock.NewErrorReadWriteCloser(io.ErrClosedPipe)
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -385,7 +385,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("read_multiple_chunks", func(t *testing.T) {
+	t.Run("read multiple chunks", func(t *testing.T) {
 		// First encrypt some data
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -414,7 +414,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, testdataSalsa20, result)
 	})
 
-	t.Run("read_after_eof", func(t *testing.T) {
+	t.Run("read after eof", func(t *testing.T) {
 		// First encrypt some data
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -442,7 +442,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n2)
 	})
 
-	t.Run("read_with_zero_buffer", func(t *testing.T) {
+	t.Run("read with zero buffer", func(t *testing.T) {
 		// First encrypt some data
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
@@ -556,7 +556,7 @@ var pythonTestCases = []struct {
 }
 
 func TestSalsa20_PythonValidation(t *testing.T) {
-	t.Run("validate_against_python_pycryptodome", func(t *testing.T) {
+	t.Run("validate against python pycryptodome", func(t *testing.T) {
 		for _, tc := range pythonTestCases {
 			t.Run(tc.name, func(t *testing.T) {
 				c := cipher.NewSalsa20Cipher()
@@ -580,7 +580,7 @@ func TestSalsa20_PythonValidation(t *testing.T) {
 }
 
 func TestSalsa20_Integration(t *testing.T) {
-	t.Run("encrypt_decrypt_roundtrip", func(t *testing.T) {
+	t.Run("encrypt decrypt roundtrip", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)
@@ -609,7 +609,7 @@ func TestSalsa20_Integration(t *testing.T) {
 		}
 	})
 
-	t.Run("stream_encrypt_decrypt_roundtrip", func(t *testing.T) {
+	t.Run("stream encrypt decrypt roundtrip", func(t *testing.T) {
 		c := cipher.NewSalsa20Cipher()
 		c.SetKey(key32Salsa20)
 		c.SetNonce(nonce8Salsa20)

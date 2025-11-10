@@ -21,7 +21,7 @@ func TestEncrypter_ByChaCha20Poly1305(t *testing.T) {
 	c.SetNonce(nonce)
 	c.SetAAD(aad)
 
-	t.Run("normal_encrypt", func(t *testing.T) {
+	t.Run("normal encrypt", func(t *testing.T) {
 		encrypted := NewEncrypter().FromBytes(chaCha20Poly1305Data).ByChaCha20Poly1305(c).ToRawBytes()
 		assert.NotEmpty(t, encrypted)
 		assert.NotEqual(t, chaCha20Poly1305Data, encrypted)
@@ -29,20 +29,20 @@ func TestEncrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Equal(t, len(chaCha20Poly1305Data)+16, len(encrypted))
 	})
 
-	t.Run("empty_data_encrypt", func(t *testing.T) {
+	t.Run("empty data encrypt", func(t *testing.T) {
 		e := NewEncrypter().FromBytes([]byte{})
 		result := e.ByChaCha20Poly1305(c)
 		assert.Nil(t, result.Error)
 		assert.Empty(t, result.ToRawBytes())
 	})
 
-	t.Run("stream_encrypt", func(t *testing.T) {
+	t.Run("stream encrypt", func(t *testing.T) {
 		e := NewEncrypter().FromString("hello world").ByChaCha20Poly1305(c)
 		assert.Nil(t, e.Error)
 		assert.NotEmpty(t, e.ToRawBytes())
 	})
 
-	t.Run("encrypt_with_invalid_key", func(t *testing.T) {
+	t.Run("encrypt with invalid key", func(t *testing.T) {
 		invalidCipher := cipher.NewChaCha20Poly1305Cipher()
 		invalidCipher.SetKey([]byte("short")) // Invalid key size
 		invalidCipher.SetNonce(nonce)
@@ -53,7 +53,7 @@ func TestEncrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Contains(t, result.Error.Error(), "invalid key size")
 	})
 
-	t.Run("encrypt_with_invalid_nonce", func(t *testing.T) {
+	t.Run("encrypt with invalid nonce", func(t *testing.T) {
 		invalidCipher := cipher.NewChaCha20Poly1305Cipher()
 		invalidCipher.SetKey(key)
 		invalidCipher.SetNonce([]byte("short")) // Invalid nonce size
@@ -64,20 +64,20 @@ func TestEncrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Contains(t, result.Error.Error(), "invalid nonce size")
 	})
 
-	t.Run("encrypt_from_string", func(t *testing.T) {
+	t.Run("encrypt from string", func(t *testing.T) {
 		encrypted := NewEncrypter().FromString("hello world").ByChaCha20Poly1305(c).ToRawBytes()
 		assert.NotEmpty(t, encrypted)
 		assert.NotEqual(t, []byte("hello world"), encrypted)
 	})
 
-	t.Run("encrypt_with_error_state", func(t *testing.T) {
+	t.Run("encrypt with error state", func(t *testing.T) {
 		e := NewEncrypter().FromBytes(chaCha20Poly1305Data)
 		e.Error = assert.AnError // Set error state
 		result := e.ByChaCha20Poly1305(c)
 		assert.Equal(t, assert.AnError, result.Error)
 	})
 
-	t.Run("encrypt_from_reader", func(t *testing.T) {
+	t.Run("encrypt from reader", func(t *testing.T) {
 		reader := strings.NewReader("hello world from reader")
 		e := NewEncrypter()
 		e.reader = reader // Set reader directly for stream processing
@@ -86,7 +86,7 @@ func TestEncrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.NotEmpty(t, result.ToRawBytes())
 	})
 
-	t.Run("encrypt_from_reader_with_error", func(t *testing.T) {
+	t.Run("encrypt from reader with error", func(t *testing.T) {
 		invalidCipher := cipher.NewChaCha20Poly1305Cipher()
 		invalidCipher.SetKey([]byte("short"))
 
@@ -108,7 +108,7 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 	c.SetNonce(nonce)
 	c.SetAAD(aad)
 
-	t.Run("normal_decrypt", func(t *testing.T) {
+	t.Run("normal decrypt", func(t *testing.T) {
 		encrypted := NewEncrypter().FromBytes(chaCha20Poly1305Data).ByChaCha20Poly1305(c).ToRawBytes()
 
 		c2 := cipher.NewChaCha20Poly1305Cipher()
@@ -120,7 +120,7 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Equal(t, chaCha20Poly1305Data, decrypted)
 	})
 
-	t.Run("decrypt_from_string", func(t *testing.T) {
+	t.Run("decrypt from string", func(t *testing.T) {
 		plaintext := "hello world from chacha20poly1305"
 
 		c1 := cipher.NewChaCha20Poly1305Cipher()
@@ -139,7 +139,7 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Equal(t, plaintext, decrypted)
 	})
 
-	t.Run("empty_data_decrypt", func(t *testing.T) {
+	t.Run("empty data decrypt", func(t *testing.T) {
 		// Test empty source data
 		d := NewDecrypter().FromRawBytes([]byte{})
 		result := d.ByChaCha20Poly1305(c)
@@ -151,7 +151,7 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Empty(t, decryptedStr)
 	})
 
-	t.Run("stream_decrypt", func(t *testing.T) {
+	t.Run("stream decrypt", func(t *testing.T) {
 		// First encrypt some data
 		encrypted := NewEncrypter().FromString("hello world").ByChaCha20Poly1305(c).ToRawString()
 
@@ -161,14 +161,14 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Equal(t, "hello world", d.ToString())
 	})
 
-	t.Run("decrypt_invalid_data", func(t *testing.T) {
+	t.Run("decrypt invalid data", func(t *testing.T) {
 		d := NewDecrypter().FromRawBytes(chaCha20Poly1305Data) // Raw data, not encrypted
 		result := d.ByChaCha20Poly1305(c)
 		assert.NotNil(t, result.Error)
 		assert.Contains(t, result.Error.Error(), "message authentication failed")
 	})
 
-	t.Run("decrypt_tampered_data", func(t *testing.T) {
+	t.Run("decrypt tampered data", func(t *testing.T) {
 		encrypted := NewEncrypter().FromBytes(chaCha20Poly1305Data).ByChaCha20Poly1305(c).ToRawBytes()
 
 		// Tamper with the encrypted data
@@ -182,7 +182,7 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Contains(t, result.Error.Error(), "message authentication failed")
 	})
 
-	t.Run("decrypt_with_invalid_key", func(t *testing.T) {
+	t.Run("decrypt with invalid key", func(t *testing.T) {
 		encrypted := NewEncrypter().FromBytes(chaCha20Poly1305Data).ByChaCha20Poly1305(c).ToRawBytes()
 
 		invalidCipher := cipher.NewChaCha20Poly1305Cipher()
@@ -195,7 +195,7 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Contains(t, result.Error.Error(), "invalid key size")
 	})
 
-	t.Run("decrypt_with_wrong_aad", func(t *testing.T) {
+	t.Run("decrypt with wrong aad", func(t *testing.T) {
 		// Encrypt with one AAD
 		c1 := cipher.NewChaCha20Poly1305Cipher()
 		c1.SetKey(key)
@@ -216,14 +216,14 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Contains(t, result.Error.Error(), "message authentication failed")
 	})
 
-	t.Run("decrypt_with_error_state", func(t *testing.T) {
+	t.Run("decrypt with error state", func(t *testing.T) {
 		d := NewDecrypter()
 		d.Error = assert.AnError // Set error state
 		result := d.ByChaCha20Poly1305(c)
 		assert.Equal(t, assert.AnError, result.Error)
 	})
 
-	t.Run("decrypt_from_reader", func(t *testing.T) {
+	t.Run("decrypt from reader", func(t *testing.T) {
 		// First encrypt some data to bytes
 		encrypted := NewEncrypter().FromBytes(chaCha20Poly1305Data).ByChaCha20Poly1305(c).ToRawBytes()
 
@@ -236,7 +236,7 @@ func TestDecrypter_ByChaCha20Poly1305(t *testing.T) {
 		assert.Equal(t, chaCha20Poly1305Data, result.ToBytes())
 	})
 
-	t.Run("decrypt_from_reader_with_error", func(t *testing.T) {
+	t.Run("decrypt from reader with error", func(t *testing.T) {
 		invalidCipher := cipher.NewChaCha20Poly1305Cipher()
 		invalidCipher.SetKey([]byte("short"))
 

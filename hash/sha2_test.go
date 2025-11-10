@@ -37,7 +37,7 @@ var (
 )
 
 func TestHasher_BySha2_Hash(t *testing.T) {
-	t.Run("hash string SHA2-224", func(t *testing.T) {
+	t.Run("hash string 224", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HashSrc)).BySha2(224)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hash224HexDst, hasher.ToHexString())
@@ -47,7 +47,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, sha2Hash224Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string SHA2-256", func(t *testing.T) {
+	t.Run("hash string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HashSrc)).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hash256HexDst, hasher.ToHexString())
@@ -57,7 +57,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, sha2Hash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string SHA2-384", func(t *testing.T) {
+	t.Run("hash string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HashSrc)).BySha2(384)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hash384HexDst, hasher.ToHexString())
@@ -67,7 +67,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, sha2Hash384Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash string SHA2-512", func(t *testing.T) {
+	t.Run("hash string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HashSrc)).BySha2(512)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hash512HexDst, hasher.ToHexString())
@@ -77,7 +77,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, sha2Hash512Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash bytes SHA2-256", func(t *testing.T) {
+	t.Run("hash bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(sha2HashSrc).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hash256HexDst, hasher.ToHexString())
@@ -87,7 +87,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, sha2Hash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hash file SHA2-256", func(t *testing.T) {
+	t.Run("hash file", func(t *testing.T) {
 		file := mock.NewFile(sha2HashSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -99,49 +99,49 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, sha2Hash256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("empty string SHA2-224", func(t *testing.T) {
+	t.Run("hash empty string 224", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha2(224)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty string SHA2-256", func(t *testing.T) {
+	t.Run("hash empty string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty string SHA2-384", func(t *testing.T) {
+	t.Run("hash empty string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha2(384)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty string SHA2-512", func(t *testing.T) {
+	t.Run("hash empty string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString("").BySha2(512)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("empty bytes SHA2-256", func(t *testing.T) {
+	t.Run("hash empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("nil bytes SHA2-256", func(t *testing.T) {
+	t.Run("hash nil bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(nil).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("large data SHA2-256", func(t *testing.T) {
+	t.Run("hash large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -152,7 +152,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("unicode data SHA2-256", func(t *testing.T) {
+	t.Run("hash unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -163,7 +163,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("binary data SHA2-256", func(t *testing.T) {
+	t.Run("hash binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -174,7 +174,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("empty file SHA2-256", func(t *testing.T) {
+	t.Run("hash empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -182,7 +182,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 		assert.Empty(t, hasher.ToBase64String())
 	})
 
-	t.Run("no data no reader no key SHA2-256", func(t *testing.T) {
+	t.Run("hash no data", func(t *testing.T) {
 		hasher := NewHasher().BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
@@ -191,7 +191,7 @@ func TestHasher_BySha2_Hash(t *testing.T) {
 }
 
 func TestHasher_BySha2_HMAC(t *testing.T) {
-	t.Run("hmac string SHA2-224", func(t *testing.T) {
+	t.Run("hmac string 224", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HmacSrc)).WithKey(sha2HmacKey).BySha2(224)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hmac224HexDst, hasher.ToHexString())
@@ -201,7 +201,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, sha2Hmac224Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string SHA2-256", func(t *testing.T) {
+	t.Run("hmac string 256", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HmacSrc)).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hmac256HexDst, hasher.ToHexString())
@@ -211,7 +211,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, sha2Hmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string SHA2-384", func(t *testing.T) {
+	t.Run("hmac string 384", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HmacSrc)).WithKey(sha2HmacKey).BySha2(384)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hmac384HexDst, hasher.ToHexString())
@@ -221,7 +221,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, sha2Hmac384Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac string SHA2-512", func(t *testing.T) {
+	t.Run("hmac string 512", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(sha2HmacSrc)).WithKey(sha2HmacKey).BySha2(512)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hmac512HexDst, hasher.ToHexString())
@@ -231,7 +231,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, sha2Hmac512Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac bytes SHA2-256", func(t *testing.T) {
+	t.Run("hmac bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(sha2HmacSrc).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sha2Hmac256HexDst, hasher.ToHexString())
@@ -241,7 +241,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, sha2Hmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac file SHA2-256", func(t *testing.T) {
+	t.Run("hmac file", func(t *testing.T) {
 		file := mock.NewFile(sha2HmacSrc, "test.txt")
 		hasher := NewHasher().FromFile(file).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -253,7 +253,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, sha2Hmac256Base64Dst, hasher2.ToBase64String())
 	})
 
-	t.Run("hmac empty string SHA2-256", func(t *testing.T) {
+	t.Run("hmac empty string", func(t *testing.T) {
 		hasher := NewHasher().FromString("").WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		// Calculate expected HMAC for empty string using the same method
@@ -263,7 +263,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac empty bytes SHA2-256", func(t *testing.T) {
+	t.Run("hmac empty bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes([]byte{}).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
 		// Calculate expected HMAC for empty bytes using the same method
@@ -273,7 +273,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac large data SHA2-256", func(t *testing.T) {
+	t.Run("hmac large data", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -284,7 +284,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac unicode data SHA2-256", func(t *testing.T) {
+	t.Run("hmac unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -295,7 +295,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac binary data SHA2-256", func(t *testing.T) {
+	t.Run("hmac binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -306,7 +306,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac empty file SHA2-256", func(t *testing.T) {
+	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).WithKey(sha2HmacKey).BySha2(256)
 		assert.Nil(t, hasher.Error)
@@ -318,7 +318,7 @@ func TestHasher_BySha2_HMAC(t *testing.T) {
 		assert.Equal(t, expectedHex, hasher.ToHexString())
 	})
 
-	t.Run("hmac with large key SHA2-256", func(t *testing.T) {
+	t.Run("hmac with large key", func(t *testing.T) {
 		largeKey := strings.Repeat("secret", 100)
 		hasher := NewHasher().FromString(string(sha2HmacSrc)).WithKey([]byte(largeKey)).BySha2(256)
 		assert.Nil(t, hasher.Error)

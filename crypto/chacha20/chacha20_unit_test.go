@@ -18,7 +18,7 @@ var (
 )
 
 func TestNewStdEncrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -27,7 +27,7 @@ func TestNewStdEncrypter(t *testing.T) {
 		assert.Nil(t, encrypter.Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
 		c.SetNonce(nonce12ChaCha20)
@@ -37,7 +37,7 @@ func TestNewStdEncrypter(t *testing.T) {
 		assert.Contains(t, encrypter.Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce([]byte("short")) // 5 bytes
@@ -49,7 +49,7 @@ func TestNewStdEncrypter(t *testing.T) {
 }
 
 func TestNewStdDecrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -58,7 +58,7 @@ func TestNewStdDecrypter(t *testing.T) {
 		assert.Nil(t, decrypter.Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
 		c.SetNonce(nonce12ChaCha20)
@@ -68,7 +68,7 @@ func TestNewStdDecrypter(t *testing.T) {
 		assert.Contains(t, decrypter.Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce([]byte("short")) // 5 bytes
@@ -80,7 +80,7 @@ func TestNewStdDecrypter(t *testing.T) {
 }
 
 func TestStdEncrypter_Encrypt(t *testing.T) {
-	t.Run("valid_encryption", func(t *testing.T) {
+	t.Run("valid encryption", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -94,7 +94,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		assert.NotEqual(t, testdataChaCha20, result) // Should be different
 	})
 
-	t.Run("empty_data", func(t *testing.T) {
+	t.Run("empty data", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -107,7 +107,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("with_existing_error", func(t *testing.T) {
+	t.Run("with existing error", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -125,7 +125,7 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 }
 
 func TestStdDecrypter_Decrypt(t *testing.T) {
-	t.Run("valid_decryption", func(t *testing.T) {
+	t.Run("valid decryption", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -149,7 +149,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		assert.Equal(t, testdataChaCha20, result)
 	})
 
-	t.Run("empty_data", func(t *testing.T) {
+	t.Run("empty data", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -162,7 +162,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("with_existing_error", func(t *testing.T) {
+	t.Run("with existing error", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -180,7 +180,7 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 }
 
 func TestNewStreamEncrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -190,7 +190,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 		assert.Nil(t, streamEncrypter.(*StreamEncrypter).Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
 		c.SetNonce(nonce12ChaCha20)
@@ -201,7 +201,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 		assert.Contains(t, streamEncrypter.(*StreamEncrypter).Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce([]byte("short")) // 5 bytes
@@ -214,7 +214,7 @@ func TestNewStreamEncrypter(t *testing.T) {
 }
 
 func TestStreamEncrypter_Write(t *testing.T) {
-	t.Run("write_data", func(t *testing.T) {
+	t.Run("write data", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -228,7 +228,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.Equal(t, len(testdataChaCha20), n)
 	})
 
-	t.Run("write_empty_data", func(t *testing.T) {
+	t.Run("write empty data", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -242,7 +242,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("write_with_existing_error", func(t *testing.T) {
+	t.Run("write with existing error", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -259,7 +259,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("write_with_write_error", func(t *testing.T) {
+	t.Run("write with write error", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -275,7 +275,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to write encrypted data")
 	})
 
-	t.Run("write_with_nil_stream", func(t *testing.T) {
+	t.Run("write with nil stream", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -293,7 +293,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 }
 
 func TestStreamEncrypter_Close(t *testing.T) {
-	t.Run("close_with_closer", func(t *testing.T) {
+	t.Run("close with closer", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -306,7 +306,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("close_without_closer", func(t *testing.T) {
+	t.Run("close without closer", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -319,7 +319,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("close_with_existing_error", func(t *testing.T) {
+	t.Run("close with existing error", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -336,7 +336,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 }
 
 func TestNewStreamDecrypter(t *testing.T) {
-	t.Run("valid_key_and_nonce", func(t *testing.T) {
+	t.Run("valid key and nonce", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -346,7 +346,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 	})
 
-	t.Run("invalid_key_size", func(t *testing.T) {
+	t.Run("invalid key size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey([]byte("short")) // 5 bytes
 		c.SetNonce(nonce12ChaCha20)
@@ -357,7 +357,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		assert.Contains(t, streamDecrypter.(*StreamDecrypter).Error.Error(), "invalid key size 5")
 	})
 
-	t.Run("invalid_nonce_size", func(t *testing.T) {
+	t.Run("invalid nonce size", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce([]byte("short")) // 5 bytes
@@ -370,7 +370,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 }
 
 func TestStreamDecrypter_Read(t *testing.T) {
-	t.Run("read_decrypted_data", func(t *testing.T) {
+	t.Run("read decrypted data", func(t *testing.T) {
 		c1 := cipher.NewChaCha20Cipher()
 		c1.SetKey(key32ChaCha20)
 		c1.SetNonce(nonce12ChaCha20)
@@ -398,7 +398,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, testdataChaCha20, buffer)
 	})
 
-	t.Run("read_empty_buffer", func(t *testing.T) {
+	t.Run("read empty buffer", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -413,7 +413,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("read_with_existing_error", func(t *testing.T) {
+	t.Run("read with existing error", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -430,7 +430,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("read_with_read_error", func(t *testing.T) {
+	t.Run("read with read error", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -444,7 +444,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, assert.AnError, err) // Direct error from reader, no wrapping
 	})
 
-	t.Run("read_with_eof", func(t *testing.T) {
+	t.Run("read with eof", func(t *testing.T) {
 		c := cipher.NewChaCha20Cipher()
 		c.SetKey(key32ChaCha20)
 		c.SetNonce(nonce12ChaCha20)
@@ -458,7 +458,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, io.EOF, err)
 	})
 
-	t.Run("multiple_reads_until_eof", func(t *testing.T) {
+	t.Run("multiple reads until eof", func(t *testing.T) {
 		c1 := cipher.NewChaCha20Cipher()
 		c1.SetKey(key32ChaCha20)
 		c1.SetNonce(nonce12ChaCha20)
@@ -488,7 +488,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("read_with_nil_stream", func(t *testing.T) {
+	t.Run("read with nil stream", func(t *testing.T) {
 		c1 := cipher.NewChaCha20Cipher()
 		c1.SetKey(key32ChaCha20)
 		c1.SetNonce(nonce12ChaCha20)
@@ -516,37 +516,37 @@ func TestStreamDecrypter_Read(t *testing.T) {
 }
 
 func TestErrors(t *testing.T) {
-	t.Run("key_size_error", func(t *testing.T) {
+	t.Run("key size error", func(t *testing.T) {
 		err := KeySizeError(16)
 		assert.Contains(t, err.Error(), "invalid key size 16")
 		assert.Contains(t, err.Error(), "must be exactly 32 bytes")
 	})
 
-	t.Run("invalid_nonce_size_error", func(t *testing.T) {
+	t.Run("invalid nonce size error", func(t *testing.T) {
 		err := InvalidNonceSizeError{Size: 8}
 		assert.Contains(t, err.Error(), "invalid nonce size 8")
 		assert.Contains(t, err.Error(), "must be exactly 12 bytes")
 	})
 
-	t.Run("encrypt_error", func(t *testing.T) {
+	t.Run("encrypt error", func(t *testing.T) {
 		originalErr := assert.AnError
 		err := EncryptError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to encrypt data")
 	})
 
-	t.Run("decrypt_error", func(t *testing.T) {
+	t.Run("decrypt error", func(t *testing.T) {
 		originalErr := assert.AnError
 		err := DecryptError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to decrypt data")
 	})
 
-	t.Run("write_error", func(t *testing.T) {
+	t.Run("write error", func(t *testing.T) {
 		originalErr := assert.AnError
 		err := WriteError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to write encrypted data")
 	})
 
-	t.Run("read_error", func(t *testing.T) {
+	t.Run("read error", func(t *testing.T) {
 		originalErr := assert.AnError
 		err := ReadError{Err: originalErr}
 		assert.Contains(t, err.Error(), "failed to read encrypted data")
@@ -556,7 +556,7 @@ func TestErrors(t *testing.T) {
 // TestCipherCreationErrors tests error paths in Encrypt and Decrypt methods
 // when chacha20.NewUnauthenticatedCipher fails
 func TestCipherCreationErrors(t *testing.T) {
-	t.Run("encrypt_cipher_creation_error", func(t *testing.T) {
+	t.Run("encrypt cipher creation error", func(t *testing.T) {
 		// Create an encrypter by bypassing constructor validation
 		// to test the error path in Encrypt method
 		invalidCipher := &cipher.ChaCha20Cipher{}
@@ -576,7 +576,7 @@ func TestCipherCreationErrors(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to encrypt data")
 	})
 
-	t.Run("decrypt_cipher_creation_error", func(t *testing.T) {
+	t.Run("decrypt cipher creation error", func(t *testing.T) {
 		// Create a decrypter by bypassing constructor validation
 		// to test the error path in Decrypt method
 		invalidCipher := &cipher.ChaCha20Cipher{}

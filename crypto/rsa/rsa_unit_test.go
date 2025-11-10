@@ -203,8 +203,8 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		enc := NewStdEncrypter(kp) // Constructor should succeed
 		assert.Nil(t, enc.Error)
 
-		// Now corrupt the public key after constructor validation
-		kp.SetPublicKey([]byte("-----BEGIN RSA PUBLIC KEY-----\ninvalid\n-----END RSA PUBLIC KEY-----"))
+		// Now corrupt the public key after constructor validation (bypass SetPublicKey)
+		kp.PublicKey = []byte("-----BEGIN RSA PUBLIC KEY-----\ninvalid\n-----END RSA PUBLIC KEY-----")
 
 		encrypted, err := enc.Encrypt([]byte("test")) // Should error here during parsing
 		assert.NotNil(t, err)
@@ -390,8 +390,8 @@ func TestStdDecrypter_Decrypt(t *testing.T) {
 		dec := NewStdDecrypter(kp) // Constructor should succeed
 		assert.Nil(t, dec.Error)
 
-		// Now corrupt the private key after constructor validation
-		kp.SetPrivateKey([]byte("-----BEGIN RSA PRIVATE KEY-----\ninvalid\n-----END RSA PRIVATE KEY-----"))
+		// Now corrupt the private key after constructor validation (bypass SetPrivateKey)
+		kp.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\ninvalid\n-----END RSA PRIVATE KEY-----")
 
 		decrypted, err := dec.Decrypt([]byte("test")) // Should error here during parsing
 		assert.NotNil(t, err)
@@ -657,7 +657,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("close_with_existing_error", func(t *testing.T) {
+	t.Run("close with existing error", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS1)
 		kp.SetHash(crypto.SHA256)
@@ -918,8 +918,8 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		streamDec := dec.(*StreamDecrypter)
 		assert.Nil(t, streamDec.Error)
 
-		// Now corrupt the private key after constructor validation
-		kp.SetPrivateKey([]byte("-----BEGIN RSA PRIVATE KEY-----\ninvalid\n-----END RSA PRIVATE KEY-----"))
+		// Now corrupt the private key after constructor validation (bypass SetPrivateKey)
+		kp.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\ninvalid\n-----END RSA PRIVATE KEY-----")
 
 		result := make([]byte, 100)
 		n, err := dec.Read(result) // Should error here during parsing
@@ -1362,9 +1362,8 @@ func TestRsaError(t *testing.T) {
 		kp.GenKeyPair(1024)
 
 		// Test with corrupted public key that causes encryption to fail
-		// We'll create a scenario where the key parsing succeeds but encryption fails
-		// by using a valid key format but with corrupted key data
-		kp.SetPublicKey([]byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----"))
+		// Bypass SetPublicKey to ensure the key is actually corrupted
+		kp.PublicKey = []byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----")
 
 		enc := NewStdEncrypter(kp)
 		encrypted, err := enc.Encrypt([]byte("test"))
@@ -1383,8 +1382,8 @@ func TestRsaError(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotEmpty(t, encrypted2)
 
-		// Then decrypt with corrupted key
-		kp2.SetPrivateKey([]byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----"))
+		// Then decrypt with corrupted key (bypass SetPrivateKey)
+		kp2.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----")
 		dec := NewStdDecrypter(kp2)
 		decrypted, err := dec.Decrypt(encrypted2)
 		assert.NotNil(t, err)
@@ -1490,7 +1489,7 @@ func TestRsaError(t *testing.T) {
 		// Test with corrupted public key that causes encryption to fail
 		// We'll create a scenario where the key parsing succeeds but encryption fails
 		// by using a valid key format but with corrupted key data
-		kp5.SetPublicKey([]byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----"))
+		kp5.PublicKey = []byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----")
 
 		enc5 := NewStdEncrypter(kp5)
 		encrypted5, err := enc5.Encrypt([]byte("test"))
@@ -1510,7 +1509,7 @@ func TestRsaError(t *testing.T) {
 		assert.NotEmpty(t, encrypted6)
 
 		// Then decrypt with corrupted key
-		kp6.SetPrivateKey([]byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----"))
+		kp6.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----")
 		dec6 := NewStdDecrypter(kp6)
 		decrypted6, err := dec6.Decrypt(encrypted6)
 		assert.NotNil(t, err)
@@ -1541,7 +1540,7 @@ func TestRsaError(t *testing.T) {
 		// Test with corrupted public key that causes encryption to fail
 		// We'll create a scenario where the key parsing succeeds but encryption fails
 		// by using a valid key format but with corrupted key data
-		kp7.SetPublicKey([]byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----"))
+		kp7.PublicKey = []byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----")
 
 		enc7 := NewStdEncrypter(kp7)
 		encrypted7, err := enc7.Encrypt([]byte("test"))
@@ -1561,7 +1560,7 @@ func TestRsaError(t *testing.T) {
 		assert.NotEmpty(t, encrypted8)
 
 		// Then decrypt with corrupted key
-		kp8.SetPrivateKey([]byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----"))
+		kp8.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----")
 		dec8 := NewStdDecrypter(kp8)
 		decrypted8, err := dec8.Decrypt(encrypted8)
 		assert.NotNil(t, err)
@@ -1592,7 +1591,7 @@ func TestRsaError(t *testing.T) {
 		// Test with corrupted public key that causes encryption to fail
 		// We'll create a scenario where the key parsing succeeds but encryption fails
 		// by using a valid key format but with corrupted key data
-		kp9.SetPublicKey([]byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----"))
+		kp9.PublicKey = []byte("-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid\n-----END RSA PUBLIC KEY-----")
 
 		enc9 := NewStdEncrypter(kp9)
 		encrypted9, err := enc9.Encrypt([]byte("test"))
@@ -1612,7 +1611,7 @@ func TestRsaError(t *testing.T) {
 		assert.NotEmpty(t, encrypted10)
 
 		// Then decrypt with corrupted key
-		kp10.SetPrivateKey([]byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----"))
+		kp10.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCinvalid\n-----END RSA PRIVATE KEY-----")
 		dec10 := NewStdDecrypter(kp10)
 		decrypted10, err := dec10.Decrypt(encrypted10)
 		assert.NotNil(t, err)
@@ -1637,7 +1636,7 @@ func TestRsaError(t *testing.T) {
 
 // TestStdSigner tests standard RSA signing functionality
 func TestStdSigner(t *testing.T) {
-	t.Run("NewStdSigner_valid_keypair", func(t *testing.T) {
+	t.Run("NewStdSigner valid keypair", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -1649,16 +1648,17 @@ func TestStdSigner(t *testing.T) {
 		assert.Equal(t, kp, signer.keypair)
 	})
 
-	t.Run("NewStdSigner_nil_keypair", func(t *testing.T) {
+	t.Run("NewStdSigner nil keypair", func(t *testing.T) {
 		signer := NewStdSigner(nil)
 		assert.NotNil(t, signer)
 		assert.IsType(t, NilKeyPairError{}, signer.Error)
 	})
 
-	t.Run("NewStdSigner_empty_private_key", func(t *testing.T) {
+	t.Run("NewStdSigner empty private key", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
-		kp.SetPrivateKey([]byte{})
+		// Explicitly clear private key to simulate empty state
+		kp.PrivateKey = nil
 
 		signer := NewStdSigner(kp)
 		assert.NotNil(t, signer)
@@ -1680,7 +1680,7 @@ func TestStdSigner(t *testing.T) {
 }
 
 func TestStdSigner_Sign(t *testing.T) {
-	t.Run("PKCS1_format_signing", func(t *testing.T) {
+	t.Run("PKCS1 format signing", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -1694,7 +1694,7 @@ func TestStdSigner_Sign(t *testing.T) {
 		assert.Equal(t, signature, kp.Sign)
 	})
 
-	t.Run("PKCS8_format_signing", func(t *testing.T) {
+	t.Run("PKCS8 format signing", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS8)
@@ -1708,7 +1708,7 @@ func TestStdSigner_Sign(t *testing.T) {
 		assert.Equal(t, signature, kp.Sign)
 	})
 
-	t.Run("empty_input", func(t *testing.T) {
+	t.Run("empty input", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		signer := NewStdSigner(kp)
@@ -1718,7 +1718,7 @@ func TestStdSigner_Sign(t *testing.T) {
 		assert.Empty(t, signature)
 	})
 
-	t.Run("with_existing_error", func(t *testing.T) {
+	t.Run("with existing error", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		signer := NewStdSigner(kp)
@@ -1729,7 +1729,7 @@ func TestStdSigner_Sign(t *testing.T) {
 		assert.Empty(t, signature)
 	})
 
-	t.Run("parse_private_key_error", func(t *testing.T) {
+	t.Run("parse private key error", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetPrivateKey([]byte("invalid private key"))
 		signer := NewStdSigner(kp)
@@ -1739,7 +1739,7 @@ func TestStdSigner_Sign(t *testing.T) {
 		assert.Empty(t, signature)
 	})
 
-	t.Run("sign_error_PKCS1", func(t *testing.T) {
+	t.Run("sign error PKCS1", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS1)
 		kp.SetHash(crypto.SHA256)
@@ -1762,7 +1762,7 @@ func TestStdSigner_Sign(t *testing.T) {
 		}
 	})
 
-	t.Run("sign_error_PKCS8", func(t *testing.T) {
+	t.Run("sign error PKCS8", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS8)
 		kp.SetHash(crypto.SHA256)
@@ -1824,8 +1824,8 @@ func TestStdSigner_Sign(t *testing.T) {
 		signer := NewStdSigner(kp) // Constructor should succeed
 		assert.Nil(t, signer.Error)
 
-		// Now corrupt the private key after constructor validation
-		kp.SetPrivateKey([]byte("-----BEGIN RSA PRIVATE KEY-----\ninvalid\n-----END RSA PRIVATE KEY-----"))
+		// Now corrupt the private key after constructor validation (bypass SetPrivateKey)
+		kp.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\ninvalid\n-----END RSA PRIVATE KEY-----")
 
 		signature, err := signer.Sign([]byte("test")) // Should error here during parsing
 		assert.NotNil(t, err)
@@ -1836,7 +1836,7 @@ func TestStdSigner_Sign(t *testing.T) {
 
 // TestStdVerifier tests standard RSA signature verification functionality
 func TestStdVerifier(t *testing.T) {
-	t.Run("NewStdVerifier_valid_keypair", func(t *testing.T) {
+	t.Run("NewStdVerifier valid keypair", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -1848,16 +1848,17 @@ func TestStdVerifier(t *testing.T) {
 		assert.Equal(t, kp, verifier.keypair)
 	})
 
-	t.Run("NewStdVerifier_nil_keypair", func(t *testing.T) {
+	t.Run("NewStdVerifier nil keypair", func(t *testing.T) {
 		verifier := NewStdVerifier(nil)
 		assert.NotNil(t, verifier)
 		assert.IsType(t, NilKeyPairError{}, verifier.Error)
 	})
 
-	t.Run("NewStdVerifier_empty_public_key", func(t *testing.T) {
+	t.Run("NewStdVerifier empty public key", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
-		kp.SetPublicKey([]byte{})
+		// Explicitly clear public key to simulate empty state
+		kp.PublicKey = nil
 
 		verifier := NewStdVerifier(kp)
 		assert.NotNil(t, verifier)
@@ -1879,7 +1880,7 @@ func TestStdVerifier(t *testing.T) {
 }
 
 func TestStdVerifier_Verify(t *testing.T) {
-	t.Run("PKCS1_format_verification", func(t *testing.T) {
+	t.Run("PKCS1 format verification", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -1899,7 +1900,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 		assert.True(t, valid)
 	})
 
-	t.Run("PKCS8_format_verification", func(t *testing.T) {
+	t.Run("PKCS8 format verification", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS8)
@@ -1919,7 +1920,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 		assert.True(t, valid)
 	})
 
-	t.Run("empty_data_or_signature", func(t *testing.T) {
+	t.Run("empty data or signature", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		verifier := NewStdVerifier(kp)
@@ -1940,7 +1941,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("with_existing_error", func(t *testing.T) {
+	t.Run("with existing error", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		verifier := NewStdVerifier(kp)
@@ -1951,7 +1952,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("invalid_signature", func(t *testing.T) {
+	t.Run("invalid signature", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -1966,7 +1967,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("parse_public_key_error", func(t *testing.T) {
+	t.Run("parse public key error", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetPublicKey([]byte("invalid public key"))
 		verifier := NewStdVerifier(kp)
@@ -1976,7 +1977,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("verify_error_PKCS1", func(t *testing.T) {
+	t.Run("verify error PKCS1", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -1991,7 +1992,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("verify_error_PKCS8", func(t *testing.T) {
+	t.Run("verify error PKCS8", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS8)
@@ -2029,8 +2030,8 @@ func TestStdVerifier_Verify(t *testing.T) {
 		verifier := NewStdVerifier(kp) // Constructor should succeed
 		assert.Nil(t, verifier.Error)
 
-		// Now corrupt the public key after constructor validation
-		kp.SetPublicKey([]byte("-----BEGIN RSA PUBLIC KEY-----\ninvalid\n-----END RSA PUBLIC KEY-----"))
+		// Now corrupt the public key after constructor validation (bypass SetPublicKey)
+		kp.PublicKey = []byte("-----BEGIN RSA PUBLIC KEY-----\ninvalid\n-----END RSA PUBLIC KEY-----")
 
 		valid, err := verifier.Verify([]byte("test"), []byte("signature")) // Should error here during parsing
 		assert.NotNil(t, err)
@@ -2041,7 +2042,7 @@ func TestStdVerifier_Verify(t *testing.T) {
 
 // TestStreamSigner tests stream RSA signing functionality
 func TestStreamSigner(t *testing.T) {
-	t.Run("NewStreamSigner_valid_keypair", func(t *testing.T) {
+	t.Run("NewStreamSigner valid keypair", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2056,7 +2057,7 @@ func TestStreamSigner(t *testing.T) {
 		assert.NotNil(t, streamSigner.hasher)
 	})
 
-	t.Run("NewStreamSigner_nil_keypair", func(t *testing.T) {
+	t.Run("NewStreamSigner nil keypair", func(t *testing.T) {
 		var buf bytes.Buffer
 		signer := NewStreamSigner(&buf, nil)
 		assert.NotNil(t, signer)
@@ -2064,11 +2065,12 @@ func TestStreamSigner(t *testing.T) {
 		assert.IsType(t, NilKeyPairError{}, streamSigner.Error)
 	})
 
-	t.Run("NewStreamSigner_empty_private_key", func(t *testing.T) {
+	t.Run("NewStreamSigner empty private key", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
-		kp.SetPrivateKey([]byte{})
+		// Explicitly clear private key to simulate empty state
+		kp.PrivateKey = nil
 
 		signer := NewStreamSigner(&buf, kp)
 		streamSigner := signer.(*StreamSigner)
@@ -2092,7 +2094,7 @@ func TestStreamSigner(t *testing.T) {
 }
 
 func TestStreamSigner_Write(t *testing.T) {
-	t.Run("successful_write", func(t *testing.T) {
+	t.Run("successful write", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2106,7 +2108,7 @@ func TestStreamSigner_Write(t *testing.T) {
 		assert.Equal(t, len(data), n)
 	})
 
-	t.Run("empty_input", func(t *testing.T) {
+	t.Run("empty input", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2117,7 +2119,7 @@ func TestStreamSigner_Write(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("with_existing_error", func(t *testing.T) {
+	t.Run("with existing error", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2131,7 +2133,7 @@ func TestStreamSigner_Write(t *testing.T) {
 }
 
 func TestStreamSigner_Close(t *testing.T) {
-	t.Run("successful_close_with_signature", func(t *testing.T) {
+	t.Run("successful close with signature", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2151,7 +2153,7 @@ func TestStreamSigner_Close(t *testing.T) {
 		assert.NotEmpty(t, buf.Bytes())
 	})
 
-	t.Run("close_with_existing_error", func(t *testing.T) {
+	t.Run("close with existing error", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2162,7 +2164,7 @@ func TestStreamSigner_Close(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("close_with_writer_error", func(t *testing.T) {
+	t.Run("close with writer error", func(t *testing.T) {
 		mockWriter := mock.NewErrorWriteCloser(assert.AnError)
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2178,7 +2180,7 @@ func TestStreamSigner_Close(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("close_with_closer", func(t *testing.T) {
+	t.Run("close with closer", func(t *testing.T) {
 		mockWriter := mock.NewErrorWriteCloser(nil)
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2194,7 +2196,7 @@ func TestStreamSigner_Close(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("close_with_sign_error", func(t *testing.T) {
+	t.Run("close with sign error", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS1)
@@ -2211,7 +2213,7 @@ func TestStreamSigner_Close(t *testing.T) {
 		assert.IsType(t, KeyPairError{}, err)
 	})
 
-	t.Run("close_sign_error_PKCS1", func(t *testing.T) {
+	t.Run("close sign error PKCS1", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS1)
@@ -2228,7 +2230,7 @@ func TestStreamSigner_Close(t *testing.T) {
 		_ = err
 	})
 
-	t.Run("close_sign_error_PKCS8", func(t *testing.T) {
+	t.Run("close sign error PKCS8", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS8)
@@ -2247,7 +2249,7 @@ func TestStreamSigner_Close(t *testing.T) {
 }
 
 func TestStreamSigner_Sign(t *testing.T) {
-	t.Run("PKCS1_format_signing", func(t *testing.T) {
+	t.Run("PKCS1 format signing", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2266,7 +2268,7 @@ func TestStreamSigner_Sign(t *testing.T) {
 		assert.NotEmpty(t, signature)
 	})
 
-	t.Run("PKCS8_format_signing", func(t *testing.T) {
+	t.Run("PKCS8 format signing", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2285,7 +2287,7 @@ func TestStreamSigner_Sign(t *testing.T) {
 		assert.NotEmpty(t, signature)
 	})
 
-	t.Run("parse_private_key_error", func(t *testing.T) {
+	t.Run("parse private key error", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.SetPrivateKey([]byte("invalid private key"))
@@ -2298,7 +2300,7 @@ func TestStreamSigner_Sign(t *testing.T) {
 		assert.Empty(t, signature)
 	})
 
-	t.Run("sign_error_PKCS1", func(t *testing.T) {
+	t.Run("sign error PKCS1", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(512) // Use smaller key
@@ -2316,7 +2318,7 @@ func TestStreamSigner_Sign(t *testing.T) {
 		}
 	})
 
-	t.Run("sign_error_PKCS8", func(t *testing.T) {
+	t.Run("sign error PKCS8", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(512) // Use smaller key
@@ -2333,7 +2335,7 @@ func TestStreamSigner_Sign(t *testing.T) {
 		}
 	})
 
-	t.Run("unsupported_format", func(t *testing.T) {
+	t.Run("unsupported format", func(t *testing.T) {
 		var buf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.KeyFormat("invalid"))
@@ -2351,7 +2353,7 @@ func TestStreamSigner_Sign(t *testing.T) {
 
 // TestStreamVerifier tests stream RSA signature verification functionality
 func TestStreamVerifier(t *testing.T) {
-	t.Run("NewStreamVerifier_valid_keypair", func(t *testing.T) {
+	t.Run("NewStreamVerifier valid keypair", func(t *testing.T) {
 		file := mock.NewFile([]byte("signature data"), "signature.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2366,7 +2368,7 @@ func TestStreamVerifier(t *testing.T) {
 		assert.NotNil(t, streamVerifier.hasher)
 	})
 
-	t.Run("NewStreamVerifier_nil_keypair", func(t *testing.T) {
+	t.Run("NewStreamVerifier nil keypair", func(t *testing.T) {
 		file := mock.NewFile([]byte("signature data"), "signature.dat")
 		verifier := NewStreamVerifier(file, nil)
 		assert.NotNil(t, verifier)
@@ -2374,11 +2376,12 @@ func TestStreamVerifier(t *testing.T) {
 		assert.IsType(t, NilKeyPairError{}, streamVerifier.Error)
 	})
 
-	t.Run("NewStreamVerifier_empty_public_key", func(t *testing.T) {
+	t.Run("NewStreamVerifier empty public key", func(t *testing.T) {
 		file := mock.NewFile([]byte("signature data"), "signature.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
-		kp.SetPublicKey([]byte{})
+		// Explicitly clear public key to simulate empty state
+		kp.PublicKey = nil
 
 		verifier := NewStreamVerifier(file, kp)
 		streamVerifier := verifier.(*StreamVerifier)
@@ -2402,7 +2405,7 @@ func TestStreamVerifier(t *testing.T) {
 }
 
 func TestStreamVerifier_Write(t *testing.T) {
-	t.Run("successful_write", func(t *testing.T) {
+	t.Run("successful write", func(t *testing.T) {
 		file := mock.NewFile([]byte("signature data"), "signature.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2416,7 +2419,7 @@ func TestStreamVerifier_Write(t *testing.T) {
 		assert.Equal(t, len(data), n)
 	})
 
-	t.Run("empty_input", func(t *testing.T) {
+	t.Run("empty input", func(t *testing.T) {
 		file := mock.NewFile([]byte("signature data"), "signature.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2427,7 +2430,7 @@ func TestStreamVerifier_Write(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("with_existing_error", func(t *testing.T) {
+	t.Run("with existing error", func(t *testing.T) {
 		file := mock.NewFile([]byte("signature data"), "signature.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2441,7 +2444,7 @@ func TestStreamVerifier_Write(t *testing.T) {
 }
 
 func TestStreamVerifier_Close(t *testing.T) {
-	t.Run("successful_close_with_valid_signature", func(t *testing.T) {
+	t.Run("successful close with valid signature", func(t *testing.T) {
 		// First create a signature using StreamSigner
 		var sigBuf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
@@ -2464,7 +2467,7 @@ func TestStreamVerifier_Close(t *testing.T) {
 		assert.True(t, verifier.verified)
 	})
 
-	t.Run("close_with_existing_error", func(t *testing.T) {
+	t.Run("close with existing error", func(t *testing.T) {
 		file := mock.NewFile([]byte("signature"), "sig.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2475,7 +2478,7 @@ func TestStreamVerifier_Close(t *testing.T) {
 		assert.Equal(t, assert.AnError, err)
 	})
 
-	t.Run("close_with_reader_error", func(t *testing.T) {
+	t.Run("close with reader error", func(t *testing.T) {
 		mockReader := mock.NewErrorFile(assert.AnError)
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2485,7 +2488,7 @@ func TestStreamVerifier_Close(t *testing.T) {
 		assert.IsType(t, ReadError{}, err)
 	})
 
-	t.Run("close_with_empty_signature", func(t *testing.T) {
+	t.Run("close with empty signature", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2495,7 +2498,7 @@ func TestStreamVerifier_Close(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("close_with_invalid_signature", func(t *testing.T) {
+	t.Run("close with invalid signature", func(t *testing.T) {
 		file := mock.NewFile([]byte("invalid signature"), "sig.dat")
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
@@ -2508,7 +2511,7 @@ func TestStreamVerifier_Close(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("close_with_closer", func(t *testing.T) {
+	t.Run("close with closer", func(t *testing.T) {
 		// Test that the closer interface is correctly handled
 		sigReader := mock.NewFile([]byte{}, "test.bin") // Empty signature
 		kp := keypair.NewRsaKeyPair()
@@ -2519,7 +2522,7 @@ func TestStreamVerifier_Close(t *testing.T) {
 		assert.Nil(t, err) // Should succeed with empty signature
 	})
 
-	t.Run("close_with_reader_closer_error", func(t *testing.T) {
+	t.Run("close with reader closer error", func(t *testing.T) {
 		// Test the case where the reader implements io.Closer and Close() returns error
 		var sigBuf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
@@ -2570,7 +2573,7 @@ func TestAdditionalErrorTypes(t *testing.T) {
 
 // Test edge cases for StreamVerifier to achieve 100% coverage
 func TestStreamVerifierEdgeCases(t *testing.T) {
-	t.Run("write_hasher_error", func(t *testing.T) {
+	t.Run("write hasher error", func(t *testing.T) {
 		// Create a StreamVerifier and replace its hasher with our error hasher
 		file := mock.NewFile([]byte("signature"), "sig.dat")
 		kp := keypair.NewRsaKeyPair()
@@ -2589,7 +2592,7 @@ func TestStreamVerifierEdgeCases(t *testing.T) {
 		assert.Equal(t, 0, n)
 	})
 
-	t.Run("close_with_reader_closer_success", func(t *testing.T) {
+	t.Run("close with reader closer success", func(t *testing.T) {
 		// Test successful close path where reader implements io.Closer and succeeds
 		var sigBuf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
@@ -2614,7 +2617,7 @@ func TestStreamVerifierEdgeCases(t *testing.T) {
 		assert.True(t, verifier.verified)
 	})
 
-	t.Run("close_with_reader_closer_error", func(t *testing.T) {
+	t.Run("close with reader closer error", func(t *testing.T) {
 		// Test the case where reader implements io.Closer and returns error
 		var sigBuf bytes.Buffer
 		kp := keypair.NewRsaKeyPair()
@@ -2638,7 +2641,7 @@ func TestStreamVerifierEdgeCases(t *testing.T) {
 		assert.True(t, verifier.verified) // Verification should still succeed before close error
 	})
 
-	t.Run("close_without_closer_interface", func(t *testing.T) {
+	t.Run("close without closer interface", func(t *testing.T) {
 		// Test the case where reader does NOT implement io.Closer
 		// This should execute the final return nil statement (line 587)
 		var sigBuf bytes.Buffer
@@ -2665,7 +2668,7 @@ func TestStreamVerifierEdgeCases(t *testing.T) {
 }
 
 func TestStreamVerifier_Verify(t *testing.T) {
-	t.Run("PKCS1_format_verification", func(t *testing.T) {
+	t.Run("PKCS1 format verification", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -2690,7 +2693,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.True(t, valid)
 	})
 
-	t.Run("PKCS8_format_verification", func(t *testing.T) {
+	t.Run("PKCS8 format verification", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS8)
@@ -2715,7 +2718,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.True(t, valid)
 	})
 
-	t.Run("parse_public_key_error", func(t *testing.T) {
+	t.Run("parse public key error", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetPublicKey([]byte("invalid public key"))
 		file := mock.NewFile([]byte("sig"), "sig.dat")
@@ -2729,7 +2732,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("invalid_signature", func(t *testing.T) {
+	t.Run("invalid signature", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -2745,7 +2748,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("verify_error_PKCS1", func(t *testing.T) {
+	t.Run("verify error PKCS1", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -2761,7 +2764,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("verify_error_PKCS8", func(t *testing.T) {
+	t.Run("verify error PKCS8", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS8)
@@ -2777,7 +2780,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("unsupported_format", func(t *testing.T) {
+	t.Run("unsupported format", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.KeyFormat("invalid"))
 		kp.SetHash(crypto.SHA256)
@@ -2794,7 +2797,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("verify_hash_error_PKCS1", func(t *testing.T) {
+	t.Run("verify hash error PKCS1", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS1)
@@ -2811,7 +2814,7 @@ func TestStreamVerifier_Verify(t *testing.T) {
 		assert.False(t, valid)
 	})
 
-	t.Run("verify_hash_error_PKCS8", func(t *testing.T) {
+	t.Run("verify hash error PKCS8", func(t *testing.T) {
 		kp := keypair.NewRsaKeyPair()
 		kp.GenKeyPair(2048)
 		kp.SetFormat(keypair.PKCS8)

@@ -134,6 +134,19 @@ func TestStdSignerSign(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid key pair")
 	})
 
+	// Test parse error path where private key is set but invalid PKCS8 content
+	t.Run("sign with invalid formatted private key content", func(t *testing.T) {
+		kp := keypair.NewEd25519KeyPair()
+		// Provide valid base64 that decodes but isn't a real PKCS8 key
+		_ = kp.SetPrivateKey([]byte("aGVsbG8=")) // base64 for "hello"
+
+		signer := NewStdSigner(kp)
+		signature, err := signer.Sign([]byte("test data"))
+		assert.Nil(t, signature)
+		assert.NotNil(t, err)
+		assert.IsType(t, KeyPairError{}, err)
+	})
+
 	// Test error path when private key is nil
 	t.Run("sign with nil private key", func(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
@@ -197,6 +210,18 @@ invalid base64 content
 		assert.IsType(t, KeyPairError{}, err)
 		// Check that the error message contains the expected text
 		assert.Contains(t, err.Error(), "invalid key pair")
+	})
+
+	// Ensure signer stores signature back into keypair
+	t.Run("sign stores signature in keypair", func(t *testing.T) {
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStdSigner(kp)
+		signature, err := signer.Sign([]byte("abc"))
+		assert.Nil(t, err)
+		assert.NotEmpty(t, signature)
+		assert.Equal(t, signature, kp.Sign)
 	})
 }
 
@@ -366,10 +391,8 @@ func TestStdVerifierVerify(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, signature)
 
-		// Create a corrupted public key that will cause ParsePublicKey to return an error
-		kp.SetPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
-invalid base64 content
------END PUBLIC KEY-----`))
+		// Corrupt the public key after signing (bypass setter to ensure corruption takes effect)
+		kp.PublicKey = []byte("-----BEGIN PUBLIC KEY-----\ninvalid base64 content\n-----END PUBLIC KEY-----")
 
 		verifier := NewStdVerifier(kp)
 		valid, err := verifier.Verify([]byte("test data"), signature)
@@ -446,6 +469,54 @@ func TestStreamSignerClose(t *testing.T) {
 		err := signer.Close()
 		assert.Nil(t, err)
 		assert.NotEmpty(t, buf.Bytes())
+	})
+
+	// Early return path: signer created with empty key pair (KeyPairError)
+	t.Run("close with empty key pair error", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		signer := NewStreamSigner(&buf, kp)
+		err := signer.Close()
+		assert.NotNil(t, err)
+		assert.IsType(t, KeyPairError{}, err)
+	})
+
+	// Empty data with writer implementing io.Closer to cover zero-length write + close path
+	t.Run("close with empty data and writer implements Closer", func(t *testing.T) {
+		file := mock.NewFile([]byte{}, "sig.bin")
+		defer file.Close()
+
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStreamSigner(file, kp)
+		err := signer.Close()
+		assert.Nil(t, err)
+	})
+
+	// Cover branch: writer implements io.Closer and Close() returns error after successful write
+	t.Run("close with writer that writes ok but close fails", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		wc := mock.NewCloseErrorWriteCloser(&buf, assert.AnError)
+		signer := NewStreamSigner(wc, kp)
+		_, _ = signer.Write([]byte("test data"))
+		err := signer.Close()
+		assert.NotNil(t, err)
+	})
+
+	// Cover branch: empty data, writer is Closer and Close() fails
+	t.Run("close with empty data and close fails", func(t *testing.T) {
+		var buf bytes.Buffer
+		kp := keypair.NewEd25519KeyPair()
+		kp.GenKeyPair()
+
+		wc := mock.NewCloseErrorWriteCloser(&buf, assert.AnError)
+		signer := NewStreamSigner(wc, kp)
+		err := signer.Close()
+		assert.NotNil(t, err)
 	})
 
 	// Test error path when parsing private key fails
@@ -563,12 +634,13 @@ func TestStreamSignerClose(t *testing.T) {
 		// Create a mock writer that works correctly
 		var buf bytes.Buffer
 
-		// Create a keypair with invalid private key to cause Sign to return an error
+		// Provide a private key that is non-empty (so constructor does not mark error)
+		// but invalid PKCS8 content so Sign() fails during parsing
 		kp := keypair.NewEd25519KeyPair()
-		kp.SetPrivateKey([]byte("invalid private key"))
+		_ = kp.SetPrivateKey([]byte("aGVsbG8=")) // base64 for "hello"
 
 		signer := NewStreamSigner(&buf, kp)
-		signer.Write([]byte("test data"))
+		_, _ = signer.Write([]byte("test data"))
 		err := signer.Close()
 		assert.NotNil(t, err)
 		assert.IsType(t, KeyPairError{}, err)
