@@ -1,10 +1,10 @@
 package keypair
 
 import (
+	stdRand "crypto/rand"
 	"errors"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,46 +30,83 @@ func TestEd25519KeyPairGenKeyPair(t *testing.T) {
 		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
 	})
 
+	t.Run("generate ED25519 key pair with rand error", func(t *testing.T) {
+		// Override crypto/rand.Reader only within this process to trigger error path
+		old := stdRand.Reader
+		defer func() { stdRand.Reader = old }()
+		stdRand.Reader = badReader{}
+
+		kp := NewEd25519KeyPair()
+		err := kp.GenKeyPair()
+		assert.Error(t, err)
+		assert.Nil(t, kp.PublicKey)
+		assert.Nil(t, kp.PrivateKey)
+	})
 }
+
+// badReader always returns an error to trigger ed25519.GenerateKey failure
+type badReader struct{}
+
+func (badReader) Read(p []byte) (int, error) { return 0, errors.New("rand read error") }
 
 // TestEd25519KeyPairSetPublicKey tests the SetPublicKey method
 func TestEd25519KeyPairSetPublicKey(t *testing.T) {
-	t.Run("set public key", func(t *testing.T) {
+	t.Run("set public key from body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		kp.GenKeyPair()
 
-		originalKey := kp.PublicKey
-		kp.SetPublicKey(originalKey)
-
+		body := kp.CompressPublicKey(kp.PublicKey)
+		err := kp.SetPublicKey(body)
+		assert.NoError(t, err)
 		assert.NotNil(t, kp.PublicKey)
 		assert.Contains(t, string(kp.PublicKey), "-----BEGIN PUBLIC KEY-----")
 	})
 
 	t.Run("set empty public key", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		kp.SetPublicKey([]byte{})
+		err := kp.SetPublicKey([]byte{})
+		assert.Error(t, err)
+		assert.IsType(t, EmptyPublicKeyError{}, err)
+		assert.Equal(t, "public key cannot be empty", err.Error())
+		assert.Empty(t, kp.PublicKey)
+	})
 
+	t.Run("set invalid base64 public key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		err := kp.SetPublicKey([]byte("!not-base64!"))
+		assert.Error(t, err)
+		assert.IsType(t, InvalidPublicKeyError{}, err)
 		assert.Empty(t, kp.PublicKey)
 	})
 }
 
 // TestEd25519KeyPairSetPrivateKey tests the SetPrivateKey method
 func TestEd25519KeyPairSetPrivateKey(t *testing.T) {
-	t.Run("set private key", func(t *testing.T) {
+	t.Run("set private key from body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		kp.GenKeyPair()
 
-		originalKey := kp.PrivateKey
-		kp.SetPrivateKey(originalKey)
-
+		body := kp.CompressPrivateKey(kp.PrivateKey)
+		err := kp.SetPrivateKey(body)
+		assert.NoError(t, err)
 		assert.NotNil(t, kp.PrivateKey)
 		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
 	})
 
 	t.Run("set empty private key", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		kp.SetPrivateKey([]byte{})
+		err := kp.SetPrivateKey([]byte{})
+		assert.Error(t, err)
+		assert.IsType(t, EmptyPrivateKeyError{}, err)
+		assert.Equal(t, "private key cannot be empty", err.Error())
+		assert.Empty(t, kp.PrivateKey)
+	})
 
+	t.Run("set invalid base64 private key", func(t *testing.T) {
+		kp := NewEd25519KeyPair()
+		err := kp.SetPrivateKey([]byte("!not-base64!"))
+		assert.Error(t, err)
+		assert.IsType(t, InvalidPrivateKeyError{}, err)
 		assert.Empty(t, kp.PrivateKey)
 	})
 }
@@ -89,7 +126,8 @@ func TestEd25519KeyPairParsePublicKey(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		pub, err := kp.ParsePublicKey()
 		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
+		assert.IsType(t, EmptyPublicKeyError{}, err)
+		assert.Equal(t, "public key cannot be empty", err.Error())
 		assert.Nil(t, pub)
 	})
 
@@ -98,7 +136,7 @@ func TestEd25519KeyPairParsePublicKey(t *testing.T) {
 		kp.PublicKey = []byte("invalid key")
 		pub, err := kp.ParsePublicKey()
 		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
+		assert.IsType(t, InvalidPublicKeyError{}, err)
 		assert.Nil(t, pub)
 	})
 
@@ -109,7 +147,7 @@ MCowBQYDK2VwAyEAinvalid
 -----END PUBLIC KEY-----`)
 		pub, err := kp.ParsePublicKey()
 		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
+		assert.IsType(t, InvalidPublicKeyError{}, err)
 		assert.Nil(t, pub)
 	})
 
@@ -130,7 +168,9 @@ MCowBQYDK2VwAyEANs0R/+1w1lk4sA==
 MCowBQYDK2VwAyEA
 -----END UNKNOWN KEY-----`)
 		pub, err := kp.ParsePublicKey()
-		assert.Nil(t, err) // Should return nil without error for unknown types
+		assert.Error(t, err)
+		assert.IsType(t, UnsupportedPemTypeError{}, err)
+		assert.Equal(t, "unsupported pem block type", err.Error())
 		assert.Nil(t, pub)
 	})
 }
@@ -150,7 +190,8 @@ func TestEd25519KeyPairParsePrivateKey(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		pri, err := kp.ParsePrivateKey()
 		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
+		assert.IsType(t, EmptyPrivateKeyError{}, err)
+		assert.Equal(t, "private key cannot be empty", err.Error())
 		assert.Nil(t, pri)
 	})
 
@@ -159,7 +200,7 @@ func TestEd25519KeyPairParsePrivateKey(t *testing.T) {
 		kp.PrivateKey = []byte("invalid key")
 		pri, err := kp.ParsePrivateKey()
 		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
+		assert.IsType(t, InvalidPrivateKeyError{}, err)
 		assert.Nil(t, pri)
 	})
 
@@ -170,7 +211,7 @@ MC4CAQAwBQYDK2VwBCIEIN5invalid
 -----END PRIVATE KEY-----`)
 		pri, err := kp.ParsePrivateKey()
 		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
+		assert.IsType(t, InvalidPrivateKeyError{}, err)
 		assert.Nil(t, pri)
 	})
 
@@ -191,81 +232,15 @@ MC4CAQAwBQYDK2VwBCIEIA1SoqzUlXOe
 MC4CAQAwBQYDK2VwBCIEIA1SoqzUlXOeBM9hQXp/Ow58v6N+15FwXByUhfFSRJ2J
 -----END UNKNOWN PRIVATE KEY-----`)
 		pri, err := kp.ParsePrivateKey()
-		assert.Nil(t, err) // Should return nil without error for unknown types
+		assert.Error(t, err)
+		assert.IsType(t, UnsupportedPemTypeError{}, err)
+		assert.Equal(t, "unsupported pem block type", err.Error())
 		assert.Nil(t, pri)
-	})
-}
-
-// TestEd25519KeyPairLoadPublicKey tests the LoadPublicKey method
-func TestEd25519KeyPairLoadPublicKey(t *testing.T) {
-	t.Run("load public key from file", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		// Create a mock file with the public key content
-		file := mock.NewFile(kp.PublicKey, "public_key.pem")
-		defer file.Close()
-
-		// Load public key from file
-		err := kp.LoadPublicKey(file)
-		assert.Nil(t, err)
-		assert.NotNil(t, kp.PublicKey)
-	})
-
-	t.Run("load public key from file with read error", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-
-		// Create a mock file that returns error on read
-		file := mock.NewErrorFile(errors.New("read error"))
-		defer file.Close()
-
-		// Load public key from file
-		err := kp.LoadPublicKey(file)
-
-		assert.NotNil(t, err)
-		assert.Nil(t, kp.PublicKey)
-	})
-}
-
-// TestEd25519KeyPairLoadPrivateKey tests the LoadPrivateKey method
-func TestEd25519KeyPairLoadPrivateKey(t *testing.T) {
-	t.Run("load private key from file", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		// Create a mock file with the private key content
-		file := mock.NewFile(kp.PrivateKey, "private_key.pem")
-		defer file.Close()
-
-		// Load private key from file
-		err := kp.LoadPrivateKey(file)
-
-		assert.Nil(t, err)
-		assert.NotNil(t, kp.PrivateKey)
-	})
-
-	t.Run("load private key from file with read error", func(t *testing.T) {
-		kp := NewEd25519KeyPair()
-
-		// Create a mock file that returns error on read
-		file := mock.NewErrorFile(errors.New("read error"))
-		defer file.Close()
-
-		// Load private key from file
-		err := kp.LoadPrivateKey(file)
-		assert.NotNil(t, err)
-		assert.Nil(t, kp.PrivateKey)
 	})
 }
 
 // TestErrorTypes tests all error types to achieve 100% coverage
 func TestErrorTypes(t *testing.T) {
-	t.Run("NilPemBlockError", func(t *testing.T) {
-		err := NilPemBlockError{}
-		expected := "pem block cannot be nil"
-		assert.Equal(t, expected, err.Error())
-	})
-
 	t.Run("InvalidPublicKeyError", func(t *testing.T) {
 		err := InvalidPublicKeyError{Err: assert.AnError}
 		errorMsg := err.Error()
@@ -297,56 +272,75 @@ func TestErrorTypes(t *testing.T) {
 
 // TestEd25519KeyPairFormatPublicKey tests the FormatPublicKey method
 func TestEd25519KeyPairFormatPublicKey(t *testing.T) {
-	t.Run("format valid public key", func(t *testing.T) {
+	t.Run("format valid public key body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		kp.GenKeyPair()
 
-		// Create a simple test key body
-		testKeyBody := []byte("test public key body")
-
-		formatted := kp.formatPublicKey(testKeyBody)
+		body := kp.CompressPublicKey(kp.PublicKey)
+		formatted, err := kp.FormatPublicKey(body)
+		assert.NoError(t, err)
 		assert.NotNil(t, formatted)
 		assert.Contains(t, string(formatted), "-----BEGIN PUBLIC KEY-----")
-		assert.Contains(t, string(formatted), "-----END PUBLIC KEY-----")
 	})
 
-	t.Run("format empty public key", func(t *testing.T) {
+	t.Run("format empty public key body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.formatPublicKey([]byte{})
+		formatted, err := kp.FormatPublicKey([]byte{})
+		assert.Error(t, err)
+		assert.IsType(t, EmptyPublicKeyError{}, err)
+		assert.Equal(t, "public key cannot be empty", err.Error())
 		assert.Empty(t, formatted)
 	})
 
-	t.Run("format nil public key", func(t *testing.T) {
+	t.Run("format invalid base64 public key body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.formatPublicKey(nil)
+		formatted, err := kp.FormatPublicKey([]byte("!"))
+		assert.Error(t, err)
+		assert.IsType(t, InvalidPublicKeyError{}, err)
 		assert.Empty(t, formatted)
 	})
 }
 
 // TestEd25519KeyPairFormatPrivateKey tests the FormatPrivateKey method
 func TestEd25519KeyPairFormatPrivateKey(t *testing.T) {
-	t.Run("format valid private key", func(t *testing.T) {
+	t.Run("format valid private key body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
 		kp.GenKeyPair()
 
-		// Create a simple test key body
-		testKeyBody := []byte("test private key body")
-
-		formatted := kp.formatPrivateKey(testKeyBody)
+		body := kp.CompressPrivateKey(kp.PrivateKey)
+		formatted, err := kp.FormatPrivateKey(body)
+		assert.NoError(t, err)
 		assert.NotNil(t, formatted)
 		assert.Contains(t, string(formatted), "-----BEGIN PRIVATE KEY-----")
-		assert.Contains(t, string(formatted), "-----END PRIVATE KEY-----")
 	})
 
-	t.Run("format empty private key", func(t *testing.T) {
+	t.Run("format empty private key body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.formatPrivateKey([]byte{})
+		formatted, err := kp.FormatPrivateKey([]byte{})
+		assert.Error(t, err)
+		assert.IsType(t, EmptyPrivateKeyError{}, err)
+		assert.Equal(t, "private key cannot be empty", err.Error())
 		assert.Empty(t, formatted)
 	})
 
-	t.Run("format nil private key", func(t *testing.T) {
+	t.Run("format invalid base64 private key body", func(t *testing.T) {
 		kp := NewEd25519KeyPair()
-		formatted := kp.formatPrivateKey(nil)
+		formatted, err := kp.FormatPrivateKey([]byte("!"))
+		assert.Error(t, err)
+		assert.IsType(t, InvalidPrivateKeyError{}, err)
 		assert.Empty(t, formatted)
 	})
+}
+
+// Test compress helpers
+func TestEd25519_Compress(t *testing.T) {
+	kp := NewEd25519KeyPair()
+	kp.GenKeyPair()
+
+	pubBody := kp.CompressPublicKey(kp.PublicKey)
+	priBody := kp.CompressPrivateKey(kp.PrivateKey)
+	assert.NotContains(t, string(pubBody), "BEGIN")
+	assert.NotContains(t, string(pubBody), "\n")
+	assert.NotContains(t, string(priBody), "BEGIN")
+	assert.NotContains(t, string(priBody), "\n")
 }
