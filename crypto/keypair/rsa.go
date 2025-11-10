@@ -8,8 +8,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"io"
-	"io/fs"
+	"strings"
+
+	"github.com/dromara/dongle/coding"
+	"github.com/dromara/dongle/utils"
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.
@@ -57,75 +59,55 @@ func (k *RsaKeyPair) GenKeyPair(size int) error {
 	// Format keys according to the specified format
 	if k.Format == PKCS1 {
 		// PKCS1 format: Use specific RSA headers
-		privateBytes := x509.MarshalPKCS1PrivateKey(key)
+		privateKeyDer := x509.MarshalPKCS1PrivateKey(key)
 		k.PrivateKey = pem.EncodeToMemory(&pem.Block{
 			Type:  "RSA PRIVATE KEY",
-			Bytes: privateBytes,
+			Bytes: privateKeyDer,
 		})
-		publicBytes := x509.MarshalPKCS1PublicKey(&key.PublicKey)
+		publicKeyDer := x509.MarshalPKCS1PublicKey(&key.PublicKey)
 		k.PublicKey = pem.EncodeToMemory(&pem.Block{
 			Type:  "RSA PUBLIC KEY",
-			Bytes: publicBytes,
+			Bytes: publicKeyDer,
 		})
+		return nil
 	}
 
 	if k.Format == PKCS8 {
 		// PKCS8 format: Use generic headers
-		if privateBytes, err := x509.MarshalPKCS8PrivateKey(key); err == nil {
+		if privateKeyDer, err := x509.MarshalPKCS8PrivateKey(key); err == nil {
 			k.PrivateKey = pem.EncodeToMemory(&pem.Block{
 				Type:  "PRIVATE KEY",
-				Bytes: privateBytes,
+				Bytes: privateKeyDer,
 			})
 		}
 
-		if publicBytes, err := x509.MarshalPKIXPublicKey(&key.PublicKey); err == nil {
+		if publicKeyDer, err := x509.MarshalPKIXPublicKey(&key.PublicKey); err == nil {
 			k.PublicKey = pem.EncodeToMemory(&pem.Block{
 				Type:  "PUBLIC KEY",
-				Bytes: publicBytes,
+				Bytes: publicKeyDer,
 			})
 		}
+		return nil
 	}
-	return nil
+	return UnsupportedPemTypeError{}
 }
 
 // SetPublicKey sets the public key and formats it according to the current format.
 // The input key is expected to be in PEM format and will be reformatted if necessary.
-func (k *RsaKeyPair) SetPublicKey(publicKey []byte) {
-	k.PublicKey = k.formatPublicKey(publicKey)
-}
-
-// SetPrivateKey sets the private key and formats it according to the current format.
-// The input key is expected to be in PEM format and will be reformatted if necessary.
-func (k *RsaKeyPair) SetPrivateKey(privateKey []byte) {
-	k.PrivateKey = k.formatPrivateKey(privateKey)
-}
-
-// LoadPublicKey loads a public key from a file.
-// The file should contain a PEM-encoded public key.
-// This method reads the entire file content and sets it as the public key.
-//
-// Note: The file format is automatically detected from the PEM headers.
-// Both PKCS1 and PKCS8 formats are supported.
-func (k *RsaKeyPair) LoadPublicKey(f fs.File) error {
-	key, err := io.ReadAll(f)
+func (k *RsaKeyPair) SetPublicKey(publicKey []byte) error {
+	key, err := k.FormatPublicKey(publicKey)
 	if err == nil {
 		k.PublicKey = key
-		return nil
 	}
 	return err
 }
 
-// LoadPrivateKey loads a private key from a file.
-// The file should contain a PEM-encoded private key.
-// This method reads the entire file content and sets it as the private key.
-//
-// Note: The file format is automatically detected from the PEM headers.
-// Both PKCS1 and PKCS8 formats are supported.
-func (k *RsaKeyPair) LoadPrivateKey(f fs.File) error {
-	key, err := io.ReadAll(f)
+// SetPrivateKey sets the private key and formats it according to the current format.
+// The input key is expected to be in PEM format and will be reformatted if necessary.
+func (k *RsaKeyPair) SetPrivateKey(privateKey []byte) error {
+	key, err := k.FormatPrivateKey(privateKey)
 	if err == nil {
 		k.PrivateKey = key
-		return nil
 	}
 	return err
 }
@@ -149,9 +131,12 @@ func (k *RsaKeyPair) SetHash(hash crypto.Hash) {
 // Note: This method automatically detects the key format from the PEM headers.
 func (k *RsaKeyPair) ParsePublicKey() (*rsa.PublicKey, error) {
 	publicKey := k.PublicKey
+	if len(publicKey) == 0 {
+		return nil, EmptyPublicKeyError{}
+	}
 	block, _ := pem.Decode(publicKey)
 	if block == nil {
-		return nil, NilPemBlockError{}
+		return nil, InvalidPublicKeyError{}
 	}
 
 	// PKCS1 format public key
@@ -171,7 +156,7 @@ func (k *RsaKeyPair) ParsePublicKey() (*rsa.PublicKey, error) {
 		}
 		return pub.(*rsa.PublicKey), err
 	}
-	return nil, nil
+	return nil, UnsupportedPemTypeError{}
 }
 
 // ParsePrivateKey parses the private key from PEM format.
@@ -180,9 +165,12 @@ func (k *RsaKeyPair) ParsePublicKey() (*rsa.PublicKey, error) {
 // Note: This method automatically detects the key format from the PEM headers.
 func (k *RsaKeyPair) ParsePrivateKey() (*rsa.PrivateKey, error) {
 	privateKey := k.PrivateKey
+	if len(privateKey) == 0 {
+		return nil, EmptyPrivateKeyError{}
+	}
 	block, _ := pem.Decode(privateKey)
 	if block == nil {
-		return nil, NilPemBlockError{}
+		return nil, InvalidPrivateKeyError{}
 	}
 
 	// PKCS1 format private key
@@ -202,45 +190,115 @@ func (k *RsaKeyPair) ParsePrivateKey() (*rsa.PrivateKey, error) {
 		}
 		return pri.(*rsa.PrivateKey), err
 	}
-	return nil, nil
+	return nil, UnsupportedPemTypeError{}
 }
 
-// formatPublicKey formats the public key into the specified PEM format.
-func (k *RsaKeyPair) formatPublicKey(publicKey []byte) []byte {
+// FormatPublicKey formats base64-encoded der public key into the specified PEM format.
+func (k *RsaKeyPair) FormatPublicKey(publicKey []byte) ([]byte, error) {
 	if len(publicKey) == 0 {
-		return []byte{}
+		return []byte{}, EmptyPublicKeyError{}
 	}
 
-	// Determine the appropriate headers based on the format
-	var header, tail string
-	if k.Format == PKCS1 {
-		header = "-----BEGIN RSA PUBLIC KEY-----\n"
-		tail = "-----END RSA PUBLIC KEY-----\n"
-	}
-	if k.Format == PKCS8 {
-		header = "-----BEGIN PUBLIC KEY-----\n"
-		tail = "-----END PUBLIC KEY-----\n"
+	decoder := coding.NewDecoder().FromBytes(publicKey).ByBase64()
+	if decoder.Error != nil {
+		return []byte{}, InvalidPublicKeyError{Err: decoder.Error}
 	}
 
-	return formatKeyBody(publicKey, header, tail)
+	var blockType string
+	switch k.Format {
+	case PKCS1:
+		blockType = "RSA PUBLIC KEY"
+	case PKCS8:
+		blockType = "PUBLIC KEY"
+	default:
+		return []byte{}, UnsupportedPemTypeError{}
+	}
+
+	// Use pem.EncodeToMemory to format the key
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  blockType,
+		Bytes: decoder.ToBytes(),
+	}), nil
 }
 
-// formatPrivateKey formats the private key into the specified PEM format.
-func (k *RsaKeyPair) formatPrivateKey(privateKey []byte) []byte {
+// FormatPrivateKey formats base64-encoded der private key into the specified PEM format.
+func (k *RsaKeyPair) FormatPrivateKey(privateKey []byte) ([]byte, error) {
 	if len(privateKey) == 0 {
-		return []byte{}
+		return []byte{}, EmptyPrivateKeyError{}
 	}
 
-	// Determine the appropriate headers based on the format
-	var header, tail string
-	if k.Format == PKCS1 {
-		header = "-----BEGIN RSA PRIVATE KEY-----\n"
-		tail = "-----END RSA PRIVATE KEY-----\n"
-	}
-	if k.Format == PKCS8 {
-		header = "-----BEGIN PRIVATE KEY-----\n"
-		tail = "-----END PRIVATE KEY-----\n"
+	decoder := coding.NewDecoder().FromBytes(privateKey).ByBase64()
+	if decoder.Error != nil {
+		return []byte{}, InvalidPrivateKeyError{Err: decoder.Error}
 	}
 
-	return formatKeyBody(privateKey, header, tail)
+	var blockType string
+	switch k.Format {
+	case PKCS1:
+		blockType = "RSA PRIVATE KEY"
+	case PKCS8:
+		blockType = "PRIVATE KEY"
+	default:
+		return []byte{}, UnsupportedPemTypeError{}
+	}
+
+	// Use pem.EncodeToMemory to format the key
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  blockType,
+		Bytes: decoder.ToBytes(),
+	}), nil
+}
+
+// CompressPublicKey removes the PEM headers and footers from the public key.
+// It supports both PKCS1 and PKCS8 formats and removes all whitespace characters.
+// The resulting byte slice contains only the base64-encoded key data.
+func (k *RsaKeyPair) CompressPublicKey(publicKey []byte) []byte {
+	// Convert byte slice to string for easier manipulation
+	keyStr := utils.Bytes2String(publicKey)
+
+	// Remove the PEM headers (both PKCS1 and PKCS8)
+	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PUBLIC KEY-----", "")
+	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN RSA PUBLIC KEY-----", "")
+
+	// Remove the PEM footers (both PKCS1 and PKCS8)
+	keyStr = strings.ReplaceAll(keyStr, "-----END PUBLIC KEY-----", "")
+	keyStr = strings.ReplaceAll(keyStr, "-----END RSA PUBLIC KEY-----", "")
+
+	// Remove all newline characters and whitespace
+	keyStr = strings.ReplaceAll(keyStr, "\n", "")
+	keyStr = strings.ReplaceAll(keyStr, "\r", "")
+	keyStr = strings.ReplaceAll(keyStr, " ", "")
+	keyStr = strings.ReplaceAll(keyStr, "\t", "")
+
+	// Remove any remaining whitespace that might be present
+	keyStr = strings.TrimSpace(keyStr)
+
+	return utils.String2Bytes(keyStr)
+}
+
+// CompressPrivateKey removes the PEM headers and footers from the private key.
+// It supports both PKCS1 and PKCS8 formats and removes all whitespace characters.
+// The resulting byte slice contains only the base64-encoded key data.
+func (k *RsaKeyPair) CompressPrivateKey(privateKey []byte) []byte {
+	// Convert byte slice to string for easier manipulation
+	keyStr := utils.Bytes2String(privateKey)
+
+	// Remove the PEM headers (both PKCS1 and PKCS8)
+	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PRIVATE KEY-----", "")
+	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN RSA PRIVATE KEY-----", "")
+
+	// Remove the PEM footers (both PKCS1 and PKCS8)
+	keyStr = strings.ReplaceAll(keyStr, "-----END PRIVATE KEY-----", "")
+	keyStr = strings.ReplaceAll(keyStr, "-----END RSA PRIVATE KEY-----", "")
+
+	// Remove all newline characters and whitespace
+	keyStr = strings.ReplaceAll(keyStr, "\n", "")
+	keyStr = strings.ReplaceAll(keyStr, "\r", "")
+	keyStr = strings.ReplaceAll(keyStr, " ", "")
+	keyStr = strings.ReplaceAll(keyStr, "\t", "")
+
+	// Remove any remaining whitespace that might be present
+	keyStr = strings.TrimSpace(keyStr)
+
+	return utils.String2Bytes(keyStr)
 }

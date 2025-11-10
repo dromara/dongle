@@ -2,663 +2,310 @@ package keypair
 
 import (
 	"crypto"
-	"errors"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
 	"github.com/stretchr/testify/assert"
 )
 
-// TestNewRsaKeyPair tests the NewRsaKeyPair function
-func TestNewRsaKeyPair(t *testing.T) {
-	t.Run("create new RSA key pair", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		assert.NotNil(t, kp)
-		assert.Equal(t, PKCS8, kp.Format)
-		assert.NotNil(t, kp.Hash)
-		assert.Nil(t, kp.PublicKey)
-		assert.Nil(t, kp.PrivateKey)
-	})
+// Basics: constructor and options
+func TestRSA_NewAndConfig(t *testing.T) {
+	kp := NewRsaKeyPair()
+	assert.Equal(t, PKCS8, kp.Format)
+	assert.Equal(t, crypto.SHA256, kp.Hash)
+
+	kp.SetFormat(PKCS1)
+	assert.Equal(t, PKCS1, kp.Format)
+	kp.SetFormat(PKCS8)
+	assert.Equal(t, PKCS8, kp.Format)
+
+	kp.SetHash(crypto.SHA512)
+	assert.Equal(t, crypto.SHA512, kp.Hash)
 }
 
-// TestRsaKeyPairGenKeyPair tests the GenKeyPair method
-func TestRsaKeyPairGenKeyPair(t *testing.T) {
-	t.Run("generate PKCS1 key pair", func(t *testing.T) {
+// Key generation covers PKCS1 and PKCS8 branches
+func TestRSA_GenKeyPair(t *testing.T) {
+	t.Run("pkcs1", func(t *testing.T) {
 		kp := NewRsaKeyPair()
 		kp.SetFormat(PKCS1)
-		result := kp.GenKeyPair(1024)
-
-		assert.Nil(t, result)
-		assert.NotNil(t, kp.PublicKey)
-		assert.NotNil(t, kp.PrivateKey)
-		assert.Contains(t, string(kp.PublicKey), "-----BEGIN RSA PUBLIC KEY-----")
-		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN RSA PRIVATE KEY-----")
-	})
-
-	t.Run("generate PKCS8 key pair", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-		result := kp.GenKeyPair(1024)
-
-		assert.Nil(t, result)
-		assert.NotNil(t, kp.PublicKey)
-		assert.NotNil(t, kp.PrivateKey)
-		assert.Contains(t, string(kp.PublicKey), "-----BEGIN PUBLIC KEY-----")
-		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
-	})
-
-	t.Run("generate with different key sizes", func(t *testing.T) {
-		sizes := []int{512, 1024, 2048}
-		for _, size := range sizes {
-			kp := NewRsaKeyPair()
-			result := kp.GenKeyPair(size)
-
-			assert.Nil(t, result)
-			assert.NotNil(t, kp.PublicKey)
-			assert.NotNil(t, kp.PrivateKey)
-		}
-	})
-
-	t.Run("generate with invalid key size", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		err := kp.GenKeyPair(1) // Invalid size
-
-		assert.NotNil(t, err)
-		assert.Nil(t, kp.PublicKey)
-		assert.Nil(t, kp.PrivateKey)
-	})
-}
-
-// TestRsaKeyPairSetPublicKey tests the SetPublicKey method
-func TestRsaKeyPairSetPublicKey(t *testing.T) {
-	t.Run("set PKCS1 public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		kp.GenKeyPair(1024)
-
-		originalKey := kp.PublicKey
-		kp.SetFormat(PKCS8)
-		kp.SetPublicKey(originalKey)
-
-		assert.NotNil(t, kp.PublicKey)
-		assert.Contains(t, string(kp.PublicKey), "-----BEGIN PUBLIC KEY-----")
-	})
-
-	t.Run("set PKCS8 public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-		kp.GenKeyPair(1024)
-
-		originalKey := kp.PublicKey
-		kp.SetFormat(PKCS1)
-		kp.SetPublicKey(originalKey)
-
-		assert.NotNil(t, kp.PublicKey)
-		assert.Contains(t, string(kp.PublicKey), "-----BEGIN RSA PUBLIC KEY-----")
-	})
-
-	t.Run("set empty public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetPublicKey([]byte{})
-
-		assert.Empty(t, kp.PublicKey)
-	})
-}
-
-// TestRsaKeyPairSetPrivateKey tests the SetPrivateKey method
-func TestRsaKeyPairSetPrivateKey(t *testing.T) {
-	t.Run("set PKCS1 private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		kp.GenKeyPair(1024)
-
-		originalKey := kp.PrivateKey
-		kp.SetFormat(PKCS8)
-		kp.SetPrivateKey(originalKey)
-
-		assert.NotNil(t, kp.PrivateKey)
-		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
-	})
-
-	t.Run("set PKCS8 private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-		kp.GenKeyPair(1024)
-
-		originalKey := kp.PrivateKey
-		kp.SetFormat(PKCS1)
-		kp.SetPrivateKey(originalKey)
-
-		assert.NotNil(t, kp.PrivateKey)
-		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN RSA PRIVATE KEY-----")
-	})
-
-	t.Run("set empty private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetPrivateKey([]byte{})
-
-		assert.Empty(t, kp.PrivateKey)
-	})
-}
-
-// TestRsaKeyPairSetFormat tests the SetFormat method
-func TestRsaKeyPairSetFormat(t *testing.T) {
-	t.Run("set PKCS1 format", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		assert.Equal(t, PKCS1, kp.Format)
-	})
-
-	t.Run("set PKCS8 format", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-		assert.Equal(t, PKCS8, kp.Format)
-	})
-
-	t.Run("change format multiple times", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		assert.Equal(t, PKCS1, kp.Format)
-
-		kp.SetFormat(PKCS8)
-		assert.Equal(t, PKCS8, kp.Format)
-
-		kp.SetFormat(PKCS1)
-		assert.Equal(t, PKCS1, kp.Format)
-	})
-}
-
-// TestRsaKeyPairSetHash tests the SetHash method
-func TestRsaKeyPairSetHash(t *testing.T) {
-	t.Run("set SHA256 hash", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetHash(crypto.SHA256)
-		assert.Equal(t, crypto.SHA256, kp.Hash)
-	})
-
-	t.Run("set SHA512 hash", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetHash(crypto.SHA512)
-		assert.Equal(t, crypto.SHA512, kp.Hash)
-	})
-
-	t.Run("set nil hash", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetHash(crypto.Hash(999))
-		assert.Equal(t, crypto.Hash(999), kp.Hash)
-	})
-}
-
-// TestRsaKeyPairParsePublicKey tests the ParsePublicKey method
-func TestRsaKeyPairParsePublicKey(t *testing.T) {
-	t.Run("parse PKCS1 public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		kp.GenKeyPair(1024)
-
-		pub, err := kp.ParsePublicKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pub)
-		assert.Equal(t, 1024, pub.N.BitLen())
-	})
-
-	t.Run("parse PKCS8 public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-		kp.GenKeyPair(1024)
-
-		pub, err := kp.ParsePublicKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pub)
-		assert.Equal(t, 1024, pub.N.BitLen())
-	})
-
-	t.Run("parse empty public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		pub, err := kp.ParsePublicKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pub)
-	})
-
-	t.Run("parse invalid public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PublicKey = []byte("invalid key")
-		pub, err := kp.ParsePublicKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pub)
-	})
-
-	t.Run("parse corrupted PKCS1 public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PublicKey = []byte(`-----BEGIN RSA PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid
------END RSA PUBLIC KEY-----`)
-		pub, err := kp.ParsePublicKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pub)
-	})
-
-	t.Run("parse corrupted PKCS8 public key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PublicKey = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAinvalid
------END PUBLIC KEY-----`)
-		pub, err := kp.ParsePublicKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pub)
-	})
-
-	t.Run("parse invalid PKCS1 public key data", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PublicKey = []byte(`-----BEGIN RSA PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
------END RSA PUBLIC KEY-----`)
-		pub, err := kp.ParsePublicKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, InvalidPublicKeyError{}, err)
-		assert.Nil(t, pub)
-	})
-
-	t.Run("parse invalid PKCS8 public key data", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PublicKey = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
------END PUBLIC KEY-----`)
-		pub, err := kp.ParsePublicKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, InvalidPublicKeyError{}, err)
-		assert.Nil(t, pub)
-	})
-
-	t.Run("parse unknown PEM block type", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PublicKey = []byte(`-----BEGIN UNKNOWN KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
------END UNKNOWN KEY-----`)
-		pub, err := kp.ParsePublicKey()
-		assert.Nil(t, err) // Should return nil without error for unknown types
-		assert.Nil(t, pub)
-	})
-}
-
-// TestRsaKeyPairParsePrivateKey tests the ParsePrivateKey method
-func TestRsaKeyPairParsePrivateKey(t *testing.T) {
-	t.Run("parse PKCS1 private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		kp.GenKeyPair(1024)
-
-		pri, err := kp.ParsePrivateKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pri)
-		assert.Equal(t, 1024, pri.N.BitLen())
-	})
-
-	t.Run("parse PKCS8 private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-		kp.GenKeyPair(1024)
-
-		pri, err := kp.ParsePrivateKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pri)
-		assert.Equal(t, 1024, pri.N.BitLen())
-	})
-
-	t.Run("parse empty private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse invalid private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte("invalid key")
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse corrupted PKCS1 private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte(`-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEAinvalid
------END RSA PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse corrupted PKCS8 private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCinvalid
------END PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse invalid PKCS1 private key data", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte(`-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA
------END RSA PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, InvalidPrivateKeyError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse invalid PKCS8 private key data", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC
------END PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse PKCS8 private key with parsing error", func(t *testing.T) {
-		// Create a PKCS8 key with valid structure but invalid key data
-		// This should trigger the x509.ParsePKCS8PrivateKey error path
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCinvalid
------END PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse PKCS8 private key with type assertion error", func(t *testing.T) {
-		// Create a PKCS8 key that parses successfully but is not an RSA key
-		// This should trigger the type assertion error path
-		// We'll use a valid PKCS8 structure but with non-RSA key data
-		kp := NewRsaKeyPair()
-		// This is a valid PKCS8 structure but contains invalid key data
-		// that will cause x509.ParsePKCS8PrivateKey to succeed but return
-		// a key that's not an RSA key, causing the type assertion to fail
-		kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC
------END PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse PKCS8 private key with successful parsing but type assertion failure", func(t *testing.T) {
-		// Create a PKCS8 key that parses successfully but is not an RSA key
-		// This should trigger the type assertion error path
-		// We need to create a valid PKCS8 key that's not RSA (e.g., ECDSA)
-		// For now, we'll use a malformed key that might cause parsing to succeed
-		// but type assertion to fail
-		kp := NewRsaKeyPair()
-		// Use a valid PKCS8 structure with some data that might parse
-		// but not be an RSA key
-		kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC
------END PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse PKCS8 private key with ECDSA key", func(t *testing.T) {
-		// Create a PKCS8 ECDSA key that parses successfully but is not an RSA key
-		// This should trigger the type assertion error path
-		kp := NewRsaKeyPair()
-		// This is a valid PKCS8 ECDSA private key
-		// It should parse successfully but fail the type assertion to *rsa.PrivateKey
-		kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg
------END PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, InvalidPrivateKeyError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse PKCS8 private key with valid structure but invalid data", func(t *testing.T) {
-		// Create a PKCS8 key with valid PEM structure but invalid key data
-		// This should trigger the x509.ParsePKCS8PrivateKey error path
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCinvalid
------END PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.NotNil(t, err)
-		assert.IsType(t, NilPemBlockError{}, err)
-		assert.Nil(t, pri)
-	})
-
-	t.Run("parse unknown PEM block type for private key", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.PrivateKey = []byte(`-----BEGIN UNKNOWN PRIVATE KEY-----
-MIIEpAIBAAKCAQEA
------END UNKNOWN PRIVATE KEY-----`)
-		pri, err := kp.ParsePrivateKey()
-		assert.Nil(t, err) // Should return nil without error for unknown types
-		assert.Nil(t, pri)
-	})
-
-}
-
-// TestRsaKeyPairIntegration tests integration scenarios
-func TestRsaKeyPairIntegration(t *testing.T) {
-	t.Run("full workflow PKCS1", func(t *testing.T) {
-		// Create key pair
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		kp.SetHash(crypto.SHA256)
-
-		// Generate keys
 		err := kp.GenKeyPair(1024)
-		assert.Nil(t, err)
-		assert.NotNil(t, kp.PublicKey)
-		assert.NotNil(t, kp.PrivateKey)
-
-		// Parse keys
-		pub, err := kp.ParsePublicKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pub)
-
-		pri, err := kp.ParsePrivateKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pri)
-
-		// Verify key pair matches
-		assert.Equal(t, pub.N, pri.N)
-		assert.Equal(t, pub.E, pri.E)
-	})
-
-	t.Run("full workflow PKCS8", func(t *testing.T) {
-		// Create key pair
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-		kp.SetHash(crypto.SHA512)
-
-		// Generate keys
-		result := kp.GenKeyPair(2048)
-		assert.Nil(t, result)
-		assert.NotNil(t, kp.PublicKey)
-		assert.NotNil(t, kp.PrivateKey)
-
-		// Parse keys
-		pub, err := kp.ParsePublicKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pub)
-
-		pri, err := kp.ParsePrivateKey()
-		assert.Nil(t, err)
-		assert.NotNil(t, pri)
-
-		// Verify key pair matches
-		assert.Equal(t, pub.N, pri.N)
-		assert.Equal(t, pub.E, pri.E)
-	})
-
-	t.Run("key pair consistency", func(t *testing.T) {
-		// Generate keys
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		kp.GenKeyPair(1024)
-
-		// Parse both public and private keys
-		pub, err1 := kp.ParsePublicKey()
-		pri, err2 := kp.ParsePrivateKey()
-
-		assert.Nil(t, err1)
-		assert.Nil(t, err2)
-		assert.NotNil(t, pub)
-		assert.NotNil(t, pri)
-
-		// Verify they form a valid key pair
-		assert.Equal(t, pub.N, pri.N)
-		assert.Equal(t, pub.E, pri.E)
-	})
-}
-
-// TestErrorTypes tests all error types to achieve 100% coverage
-func TestRsaErrorTypes(t *testing.T) {
-	t.Run("NilPemBlockError", func(t *testing.T) {
-		err := NilPemBlockError{}
-		expected := "pem block cannot be nil"
-		assert.Equal(t, expected, err.Error())
-	})
-
-	t.Run("InvalidPublicKeyError", func(t *testing.T) {
-		err := InvalidPublicKeyError{Err: assert.AnError}
-		errorMsg := err.Error()
-		assert.NotEmpty(t, errorMsg)
-		assert.Contains(t, errorMsg, "invalid public key")
-	})
-
-	t.Run("InvalidPublicKeyError with nil", func(t *testing.T) {
-		err := InvalidPublicKeyError{Err: nil}
-		errorMsg := err.Error()
-		assert.NotEmpty(t, errorMsg)
-		assert.Contains(t, errorMsg, "invalid public key")
-	})
-
-	t.Run("InvalidPrivateKeyError", func(t *testing.T) {
-		err := InvalidPrivateKeyError{Err: assert.AnError}
-		errorMsg := err.Error()
-		assert.NotEmpty(t, errorMsg)
-		assert.Contains(t, errorMsg, "invalid private key")
-	})
-
-	t.Run("InvalidPrivateKeyError with nil", func(t *testing.T) {
-		err := InvalidPrivateKeyError{Err: nil}
-		errorMsg := err.Error()
-		assert.NotEmpty(t, errorMsg)
-		assert.Contains(t, errorMsg, "invalid private key")
-	})
-}
-
-// TestRsaKeyPairLoadPublicKey tests the LoadPublicKey method
-func TestRsaKeyPairLoadPublicKey(t *testing.T) {
-	t.Run("load PKCS1 public key from file", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-
-		// Create a mock file with the public key content
-		file := mock.NewFile(kp.PublicKey, "public_key.pem")
-		defer file.Close()
-
-		// Load public key from file
-		err := kp.LoadPublicKey(file)
-		assert.Nil(t, err)
-		assert.NotNil(t, kp.PublicKey)
-	})
-
-	t.Run("load PKCS8 public key from file", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS8)
-
-		// Create a mock file with the public key content
-		file := mock.NewFile(kp.PublicKey, "public_key.pem")
-		defer file.Close()
-
-		// Load public key from file
-		err := kp.LoadPublicKey(file)
-
-		assert.Nil(t, err)
-		assert.NotNil(t, kp.PublicKey)
-	})
-
-	t.Run("load public key from file with read error", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-
-		// Create a mock file that returns error on read
-		file := mock.NewErrorFile(errors.New("read error"))
-		defer file.Close()
-
-		// Load public key from file
-		err := kp.LoadPublicKey(file)
-
-		assert.NotNil(t, err)
-	})
-}
-
-// TestRsaKeyPairLoadPrivateKey tests the LoadPrivateKey method
-func TestRsaKeyPairLoadPrivateKey(t *testing.T) {
-	t.Run("load PKCS1 private key from file", func(t *testing.T) {
-		kp := NewRsaKeyPair()
-		kp.SetFormat(PKCS1)
-		kp.GenKeyPair(1024)
-
-		// Create a mock file with the private key content
-		file := mock.NewFile(kp.PrivateKey, "private_key.pem")
-		defer file.Close()
-
-		// Load private key from file
-		err := kp.LoadPrivateKey(file)
-
-		assert.Nil(t, err)
-		assert.NotNil(t, kp.PrivateKey)
+		assert.NoError(t, err)
+		assert.Contains(t, string(kp.PublicKey), "-----BEGIN RSA PUBLIC KEY-----")
 		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN RSA PRIVATE KEY-----")
 	})
 
-	t.Run("load PKCS8 private key from file", func(t *testing.T) {
+	t.Run("pkcs8", func(t *testing.T) {
 		kp := NewRsaKeyPair()
 		kp.SetFormat(PKCS8)
-
-		// Create a mock file with the private key content
-		file := mock.NewFile(kp.PrivateKey, "private_key.pem")
-		defer file.Close()
-
-		// Load private key from file
-		err := kp.LoadPrivateKey(file)
-
-		assert.Nil(t, err)
-		assert.NotNil(t, kp.PrivateKey)
+		err := kp.GenKeyPair(1024)
+		assert.NoError(t, err)
+		assert.Contains(t, string(kp.PublicKey), "-----BEGIN PUBLIC KEY-----")
+		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
 	})
 
-	t.Run("load private key from file with read error", func(t *testing.T) {
+	t.Run("invalid size", func(t *testing.T) {
 		kp := NewRsaKeyPair()
-
-		// Create a mock file that returns error on read
-		file := mock.NewErrorFile(errors.New("read error"))
-		defer file.Close()
-
-		// Load private key from file
-		err := kp.LoadPrivateKey(file)
-
-		assert.NotNil(t, err)
+		err := kp.GenKeyPair(1)
+		assert.Error(t, err)
+		assert.Nil(t, kp.PublicKey)
+		assert.Nil(t, kp.PrivateKey)
 	})
+
+	t.Run("unsupported format", func(t *testing.T) {
+		kp := NewRsaKeyPair()
+		kp.SetFormat("unknown")
+		err := kp.GenKeyPair(1024)
+		assert.Error(t, err)
+		assert.IsType(t, UnsupportedPemTypeError{}, err)
+	})
+}
+
+// SetPublicKey/SetPrivateKey calls FormatPublicKey/FormatPrivateKey internally
+func TestRSA_SetPublicKeyAndPrivateKey(t *testing.T) {
+	// Build keys with PKCS1, then rewrap by PKCS8 from base64 body
+	kp := NewRsaKeyPair()
+	kp.SetFormat(PKCS1)
+	_ = kp.GenKeyPair(1024)
+	pubBody := kp.CompressPublicKey(kp.PublicKey)
+	priBody := kp.CompressPrivateKey(kp.PrivateKey)
+
+	kp.SetFormat(PKCS8)
+	err := kp.SetPublicKey(pubBody)
+	assert.NoError(t, err)
+	assert.Contains(t, string(kp.PublicKey), "-----BEGIN PUBLIC KEY-----")
+
+	err = kp.SetPrivateKey(priBody)
+	assert.NoError(t, err)
+	assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
+
+	// Reverse: PKCS8 -> PKCS1
+	kp2 := NewRsaKeyPair()
+	kp2.SetFormat(PKCS8)
+	_ = kp2.GenKeyPair(1024)
+	pubBody2 := kp2.CompressPublicKey(kp2.PublicKey)
+	priBody2 := kp2.CompressPrivateKey(kp2.PrivateKey)
+
+	kp2.SetFormat(PKCS1)
+	err = kp2.SetPublicKey(pubBody2)
+	assert.NoError(t, err)
+	assert.Contains(t, string(kp2.PublicKey), "-----BEGIN RSA PUBLIC KEY-----")
+
+	err = kp2.SetPrivateKey(priBody2)
+	assert.NoError(t, err)
+	assert.Contains(t, string(kp2.PrivateKey), "-----BEGIN RSA PRIVATE KEY-----")
+
+	// Empty public key
+	kp3 := NewRsaKeyPair()
+	err = kp3.SetPublicKey([]byte{})
+	assert.Error(t, err)
+	assert.IsType(t, EmptyPublicKeyError{}, err)
+	assert.Equal(t, "public key cannot be empty", err.Error())
+
+	// Invalid base64 public key
+	kp3.SetFormat(PKCS8)
+	err = kp3.SetPublicKey([]byte("!not-base64!"))
+	assert.Error(t, err)
+	assert.IsType(t, InvalidPublicKeyError{}, err)
+
+	// Empty private key should return error and keep empty value
+	err = kp3.SetPrivateKey([]byte{})
+	assert.Error(t, err)
+	assert.IsType(t, EmptyPrivateKeyError{}, err)
+	assert.Equal(t, "private key cannot be empty", err.Error())
+	assert.Empty(t, kp3.PrivateKey)
+
+	// Invalid base64 private key
+	err = kp3.SetPrivateKey([]byte("!not-base64!"))
+	assert.Error(t, err)
+	assert.IsType(t, InvalidPrivateKeyError{}, err)
+
+	// Unsupported format for SetPublicKey/SetPrivateKey
+	kp4 := NewRsaKeyPair()
+	_ = kp4.GenKeyPair(1024)
+	bodyPub := kp4.CompressPublicKey(kp4.PublicKey)
+	bodyPri := kp4.CompressPrivateKey(kp4.PrivateKey)
+	kp4.SetFormat("unknown")
+	err = kp4.SetPublicKey(bodyPub)
+	assert.Error(t, err)
+	assert.IsType(t, UnsupportedPemTypeError{}, err)
+	err = kp4.SetPrivateKey(bodyPri)
+	assert.Error(t, err)
+	assert.IsType(t, UnsupportedPemTypeError{}, err)
+}
+
+// ParsePublicKey/ParsePrivateKey coverage for all branches
+func TestRSA_ParsePublicKey(t *testing.T) {
+	// Success: PKCS1
+	kp1 := NewRsaKeyPair()
+	kp1.SetFormat(PKCS1)
+	_ = kp1.GenKeyPair(1024)
+	pub1, err := kp1.ParsePublicKey()
+	assert.NoError(t, err)
+	assert.NotNil(t, pub1)
+
+	// Success: PKCS8
+	kp2 := NewRsaKeyPair()
+	kp2.SetFormat(PKCS8)
+	_ = kp2.GenKeyPair(1024)
+	pub2, err := kp2.ParsePublicKey()
+	assert.NoError(t, err)
+	assert.NotNil(t, pub2)
+
+	// Empty public key
+	kp3 := NewRsaKeyPair()
+	pub3, err := kp3.ParsePublicKey()
+	assert.Nil(t, pub3)
+	assert.IsType(t, EmptyPublicKeyError{}, err)
+	assert.Equal(t, "public key cannot be empty", err.Error())
+
+	// Invalid PEM (not PEM text)
+	kp3.PublicKey = []byte("invalid")
+	pub3, err = kp3.ParsePublicKey()
+	assert.Nil(t, pub3)
+	assert.IsType(t, InvalidPublicKeyError{}, err)
+
+	// Unknown block type -> UnsupportedPemTypeError
+	kp4 := NewRsaKeyPair()
+	kp4.PublicKey = []byte("-----BEGIN UNKNOWN KEY-----\nAA==\n-----END UNKNOWN KEY-----\n")
+	pub4, err := kp4.ParsePublicKey()
+	assert.Error(t, err)
+	assert.IsType(t, UnsupportedPemTypeError{}, err)
+	assert.Equal(t, "unsupported pem block type", err.Error())
+	assert.Nil(t, pub4)
+
+	// PKCS1 block but invalid DER -> parse error
+	kp5 := NewRsaKeyPair()
+	kp5.PublicKey = []byte("-----BEGIN RSA PUBLIC KEY-----\nAA==\n-----END RSA PUBLIC KEY-----\n")
+	pub5, err := kp5.ParsePublicKey()
+	assert.Nil(t, pub5)
+	assert.IsType(t, InvalidPublicKeyError{}, err)
+
+	// PKIX block but invalid DER -> parse error
+	kp6 := NewRsaKeyPair()
+	kp6.PublicKey = []byte("-----BEGIN PUBLIC KEY-----\nAA==\n-----END PUBLIC KEY-----\n")
+	pub6, err := kp6.ParsePublicKey()
+	assert.Nil(t, pub6)
+	assert.IsType(t, InvalidPublicKeyError{}, err)
+}
+
+func TestRSA_ParsePrivateKey(t *testing.T) {
+	// Success: PKCS1
+	kp1 := NewRsaKeyPair()
+	kp1.SetFormat(PKCS1)
+	_ = kp1.GenKeyPair(1024)
+	pri1, err := kp1.ParsePrivateKey()
+	assert.NoError(t, err)
+	assert.NotNil(t, pri1)
+
+	// Success: PKCS8
+	kp2 := NewRsaKeyPair()
+	kp2.SetFormat(PKCS8)
+	_ = kp2.GenKeyPair(1024)
+	pri2, err := kp2.ParsePrivateKey()
+	assert.NoError(t, err)
+	assert.NotNil(t, pri2)
+
+	// Empty private key
+	kp3 := NewRsaKeyPair()
+	pri3, err := kp3.ParsePrivateKey()
+	assert.Nil(t, pri3)
+	assert.IsType(t, EmptyPrivateKeyError{}, err)
+	assert.Equal(t, "private key cannot be empty", err.Error())
+
+	// Invalid PEM (not PEM text)
+	kp3.PrivateKey = []byte("invalid")
+	pri3, err = kp3.ParsePrivateKey()
+	assert.Nil(t, pri3)
+	assert.IsType(t, InvalidPrivateKeyError{}, err)
+
+	// Unknown block type -> UnsupportedPemTypeError
+	kp4 := NewRsaKeyPair()
+	kp4.PrivateKey = []byte("-----BEGIN UNKNOWN PRIVATE KEY-----\nAA==\n-----END UNKNOWN PRIVATE KEY-----\n")
+	pri4, err := kp4.ParsePrivateKey()
+	assert.Error(t, err)
+	assert.IsType(t, UnsupportedPemTypeError{}, err)
+	assert.Equal(t, "unsupported pem block type", err.Error())
+	assert.Nil(t, pri4)
+
+	// PKCS1 block but invalid DER -> parse error
+	kp5 := NewRsaKeyPair()
+	kp5.PrivateKey = []byte("-----BEGIN RSA PRIVATE KEY-----\nAA==\n-----END RSA PRIVATE KEY-----\n")
+	pri5, err := kp5.ParsePrivateKey()
+	assert.Nil(t, pri5)
+	assert.IsType(t, InvalidPrivateKeyError{}, err)
+
+	// PKCS8 block but invalid DER -> parse error
+	kp6 := NewRsaKeyPair()
+	kp6.PrivateKey = []byte("-----BEGIN PRIVATE KEY-----\nAA==\n-----END PRIVATE KEY-----\n")
+	pri6, err := kp6.ParsePrivateKey()
+	assert.Nil(t, pri6)
+	assert.IsType(t, InvalidPrivateKeyError{}, err)
+}
+
+// Format and compress
+func TestRSA_FormatAndCompress(t *testing.T) {
+	kp := NewRsaKeyPair()
+	_ = kp.GenKeyPair(1024)
+
+	// Compress should remove headers, footers and newlines
+	pubBody := kp.CompressPublicKey(kp.PublicKey)
+	priBody := kp.CompressPrivateKey(kp.PrivateKey)
+	assert.NotContains(t, string(pubBody), "BEGIN")
+	assert.NotContains(t, string(priBody), "BEGIN")
+	assert.NotContains(t, string(pubBody), "\n")
+	assert.NotContains(t, string(priBody), "\n")
+
+	// Re-wrap with different formats
+	kp.SetFormat(PKCS1)
+	pemPub1, err := kp.FormatPublicKey(pubBody)
+	assert.NoError(t, err)
+	assert.Contains(t, string(pemPub1), "-----BEGIN RSA PUBLIC KEY-----")
+
+	kp.SetFormat(PKCS8)
+	pemPub2, err := kp.FormatPublicKey(pubBody)
+	assert.NoError(t, err)
+	assert.Contains(t, string(pemPub2), "-----BEGIN PUBLIC KEY-----")
+
+	// Empty public body
+	_, err = kp.FormatPublicKey(nil)
+	assert.Error(t, err)
+	assert.IsType(t, EmptyPublicKeyError{}, err)
+	assert.Equal(t, "public key cannot be empty", err.Error())
+
+	// Invalid public body
+	_, err = kp.FormatPublicKey([]byte("!"))
+	assert.Error(t, err)
+	assert.IsType(t, InvalidPublicKeyError{}, err)
+
+	// Private key re-wrap with different formats
+	kp.SetFormat(PKCS1)
+	pemPri1, err := kp.FormatPrivateKey(priBody)
+	assert.NoError(t, err)
+	assert.Contains(t, string(pemPri1), "-----BEGIN RSA PRIVATE KEY-----")
+
+	kp.SetFormat(PKCS8)
+	pemPri2, err := kp.FormatPrivateKey(priBody)
+	assert.NoError(t, err)
+	assert.Contains(t, string(pemPri2), "-----BEGIN PRIVATE KEY-----")
+
+	// Empty private body -> error
+	_, err = kp.FormatPrivateKey(nil)
+	assert.Error(t, err)
+	assert.IsType(t, EmptyPrivateKeyError{}, err)
+	assert.Equal(t, "private key cannot be empty", err.Error())
+
+	// Invalid private body
+	_, err = kp.FormatPrivateKey([]byte("!"))
+	assert.Error(t, err)
+	assert.IsType(t, InvalidPrivateKeyError{}, err)
+
+	// Unsupported format branches for FormatPublicKey/FormatPrivateKey
+	kp.SetFormat("unknown")
+	_, err = kp.FormatPublicKey(pubBody)
+	assert.Error(t, err)
+	assert.IsType(t, UnsupportedPemTypeError{}, err)
+	assert.Equal(t, "unsupported pem block type", err.Error())
+	_, err = kp.FormatPrivateKey(priBody)
+	assert.Error(t, err)
+	assert.IsType(t, UnsupportedPemTypeError{}, err)
+	assert.Equal(t, "unsupported pem block type", err.Error())
 }
