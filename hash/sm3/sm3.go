@@ -152,7 +152,7 @@ func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 	var w [68]uint32
 	var w1 [64]uint32
 
-	a, b, c, dd, e, f, g, h := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7]
+	a, b, c, dVal, e, f, g, h := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7]
 
 	for len(msg) >= BlockSize {
 		// Convert bytes to words
@@ -171,7 +171,7 @@ func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 		}
 
 		// Initialize working variables
-		A, B, C, D, E, F, G, H := a, b, c, dd, e, f, g, h
+		A, B, C, D, E, F, G, H := a, b, c, dVal, e, f, g, h
 
 		// First 16 rounds
 		for i := 0; i < 16; i++ {
@@ -209,7 +209,7 @@ func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 		a ^= A
 		b ^= B
 		c ^= C
-		dd ^= D
+		dVal ^= D
 		e ^= E
 		f ^= F
 		g ^= G
@@ -219,10 +219,10 @@ func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 	}
 
 	if returnFinal {
-		return [8]uint32{a, b, c, dd, e, f, g, h}
+		return [8]uint32{a, b, c, dVal, e, f, g, h}
 	} else {
 		// Update final digest
-		d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7] = a, b, c, dd, e, f, g, h
+		d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7] = a, b, c, dVal, e, f, g, h
 		return [8]uint32{}
 	}
 }
@@ -266,68 +266,5 @@ func p1(x uint32) uint32 {
 
 // block processes a single 64-byte block and updates the digest.
 func (d *digest) block(p []byte) {
-	var w [68]uint32
-	var w1 [64]uint32
-
-	a, b, c, dd, e, f, g, h := d.h[0], d.h[1], d.h[2], d.h[3], d.h[4], d.h[5], d.h[6], d.h[7]
-
-	// Convert bytes to words
-	for i := 0; i < 16; i++ {
-		w[i] = binary.BigEndian.Uint32(p[4*i : 4*(i+1)])
-	}
-
-	// Message expansion
-	for i := 16; i < 68; i++ {
-		w[i] = p1(w[i-16]^w[i-9]^leftRotate(w[i-3], 15)) ^ leftRotate(w[i-13], 7) ^ w[i-6]
-	}
-
-	// Calculate W1 array
-	for i := 0; i < 64; i++ {
-		w1[i] = w[i] ^ w[i+4]
-	}
-
-	// Initialize working variables
-	A, B, C, D, E, F, G, H := a, b, c, dd, e, f, g, h
-
-	// First 16 rounds
-	for i := 0; i < 16; i++ {
-		SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(tj0, uint32(i)), 7)
-		SS2 := SS1 ^ leftRotate(A, 12)
-		TT1 := ff0(A, B, C) + D + SS2 + w1[i]
-		TT2 := gg0(E, F, G) + H + SS1 + w[i]
-		D = C
-		C = leftRotate(B, 9)
-		B = A
-		A = TT1
-		H = G
-		G = leftRotate(F, 19)
-		F = E
-		E = p0(TT2)
-	}
-
-	// Last 48 rounds
-	for i := 16; i < 64; i++ {
-		SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(tj1, uint32(i)), 7)
-		SS2 := SS1 ^ leftRotate(A, 12)
-		TT1 := ff1(A, B, C) + D + SS2 + w1[i]
-		TT2 := gg1(E, F, G) + H + SS1 + w[i]
-		D = C
-		C = leftRotate(B, 9)
-		B = A
-		A = TT1
-		H = G
-		G = leftRotate(F, 19)
-		F = E
-		E = p0(TT2)
-	}
-
-	// Update digest using XOR
-	d.h[0] ^= A
-	d.h[1] ^= B
-	d.h[2] ^= C
-	d.h[3] ^= D
-	d.h[4] ^= E
-	d.h[5] ^= F
-	d.h[6] ^= G
-	d.h[7] ^= H
+	d.processBlocks(p[:BlockSize], false)
 }
