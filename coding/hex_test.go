@@ -83,25 +83,25 @@ func TestEncoder_ByHex_Encode(t *testing.T) {
 		assert.Equal(t, hexEncoded, encoder.ToString())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("encode empty string", func(t *testing.T) {
 		encoder := NewEncoder().FromString("").ByHex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("encode empty bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes([]byte{}).ByHex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("encode nil bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes(nil).ByHex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encoder := NewEncoder().FromFile(file).ByHex()
 		assert.Nil(t, encoder.Error)
@@ -170,7 +170,7 @@ func TestEncoder_ByHex_Encode(t *testing.T) {
 		assert.Contains(t, encoder.Error.Error(), "read error")
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("encode no data", func(t *testing.T) {
 		encoder := NewEncoder().ByHex()
 		if encoder.Error != nil {
 			assert.Contains(t, encoder.Error.Error(), "no data to encode")
@@ -208,25 +208,25 @@ func TestDecoder_ByHex_Decode(t *testing.T) {
 		assert.Equal(t, hexSrc, decoder.ToBytes())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("decode empty string", func(t *testing.T) {
 		decoder := NewDecoder().FromString("").ByHex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("decode empty bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes([]byte{}).ByHex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("decode nil bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes(nil).ByHex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decoder := NewDecoder().FromFile(file).ByHex()
 		assert.Nil(t, decoder.Error)

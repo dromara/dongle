@@ -65,25 +65,25 @@ func TestEncoder_ByBase32_Encode(t *testing.T) {
 		assert.Equal(t, base32Encoded, encoder.ToString())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("encode empty string", func(t *testing.T) {
 		encoder := NewEncoder().FromString("").ByBase32()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("encode empty bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes([]byte{}).ByBase32()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("encode nil bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes(nil).ByBase32()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encoder := NewEncoder().FromFile(file).ByBase32()
 		assert.Nil(t, encoder.Error)
@@ -152,7 +152,7 @@ func TestEncoder_ByBase32_Encode(t *testing.T) {
 		assert.Contains(t, encoder.Error.Error(), "read error")
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("encode no data", func(t *testing.T) {
 		encoder := NewEncoder().ByBase32()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -189,25 +189,25 @@ func TestDecoder_ByBase32_Decode(t *testing.T) {
 		assert.Equal(t, base32Src, decoder.ToBytes())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("decode empty string", func(t *testing.T) {
 		decoder := NewDecoder().FromString("").ByBase32()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("decode empty bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes([]byte{}).ByBase32()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("decode nil bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes(nil).ByBase32()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decoder := NewDecoder().FromFile(file).ByBase32()
 		assert.Nil(t, decoder.Error)
@@ -274,7 +274,7 @@ func TestDecoder_ByBase32_Decode(t *testing.T) {
 		assert.Error(t, decoder.Error)
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("decode no data", func(t *testing.T) {
 		decoder := NewDecoder().ByBase32()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
@@ -348,25 +348,25 @@ func TestEncoder_ByBase32Hex_Encode(t *testing.T) {
 		assert.Equal(t, base32HexEncoded, encoder.ToString())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("encode empty string", func(t *testing.T) {
 		encoder := NewEncoder().FromString("").ByBase32Hex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("encode empty bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes([]byte{}).ByBase32Hex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("encode nil bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes(nil).ByBase32Hex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encoder := NewEncoder().FromFile(file).ByBase32Hex()
 		assert.Nil(t, encoder.Error)
@@ -435,7 +435,7 @@ func TestEncoder_ByBase32Hex_Encode(t *testing.T) {
 		assert.Contains(t, encoder.Error.Error(), "read error")
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("encode no data", func(t *testing.T) {
 		encoder := NewEncoder().ByBase32Hex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -472,25 +472,25 @@ func TestDecoder_ByBase32Hex_Decode(t *testing.T) {
 		assert.Equal(t, base32HexSrc, decoder.ToBytes())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("decode empty string", func(t *testing.T) {
 		decoder := NewDecoder().FromString("").ByBase32Hex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("decode empty bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes([]byte{}).ByBase32Hex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("decode nil bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes(nil).ByBase32Hex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decoder := NewDecoder().FromFile(file).ByBase32Hex()
 		assert.Nil(t, decoder.Error)
@@ -557,7 +557,7 @@ func TestDecoder_ByBase32Hex_Decode(t *testing.T) {
 		assert.Error(t, decoder.Error)
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("decode no data", func(t *testing.T) {
 		decoder := NewDecoder().ByBase32Hex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())

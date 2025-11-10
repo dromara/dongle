@@ -83,25 +83,25 @@ func TestEncoder_ByBase91_Encode(t *testing.T) {
 		assert.Equal(t, base91Encoded, encoder.ToString())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("encode empty string", func(t *testing.T) {
 		encoder := NewEncoder().FromString("").ByBase91()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("encode empty bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes([]byte{}).ByBase91()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("encode nil bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes(nil).ByBase91()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encoder := NewEncoder().FromFile(file).ByBase91()
 		assert.Nil(t, encoder.Error)
@@ -170,7 +170,7 @@ func TestEncoder_ByBase91_Encode(t *testing.T) {
 		assert.Contains(t, encoder.Error.Error(), "read error")
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("encode no data", func(t *testing.T) {
 		encoder := NewEncoder().ByBase91()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -207,25 +207,25 @@ func TestDecoder_ByBase91_Decode(t *testing.T) {
 		assert.Equal(t, base91Src, decoder.ToBytes())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("decode empty string", func(t *testing.T) {
 		decoder := NewDecoder().FromString("").ByBase91()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("decode empty bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes([]byte{}).ByBase91()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("decode nil bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes(nil).ByBase91()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decoder := NewDecoder().FromFile(file).ByBase91()
 		assert.Nil(t, decoder.Error)
@@ -296,7 +296,7 @@ func TestDecoder_ByBase91_Decode(t *testing.T) {
 		assert.Equal(t, []byte{255, 173, 45, 237, 176, 19}, decoder.ToBytes())
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("decode no data", func(t *testing.T) {
 		decoder := NewDecoder().ByBase91()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())

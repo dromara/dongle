@@ -155,25 +155,25 @@ func TestEncoder_ByMorse_Encode(t *testing.T) {
 		assert.Equal(t, morseEncoded, encoder.ToString())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("encode empty string", func(t *testing.T) {
 		encoder := NewEncoder().FromString("").ByMorse()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("encode empty bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes([]byte{}).ByMorse()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("encode nil bytes", func(t *testing.T) {
 		encoder := NewEncoder().FromBytes(nil).ByMorse()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		encoder := NewEncoder().FromFile(file).ByMorse()
 		assert.Nil(t, encoder.Error)
@@ -314,7 +314,7 @@ func TestEncoder_ByMorse_Encode(t *testing.T) {
 		assert.Contains(t, encoder.Error.Error(), "read error")
 	})
 
-	t.Run("no data no reader", func(t *testing.T) {
+	t.Run("encode no data", func(t *testing.T) {
 		encoder := NewEncoder().ByMorse()
 		if encoder.Error != nil {
 			assert.Contains(t, encoder.Error.Error(), "no data to encode")
@@ -352,25 +352,25 @@ func TestDecoder_ByMorse_Decode(t *testing.T) {
 		assert.Equal(t, morseSrc, decoder.ToBytes())
 	})
 
-	t.Run("empty string", func(t *testing.T) {
+	t.Run("decode empty string", func(t *testing.T) {
 		decoder := NewDecoder().FromString("").ByMorse()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty bytes", func(t *testing.T) {
+	t.Run("decode empty bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes([]byte{}).ByMorse()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("nil bytes", func(t *testing.T) {
+	t.Run("decode nil bytes", func(t *testing.T) {
 		decoder := NewDecoder().FromBytes(nil).ByMorse()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
 	})
 
-	t.Run("empty file", func(t *testing.T) {
+	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		decoder := NewDecoder().FromFile(file).ByMorse()
 		assert.Nil(t, decoder.Error)
