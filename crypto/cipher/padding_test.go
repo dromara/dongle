@@ -865,7 +865,7 @@ func TestTBCUnPadding(t *testing.T) {
 	t.Run("TBC unpadding with empty data", func(t *testing.T) {
 		var data []byte
 		unpadded := NewTBCUnPadding(data)
-		assert.Nil(t, unpadded)
+		assert.Empty(t, unpadded)
 	})
 
 	t.Run("TBC unpadding with single byte", func(t *testing.T) {

@@ -225,7 +225,7 @@ func NewTBCPadding(src []byte, blockSize int) []byte {
 // zero padding removal and does not perform strict validation.
 func NewTBCUnPadding(src []byte) []byte {
 	if len(src) == 0 {
-		return src
+		return []byte{}
 	}
 	paddingBytes := src[len(src)-1]
 	i := len(src) - 1
