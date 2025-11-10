@@ -1,6 +1,7 @@
 // @Package dongle
 // @Description a simple, semantic and developer-friendly golang crypto package
-// @Page github.com/dromara/dongle
+// @Source github.com/dromara/dongle
+// @Document dongle.go-pkg.com
 // @Developer gouguoyin
 // @Email 245629560@qq.com
 
@@ -13,7 +14,7 @@ import (
 	"github.com/dromara/dongle/hash"
 )
 
-const Version = "1.1.8"
+const Version = "1.2.0"
 
 var (
 	// Encode defines an Encoder instance.
