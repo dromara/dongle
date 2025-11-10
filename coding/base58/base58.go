@@ -272,6 +272,7 @@ type StreamDecoder struct {
 	pos      int         // Current position in the decoded buffer
 	alphabet string      // The alphabet used for decoding
 	decoder  *StdDecoder // Reuse decoder instance
+	readBuf  [1024]byte  // Reusable buffer for reading encoded data
 	Error    error       // Error field for storing decoding errors
 }
 
@@ -301,9 +302,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	// Read encoded data in chunks using reusable buffer
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -313,7 +313,7 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	// Decode the data using the configured decoder
-	decoded, err := d.decoder.Decode(readBuf[:rn])
+	decoded, err := d.decoder.Decode(d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
