@@ -13,6 +13,27 @@ const HashSize = 16
 // BlockSize is the block size of the MD2 hash in bytes.
 const BlockSize = 16
 
+// Precomputed padding arrays for all possible padding sizes (1-16 bytes)
+// This avoids allocating padding memory on every Sum() call
+var paddingTable = [BlockSize][BlockSize]byte{
+	{1},
+	{2, 2},
+	{3, 3, 3},
+	{4, 4, 4, 4},
+	{5, 5, 5, 5, 5},
+	{6, 6, 6, 6, 6, 6},
+	{7, 7, 7, 7, 7, 7, 7},
+	{8, 8, 8, 8, 8, 8, 8, 8},
+	{9, 9, 9, 9, 9, 9, 9, 9, 9},
+	{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+	{11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11},
+	{12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12},
+	{13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13},
+	{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14},
+	{15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15},
+	{16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16},
+}
+
 // S-box used in MD2 algorithm (RFC 1319)
 // This substitution table is used for the non-linear transformation
 // that provides the cryptographic strength of the MD2 algorithm
@@ -122,12 +143,9 @@ func (d *digest) Sum(in []byte) []byte {
 
 	// Padding. Add padding bytes to make the total length a multiple of BlockSize.
 	paddingSize := BlockSize - dig.nx
-	padding := make([]byte, paddingSize)
-	for i := range padding {
-		padding[i] = byte(paddingSize)
-	}
 
-	dig.Write(padding)
+	// Use precomputed padding table to avoid allocation
+	dig.Write(paddingTable[paddingSize-1][:paddingSize])
 	dig.Write(dig.digest[:])
 	return append(in, dig.state[:HashSize]...)
 }
@@ -144,8 +162,11 @@ func (d *digest) block(p []byte) {
 	// Step 1: Copy input block to state buffer and compute checksum
 	// Copy the 16-byte input block to positions 16-31 of the state buffer
 	// Also compute XOR of input block with current state for positions 32-47
+	// Use copy for better performance on the first part
+	copy(d.state[16:32], p[:16])
+
+	// Manually compute XOR for state[32:48]
 	for i := 0; i < 16; i++ {
-		d.state[i+16] = p[i]              // Copy input to state[16:32]
 		d.state[i+32] = p[i] ^ d.state[i] // XOR input with current state for state[32:48]
 	}
 
