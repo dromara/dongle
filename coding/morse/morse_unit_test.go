@@ -1,7 +1,6 @@
 package morse
 
 import (
-	"bytes"
 	"errors"
 	"io"
 	"strings"
@@ -282,8 +281,8 @@ func TestStdDecoder_Decode(t *testing.T) {
 
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		data := []byte("hello")
 		n, err := encoder.Write(data)
@@ -291,7 +290,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, 5, n)
 		assert.Nil(t, err)
 		// Data is processed immediately in Write
-		assert.Equal(t, ".... . .-.. .-.. ---", buf.String())
+		assert.Equal(t, ".... . .-.. .-.. ---", string(file.Bytes()))
 	})
 
 	t.Run("write with error", func(t *testing.T) {
@@ -305,15 +304,15 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write empty data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		var data []byte
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 0, n)
 		assert.Nil(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("write with writer error", func(t *testing.T) {
@@ -327,8 +326,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with encoding spaces", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Write data with spaces - should now be supported
 		data := []byte("hello world") // contains space
@@ -336,12 +335,12 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 11, n)
 		assert.Nil(t, err) // No error expected
-		assert.Equal(t, ".... . .-.. .-.. --- / .-- --- .-. .-.. -..", buf.String())
+		assert.Equal(t, ".... . .-.. .-.. --- / .-- --- .-. .-.. -..", string(file.Bytes()))
 	})
 
 	t.Run("write with encoder error", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Set an error on the underlying encoder to test error handling
 		encoder.(*StreamEncoder).encoder.Error = errors.New("encoder error")
@@ -353,8 +352,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with unknown character buffering", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Write data with Chinese character (unsupported) to test error handling
 		n, err := encoder.Write([]byte("ab测"))
@@ -363,31 +362,31 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.IsType(t, InvalidInputError{}, err)
 
 		// Should have no output due to error
-		assert.Equal(t, "", buf.String())
+		assert.Equal(t, "", string(file.Bytes()))
 	})
 }
 
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("hello"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
 		// StreamEncoder processes data immediately in Write
-		assert.Equal(t, ".... . .-.. .-.. ---", buf.String())
+		assert.Equal(t, ".... . .-.. .-.. ---", string(file.Bytes()))
 	})
 
 	t.Run("close without data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("close with error", func(t *testing.T) {
@@ -399,8 +398,8 @@ func TestStreamEncoder_Close(t *testing.T) {
 	})
 
 	t.Run("close with buffered data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Manually set buffer with some data (simulating incomplete write)
 		streamEncoder := encoder.(*StreamEncoder)
@@ -408,20 +407,20 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.Equal(t, ".- -... -.-.", buf.String())
+		assert.Equal(t, ".- -... -.-.", string(file.Bytes()))
 	})
 
 	t.Run("close with buffered data and spaces", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Manually set buffer with space character - should now be supported
 		streamEncoder := encoder.(*StreamEncoder)
 		streamEncoder.buffer = []byte("a b")
 
 		err := encoder.Close()
-		assert.Nil(t, err)                         // No error expected
-		assert.Equal(t, ".- / -...", buf.String()) // Should encode space as /
+		assert.Nil(t, err)                                 // No error expected
+		assert.Equal(t, ".- / -...", string(file.Bytes())) // Should encode space as /
 	})
 
 	t.Run("close with buffered data and write error", func(t *testing.T) {
@@ -687,8 +686,8 @@ func TestMissingCoverage(t *testing.T) {
 	})
 
 	t.Run("close with buffered invalid character", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		// Manually set buffer with unsupported character
 		streamEncoder := encoder.(*StreamEncoder)
