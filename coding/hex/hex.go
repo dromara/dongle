@@ -72,9 +72,10 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // It provides efficient encoding for large data streams by processing data
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
-	writer io.Writer // Underlying writer for encoded output
-	buffer []byte    // Buffer for accumulating partial bytes (0-1 bytes)
-	Error  error     // Error field for storing encoding errors
+	writer    io.Writer // Underlying writer for encoded output
+	buffer    []byte    // Buffer for accumulating partial bytes (0-1 bytes)
+	encodeBuf [4]byte   // Reusable buffer for encoding output (2 bytes -> 4 hex chars)
+	Error     error     // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming hex encoder that writes encoded data
@@ -109,9 +110,9 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 
 	for i := 0; i < chunks*chunkSize; i += chunkSize {
 		chunk := data[i : i+chunkSize]
-		encoded := make([]byte, hex.EncodedLen(len(chunk)))
-		hex.Encode(encoded, chunk)
-		if _, err = e.writer.Write(encoded); err != nil {
+		// Use reusable buffer for encoding to avoid allocations
+		hex.Encode(e.encodeBuf[:], chunk)
+		if _, err = e.writer.Write(e.encodeBuf[:]); err != nil {
 			return len(p), err
 		}
 	}
@@ -135,9 +136,9 @@ func (e *StreamEncoder) Close() error {
 
 	// Encode any remaining bytes (1 byte) from the last Write
 	if len(e.buffer) > 0 {
-		encoded := make([]byte, hex.EncodedLen(len(e.buffer)))
-		hex.Encode(encoded, e.buffer)
-		if _, err := e.writer.Write(encoded); err != nil {
+		// Use reusable buffer for final encoding
+		hex.Encode(e.encodeBuf[:2], e.buffer)
+		if _, err := e.writer.Write(e.encodeBuf[:2]); err != nil {
 			return err
 		}
 		e.buffer = nil
@@ -150,10 +151,12 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader io.Reader // Underlying reader for encoded input
-	buffer []byte    // Buffer for decoded data not yet read
-	pos    int       // Current position in the decoded buffer
-	Error  error     // Error field for storing decoding errors
+	reader    io.Reader  // Underlying reader for encoded input
+	buffer    []byte     // Buffer for decoded data not yet read
+	pos       int        // Current position in the decoded buffer
+	readBuf   [1024]byte // Reusable buffer for reading encoded data
+	decodeBuf [512]byte  // Reusable buffer for decoding (hex decodes to half size)
+	Error     error      // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming hex decoder that reads encoded data
@@ -161,8 +164,6 @@ type StreamDecoder struct {
 func NewStreamDecoder(r io.Reader) io.Reader {
 	return &StreamDecoder{
 		reader: r,
-		buffer: make([]byte, 0, 1024), // Pre-allocate buffer for decoded data
-		pos:    0,
 	}
 }
 
@@ -181,9 +182,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	// Read encoded data in chunks using reusable buffer
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -192,18 +192,17 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	// Decode the data using the standard hex decoder
-	decoded := make([]byte, hex.DecodedLen(rn))
-	decodedLen, err := hex.Decode(decoded, readBuf[:rn])
+	// Decode the data using the standard hex decoder with reusable buffer
+	decodedLen, err := hex.Decode(d.decodeBuf[:], d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
 
 	// Copy decoded data to the provided buffer
-	copied := copy(p, decoded[:decodedLen])
+	copied := copy(p, d.decodeBuf[:decodedLen])
 	if copied < decodedLen {
 		// Buffer remaining data for next read
-		d.buffer = decoded[copied:decodedLen]
+		d.buffer = d.decodeBuf[copied:decodedLen]
 		d.pos = 0
 	}
 

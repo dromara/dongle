@@ -206,8 +206,8 @@ func TestStdEncoderDecoder_ErrorShortCircuit(t *testing.T) {
 
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 		data := []byte("hello world")
 		n, err := encoder.Write(data)
 		assert.NoError(t, err)
@@ -215,15 +215,15 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("hello"))
 		encoder.Write([]byte(" world"))
 
 		err := encoder.Close()
 		assert.NoError(t, err)
-		assert.Equal(t, "68656c6c6f20776f726c64", buf.String())
+		assert.Equal(t, "68656c6c6f20776f726c64", string(file.Bytes()))
 	})
 
 	t.Run("write with writer error", func(t *testing.T) {
@@ -242,8 +242,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with exact chunk size", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 2) // Exactly 2 bytes
 		for i := range data {
@@ -256,8 +256,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with multiple chunks", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 4) // Exactly 2 chunks of 2 bytes
 		for i := range data {
@@ -270,8 +270,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with remainder", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 3) // 2 + 1 bytes, will have 1 byte remainder
 		for i := range data {
@@ -284,8 +284,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write empty data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 		var data []byte
 		n, err := encoder.Write(data)
 		assert.Equal(t, 0, n)
@@ -296,27 +296,27 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 		encoder.Write([]byte("hello world"))
 
 		err := encoder.Close()
 		assert.NoError(t, err)
-		assert.Equal(t, "68656c6c6f20776f726c64", buf.String())
+		assert.Equal(t, "68656c6c6f20776f726c64", string(file.Bytes()))
 	})
 
 	t.Run("close without data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 
 		err := encoder.Close()
 		assert.NoError(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("close with existing error", func(t *testing.T) {
-		var buf bytes.Buffer
-		streamEncoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		streamEncoder := NewStreamEncoder(file).(*StreamEncoder)
 		streamEncoder.Error = assert.AnError
 
 		err := streamEncoder.Close()
@@ -494,8 +494,8 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream encoder with error state", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 		encoder.Error = io.ErrShortWrite
 
 		n, err := encoder.Write([]byte("hello"))
