@@ -3,10 +3,10 @@ title: Morse 编码/解码
 head:
   - - meta
     - name: description
-      content: Morse 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: Morse 编码/解码，遵循国际摩尔斯电码标准（ITU-R M.1677-1），支持自定义字典与分隔符，支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, morse, 摩尔斯电码, 摩斯码, morse-encoding, morse-decoding
+      content: dongle, go-dongle, 编码, 解码, Morse, 摩尔斯电码, 摩斯码, ITU-R M.1677-1, 字典, 分隔符, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Morse

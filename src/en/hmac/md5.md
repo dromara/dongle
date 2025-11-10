@@ -3,10 +3,10 @@ title: MD5 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-MD5 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: HMAC-MD5 message authentication code algorithm, based on MD5 hash algorithm, using key for message authentication, generates 16-byte authentication code, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, md5, hmac-md5
+      content: dongle, go-dongle, HMAC, message authentication code, MD5, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Md5

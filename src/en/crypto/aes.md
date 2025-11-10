@@ -3,10 +3,10 @@ title: AES Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: AES Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: AES (Advanced Encryption Standard) symmetric encryption algorithm, supports 16, 24 or 32 byte keys, provides multiple block modes (CBC, ECB, CTR, GCM, CFB, OFB) and padding modes, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, AES, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, GCM, CFB, OFB
+      content: dongle, go-dongle, encryption, decryption, AES, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # AES
@@ -15,12 +15,12 @@ AES (Advanced Encryption Standard) is a symmetric encryption algorithm that supp
 
 Supported block modes:
 
-- **CBC（Cipher Block Chaining）**：Cipher Block Chaining mode, requires setting key `Key`, initialization vector `IV` (16 bytes), and padding mode `Padding`
-- **ECB（Electronic Codebook）**：Electronic Codebook mode, requires setting key `Key` and padding mode `Padding`
-- **CTR（Counter）**：Counter mode, requires setting key `Key` and initialization vector `IV` (12 bytes)
-- **GCM（Galois/Counter Mode）**：Galois/Counter mode, requires setting key `Key`, nonce `Nonce` (12 bytes), and additional authenticated data `AAD` (optional)
-- **CFB（Cipher Feedback）**：Cipher Feedback mode, requires setting key `Key` and initialization vector `IV` (16 bytes)
-- **OFB（Output Feedback）**：Output Feedback mode, requires setting key `Key` and initialization vector `IV` (16 bytes)
+- **CBC (Cipher Block Chaining)**: Cipher Block Chaining mode, requires setting key `Key`, initialization vector `IV` (16 bytes), and padding mode `Padding`
+- **ECB (Electronic Codebook)**: Electronic Codebook mode, requires setting key `Key` and padding mode `Padding`
+- **CTR (Counter)**: Counter mode, requires setting key `Key` and initialization vector `IV` (16 bytes)
+- **GCM (Galois/Counter Mode)**: Galois/Counter mode, requires setting key `Key`, nonce `Nonce` (1-255 bytes), and additional authenticated data `AAD` (optional)
+- **CFB (Cipher Feedback)**: Cipher Feedback mode, requires setting key `Key` and initialization vector `IV` (16 bytes)
+- **OFB (Output Feedback)**: Output Feedback mode, requires setting key `Key` and initialization vector `IV` (16 bytes)
 
 Supported padding modes:
 
@@ -35,7 +35,7 @@ Supported padding modes:
 - **Bit**: Bit padding, adds a 1 bit at the end of plaintext, then fills with 0 bits to block boundary
 - **TBC**: Trailing Bit Complement padding, determines padding bytes based on the most significant bit of the last data byte (MSB=0 uses 0x00, MSB=1 uses 0xFF)
 
-> **Note**: Only `CBC/ECB` block modes require padding
+> **Note**: Only `CBC/ECB` block modes require padding mode, only `CBC/CTR/CFB/OFB` block modes require initialization vector
 
 Import related modules:
 ```go
@@ -54,7 +54,7 @@ c := cipher.NewAesCipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890"))
 // Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))
-// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
+// Set padding mode
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -82,14 +82,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // b0a72d41c2a05fc42c98fe49ad0cead7
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("b0a72d41c2a05fc42c98fe49ad0cead7")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // sKctQcKgX8QsmP5JrQzq1w==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("sKctQcKgX8QsmP5JrQzq1w==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -150,7 +150,7 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewAesCipher(cipher.ECB)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+// Set padding mode
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -178,14 +178,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // b32102513a0675ddb7ca7b8b4b26abce
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("b32102513a0675ddb7ca7b8b4b26abce")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // syECUToGdd23ynuLSyarzg==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("syECUToGdd23ynuLSyarzg==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -246,8 +246,8 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewAesCipher(cipher.CTR)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// Set initialization vector (12 bytes)
-c.SetIV([]byte("123456789012"))
+// Set initialization vector (16 bytes)
+c.SetIV([]byte("1234567890123456"))      
 ```
 
 ### Encrypt Data
@@ -274,14 +274,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // d081959747c6a9a357665b
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("d081959747c6a9a357665b")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // 0IGVl0fGqaNXZls=
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("0IGVl0fGqaNXZls=")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -344,10 +344,10 @@ GCM mode provides authenticated encryption functionality and supports additional
 c := cipher.NewAesCipher(cipher.GCM)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// Set nonce (12 bytes)
-c.SetNonce([]byte("123456789012"))
+// Set nonce (1-255 bytes)
+c.SetNonce([]byte("1234567890"))
 // Set additional authenticated data (optional)
-c.SetAAD([]byte("additional data"))
+c.SetAAD([]byte("dongle")) 
 ```
 
 ### Encrypt Data
@@ -374,14 +374,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 0ffef48b9154a7234cc04e373f86198a8ed7b27f054ad7886c677b
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("0ffef48b9154a7234cc04e373f86198a8ed7b27f054ad7886c677b")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // D/70i5FUpyNMwE43P4YZio7Xsn8FStcIbGd7
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("D/70i5FUpyNMwE43P4YZio7Xsn8FStcIbGd7")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -436,6 +436,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## CFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption results. This is a feature of Go's standard library CFB8 implementation, not an error.
+
 ### Create Cipher
 
 ```go
@@ -443,7 +445,7 @@ c := cipher.NewAesCipher(cipher.CFB)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
 // Set initialization vector (16 bytes)
-c.SetIV([]byte("1234567890123456"))
+c.SetIV([]byte("1234567890123456"))  
 ```
 
 ### Encrypt Data
@@ -470,14 +472,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // d081959747c6a9a357665b
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("d081959747c6a9a357665b")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // 0IGVl0fGqaNXZls=
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("0IGVl0fGqaNXZls=")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -532,6 +534,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## OFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption result. This is a feature of the Go standard library CFB8 implementation, not a bug.
+
 ### Create Cipher
 
 ```go
@@ -539,7 +543,7 @@ c := cipher.NewAesCipher(cipher.OFB)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
 // Set initialization vector (16 bytes)
-c.SetIV([]byte("1234567890123456"))
+c.SetIV([]byte("1234567890123456"))  
 ```
 
 ### Encrypt Data
@@ -566,14 +570,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // d081959747c6a9a357665b
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("d081959747c6a9a357665b")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // 0IGVl0fGqaNXZls=
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("0IGVl0fGqaNXZls=")
 
 // Output unencoded raw string
 encrypter.ToRawString()

@@ -3,10 +3,10 @@ title: RC4暗号化アルゴリズム
 head:
   - - meta
     - name: description
-      content: RC4暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: RC4 (Rivest Cipher 4) ストリーム暗号化アルゴリズム、1-256 バイト可変長キーをサポート、パディングなしで任意の長さのデータを処理、標準処理とストリーム処理をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: 暗号化, 復号化, RC4, 対称暗号化アルゴリズム, 流密码
+      content: dongle, go-dongle, 暗号化, 復号化, RC4, Rivest Cipher 4, 対称暗号化アルゴリズム, ストリーム暗号
 ---
 
 # RC4

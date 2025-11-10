@@ -3,10 +3,10 @@ title: SHA2 Hash Algorithm
 head:
   - - meta
     - name: description
-      content: SHA2 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: SHA2 Hash Algorithm, providing sha2-224, sha2-256, sha2-384, and sha2-512 variants, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, sha2, sha224, sha256, sha384, sha512, hash-sha2, hash-sha224, hash-sha256, hash-sha384, hash-sha512
+      content: dongle, go-dongle, hashing, hash, sha2, sha2-224, sha2-256, sha2-384, sha2-512, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Sha2

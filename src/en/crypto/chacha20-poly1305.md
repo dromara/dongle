@@ -3,10 +3,10 @@ title: ChaCha20-Poly1305 Authenticated Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: ChaCha20-Poly1305 encryption algorithm|A lightweight, semantic, developer-friendly golang encoding&crypto library
+      content: ChaCha20-Poly1305 authenticated encryption algorithm (AEAD), supports 32-byte keys and 12-byte nonce, supports Additional Authenticated Data (AAD), can process data of any length without padding, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, ChaCha20-Poly1305, ChaCha20, Poly1305, symmetric encryption algorithm, stream cipher, message authentication code, authenticated encryption, AEAD
+      content: dongle, go-dongle, encryption, decryption, ChaCha20-Poly1305, ChaCha20, Poly1305, symmetric encryption algorithm, stream cipher, message authentication code, authenticated encryption, AEAD
 ---
 
 # ChaCha20-Poly1305
@@ -41,7 +41,7 @@ c.SetKey([]byte("dongle1234567890abcdef123456789x"))
 // Set nonce (must be 12 bytes)
 c.SetNonce([]byte("123456789012"))
 // Set additional authenticated data (optional)
-c.SetAAD([]byte("additional authenticated data"))
+c.SetAAD([]byte("dongle"))
 ```
 
 ## Encrypt Data
@@ -68,14 +68,14 @@ Output Data
 
 ```go
 // Output Hex encoded string
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c...
+hexString := encrypter.ToHexString() // 04457bd9e26e18b1975a89ed76e38bbddc6364721923967b10ca4c
 // Output hex-encoded byte slice
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c...")
+hexBytes := encrypter.ToHexBytes()   // []byte("04457bd9e26e18b1975a89ed76e38bbddc6364721923967b10ca4c")
 
 // Output Base64 encoded string
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=...
+base64String := encrypter.ToBase64String() // BEV72eJuGLGXWontduOLvdxjZHIZI5Z7EMpM
 // Output base64-encoded byte slice
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=...")
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("BEV72eJuGLGXWontduOLvdxjZHIZI5Z7EMpM")
 
 // Output unencoded raw string
 rawString := encrypter.ToRawString()

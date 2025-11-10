@@ -3,10 +3,10 @@ title: Base91 编码/解码
 head:
   - - meta
     - name: description
-      content: Base91 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Base91 编码/解码，使用 91 个字符的扩展字符集（排除空格、撇号、连字符、反斜杠），支持自定义字母表，支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, base91, base91-encoding, base91-decoding
+      content: dongle, go-dongle, 编码, 解码, Base91, 字母表, 扩展字符集, 自定义字符集, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Base91

@@ -3,10 +3,10 @@ title: Blake2s 哈希算法
 head:
   - - meta
     - name: description
-      content: BLAKE2s 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Blake2s 哈希算法，提供 blake2s-128（需要密钥）与 blake2s-256 两种变体，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 哈希, hash, blake2s, blake2s-128, blake2s-256, hash-blake2s, hash-blake2s-128, hash-blake256
+      content: dongle, go-dongle, 哈希, 摘要, 校验, Blake2s, blake2s-128, blake2s-256, 密钥, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hash-Blake2s

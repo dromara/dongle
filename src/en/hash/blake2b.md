@@ -3,10 +3,10 @@ title: Blake2b Hash Algorithm
 head:
   - - meta
     - name: description
-      content: BLAKE2b Hash Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: Blake2b Hash Algorithm, providing blake2b-256, blake2b-384, and blake2b-512 variants, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, blake2b, blake2b-256, blake2b-384, blake2b-512, hash-blake2b, hash-blake2b-256, hash-blake2b-384, hash-blake2b-512
+      content: dongle, go-dongle, hashing, hash, blake2b, blake2b-256, blake2b-384, blake2b-512, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Blake2b

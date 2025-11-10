@@ -3,10 +3,10 @@ title: Salsa20 Stream Cipher Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: Salsa20 encryption algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Salsa20 stream cipher encryption algorithm, supports 32-byte keys and 8-byte nonce, can process data of any length without padding, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, Salsa20, symmetric encryption algorithm, stream cipher
+      content: dongle, go-dongle, encryption, decryption, Salsa20, symmetric encryption algorithm, stream cipher, nonce, streaming processing, Hex, Base64
 ---
 
 # Salsa20
@@ -65,14 +65,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
+hexString := encrypter.ToHexString() // 39ee99ffc157388ef95814
 // Output Hex encoded byte slice
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
+hexBytes := encrypter.ToHexBytes()   // []byte("39ee99ffc157388ef95814")
 
 // Output Base64 encoded string
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
+base64String := encrypter.ToBase64String() // Oe6Z/8FXOI75WBQ=
 // Output Base64 encoded byte slice
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("Oe6Z/8FXOI75WBQ=")
 
 // Output unencoded raw string
 rawString := encrypter.ToRawString()

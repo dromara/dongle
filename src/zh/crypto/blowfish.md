@@ -3,10 +3,10 @@ title: Blowfish 对称加密算法
 head:
   - - meta
     - name: description
-      content: Blowfish 对称加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Blowfish 对称加密算法，支持 1-56 字节可变长度密钥，提供多种分组模式（CBC、ECB、CTR、CFB、OFB）和填充模式，支持标准和流式处理，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 加密, 解密, Blowfish, 对称加密算法, 分组模式, 填充模式, CBC, ECB, CTR, CFB, OFB
+      content: dongle, go-dongle, 加密, 解密, Blowfish, 对称加密算法, 分组模式, 填充模式, CBC, ECB, CTR, CFB, OFB
 ---
 
 # Blowfish
@@ -36,7 +36,7 @@ Blowfish 是一种对称加密算法，支持可变长度的密钥，密钥长�
 - **Bit**：位填充，在明文末尾添加一个 1 位，然后用 0 位填充到块边界
 - **TBC**：尾位补码填充，根据最后一个数据字节的最高位确定填充字节（MSB=0 用 0x00，MSB=1 用 0xFF）
 
-> **注意**：仅 `CBC/ECB` 分组模式需要填充
+> **注意**：仅 `CBC/ECB` 分组模式需要设置填充模式，仅 `CBC/CTR/CFB/OFB` 分组模式需要设置初始化向量
 
 导入相关模块：
 ```go
@@ -52,10 +52,10 @@ import (
 ```go
 c := cipher.NewBlowfishCipher(cipher.CBC)
 // 设置密钥（1-56 字节）
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // 设置初始化向量（8 字节）
 c.SetIV([]byte("87654321"))
-// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+// 设置填充模式
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -83,14 +83,14 @@ if encrypter.Error != nil {
 
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // f52a4cc3738f6ed0ee8fe4312fa9be82
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("f52a4cc3738f6ed0ee8fe4312fa9be82")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // 9SpMw3OPbtDuj+QxL6m+gg==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("9SpMw3OPbtDuj+QxL6m+gg==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -150,8 +150,8 @@ decrypter.ToBytes()  // []byte("hello world")
 ```go
 c := cipher.NewBlowfishCipher(cipher.ECB)
 // 设置密钥（1-56 字节）
-c.SetKey([]byte("1234567890123456"))
-// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+c.SetKey([]byte("12345678"))
+// 设置填充模式
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -177,14 +177,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 77caf7bc47a73ead1497a822dd1a2bf0
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("77caf7bc47a73ead1497a822dd1a2bf0")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // d8r3vEenPq0Ul6gi3Ror8A==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("d8r3vEenPq0Ul6gi3Ror8A==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -246,9 +246,9 @@ decrypter.ToBytes()  // []byte("hello world")
 ```go
 c := cipher.NewBlowfishCipher(cipher.CTR)
 // 设置密钥（1-56 字节）
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // 设置初始化向量（8 字节）
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                   
 ```
 
 ### 加密数据
@@ -273,14 +273,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 09f68045da3a38f2620280
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("09f68045da3a38f2620280")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // CfaARdo6OPJiAoA=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("CfaARdo6OPJiAoA=")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -335,14 +335,16 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## CFB 模式
 
+> **注意**：CFB 模式使用 CFB8 实现，对于前 16 字节的数据，CFB8 和 OFB 模式会产生相同的加密结果。这是 Go 标准库 CFB8 实现的特性，不是错误。
+
 ### 创建 Cipher
 
 ```go
 c := cipher.NewBlowfishCipher(cipher.CFB)
 // 设置密钥（1-56 字节）
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // 设置初始化向量（8 字节）
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                   
 ```
 
 ### 加密数据
@@ -367,14 +369,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 09f68045da3a38f217a836
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("09f68045da3a38f217a836")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // CfaARdo6OPIXqDY=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("CfaARdo6OPIXqDY=")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -429,14 +431,16 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## OFB 模式
 
+> **注意**：CFB 模式使用 CFB8 实现，对于前 16 字节的数据，CFB8 和 OFB 模式会产生相同的加密结果。这是 Go 标准库 CFB8 实现的特性，不是错误。
+
 ### 创建 Cipher
 
 ```go
 c := cipher.NewBlowfishCipher(cipher.OFB)
 // 设置密钥（1-56 字节）
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // 设置初始化向量（8 字节）
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                  
 ```
 
 ### 加密数据
@@ -461,14 +465,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 09f68045da3a38f2613a97
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("09f68045da3a38f2613a97")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // CfaARdo6OPJhOpc=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("CfaARdo6OPJhOpc=")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -520,5 +524,6 @@ decrypter.ToString() // hello world
 // 输出字节切片
 decrypter.ToBytes()  // []byte("hello world")
 ```
+
 
 

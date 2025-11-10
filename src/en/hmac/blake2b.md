@@ -3,10 +3,10 @@ title: HMAC-BLAKE2b Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-BLAKE2b Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: HMAC-Blake2b message authentication code algorithm, based on Blake2b hash algorithm, using key for message authentication, providing blake2b-256, blake2b-384, and blake2b-512 variants, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, blake2b, blake2b-256, blake2b-384, blake2b-512, hmac-blake2b, hmac-blake2b-256, hmac-blake2b-384, hmac-blake2b-512
+      content: dongle, go-dongle, HMAC, message authentication code, Blake2b, blake2b-256, blake2b-384, blake2b-512, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Blake2b

@@ -3,10 +3,10 @@ title: Base62 Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Base62 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Base62 encoding/decoding, uses 62 characters (0-9, A-Z, a-z), supports custom alphabet, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, base62, base62-encoding, base62-decoding
+      content: dongle, go-dongle, encoding, decoding, Base62, alphabet, custom character set, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Base62

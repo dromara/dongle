@@ -6,8 +6,23 @@ head:
 ---
 
 # 更新ログ
+## [v1.2.0](https://github.com/dromara/dongle/compare/v1.1.8...v1.2.0) (2025-11-11)
 
-## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-01)
+* [break change] `RSAKeyPair` 構造体の `LoadPublicKey` および `LoadPrivateKey` メソッドを削除
+* [break change] `Ed25519KeyPair` 構造体の `LoadPublicKey` および `LoadPrivateKey` メソッドを削除
+* [chore] `RSAKeyPair` 構造体の `GenKeyPair`、`SetPublicKey`、`SetPrivateKey` メソッドを返り値なしから `error` を返すように変更
+* [chore] `Ed25519KeyPair` 構造体の `GenKeyPair`、`SetPublicKey`、`SetPrivateKey` メソッドを返り値なしから `error` を返すように変更
+* [feat] `RSAKeyPair` 構造体に `FormatPublicKey` および `FormatPrivateKey` メソッドを追加、`base64` エンコードされた `der` 形式の `RSA` 公開鍵と秘密鍵を `pem` 形式にフォーマット
+* [feat] `Ed25519KeyPair` 構造体に `FormatPublicKey` および `FormatPrivateKey` メソッドを追加、`base64` エンコードされた `der` 形式の `Ed25519` 公開鍵と秘密鍵を `pem` 形式にフォーマット
+* [feat] `RSAKeyPair` 構造体に `CompressPublicKey` および `CompressPrivateKey` メソッドを追加、`pem` 形式の `RSA` 公開鍵と秘密鍵を `base64` エンコードされた `der` 形式に圧縮
+* [feat] `Ed25519KeyPair` 構造体に `CompressPublicKey` および `CompressPrivateKey` メソッドを追加、`pem` 形式の `Ed25519` 公開鍵と秘密鍵を `base64` エンコードされた `der` 形式に圧縮
+* [feat] `Sm2` 非対称楕円曲線暗号化アルゴリズムサポートを追加（標準処理とストリーム処理を含む）
+
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-05)
+* [fix] `*RsaKeyPair.formatPublicKey` および `*RsaKeyPair.formatPrivateKey` による鍵のフォーマット失敗のバグを修正
+* [fix] `*Ed25519KeyPair.formatPublicKey` および `*Ed25519KeyPair.formatPrivateKey` による鍵のフォーマット失敗のバグを修正
+* [fix] 復号化時にエンコードされた暗号文のデコードが失敗した場合、エラーを取得できないバグを修正
+* [chore] 対称ブロック暗号化アルゴリズムのデフォルトパディングモードを `PKCS7` から `No` に変更
 * [feat] `Unicode` エンコード/デコードサポートを追加（標準処理とストリーム処理を含む）
 * [feat] 対称ブロック暗号化アルゴリズムに `TBC` パディングモードサポートを追加
 

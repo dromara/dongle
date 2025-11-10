@@ -3,10 +3,10 @@ title: Morse Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Morse Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Morse encoding/decoding, compliant with International Morse Code standard (ITU-R M.1677-1), supports custom dictionary and separator, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, morse, morse code, international morse code, morse-encoding, morse-decoding
+      content: dongle, go-dongle, encoding, decoding, Morse, Morse code, ITU-R M.1677-1, dictionary, separator, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Morse

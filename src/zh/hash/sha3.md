@@ -3,10 +3,10 @@ title: SHA3 哈希算法
 head:
   - - meta
     - name: description
-      content: SHA3 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: SHA3 哈希算法，提供 sha3-224、sha3-256、sha3-384 与 sha3-512 四种变体，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 哈希, hash, sha3, sha224, sha256, sha384, sha512, hash-sha3, hash-sha224, hash-sha256, hash-sha384, hash-sha512
+      content: dongle, go-dongle, 哈希, 摘要, 校验, SHA3, sha3-224, sha3-256, sha3-384, sha3-512, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hash-Sha3

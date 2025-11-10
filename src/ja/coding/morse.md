@@ -3,10 +3,10 @@ title: Morse エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Morse エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
+      content: Morse エンコード/デコード、国際モールス信号標準（ITU-R M.1677-1）に従う、カスタム辞書と区切り文字をサポート、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, morse, モールス信号, モールス符号, morse-encoding, morse-decoding
+      content: dongle, go-dongle, エンコード, デコード, Morse, モールス信号, モールス符号, ITU-R M.1677-1, 辞書, 区切り文字, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Morse

@@ -3,10 +3,10 @@ title: ChaCha20 Stream Cipher Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: ChaCha20 Encryption Algorithm|A lightweight, semantic, and developer-friendly golang encoding&crypto library
+      content: ChaCha20 stream cipher encryption algorithm, supports 32-byte keys and 12-byte nonce, can process data of any length without padding, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, ChaCha20, symmetric encryption algorithm, stream cipher
+      content: dongle, go-dongle, encryption, decryption, ChaCha20, symmetric encryption algorithm, stream cipher, nonce, streaming processing, Hex, Base64
 ---
 
 # ChaCha20
@@ -65,14 +65,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
+hexString := encrypter.ToHexString() // cd010dae3bbf72faa75abf
 // Output hex-encoded byte slice
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
+hexBytes := encrypter.ToHexBytes()   // []byte("cd010dae3bbf72faa75abf")
 
 // Output Base64 encoded string
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
+base64String := encrypter.ToBase64String() // zQENrju/cvqnWr8=
 // Output base64-encoded byte slice
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("zQENrju/cvqnWr8=")
 
 // Output unencoded raw string
 rawString := encrypter.ToRawString()

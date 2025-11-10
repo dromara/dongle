@@ -3,10 +3,10 @@ title: Base64 エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Base64 エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
+      content: Base64 エンコード/デコード、Base64 と Base64Url の2つのバリアントをサポート、カスタムアルファベットをサポート、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, base64, base64Url, base64-encoding, base64-decoding, base64Url-encoding, base64Url-decoding
+      content: dongle, go-dongle, エンコード, デコード, Base64, Base64Url, アルファベット, カスタム文字セット, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Base64

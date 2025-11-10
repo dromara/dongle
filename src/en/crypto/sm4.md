@@ -3,10 +3,10 @@ title: SM4 Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: SM4 Encryption Algorithm | A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: SM4 symmetric encryption algorithm, a commercial symmetric block cipher published by the Chinese National Cryptography Administration, supports 16-byte keys, provides multiple block modes (CBC, ECB, CTR, GCM, CFB, OFB) and padding modes, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, SM4, symmetric encryption algorithm, Chinese National Standard, block mode, padding mode, CBC, ECB, CTR, GCM, CFB, OFB
+      content: dongle, go-dongle, encryption, decryption, SM4, symmetric encryption algorithm, Chinese national cryptography algorithm, block mode, padding mode, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # SM4
@@ -17,8 +17,8 @@ The following block modes are supported:
 
 - **CBC (Cipher Block Chaining)**: Cipher block chaining mode, requires setting the key `Key`, initialization vector `IV` (16 bytes), and padding mode `Padding`
 - **ECB (Electronic Codebook)**: Electronic codebook mode, requires setting the key `Key` and padding mode `Padding`
-- **CTR (Counter)**: Counter mode, requires setting the key `Key` and initialization vector `IV` (12 bytes)
-- **GCM (Galois/Counter Mode)**: Galois/Counter mode, requires setting the key `Key`, nonce `Nonce` (12 bytes), and additional authenticated data `AAD` (optional)
+- **CTR (Counter)**: Counter mode, requires setting the key `Key` and initialization vector `IV` (16 bytes)
+- **GCM (Galois/Counter Mode)**: Galois/Counter mode, requires setting the key `Key`, nonce `Nonce` (1-255 bytes), and additional authenticated data `AAD` (optional)
 - **CFB (Cipher Feedback)**: Cipher feedback mode, requires setting the key `Key` and initialization vector `IV` (16 bytes)
 - **OFB (Output Feedback)**: Output feedback mode, requires setting the key `Key` and initialization vector `IV` (16 bytes)
 
@@ -35,7 +35,7 @@ The following padding modes are supported:
 - **Bit**: Bit padding, add a 1 bit at the end of the plaintext, then pad with 0 bits to the block boundary
 - **TBC**: Trailing Bit Complement padding, determines padding bytes based on the most significant bit of the last data byte (MSB=0 uses 0x00, MSB=1 uses 0xFF)
 
-> **Note**: Only `CBC/ECB` block modes require padding
+> **Note**: Only `CBC/ECB` block modes require padding mode, only `CBC/CTR/CFB/OFB` block modes require initialization vector
 
 Import related modules:
 ```go
@@ -54,7 +54,7 @@ c := cipher.NewSm4Cipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890"))
 // Set initialization vector (16 bytes)
 c.SetIV([]byte("1234567890123456"))
-// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
+// Set padding mode
 c.SetPadding(cipher.PKCS7)          
 ```
 
@@ -82,14 +82,14 @@ if encrypter.Error != nil {
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 6cdb55b749358b9fba993fa7c545fce6
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("6cdb55b749358b9fba993fa7c545fce6")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // bNtVt0k1i5+6mT+nxUX85g==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("bNtVt0k1i5+6mT+nxUX85g==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -150,7 +150,7 @@ decrypter.ToBytes() // []byte("hello world")
 c := cipher.NewSm4Cipher(cipher.ECB)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
+// Set padding mode
 c.SetPadding(cipher.PKCS7) 
 ```
 
@@ -176,14 +176,14 @@ if encrypter.Error != nil {
 Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 0eb581f0836f423e088fe68ab8011a2b
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("0eb581f0836f423e088fe68ab8011a2b")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // DrWB8INvQj4Ij+aKuAEaKw==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("DrWB8INvQj4Ij+aKuAEaKw==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -242,8 +242,8 @@ decrypter.ToBytes() // []byte("hello world")
 c := cipher.NewSm4Cipher(cipher.CTR)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// Set initialization vector (12 bytes)
-c.SetIV([]byte("123456789012"))      
+// Set initialization vector (16 bytes)
+c.SetIV([]byte("1234567890123456"))      
 ```
 
 ### Encrypt Data
@@ -268,14 +268,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 274288a7eac8bb982cb53f
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("274288a7eac8bb982cb53f")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // J0KIp+rIu5gstT8=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("J0KIp+rIu5gstT8=")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -338,10 +338,10 @@ GCM mode provides authenticated encryption functionality and supports additional
 c := cipher.NewSm4Cipher(cipher.GCM)
 // Set key (16 bytes)
 c.SetKey([]byte("dongle1234567890"))
-// Set nonce (12 bytes)
-c.SetNonce([]byte("123456789012"))
+// Set nonce (1-255 bytes)
+c.SetNonce([]byte("1234567890"))
 // Set additional authenticated data (optional)
-c.SetAAD([]byte("additional data")) 
+c.SetAAD([]byte("dongle")) 
 ```
 
 ### Encrypt Data
@@ -366,14 +366,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 248e07df909c174df7ba9ba48e32f8f1ba3f9e1b3344ad8981b50d
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("248e07df909c174df7ba9ba48e32f8f1ba3f9e1b3344ad8981b50d")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // JI4H35CcF033upukjjL48bo/nhszRK2JgbUN
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("JI4H35CcF033upukjjL48bo/nhszRK2JgbUN")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -427,6 +427,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## CFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption result. This is a feature of the Go standard library CFB8 implementation, not a bug.
+
 ### Create Cipher
 
 ```go
@@ -459,14 +461,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 274288a7eac8bb982cb53f
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("274288a7eac8bb982cb53f")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // J0KIp+rIu5gstT8=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("J0KIp+rIu5gstT8=")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -519,6 +521,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## OFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption result. This is a feature of the Go standard library CFB8 implementation, not a bug.
+
 ### Create Cipher
 
 ```go
@@ -551,14 +555,14 @@ if encrypter.Error != nil {
  Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 274288a7eac8bb982cb53f
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("274288a7eac8bb982cb53f")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // J0KIp+rIu5gstT8=
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("J0KIp+rIu5gstT8=")
 
 // Output unencoded raw string
 encrypter.ToRawString()

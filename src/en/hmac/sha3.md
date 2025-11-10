@@ -3,10 +3,10 @@ title: SHA3 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-SHA3 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: HMAC-SHA3 message authentication code algorithm, based on SHA3 hash algorithm, using key for message authentication, providing sha3-224, sha3-256, sha3-384, and sha3-512 variants, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, sha3, sha224, sha256, sha384, sha512, hmac-sha3, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512
+      content: dongle, go-dongle, HMAC, message authentication code, SHA3, sha3-224, sha3-256, sha3-384, sha3-512, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Sha3

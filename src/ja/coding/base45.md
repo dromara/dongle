@@ -3,10 +3,10 @@ title: Base45エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Base45エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: Base45 エンコード/デコード、RFC9285 仕様に準拠、カスタムアルファベットをサポート、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, base45, base45-encoding, base45-decoding
+      content: dongle, go-dongle, エンコード, デコード, Base45, RFC9285, アルファベット, カスタム文字セット, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Base45

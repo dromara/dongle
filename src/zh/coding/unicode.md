@@ -3,10 +3,10 @@ title: Unicode 编码/解码
 head:
   - - meta
     - name: description
-      content: Unicode 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Unicode 编码/解码，使用 \uXXXX 转义序列表示非 ASCII 字符，基于 strconv.QuoteToASCII 实现，支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, unicode, unicode-encoding, unicode-decoding, 转义序列, escape-sequence
+      content: dongle, go-dongle, 编码, 解码, Unicode, 转义序列, \uXXXX, ASCII, strconv.QuoteToASCII, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Unicode

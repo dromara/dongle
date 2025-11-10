@@ -3,10 +3,10 @@ title: MD2 Hash Algorithm
 head:
   - - meta
     - name: description
-      content: MD2 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: MD2 Hash Algorithm, generates 16-byte hash value, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, md2, hash-md2
+      content: dongle, go-dongle, hashing, hash, md2, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Md2

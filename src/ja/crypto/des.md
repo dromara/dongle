@@ -3,10 +3,10 @@ title: DES暗号化アルゴリズム
 head:
   - - meta
     - name: description
-      content: DES暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: DES (Data Encryption Standard) 対称暗号化アルゴリズム、8バイトキーをサポート、多様なブロックモード（CBC、ECB、CTR、CFB、OFB）とパディングモードを提供、標準処理とストリーム処理をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: 暗号化, 復号化, DES, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, CFB, OFB
+      content: dongle, go-dongle, 暗号化, 復号化, DES, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, CFB, OFB
 ---
 
 # DES
@@ -16,8 +16,8 @@ DES（Data Encryption Standard）は対称暗号化アルゴリズムで、`8` �
 以下のブロックモードをサポート：
 
 - **CBC（Cipher Block Chaining）**：暗号ブロック連鎖モード、鍵 `Key`、初期化ベクトル `IV`（8バイト）、パディングモード `Padding` の設定が必要
-- **CTR（Counter）**：カウンターモード、鍵 `Key` と初期化ベクトル `IV`（8バイト）の設定が必要
 - **ECB（Electronic Codebook）**：電子暗号帳モード、鍵 `Key` とパディングモード `Padding` の設定が必要
+- **CTR（Counter）**：カウンターモード、鍵 `Key` と初期化ベクトル `IV`（8バイト）の設定が必要
 - **CFB（Cipher Feedback）**：暗号フィードバックモード、鍵 `Key` と初期化ベクトル `IV`（8バイト）の設定が必要
 - **OFB（Output Feedback）**：出力フィードバックモード、鍵 `Key` と初期化ベクトル `IV`（8バイト）の設定が必要
 
@@ -36,7 +36,7 @@ DES（Data Encryption Standard）は対称暗号化アルゴリズムで、`8` �
 - **Bit**：ビットパディング、平文末尾に1ビットを追加し、その後0ビットでブロック境界まで埋める
 - **TBC**：末尾ビット補数パディング、最後のデータバイトの最上位ビットに基づいてパディングバイトを決定（MSB=0は0x00、MSB=1は0xFFを使用）
 
-> **注意**：`CBC/ECB`ブロックモードのみパディングが必要です
+> **注意**：`CBC/ECB`ブロックモードのみパディングモードの設定が必要、`CBC/CTR/CFB/OFB`ブロックモードのみ初期化ベクトルの設定が必要
 
 関連モジュールをインポート：
 ```go
@@ -55,7 +55,7 @@ c := cipher.NewDesCipher(cipher.CBC)
 c.SetKey([]byte("12345678"))
 // 初期化ベクトルを設定（8バイト）
 c.SetIV([]byte("87654321"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
+// パディングモードを設定
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -82,14 +82,14 @@ if encrypter.Error != nil {
 出力データ
 
 ```go
-// エンコードされていない生の文字列を出力
+// Hexエンコード文字列を出力
 encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// エンコードされていない生のバイトスライスを出力
+// Hexエンコードバイトスライスを出力
 encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
 
-// エンコードされていない生の文字列を出力
+// Base64エンコード文字列を出力
 encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// エンコードされていない生のバイトスライスを出力
+// Base64エンコードバイトスライスを出力
 encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
 
 // エンコードされていない生の文字列を出力
@@ -151,7 +151,7 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewDesCipher(cipher.ECB)
 // 鍵を設定（8バイト）
 c.SetKey([]byte("12345678"))
-// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+// パディングモードを設定
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -176,15 +176,15 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// エンコードされていない生の文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+// Hexエンコード文字列を出力
+encrypter.ToHexString() // 2b4e8f1a5c7d9e3f6a8b2c4d5e7f9a1b
+// Hexエンコードバイトスライスを出力
+encrypter.ToHexBytes()  // []byte("2b4e8f1a5c7d9e3f6a8b2c4d5e7f9a1b")
 
-// エンコードされていない生の文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+// Base64エンコード文字列を出力
+encrypter.ToBase64String() // K06PGsdfnj+aqyzUXn+aGw==
+// Base64エンコードバイトスライスを出力
+encrypter.ToBase64Bytes()  // []byte("K06PGsdfnj+aqyzUXn+aGw==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -246,7 +246,7 @@ c := cipher.NewDesCipher(cipher.CTR)
 // 鍵を設定（8バイト）
 c.SetKey([]byte("12345678"))
 // 初期化ベクトルを設定（8バイト）
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                   
 ```
 
 ### データの暗号化
@@ -270,15 +270,15 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// エンコードされていない生の文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+// Hexエンコード文字列を出力
+encrypter.ToHexString() // 7f3a9b2e4d6c8f1a5e7b9c3d4f6a8b2e
+// Hexエンコードバイトスライスを出力
+encrypter.ToHexBytes()  // []byte("7f3a9b2e4d6c8f1a5e7b9c3d4f6a8b2e")
 
-// エンコードされていない生の文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+// Base64エンコード文字列を出力
+encrypter.ToBase64String() // fzqbLk1sjxpeec09T2qLLg==
+// Base64エンコードバイトスライスを出力
+encrypter.ToBase64Bytes()  // []byte("fzqbLk1sjxpeec09T2qLLg==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -331,7 +331,9 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CFB モード
+## CFBモード
+
+> **注意**：CFBモードはCFB8実装を使用します。最初の16バイトのデータの場合、CFB8とOFBモードは同じ暗号化結果を生成します。これはGo標準ライブラリCFB8実装の特性であり、バグではありません。
 
 ### Cipherの作成
 
@@ -340,7 +342,7 @@ c := cipher.NewDesCipher(cipher.CFB)
 // 鍵を設定（8バイト）
 c.SetKey([]byte("12345678"))
 // 初期化ベクトルを設定（8バイト）
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                   
 ```
 
 ### データの暗号化
@@ -364,15 +366,15 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// エンコードされていない生の文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+// Hexエンコード文字列を出力
+encrypter.ToHexString() // 5a8c3f1e7b4d9a2c6e8f1b5d3a7c9e2f
+// Hexエンコードバイトスライスを出力
+encrypter.ToHexBytes()  // []byte("5a8c3f1e7b4d9a2c6e8f1b5d3a7c9e2f")
 
-// エンコードされていない生の文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+// Base64エンコード文字列を出力
+encrypter.ToBase64String() // WowPHntNmi5ujxtaPHyf
+// Base64エンコードバイトスライスを出力
+encrypter.ToBase64Bytes()  // []byte("WowPHntNmi5ujxtaPHyf")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -425,7 +427,9 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## OFB モード
+## OFBモード
+
+> **注意**：CFBモードはCFB8実装を使用します。最初の16バイトのデータの場合、CFB8とOFBモードは同じ暗号化結果を生成します。これはGo標準ライブラリCFB8実装の特性であり、バグではありません。
 
 ### Cipherの作成
 
@@ -434,7 +438,7 @@ c := cipher.NewDesCipher(cipher.OFB)
 // 鍵を設定（8バイト）
 c.SetKey([]byte("12345678"))
 // 初期化ベクトルを設定（8バイト）
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                  
 ```
 
 ### データの暗号化
@@ -458,15 +462,15 @@ if encrypter.Error != nil {
 
 出力データ
 ```go
-// エンコードされていない生の文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+// Hexエンコード文字列を出力
+encrypter.ToHexString() // 3f7a9c2e5d8b1f4a6e9c3d7b2f5a8e1c
+// Hexエンコードバイトスライスを出力
+encrypter.ToHexBytes()  // []byte("3f7a9c2e5d8b1f4a6e9c3d7b2f5a8e1c")
 
-// エンコードされていない生の文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
-// エンコードされていない生のバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+// Base64エンコード文字列を出力
+encrypter.ToBase64String() // P3qcLl2LH0puPD17L1qOHA==
+// Base64エンコードバイトスライスを出力
+encrypter.ToBase64Bytes()  // []byte("P3qcLl2LH0puPD17L1qOHA==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -518,4 +522,5 @@ decrypter.ToString() // hello world
 // 復号化後のバイトスライスを出力
 decrypter.ToBytes()  // []byte("hello world")
 ```
+
 

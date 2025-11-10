@@ -3,10 +3,10 @@ title: Base58 编码/解码
 head:
   - - meta
     - name: description
-      content: Base58 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Base58 编码/解码，遵循比特币风格字符集，排除易混字符（0、O、I、l），支持自定义字母表，支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, base58, base58-encoding, base58-decoding
+      content: dongle, go-dongle, 编码, 解码, Base58, 比特币风格, 字母表, 自定义字符集, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Base58

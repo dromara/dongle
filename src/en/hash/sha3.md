@@ -3,10 +3,10 @@ title: SHA3 Hash Algorithm
 head:
   - - meta
     - name: description
-      content: SHA3 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: SHA3 Hash Algorithm, providing sha3-224, sha3-256, sha3-384, and sha3-512 variants, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, sha3, sha224, sha256, sha384, sha512, hash-sha3, hash-sha224, hash-sha256, hash-sha384, hash-sha512
+      content: dongle, go-dongle, hashing, hash, sha3, sha3-224, sha3-256, sha3-384, sha3-512, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Sha3

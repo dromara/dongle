@@ -3,10 +3,10 @@ title: HMAC-SM3アルゴリズム
 head:
   - - meta
     - name: description
-      content: HMAC-SM3アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: HMAC-SM3 メッセージ認証コードアルゴリズム、SM3 国家暗号ハッシュアルゴリズムに基づき、キーを使用してメッセージ認証を行う、32 バイト認証コードを生成、GB/T 32918.1-2016 標準に準拠、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: メッセージ認証コード, hmac, sm3, hmac-sm3
+      content: dongle, go-dongle, HMAC, メッセージ認証コード, SM3, 国家暗号アルゴリズム, GB/T 32918.1-2016, キー, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hmac-Sm3

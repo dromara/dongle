@@ -3,10 +3,10 @@ title: Base85 编码/解码
 head:
   - - meta
     - name: description
-      content: Base85 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Base85 编码/解码，也称 ASCII85，符合 Adobe PostScript 和 PDF 规范，使用 85 个字符（ASCII 33-117），支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, base85, ascii85, base85-encoding, base85-decoding, ascii85-encoding, ascii85-decoding
+      content: dongle, go-dongle, 编码, 解码, Base85, ASCII85, Adobe PostScript, PDF, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Base85

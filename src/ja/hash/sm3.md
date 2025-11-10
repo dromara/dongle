@@ -3,10 +3,10 @@ title: SM3ハッシュアルゴリズム
 head:
   - - meta
     - name: description
-      content: SM3ハッシュアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: SM3 ハッシュアルゴリズム、中国国家暗号管理局が発行した国家暗号ハッシュアルゴリズム、32 バイトハッシュ値を生成、GB/T 32918.1-2016 標準に準拠、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: ハッシュ, hash, sm3, hash-sm3
+      content: dongle, go-dongle, ハッシュ, ダイジェスト, チェックサム, SM3, 国家暗号アルゴリズム, GB/T 32918.1-2016, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hash-Sm3

@@ -3,10 +3,10 @@ title: SHA3ハッシュアルゴリズム
 head:
   - - meta
     - name: description
-      content: SHA3ハッシュアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: SHA3 ハッシュアルゴリズム、sha3-224、sha3-256、sha3-384 と sha3-512 の4つのバリアントを提供、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: ハッシュ, hash, sha3, sha224, sha256, sha384, sha512, hash-sha3, hash-sha224, hash-sha256, hash-sha384, hash-sha512
+      content: dongle, go-dongle, ハッシュ, ダイジェスト, チェック, SHA3, sha3-224, sha3-256, sha3-384, sha3-512, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hash-Sha3

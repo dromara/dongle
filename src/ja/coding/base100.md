@@ -3,10 +3,10 @@ title: Base100エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Base100エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: Base100 エンコード/デコード、Emoji 文字を使用して表現（各バイトを 4 バイト UTF-8 表情にマッピング）、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, base100, emoji, base100-encoding, base100-decoding, emoji-encoding, emoji-decoding
+      content: dongle, go-dongle, エンコード, デコード, Base100, Emoji, UTF-8, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Base100

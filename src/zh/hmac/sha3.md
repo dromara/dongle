@@ -3,10 +3,10 @@ title: SHA3 消息认证码算法
 head:
   - - meta
     - name: description
-      content: SHA3 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: HMAC-SHA3 消息认证码算法，基于 SHA3 哈希算法，使用密钥进行消息认证，提供 sha3-224、sha3-256、sha3-384 与 sha3-512 四种变体，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 消息认证码, hmac, sha3, sha224, sha256, sha384, sha512, hmac-sha3, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512
+      content: dongle, go-dongle, HMAC, 消息认证码, SHA3, sha3-224, sha3-256, sha3-384, sha3-512, 密钥, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hmac-Sha3

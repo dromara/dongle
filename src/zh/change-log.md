@@ -6,8 +6,23 @@ head:
 ---
 
 # 更新日志
+## [v1.2.0](https://github.com/dromara/dongle/compare/v1.1.8...v1.2.0) (2025-11-11)
 
-## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-01)
+* [break change] 移除 `RSAKeyPair` 结构体的 `LoadPublicKey` 和 `LoadPrivateKey` 方法
+* [break change] 移除 `Ed25519KeyPair` 结构体的 `LoadPublicKey` 和 `LoadPrivateKey` 方法
+* [chore] `RSAKeyPair` 结构体的 `GenKeyPair`, `SetPublicKey`, `SetPrivateKey` 方法从无返回值改为返回 `error`
+* [chore] `Ed25519KeyPair` 结构体的 `GenKeyPair`, `SetPublicKey`, `SetPrivateKey` 方法从无返回值改为返回 `error`
+* [feat] `RSAKeyPair` 结构体增加 `FormatPublicKey` 和 `FormatPrivateKey` 方法，用于将 `base64` 编码的 `der` 格式的 `RSA` 公钥和私钥格式化成 `pem` 格式
+* [feat] `Ed25519KeyPair` 结构体增加 `FormatPublicKey`和 `FormatPrivateKey` 方法，用于将 `base64` 编码的 `der` 格式的 `Ed25519` 公钥和私钥格式化成 `pem` 格式
+* [feat] `RSAKeyPair` 结构体增加 `CompressPublicKey` 和 `CompressPrivateKey` 方法，用于将 `pem` 格式的 `RSA` 公钥和私钥压缩成经过 `base64` 编码的 `der` 格式
+* [feat] `Ed25519KeyPair` 结构体增加 `CompressPublicKey`和 `CompressPrivateKey` 方法，用于将 `pem` 格式的 `Ed25519` 公钥和私钥压缩成经过 `base64` 编码的 `der` 格式
+* [feat] 增加 `Sm2` 非对称椭圆曲线加密算法支持，包括标准处理和流式处理
+
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-05)
+* [fix] 修复 `*RsaKeyPair.formatPublicKey` 和 `*RsaKeyPair.formatPrivateKey` 格式化密钥失败的 bug
+* [fix] 修复 `*Ed25519KeyPair.formatPublicKey` 和 `*Ed25519KeyPair.formatPrivateKey` 格式化密钥失败的 bug
+* [fix] 修复解密时对编码过的密文解码失败后无法获取错误的 bug
+* [chore] 对称分组加密算法中默认填充模式从 `PKCS7` 改为 `No`
 * [feat] 增加 `Unicode` 编码解码支持，包括标准处理和流式处理
 * [feat] 对称分组加密算法增加 `TBC` 填充模式支持
 

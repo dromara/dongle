@@ -3,10 +3,10 @@ title: Base64 Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Base64 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Base64 encoding/decoding, supports Base64 and Base64Url variants, supports custom alphabet, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, base64, base64Url, base64-encoding, base64-decoding, base64Url-encoding, base64Url-decoding
+      content: dongle, go-dongle, encoding, decoding, Base64, Base64Url, alphabet, custom character set, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Base64

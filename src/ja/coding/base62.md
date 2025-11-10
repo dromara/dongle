@@ -3,10 +3,10 @@ title: Base62エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Base62エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: Base62 エンコード/デコード、62 個の文字（0-9, A-Z, a-z）を使用、カスタムアルファベットをサポート、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, base62, base62-encoding, base62-decoding
+      content: dongle, go-dongle, エンコード, デコード, Base62, アルファベット, カスタム文字セット, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Base62

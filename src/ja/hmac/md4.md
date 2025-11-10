@@ -3,10 +3,10 @@ title: HMAC-MD4アルゴリズム
 head:
   - - meta
     - name: description
-      content: HMAC-MD4アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: HMAC-MD4 メッセージ認証コードアルゴリズム、MD4 ハッシュアルゴリズムに基づき、キーを使用してメッセージ認証を行う、16 バイト認証コードを生成、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: メッセージ認証コード, hmac, md4, hmac-md4
+      content: dongle, go-dongle, HMAC, メッセージ認証コード, MD4, キー, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hmac-Md4

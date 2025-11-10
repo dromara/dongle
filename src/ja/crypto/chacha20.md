@@ -3,10 +3,10 @@ title: ChaCha20暗号化アルゴリズム
 head:
   - - meta
     - name: description
-      content: ChaCha20暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: ChaCha20 ストリーム暗号化アルゴリズム。32 バイト鍵と 12 バイトノンスをサポートし、パディングなしで任意の長さのデータを処理。標準処理とストリーム処理をサポートし、Hex および Base64 出力形式をサポートします
   - - meta
     - name: keywords
-      content: 暗号化, 復号化, ChaCha20, 対称暗号化アルゴリズム, 流密码
+      content: dongle, go-dongle, 暗号化, 復号化, ChaCha20, 対称暗号化アルゴリズム, ストリーム暗号, ノンス, ストリーム処理, Hex, Base64
 ---
 
 # ChaCha20
@@ -64,15 +64,15 @@ if encrypter.Error != nil {
  出力データ
 
 ```go
-// エンコードされていない生の文字列を出力
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
-// エンコードされていない生のバイトスライスを出力
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
+// Hex エンコードされた文字列を出力
+hexString := encrypter.ToHexString() // cd010dae3bbf72faa75abf
+// Hex エンコードされたバイトスライスを出力
+hexBytes := encrypter.ToHexBytes()   // []byte("cd010dae3bbf72faa75abf")
 
-// エンコードされていない生の文字列を出力
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
-// エンコードされていない生のバイトスライスを出力
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
+// Base64 エンコードされた文字列を出力
+base64String := encrypter.ToBase64String() // zQENrju/cvqnWr8=
+// Base64 エンコードされたバイトスライスを出力
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("zQENrju/cvqnWr8=")
 
 // エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()

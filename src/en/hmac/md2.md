@@ -3,10 +3,10 @@ title: MD2 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-MD2 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: HMAC-MD2 message authentication code algorithm, based on MD2 hash algorithm, using key for message authentication, generates 16-byte authentication code, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, md2, hmac-md2
+      content: dongle, go-dongle, HMAC, message authentication code, MD2, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Md2

@@ -3,10 +3,10 @@ title: Base32 エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Base32 エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
+      content: Base32 エンコード/デコード、Base32 と Base32Hex の2つのバリアントをサポート、カスタムアルファベットをサポート、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, base32, base32hex, base32-encoding, base32-decoding, base32hex-encoding, base32hex-decoding
+      content: dongle, go-dongle, エンコード, デコード, Base32, Base32Hex, アルファベット, カスタム文字セット, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Base32

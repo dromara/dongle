@@ -3,10 +3,10 @@ title: Blake2b 哈希算法
 head:
   - - meta
     - name: description
-      content: Blake2b 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Blake2b 哈希算法，提供 blake2b-256、blake2b-384 与 blake2b-512 三种变体，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 哈希, hash, blake2b, blake2b-256, blake2b-384, blake2b-512, hash-blake2b, hash-blake2b-256, hash-blake2b-484, hash-blake2b-512
+      content: dongle, go-dongle, 哈希, 摘要, 校验, Blake2b, blake2b-256, blake2b-384, blake2b-512, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hash-Blake2b

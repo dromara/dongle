@@ -3,10 +3,10 @@ title: SHA1 Hash Algorithm
 head:
   - - meta
     - name: description
-      content: SHA1 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: SHA1 Hash Algorithm, generates 20-byte hash value, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, sha1, hash-sha1
+      content: dongle, go-dongle, hashing, hash, sha1, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Sha1

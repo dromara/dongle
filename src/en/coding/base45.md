@@ -3,10 +3,10 @@ title: Base45 Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Base45 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Base45 encoding/decoding, compliant with RFC9285 standard, supports custom alphabet, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, base45, base45-encoding, base45-decoding
+      content: dongle, go-dongle, encoding, decoding, Base45, RFC9285, alphabet, custom character set, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Base45

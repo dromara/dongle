@@ -3,10 +3,10 @@ title: MD2ハッシュアルゴリズム
 head:
   - - meta
     - name: description
-      content: MD2ハッシュアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: MD2 ハッシュアルゴリズム、生成 16 バイトハッシュ値、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: ハッシュ, hash, md2, hash-md2
+      content: dongle, go-dongle, ハッシュ, ダイジェスト, チェック, MD2, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hash-Md2

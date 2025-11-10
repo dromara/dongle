@@ -3,10 +3,10 @@ title: SHA1ハッシュアルゴリズム
 head:
   - - meta
     - name: description
-      content: SHA1ハッシュアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: SHA1 ハッシュアルゴリズム、生成 20 バイトハッシュ値、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: ハッシュ, hash, sha1, hash-sha1
+      content: dongle, go-dongle, ハッシュ, ダイジェスト, チェック, SHA1, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hash-Sha1

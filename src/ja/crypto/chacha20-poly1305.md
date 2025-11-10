@@ -3,10 +3,10 @@ title: ChaCha20-Poly1305暗号化アルゴリズム
 head:
   - - meta
     - name: description
-      content: ChaCha20-Poly1305暗号化アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: ChaCha20-Poly1305 認証暗号（AEAD）。32 バイト鍵と 12 バイトノンスをサポートし、追加認証データ（AAD）をサポート。パディングなしで任意の長さのデータを処理でき、標準処理とストリーム処理をサポートし、Hex および Base64 出力形式をサポートします
   - - meta
     - name: keywords
-      content: 暗号化, 復号化, ChaCha20-Poly1305, ChaCha20, Poly1305, 対称暗号化アルゴリズム, 流密码, 消息认证码, 认证加密, AEAD
+      content: dongle, go-dongle, 暗号化, 復号化, ChaCha20-Poly1305, ChaCha20, Poly1305, 対称暗号化アルゴリズム, ストリーム暗号, メッセージ認証コード, 認証暗号, AEAD
 ---
 
 # ChaCha20-Poly1305
@@ -41,7 +41,7 @@ c.SetKey([]byte("dongle1234567890abcdef123456789x"))
 // 乱数を設定（12バイトである必要があります）
 c.SetNonce([]byte("123456789012"))
 // 追加認証データを設定（オプション）
-c.SetAAD([]byte("additional authenticated data"))
+c.SetAAD([]byte("dongle"))
 ```
 
 ## データの暗号化
@@ -67,15 +67,15 @@ if encrypter.Error != nil {
 出力データ
 
 ```go
-// エンコードされていない生の文字列を出力
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c...
-// エンコードされていない生のバイトスライスを出力
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c...")
+// Hex エンコードされた文字列を出力
+hexString := encrypter.ToHexString() // 04457bd9e26e18b1975a89ed76e38bbddc6364721923967b10ca4c
+// Hex エンコードされたバイトスライスを出力
+hexBytes := encrypter.ToHexBytes()   // []byte("04457bd9e26e18b1975a89ed76e38bbddc6364721923967b10ca4c")
 
-// エンコードされていない生の文字列を出力
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=...
-// エンコードされていない生のバイトスライスを出力
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=...")
+// Base64 エンコードされた文字列を出力
+base64String := encrypter.ToBase64String() // BEV72eJuGLGXWontduOLvdxjZHIZI5Z7EMpM
+// Base64 エンコードされたバイトスライスを出力
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("BEV72eJuGLGXWontduOLvdxjZHIZI5Z7EMpM")
 
 // エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()

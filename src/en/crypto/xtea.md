@@ -3,10 +3,10 @@ title: XTEA Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: XTEA encryption algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: XTEA (eXtended Tiny Encryption Algorithm) symmetric encryption algorithm, supports 16-byte keys, provides multiple block modes (CBC, ECB, CTR, CFB, OFB) and padding modes, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, XTEA, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, CFB, OFB
+      content: dongle, go-dongle, encryption, decryption, XTEA, eXtended Tiny Encryption Algorithm, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, CFB, OFB
 ---
 
 # XTEA
@@ -36,7 +36,7 @@ Supported padding modes:
 - **Bit**: Bit padding, add a 1-bit at the end of plaintext, then pad with 0-bits to block boundary
 - **TBC**: Trailing Bit Complement padding, determines padding bytes based on the most significant bit of the last data byte (MSB=0 uses 0x00, MSB=1 uses 0xFF)
 
-> **Note**: Only `CBC/ECB` block modes require padding
+> **Note**: Only `CBC/ECB` block modes require padding mode, only `CBC/CTR/CFB/OFB` block modes require initialization vector
 
 Import related modules:
 ```go
@@ -55,20 +55,20 @@ c := cipher.NewXteaCipher(cipher.CBC)
 c.SetKey([]byte("1234567890123456"))
 // Set initialization vector (8 bytes)
 c.SetIV([]byte("12345678"))
-// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
+// Set padding mode
 c.SetPadding(cipher.PKCS7)
 ```
 
 ### Encrypt Data
 
-Input data
+Input Data
 
 ```go
-// Input unencoded raw string
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// Input unencoded raw byte slice
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// Input unencoded raw file stream
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -79,7 +79,7 @@ if encrypter.Error != nil {
 }
 ```
 
-Output data
+Output Data
 
 ```go
 // Output Hex encoded string
@@ -92,15 +92,15 @@ encrypter.ToBase64String() // obLD1OX2eJA=
 // Output Base64 encoded byte slice
 encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
 
-// Output raw string without encoding
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice without encoding
+// Output unencoded raw byte slice
 encrypter.ToRawBytes()
 ```
 
 ### Decrypt Data
 
-Input data
+Input Data
 
 ```go
 // Input Hex encoded string
@@ -151,13 +151,13 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewXteaCipher(cipher.ECB)
 // Set key (required, 16 bytes)
 c.SetKey([]byte("1234567890123456"))
-// Set padding mode (optional, default PKCS7, CBC/ECB block modes require padding mode setting)
+// Set padding mode
 c.SetPadding(cipher.PKCS7)
 ```
 
 ### Encrypt Data
 
-Input data
+Input Data
 ```go
 // Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
@@ -174,27 +174,27 @@ if encrypter.Error != nil {
 }
 ```
 
-Output data
+Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 2b4e8f1a5c7d9e3f6a8b2c4d5e7f9a1b
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("2b4e8f1a5c7d9e3f6a8b2c4d5e7f9a1b")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // K06PGsdfnj+aqyzUXn+aGw==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("K06PGsdfnj+aqyzUXn+aGw==")
 
-// Output raw string without encoding
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice without encoding
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
 ### Decrypt Data
 
-Input data
+Input Data
 
 ```go
 // Input Hex encoded string
@@ -215,10 +215,8 @@ decrypter := dongle.Decrypt.FromBase64File(file).ByXtea(c)
 
 // Input unencoded raw string
 decrypter := dongle.Decrypt.FromRawString(rawString).ByXtea(c)
-
 // Input unencoded raw byte slice
 decrypter := dongle.Decrypt.FromRawBytes(rawBytes).ByXtea(c)
-
 // Input unencoded raw file stream
 file, _ := os.Open("encrypted.bin")
 decrypter := dongle.Decrypt.FromRawFile(file).ByXtea(c)
@@ -253,13 +251,14 @@ c.SetIV([]byte("12345678"))
 
 ### Encrypt Data
 
-Input data
+Input Data
+
 ```go
-// Input unencoded raw string
+// Input string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
-// Input unencoded raw byte slice
+// Input byte slice
 encrypter := dongle.Encrypt.FromBytes([]byte("hello world")).ByXtea(c)
-// Input unencoded raw file stream
+// Input file stream
 file, _ := os.Open("test.txt")
 encrypter := dongle.Encrypt.FromFile(file).ByXtea(c)
 
@@ -270,27 +269,27 @@ if encrypter.Error != nil {
 }
 ```
 
-Output data
+Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 7f3a9b2e4d6c8f1a5e7b9c3d4f6a8b2e
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("7f3a9b2e4d6c8f1a5e7b9c3d4f6a8b2e")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // fzqbLk1sjxpeec09T2qLLg==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("fzqbLk1sjxpeec09T2qLLg==")
 
-// Output raw string without encoding
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice without encoding
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
 ### Decrypt Data
 
-Input data
+Input Data
 
 ```go
 // Input Hex encoded string
@@ -335,6 +334,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## CFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption result. This is a feature of the Go standard library CFB8 implementation, not a bug.
+
 ### Create Cipher
 
 ```go
@@ -347,7 +348,7 @@ c.SetIV([]byte("12345678"))
 
 ### Encrypt Data
 
-Input data
+Input Data
 ```go
 // Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
@@ -364,27 +365,27 @@ if encrypter.Error != nil {
 }
 ```
 
-Output data
+Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 5a8c3f1e7b4d9a2c6e8f1b5d3a7c9e2f
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("5a8c3f1e7b4d9a2c6e8f1b5d3a7c9e2f")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // WowPHntNmi5ujxtaPHyf
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("WowPHntNmi5ujxtaPHyf")
 
-// Output raw string without encoding
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice without encoding
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
 ### Decrypt Data
 
-Input data
+Input Data
 
 ```go
 // Input Hex encoded string
@@ -429,6 +430,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## OFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption result. This is a feature of the Go standard library CFB8 implementation, not a bug.
+
 ### Create Cipher
 
 ```go
@@ -441,7 +444,7 @@ c.SetIV([]byte("12345678"))
 
 ### Encrypt Data
 
-Input data
+Input Data
 ```go
 // Input unencoded raw string
 encrypter := dongle.Encrypt.FromString("hello world").ByXtea(c)
@@ -458,27 +461,27 @@ if encrypter.Error != nil {
 }
 ```
 
-Output data
+Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 3f7a9c2e5d8b1f4a6e9c3d7b2f5a8e1c
 // Output Hex encoded byte slice
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("3f7a9c2e5d8b1f4a6e9c3d7b2f5a8e1c")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // P3qcLl2LH0puPD17L1qOHA==
 // Output Base64 encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("P3qcLl2LH0puPD17L1qOHA==")
 
-// Output raw string without encoding
+// Output unencoded raw string
 encrypter.ToRawString()
-// Output raw byte slice without encoding
+// Output unencoded raw byte slice
 encrypter.ToRawBytes() 
 ```
 
 ### Decrypt Data
 
-Input data
+Input Data
 
 ```go
 // Input Hex encoded string

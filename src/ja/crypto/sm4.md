@@ -3,10 +3,10 @@ title: SM4 対称暗号化アルゴリズム
 head:
   - - meta
     - name: description
-      content: SM4 暗号化アルゴリズム|軽量で、意味が明確で、開発者にやさしい golang エンコード&暗号化ライブラリ
+      content: SM4 対称暗号化アルゴリズム。中国国家暗号管理局が発表した商用対称ブロック暗号で、16 バイトの鍵をサポートし、複数のブロックモード（CBC、ECB、CTR、GCM、CFB、OFB）とパディングモードを提供。標準処理とストリーム処理をサポートし、Hex および Base64 出力形式をサポートします
   - - meta
     - name: keywords
-      content: 暗号化, 復号化, SM4, 対称暗号化アルゴリズム, 中国国家標準, ブロックモード, パディングモード, CBC, ECB, CTR, GCM, CFB, OFB
+      content: dongle, go-dongle, 暗号化, 復号化, SM4, 対称暗号化アルゴリズム, 中国国家標準暗号, ブロックモード, パディングモード, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # SM4
@@ -17,8 +17,8 @@ head:
 
 - **CBC（Cipher Block Chaining）**：暗号ブロックチェーンモード、鍵`Key`、初期化ベクトル`IV`（16バイト）、パディングモード`Padding`の設定が必要
 - **ECB（Electronic Codebook）**：電子コードブックモード、鍵`Key`とパディングモード`Padding`の設定が必要
-- **CTR（Counter）**：カウンターモード、鍵`Key`と初期化ベクトル`IV`（12バイト）の設定が必要
-- **GCM（Galois/Counter Mode）**：ガロア/カウンターモード、鍵`Key`、ナンス`Nonce`（12バイト）、追加認証データ`AAD`（任意）の設定が必要
+- **CTR（Counter）**：カウンターモード、鍵`Key`と初期化ベクトル`IV`（16バイト）の設定が必要
+- **GCM（Galois/Counter Mode）**：ガロア/カウンターモード、鍵`Key`、ナンス`Nonce`（1-255バイト）、追加認証データ`AAD`（任意）の設定が必要
 - **CFB（Cipher Feedback）**：暗号フィードバックモード、鍵`Key`と初期化ベクトル`IV`（16バイト）の設定が必要
 - **OFB（Output Feedback）**：出力フィードバックモード、鍵`Key`と初期化ベクトル`IV`（16バイト）の設定が必要
 
@@ -35,7 +35,7 @@ head:
 - **Bit**：ビットパディング、平文の末尾に1ビットを追加し、ブロック境界まで0ビットでパディング
 - **TBC**：末尾ビット補数パディング、最後のデータバイトの最上位ビットに基づいてパディングバイトを決定（MSB=0は0x00、MSB=1は0xFFを使用）
 
-> **注意**：`CBC/ECB`ブロックモードのみパディングが必要です
+> **注意**：`CBC/ECB`ブロックモードのみパディングモードの設定が必要、`CBC/CTR/CFB/OFB`ブロックモードのみ初期化ベクトルの設定が必要
 
 関連モジュールのインポート：
 ```go
@@ -54,7 +54,7 @@ c := cipher.NewSm4Cipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890"))
 // 初期化ベクトルの設定（16バイト）
 c.SetIV([]byte("1234567890123456"))
-// パディングモードの設定（任意、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+// パディングモードの設定
 c.SetPadding(cipher.PKCS7)          
 ```
 
@@ -82,14 +82,14 @@ if encrypter.Error != nil {
 
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 6cdb55b749358b9fba993fa7c545fce6
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("6cdb55b749358b9fba993fa7c545fce6")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // bNtVt0k1i5+6mT+nxUX85g==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("bNtVt0k1i5+6mT+nxUX85g==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -150,7 +150,7 @@ decrypter.ToBytes() // []byte("hello world")
 c := cipher.NewSm4Cipher(cipher.ECB)
 // 鍵の設定（16バイト）
 c.SetKey([]byte("dongle1234567890"))
-// パディングモードの設定（任意、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+// パディングモードの設定
 c.SetPadding(cipher.PKCS7) 
 ```
 
@@ -176,14 +176,14 @@ if encrypter.Error != nil {
 出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 0eb581f0836f423e088fe68ab8011a2b
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("0eb581f0836f423e088fe68ab8011a2b")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // DrWB8INvQj4Ij+aKuAEaKw==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("DrWB8INvQj4Ij+aKuAEaKw==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -242,8 +242,8 @@ decrypter.ToBytes() // []byte("hello world")
 c := cipher.NewSm4Cipher(cipher.CTR)
 // 鍵の設定（16バイト）
 c.SetKey([]byte("dongle1234567890"))
-// 初期化ベクトルの設定（12バイト）
-c.SetIV([]byte("123456789012"))      
+// 初期化ベクトルの設定（16バイト）
+c.SetIV([]byte("1234567890123456"))      
 ```
 
 ### データの暗号化
@@ -268,14 +268,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 274288a7eac8bb982cb53f
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("274288a7eac8bb982cb53f")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // J0KIp+rIu5gstT8=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("J0KIp+rIu5gstT8=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -338,10 +338,10 @@ GCMモードは認証暗号化機能を提供し、追加の認証データ（AA
 c := cipher.NewSm4Cipher(cipher.GCM)
 // 鍵の設定（16バイト）
 c.SetKey([]byte("dongle1234567890"))
-// ナンスの設定（12バイト）
-c.SetNonce([]byte("123456789012"))
+// ナンスの設定（1-255バイト）
+c.SetNonce([]byte("1234567890"))
 // 追加の認証データの設定（任意）
-c.SetAAD([]byte("additional data")) 
+c.SetAAD([]byte("dongle")) 
 ```
 
 ### データの暗号化
@@ -366,14 +366,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 248e07df909c174df7ba9ba48e32f8f1ba3f9e1b3344ad8981b50d
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("248e07df909c174df7ba9ba48e32f8f1ba3f9e1b3344ad8981b50d")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // JI4H35CcF033upukjjL48bo/nhszRK2JgbUN
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("JI4H35CcF033upukjjL48bo/nhszRK2JgbUN")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -425,7 +425,9 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## CFB モード
+## CFBモード
+
+> **注意**：CFBモードはCFB8実装を使用します。最初の16バイトのデータの場合、CFB8とOFBモードは同じ暗号化結果を生成します。これはGo標準ライブラリCFB8実装の特性であり、バグではありません。
 
 ### Cipherの作成
 
@@ -459,14 +461,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 274288a7eac8bb982cb53f
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("274288a7eac8bb982cb53f")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // J0KIp+rIu5gstT8=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("J0KIp+rIu5gstT8=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -517,7 +519,9 @@ decrypter.ToString() // hello world
 decrypter.ToBytes()  // []byte("hello world")
 ```
 
-## OFB モード
+## OFBモード
+
+> **注意**：CFBモードはCFB8実装を使用します。最初の16バイトのデータの場合、CFB8とOFBモードは同じ暗号化結果を生成します。これはGo標準ライブラリCFB8実装の特性であり、バグではありません。
 
 ### Cipherの作成
 
@@ -551,14 +555,14 @@ if encrypter.Error != nil {
  出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 274288a7eac8bb982cb53f
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()   // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()   // []byte("274288a7eac8bb982cb53f")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // J0KIp+rIu5gstT8=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()   // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()   // []byte("J0KIp+rIu5gstT8=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()

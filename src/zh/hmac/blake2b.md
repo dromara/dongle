@@ -3,10 +3,10 @@ title: Blake2b 消息认证码算法
 head:
   - - meta
     - name: description
-      content: Blake2b 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: HMAC-Blake2b 消息认证码算法，基于 Blake2b 哈希算法，使用密钥进行消息认证，提供 blake2b-256、blake2b-384 与 blake2b-512 三种变体，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 消息认证码, hmac, blake2b, blake2b-256, blake2b-384, blake2b-512, hmac-blake2b, hmac-blake2b-256, hmac-blake2b-484, hmac-blake2b-512
+      content: dongle, go-dongle, HMAC, 消息认证码, Blake2b, blake2b-256, blake2b-384, blake2b-512, 密钥, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hmac-Blake2b

@@ -3,10 +3,10 @@ title: Base85 Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Base85 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Base85 encoding/decoding, also known as ASCII85, compliant with Adobe PostScript and PDF standards, uses 85 characters (ASCII 33-117), supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, base85, ascii85, base85-encoding, base85-decoding, ascii85-encoding, ascii85-decoding
+      content: dongle, go-dongle, encoding, decoding, Base85, ASCII85, Adobe PostScript, PDF, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Base85

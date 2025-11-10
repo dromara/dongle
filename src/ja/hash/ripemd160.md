@@ -3,10 +3,10 @@ title: RIPEMD160ハッシュアルゴリズム
 head:
   - - meta
     - name: description
-      content: RIPEMD160ハッシュアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: RIPEMD160 ハッシュアルゴリズム、生成 20 バイトハッシュ値、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: ハッシュ, hash, ripemd160, hash-ripemd160
+      content: dongle, go-dongle, ハッシュ, ダイジェスト, チェック, RIPEMD160, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hash-Ripemd160

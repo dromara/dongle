@@ -3,10 +3,10 @@ title: SHA1 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-SHA1 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: HMAC-SHA1 message authentication code algorithm, based on SHA1 hash algorithm, using key for message authentication, generates 20-byte authentication code, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, sha1, hmac-sha1
+      content: dongle, go-dongle, HMAC, message authentication code, SHA1, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Sha1

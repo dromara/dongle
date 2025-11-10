@@ -3,10 +3,10 @@ title: RC4 流密码加密算法
 head:
   - - meta
     - name: description
-      content: RC4 流密码加密算法|一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: RC4 (Rivest Cipher 4) 流密码加密算法，支持 1-256 字节可变长度密钥，无需填充即可处理任意长度数据，支持标准和流式处理，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 加密, 解密, RC4, 对称加密算法, 流密码
+      content: dongle, go-dongle, 加密, 解密, RC4, Rivest Cipher 4, 对称加密算法, 流密码
 ---
 
 # RC4

@@ -3,10 +3,10 @@ title: Base85エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Base85エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: Base85 エンコード/デコード、ASCII85 とも呼ばれ、Adobe PostScript および PDF 仕様に準拠、85 個の文字（ASCII 33-117）を使用、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, base85, ascii85, base85-encoding, base85-decoding, ascii85-encoding, ascii85-decoding
+      content: dongle, go-dongle, エンコード, デコード, Base85, ASCII85, Adobe PostScript, PDF, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Base85

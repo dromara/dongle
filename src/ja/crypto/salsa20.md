@@ -3,10 +3,10 @@ title: Salsa20 流密码暗号化アルゴリズム
 head:
   - - meta
     - name: description
-      content: Salsa20 暗号化アルゴリズム | 軽量、セマンティック、開発者フレンドリーな golang エンコーディング&暗号ライブラリ
+      content: Salsa20 ストリーム暗号化アルゴリズム。32 バイト鍵と 8 バイトノンスをサポートし、パディングなしで任意の長さのデータを処理。標準処理とストリーム処理をサポートし、Hex および Base64 出力形式をサポートします
   - - meta
     - name: keywords
-      content: 暗号化, 復号化, Salsa20, 対称暗号化アルゴリズム, 流密码
+      content: dongle, go-dongle, 暗号化, 復号化, Salsa20, 対称暗号化アルゴリズム, ストリーム暗号, ノンス, ストリーム処理, Hex, Base64
 ---
 
 # Salsa20
@@ -65,14 +65,14 @@ if encrypter.Error != nil {
 
 ```go
 // Hex エンコード文字列を出力
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
+hexString := encrypter.ToHexString() // 39ee99ffc157388ef95814
 // Hex エンコードバイトスライスを出力
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
+hexBytes := encrypter.ToHexBytes()   // []byte("39ee99ffc157388ef95814")
 
 // Base64 エンコード文字列を出力
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
+base64String := encrypter.ToBase64String() // Oe6Z/8FXOI75WBQ=
 // Base64 エンコードバイトスライスを出力
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("Oe6Z/8FXOI75WBQ=")
 
 // エンコードされていない生の文字列を出力
 rawString := encrypter.ToRawString()

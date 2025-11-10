@@ -3,10 +3,10 @@ title: HMAC-SHA1アルゴリズム
 head:
   - - meta
     - name: description
-      content: HMAC-SHA1アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: HMAC-SHA1 メッセージ認証コードアルゴリズム、SHA1 ハッシュアルゴリズムに基づき、キーを使用してメッセージ認証を行う、20 バイト認証コードを生成、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: メッセージ認証コード, hmac, sha1, hmac-sha1
+      content: dongle, go-dongle, HMAC, メッセージ認証コード, SHA1, キー, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hmac-Sha1

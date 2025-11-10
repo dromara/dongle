@@ -3,10 +3,10 @@ title: Blake2s Hash Algorithm
 head:
   - - meta
     - name: description
-      content: BLAKE2s Hash Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: Blake2s Hash Algorithm, providing blake2s-128 (requires key) and blake2s-256 variants, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, blake2s, blake2s-128, blake2s-256, hash-blake2s, hash-blake2s-128, hash-blake2s-256
+      content: dongle, go-dongle, hashing, hash, blake2s, blake2s-128, blake2s-256, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Blake2s

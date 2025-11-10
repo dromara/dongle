@@ -3,10 +3,10 @@ title: SHA2ハッシュアルゴリズム
 head:
   - - meta
     - name: description
-      content: SHA2ハッシュアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: SHA2 ハッシュアルゴリズム、sha2-224、sha2-256、sha2-384、sha2-512 の4つのバリアントを提供、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: ハッシュ, hash, sha2, sha224, sha256, sha384, sha512, hash-sha2, hash-sha224, hash-sha256, hash-sha384, hash-sha512
+      content: dongle, go-dongle, ハッシュ, ダイジェスト, チェックサム, SHA2, sha2-224, sha2-256, sha2-384, sha2-512, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hash-Sha2

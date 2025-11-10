@@ -3,10 +3,10 @@ title: HMAC-BLAKE2sアルゴリズム
 head:
   - - meta
     - name: description
-      content: HMAC-BLAKE2sアルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: HMAC-Blake2s メッセージ認証コードアルゴリズム、Blake2s ハッシュアルゴリズムに基づき、キーを使用してメッセージ認証を行う、blake2s-128 と blake2s-256 の2つのバリアントを提供、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: メッセージ認証コード, hmac, blake2s, blake2s-128, blake2s-256, hmac-blake2s, hmac-blake2s-128, hmac-blake2s-256
+      content: dongle, go-dongle, HMAC, メッセージ認証コード, Blake2s, blake2s-128, blake2s-256, キー, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hmac-Blake2s

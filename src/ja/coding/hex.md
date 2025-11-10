@@ -3,10 +3,10 @@ title: Hex エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Hex エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
+      content: Hex エンコード/デコード、Base16 とも呼ばれ、16 個の文字（0-9, A-F）を使用、カスタム大文字小文字をサポート、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, hex, base16, base16-encoding, base16-decoding, hex-encoding, hex-decoding
+      content: dongle, go-dongle, エンコード, デコード, Hex, Base16, 大文字小文字, カスタム文字セット, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Hex

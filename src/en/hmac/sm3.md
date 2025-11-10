@@ -3,10 +3,10 @@ title: SM3 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-SM3 Algorithm|A lightweight, semantic, developer-friendly golang encoding & cryptography library
+      content: HMAC-SM3 message authentication code algorithm, based on SM3 national cryptographic hash algorithm, using key for message authentication, generates 32-byte authentication code, compliant with GB/T 32918.1-2016 standard, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, sm3, hmac-sm3
+      content: dongle, go-dongle, HMAC, message authentication code, SM3, national cryptographic algorithm, GB/T 32918.1-2016, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Sm3

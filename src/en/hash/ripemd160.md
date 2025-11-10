@@ -3,10 +3,10 @@ title: Ripemd160 Hash Algorithm
 head:
   - - meta
     - name: description
-      content: Ripemd160 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: RIPEMD160 Hash Algorithm, generates 20-byte hash value, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, ripemd160, hash-ripemd160
+      content: dongle, go-dongle, hashing, hash, ripemd160, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Ripemd160

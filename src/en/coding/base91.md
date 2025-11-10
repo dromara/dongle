@@ -3,10 +3,10 @@ title: Base91 Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Base91 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Base91 encoding/decoding, uses extended character set of 91 characters (excludes space, apostrophe, hyphen, backslash), supports custom alphabet, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, base91, base91-encoding, base91-decoding
+      content: dongle, go-dongle, encoding, decoding, Base91, alphabet, extended character set, custom character set, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Base91

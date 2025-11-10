@@ -3,10 +3,10 @@ title: Base45 编码/解码
 head:
   - - meta
     - name: description
-      content: Base45 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Base45 编码/解码，符合 RFC9285 规范，支持自定义字母表，支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, base45, base45-encoding, base45-decoding
+      content: dongle, go-dongle, 编码, 解码, Base45, RFC9285, 字母表, 自定义字符集, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Base45

@@ -3,10 +3,10 @@ title: Blake2s 消息认证码算法
 head:
   - - meta
     - name: description
-      content: Blake2s 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: HMAC-Blake2s 消息认证码算法，基于 Blake2s 哈希算法，使用密钥进行消息认证，提供 blake2s-128 与 blake2s-256 两种变体，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 消息认证码, hmac, blake2s, blake2s-128, blake2s-256, hmac-blake2s, hmac-blake2s-128, hmac-blake256
+      content: dongle, go-dongle, HMAC, 消息认证码, Blake2s, blake2s-128, blake2s-256, 密钥, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hmac-Blake2s

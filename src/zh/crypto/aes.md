@@ -3,10 +3,10 @@ title: AES 对称加密算法
 head:
   - - meta
     - name: description
-      content: AES 加密算法|一个轻量级、语义化、对开发者友好的 golang 编码&密码库
+      content: AES (Advanced Encryption Standard) 对称加密算法，支持 16、24 或 32 字节密钥，提供多种分组模式（CBC、ECB、CTR、GCM、CFB、OFB）和填充模式，支持标准和流式处理，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 加密, 解密, AES, 对称加密算法, 分组模式, 填充模式, CBC, ECB, CTR, GCM, CFB, OFB
+      content: dongle, go-dongle, 加密, 解密, AES, 对称加密算法, 分组模式, 填充模式, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # AES
@@ -17,8 +17,8 @@ AES（Advanced Encryption Standard）是一种对称加密算法，支持 `16` �
 
 - **CBC（Cipher Block Chaining）**：密码分组链接模式，需要设置密钥 `Key`、初始化向量 `IV`（16 字节）和填充模式`Padding`
 - **ECB（Electronic Codebook）**：电子密码本模式，需要设置密钥 `Key` 和填充模式`Padding`
-- **CTR（Counter）**：计数器模式，需要设置密钥 `Key` 和初始化向量 `IV`（12 字节）
-- **GCM（Galois/Counter Mode）**：伽罗瓦/计数器模式，需要设置密钥 `Key`、随机数 `Nonce`（12 字节）和额外的认证数据 `AAD`（可选）
+- **CTR（Counter）**：计数器模式，需要设置密钥 `Key` 和初始化向量 `IV`（16 字节）
+- **GCM（Galois/Counter Mode）**：伽罗瓦/计数器模式，需要设置密钥 `Key`、随机数 `Nonce`（1-255 字节）和额外的认证数据 `AAD`（可选）
 - **CFB（Cipher Feedback）**：密码反馈模式，需要设置密钥 `Key` 和初始化向量 `IV`（16 字节）
 - **OFB（Output Feedback）**：输出反馈模式，需要设置密钥 `Key` 和初始化向量 `IV`（16 字节）
 
@@ -35,7 +35,7 @@ AES（Advanced Encryption Standard）是一种对称加密算法，支持 `16` �
 - **Bit**：位填充，在明文末尾添加一个 1 位，然后用 0 位填充到块边界
 - **TBC**：尾位补码填充，根据最后一个数据字节的最高位确定填充字节（MSB=0 用 0x00，MSB=1 用 0xFF）
 
-> **注意**：仅 `CBC/ECB` 分组模式需要填充
+> **注意**：仅 `CBC/ECB` 分组模式需要设置填充模式，仅 `CBC/CTR/CFB/OFB` 分组模式需要设置初始化向量
 
 导入相关模块：
 ```go
@@ -54,7 +54,7 @@ c := cipher.NewAesCipher(cipher.CBC)
 c.SetKey([]byte("dongle1234567890"))
 // 设置初始化向量（16 字节)
 c.SetIV([]byte("1234567890123456"))
-// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+// 设置填充模式
 c.SetPadding(cipher.PKCS7)          
 ```
 
@@ -82,14 +82,14 @@ if encrypter.Error != nil {
 
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // b0a72d41c2a05fc42c98fe49ad0cead7
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("b0a72d41c2a05fc42c98fe49ad0cead7")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // sKctQcKgX8QsmP5JrQzq1w==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("sKctQcKgX8QsmP5JrQzq1w==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -150,7 +150,7 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewAesCipher(cipher.ECB)
 // 设置密钥（16 字节)
 c.SetKey([]byte("dongle1234567890"))
-// 设置填充模式（可选，默认为 PKCS7，只有 CBC/ECB 分组模式才需要设置填充模式）
+// 设置填充模式
 c.SetPadding(cipher.PKCS7) 
 ```
 
@@ -176,14 +176,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // b32102513a0675ddb7ca7b8b4b26abce
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("b32102513a0675ddb7ca7b8b4b26abce")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // syECUToGdd23ynuLSyarzg==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("syECUToGdd23ynuLSyarzg==")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -242,8 +242,8 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewAesCipher(cipher.CTR)
 // 设置密钥（16 字节)
 c.SetKey([]byte("dongle1234567890"))
-// 设置初始化向量（12 字节)
-c.SetIV([]byte("123456789012"))      
+// 设置初始化向量（16 字节)
+c.SetIV([]byte("1234567890123456"))      
 ```
 
 ### 加密数据
@@ -268,14 +268,14 @@ if encrypter.Error != nil {
  输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // d081959747c6a9a357665b
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("d081959747c6a9a357665b")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // 0IGVl0fGqaNXZls=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("0IGVl0fGqaNXZls=")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -338,10 +338,10 @@ GCM 模式提供认证加密功能，支持额外的认证数据（AAD）。
 c := cipher.NewAesCipher(cipher.GCM)
 // 设置密钥（16 字节)
 c.SetKey([]byte("dongle1234567890"))
-// 设置随机数（12 字节)
-c.SetNonce([]byte("123456789012"))
+// 设置随机数（1-255 字节)
+c.SetNonce([]byte("1234567890"))
 // 设置额外的认证数据（可选）
-c.SetAAD([]byte("additional data")) 
+c.SetAAD([]byte("dongle")) 
 ```
 
 ### 加密数据
@@ -366,14 +366,14 @@ if encrypter.Error != nil {
  输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // 0ffef48b9154a7234cc04e373f86198a8ed7b27f054ad7886c677b
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("0ffef48b9154a7234cc04e373f86198a8ed7b27f054ad7886c677b")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // D/70i5FUpyNMwE43P4YZio7Xsn8FStcIbGd7
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("D/70i5FUpyNMwE43P4YZio7Xsn8FStcIbGd7")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -427,6 +427,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## CFB 模式
 
+> **注意**：CFB 模式使用 CFB8 实现，对于前 16 字节的数据，CFB8 和 OFB 模式会产生相同的加密结果。这是 Go 标准库 CFB8 实现的特性，不是错误。
+
 ### 创建 Cipher
 
 ```go
@@ -459,14 +461,14 @@ if encrypter.Error != nil {
  输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // d081959747c6a9a357665b
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("d081959747c6a9a357665b")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // 0IGVl0fGqaNXZls=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("0IGVl0fGqaNXZls=")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -519,6 +521,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## OFB 模式
 
+> **注意**：CFB 模式使用 CFB8 实现，对于前 16 字节的数据，CFB8 和 OFB 模式会产生相同的加密结果。这是 Go 标准库 CFB8 实现的特性，不是错误。
+
 ### 创建 Cipher
 
 ```go
@@ -551,14 +555,14 @@ if encrypter.Error != nil {
  输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // 48c6bc076e1da2946e1c0e59e9c91ae9
+encrypter.ToHexString() // d081959747c6a9a357665b
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("48c6bc076e1da2946e1c0e59e9c91ae9")
+encrypter.ToHexBytes()  // []byte("d081959747c6a9a357665b")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // SMa8B24dopRuHA5Z6cka6Q==
+encrypter.ToBase64String() // 0IGVl0fGqaNXZls=
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("SMa8B24dopRuHA5Z6cka6Q==")
+encrypter.ToBase64Bytes()  // []byte("0IGVl0fGqaNXZls=")
 
 // 输出未编码原始字符串
 encrypter.ToRawString()
@@ -609,5 +613,6 @@ decrypter.ToString() // hello world
 // 输出字节切片
 decrypter.ToBytes()  // []byte("hello world")
 ```
+
 
 

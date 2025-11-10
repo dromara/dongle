@@ -3,10 +3,10 @@ title: RC4 Stream Cipher Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: RC4 Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: RC4 (Rivest Cipher 4) stream cipher encryption algorithm, supports 1-256 byte variable-length keys, can process data of any length without padding, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, RC4, symmetric encryption algorithm, stream cipher
+      content: dongle, go-dongle, encryption, decryption, RC4, Rivest Cipher 4, symmetric encryption algorithm, stream cipher
 ---
 
 # RC4

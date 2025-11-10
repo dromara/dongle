@@ -3,10 +3,10 @@ title: Hex 编码/解码
 head:
   - - meta
     - name: description
-      content: Hex 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Hex 编码/解码，也称 Base16，使用 16 个字符（0-9, A-F），支持自定义大小写，支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, hex, base16, base16-encoding, base16-decoding, hex-encoding, hex-decoding
+      content: dongle, go-dongle, 编码, 解码, Hex, Base16, 大小写, 自定义字符集, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Hex

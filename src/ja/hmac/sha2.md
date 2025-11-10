@@ -3,10 +3,10 @@ title: HMAC-SHA2アルゴリズム
 head:
   - - meta
     - name: description
-      content: HMAC-SHA2アルゴリズム | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: HMAC-SHA2 メッセージ認証コードアルゴリズム、SHA2 ハッシュアルゴリズムに基づき、キーを使用してメッセージ認証を行う、sha2-224、sha2-256、sha2-384 と sha2-512 の4つのバリアントを提供、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: メッセージ認証コード, hmac, sha2, sha224, sha256, sha384, sha512, hmac-sha2, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512
+      content: dongle, go-dongle, HMAC, メッセージ認証コード, SHA2, sha2-224, sha2-256, sha2-384, sha2-512, キー, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hmac-Sha2

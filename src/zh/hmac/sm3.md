@@ -3,10 +3,10 @@ title: SM3 消息认证码算法
 head:
   - - meta
     - name: description
-      content: SM3 消息认证码算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: HMAC-SM3 消息认证码算法，基于 SM3 国密哈希算法，使用密钥进行消息认证，生成 32 字节认证码，符合 GB/T 32918.1-2016 标准，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 消息认证码, hmac, sm3, hmac-sm3
+      content: dongle, go-dongle, HMAC, 消息认证码, SM3, 国密算法, GB/T 32918.1-2016, 密钥, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hmac-Sm3

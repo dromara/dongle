@@ -3,10 +3,10 @@ title: Blake2s ハッシュアルゴリズム
 head:
   - - meta
     - name: description
-      content: BLAKE2s ハッシュアルゴリズム|軽量で、セマンティック、開発者フレンドリーな golang エンコーディング&暗号ライブラリ
+      content: Blake2s ハッシュアルゴリズム、blake2s-128（キーが必要）と blake2s-256 の2つのバリアントを提供、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、Hex および Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: ハッシュ, hash, blake2s, blake2s-128, blake2s-256, hash-blake2s, hash-blake2s-128, hash-blake2s-256
+      content: dongle, go-dongle, ハッシュ, ダイジェスト, チェックサム, Blake2s, blake2s-128, blake2s-256, キー, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, Hex, Base64
 ---
 
 # Hash-Blake2s

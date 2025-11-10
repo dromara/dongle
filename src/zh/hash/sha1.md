@@ -3,10 +3,10 @@ title: SHA1 哈希算法
 head:
   - - meta
     - name: description
-      content: SHA1 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: SHA1 哈希算法，生成 20 字节哈希值，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 哈希, hash, sha1, hash-sha1
+      content: dongle, go-dongle, 哈希, 摘要, 校验, SHA1, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hash-Sha1

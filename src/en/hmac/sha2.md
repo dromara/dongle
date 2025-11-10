@@ -3,10 +3,10 @@ title: SHA2 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-SHA2 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: HMAC-SHA2 message authentication code algorithm, based on SHA2 hash algorithm, using key for message authentication, providing sha2-224, sha2-256, sha2-384, and sha2-512 variants, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, sha2, sha224, sha256, sha384, sha512, hmac-sha2, hmac-sha224, hmac-sha256, hmac-sha384, hmac-sha512
+      content: dongle, go-dongle, HMAC, message authentication code, SHA2, sha2-224, sha2-256, sha2-384, sha2-512, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Sha2

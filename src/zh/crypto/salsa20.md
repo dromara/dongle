@@ -3,10 +3,10 @@ title: Salsa20 流密码加密算法
 head:
   - - meta
     - name: description
-      content: Salsa20 流密码加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Salsa20 流密码加密算法，支持 32 字节密钥与 8 字节随机数（Nonce），无需填充即可处理任意长度数据，支持标准和流式处理，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 加密, 解密, Salsa20, 对称加密算法, 流密码
+      content: dongle, go-dongle, 加密, 解密, Salsa20, 对称加密算法, 流密码, Nonce, 流式处理, Hex, Base64
 ---
 
 # Salsa20
@@ -65,14 +65,14 @@ if encrypter.Error != nil {
 
 ```go
 // 输出 Hex 编码字符串
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c
+hexString := encrypter.ToHexString() // 39ee99ffc157388ef95814
 // 输出 Hex 编码字节切片
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c")
+hexBytes := encrypter.ToHexBytes()   // []byte("39ee99ffc157388ef95814")
 
 // 输出 Base64 编码字符串
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=
+base64String := encrypter.ToBase64String() // Oe6Z/8FXOI75WBQ=
 // 输出 Base64 编码字节切片
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=")
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("Oe6Z/8FXOI75WBQ=")
 
 // 输出未编码原始字符串
 rawString := encrypter.ToRawString()

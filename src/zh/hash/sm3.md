@@ -3,10 +3,10 @@ title: SM3 哈希算法
 head:
   - - meta
     - name: description
-      content: SM3 哈希算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: SM3 哈希算法，中国国家密码管理局发布的国密哈希算法，生成 32 字节哈希值，符合 GB/T 32918.1-2016 标准，支持标准和流式处理，支持字符串、字节与文件输入，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 哈希, hash, sm3, hash-sm3
+      content: dongle, go-dongle, 哈希, 摘要, 校验, SM3, 国密算法, GB/T 32918.1-2016, 流式处理, 字符串输入, 字节输入, 文件输入, Hex, Base64
 ---
 
 # Hash-Sm3

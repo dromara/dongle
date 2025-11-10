@@ -3,10 +3,10 @@ title: SM3 Hash Algorithm
 head:
   - - meta
     - name: description
-      content: SM3 Hash Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: SM3 Hash Algorithm, a national cryptographic hash algorithm published by the National Cryptography Administration of China, generates 32-byte hash value, compliant with GB/T 32918.1-2016 standard, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: hashing, hash, sm3, hash-sm3
+      content: dongle, go-dongle, hashing, hash, sm3, national cryptographic algorithm, GB/T 32918.1-2016, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hash-Sm3

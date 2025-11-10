@@ -3,10 +3,10 @@ title: Blowfish Symmetric Encryption Algorithm
 head:
   - - meta
     - name: description
-      content: BLOWFISH Encryption Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Blowfish symmetric encryption algorithm, supports 1-56 byte variable-length keys, provides multiple block modes (CBC, ECB, CTR, CFB, OFB) and padding modes, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: encryption, decryption, Blowfish, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, CFB, OFB
+      content: dongle, go-dongle, encryption, decryption, Blowfish, symmetric encryption algorithm, block mode, padding mode, CBC, ECB, CTR, CFB, OFB
 ---
 
 # Blowfish
@@ -36,7 +36,7 @@ Supported padding modes:
 - **Bit**: Bit padding, adds a 1 bit at the end of plaintext, then fills with 0 bits to block boundary
 - **TBC**: Trailing Bit Complement padding, determines padding bytes based on the most significant bit of the last data byte (MSB=0 uses 0x00, MSB=1 uses 0xFF)
 
-> **Note**: Only `CBC/ECB` block modes require padding
+> **Note**: Only `CBC/ECB` block modes require padding mode, only `CBC/CTR/CFB/OFB` block modes require initialization vector
 
 Import related modules:
 ```go
@@ -52,10 +52,10 @@ import (
 ```go
 c := cipher.NewBlowfishCipher(cipher.CBC)
 // Set key (1-56 bytes)
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // Set initialization vector (8 bytes)
 c.SetIV([]byte("87654321"))
-// Set padding mode (optional, default is PKCS7, only CBC/ECB block modes need to set padding mode)
+// Set padding mode
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -83,14 +83,14 @@ Output Data
 
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // f52a4cc3738f6ed0ee8fe4312fa9be82
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("f52a4cc3738f6ed0ee8fe4312fa9be82")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // 9SpMw3OPbtDuj+QxL6m+gg==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("9SpMw3OPbtDuj+QxL6m+gg==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -150,8 +150,8 @@ decrypter.ToBytes()  // []byte("hello world")
 ```go
 c := cipher.NewBlowfishCipher(cipher.ECB)
 // Set key (1-56 bytes)
-c.SetKey([]byte("1234567890123456"))
-// Set padding mode (optional, defaults to PKCS7, only CBC/ECB block modes require padding mode)
+c.SetKey([]byte("12345678"))
+// Set padding mode
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -177,14 +177,14 @@ if encrypter.Error != nil {
 Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 77caf7bc47a73ead1497a822dd1a2bf0
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("77caf7bc47a73ead1497a822dd1a2bf0")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // d8r3vEenPq0Ul6gi3Ror8A==
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("d8r3vEenPq0Ul6gi3Ror8A==")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -244,9 +244,9 @@ decrypter.ToBytes()  // []byte("hello world")
 ```go
 c := cipher.NewBlowfishCipher(cipher.CTR)
 // Set key (1-56 bytes)
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // Set initialization vector (8 bytes)
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                   
 ```
 
 ### Encrypt Data
@@ -271,14 +271,14 @@ if encrypter.Error != nil {
 Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 09f68045da3a38f2620280
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("09f68045da3a38f2620280")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // CfaARdo6OPJiAoA=
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("CfaARdo6OPJiAoA=")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -333,14 +333,16 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## CFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption result. This is a feature of the Go standard library CFB8 implementation, not a bug.
+
 ### Create Cipher
 
 ```go
 c := cipher.NewBlowfishCipher(cipher.CFB)
 // Set key (1-56 bytes)
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // Set initialization vector (8 bytes)
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                   
 ```
 
 ### Encrypt Data
@@ -365,14 +367,14 @@ if encrypter.Error != nil {
 Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 09f68045da3a38f217a836
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("09f68045da3a38f217a836")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // CfaARdo6OPIXqDY=
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("CfaARdo6OPIXqDY=")
 
 // Output unencoded raw string
 encrypter.ToRawString()
@@ -427,14 +429,16 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## OFB Mode
 
+> **Note**: CFB mode uses CFB8 implementation. For the first 16 bytes of data, CFB8 and OFB modes will produce the same encryption result. This is a feature of the Go standard library CFB8 implementation, not a bug.
+
 ### Create Cipher
 
 ```go
 c := cipher.NewBlowfishCipher(cipher.OFB)
 // Set key (1-56 bytes)
-c.SetKey([]byte("1234567890123456"))
+c.SetKey([]byte("12345678"))
 // Set initialization vector (8 bytes)
-c.SetIV([]byte("87654321"))
+c.SetIV([]byte("87654321"))                  
 ```
 
 ### Encrypt Data
@@ -459,14 +463,14 @@ if encrypter.Error != nil {
 Output Data
 ```go
 // Output Hex encoded string
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 09f68045da3a38f2613a97
 // Output hex-encoded byte slice
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("09f68045da3a38f2613a97")
 
 // Output Base64 encoded string
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // CfaARdo6OPJhOpc=
 // Output base64-encoded byte slice
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("CfaARdo6OPJhOpc=")
 
 // Output unencoded raw string
 encrypter.ToRawString()

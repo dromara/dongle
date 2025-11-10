@@ -6,8 +6,23 @@ head:
 ---
 
 # Change Log
+## [v1.2.0](https://github.com/dromara/dongle/compare/v1.1.8...v1.2.0) (2025-11-11)
 
-## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-01)
+* [break change] Remove `LoadPublicKey` and `LoadPrivateKey` methods from `RSAKeyPair` struct
+* [break change] Remove `LoadPublicKey` and `LoadPrivateKey` methods from `Ed25519KeyPair` struct
+* [chore] `RSAKeyPair` struct's `GenKeyPair`, `SetPublicKey`, `SetPrivateKey` methods changed from no return value to returning `error`
+* [chore] `Ed25519KeyPair` struct's `GenKeyPair`, `SetPublicKey`, `SetPrivateKey` methods changed from no return value to returning `error`
+* [feat] `RSAKeyPair` struct adds `FormatPublicKey` and `FormatPrivateKey` methods to format `base64` encoded `der` format `RSA` public and private keys into `pem` format
+* [feat] `Ed25519KeyPair` struct adds `FormatPublicKey` and `FormatPrivateKey` methods to format `base64` encoded `der` format `Ed25519` public and private keys into `pem` format
+* [feat] `RSAKeyPair` struct adds `CompressPublicKey` and `CompressPrivateKey` methods to compress `pem` format `RSA` public and private keys into `base64` encoded `der` format
+* [feat] `Ed25519KeyPair` struct adds `CompressPublicKey` and `CompressPrivateKey` methods to compress `pem` format `Ed25519` public and private keys into `base64` encoded `der` format
+* [feat] Add `Sm2` asymmetric elliptic curve encryption algorithm support, including standard processing and streaming processing
+
+## [v1.1.8](https://github.com/dromara/dongle/compare/v1.1.7...v1.1.8) (2025-11-05)
+* [fix] Fix bug where `*RsaKeyPair.formatPublicKey` and `*RsaKeyPair.formatPrivateKey` fail to format keys
+* [fix] Fix bug where `*Ed25519KeyPair.formatPublicKey` and `*Ed25519KeyPair.formatPrivateKey` fail to format keys
+* [fix] Fix bug where decoding encrypted ciphertext fails during decryption and the error cannot be retrieved
+* [chore] Change default padding mode from `PKCS7` to `No` in symmetric block encryption algorithms
 * [feat] Add `Unicode` encoding/decoding support, including standard processing and streaming processing
 * [feat] Add `TBC` padding mode support for symmetric block encryption algorithms
 

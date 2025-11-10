@@ -3,10 +3,10 @@ title: MD4 Message Authentication Code Algorithm
 head:
   - - meta
     - name: description
-      content: HMAC-MD4 Algorithm | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: HMAC-MD4 message authentication code algorithm, based on MD4 hash algorithm, using key for message authentication, generates 16-byte authentication code, supports standard and streaming processing, string, byte and file input, and Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: message authentication code, hmac, md4, hmac-md4
+      content: dongle, go-dongle, HMAC, message authentication code, MD4, key, streaming processing, string input, byte input, file input, Hex, Base64
 ---
 
 # Hmac-Md4

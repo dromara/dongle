@@ -3,10 +3,10 @@ title: Base58エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Base58エンコード/デコード | 軽量で、セマンティックで、開発者フレンドリーなgolang エンコード&暗号ライブラリ
+      content: Base58 エンコード/デコード、ビットコインスタイルの文字セットに従い、混同しやすい文字（0、O、I、l）を除外、カスタムアルファベットをサポート、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, base58, base58-encoding, base58-decoding
+      content: dongle, go-dongle, エンコード, デコード, Base58, ビットコインスタイル, アルファベット, カスタム文字セット, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Base58

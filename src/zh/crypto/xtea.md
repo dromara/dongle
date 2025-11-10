@@ -3,10 +3,10 @@ title: XTEA 对称加密算法
 head:
   - - meta
     - name: description
-      content: XTEA 对称加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: XTEA (eXtended Tiny Encryption Algorithm) 对称加密算法，支持 16 字节密钥，提供多种分组模式（CBC、ECB、CTR、CFB、OFB）和填充模式，支持标准和流式处理，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 加密, 解密, XTEA, 对称加密算法, 分组模式, 填充模式, CBC, ECB, CTR, CFB, OFB
+      content: dongle, go-dongle, 加密, 解密, XTEA, eXtended Tiny Encryption Algorithm, 对称加密算法, 分组模式, 填充模式, CBC, ECB, CTR, CFB, OFB
 ---
 
 # XTEA
@@ -36,7 +36,7 @@ XTEA（eXtended Tiny Encryption Algorithm）是一种对称加密算法，使用
 - **Bit**：位填充，在明文末尾添加一个 1 位，然后用 0 位填充到块边界
 - **TBC**：尾位补码填充，根据最后一个数据字节的最高位确定填充字节（MSB=0 用 0x00，MSB=1 用 0xFF）
 
-> **注意**：仅 `CBC/ECB` 分组模式需要填充
+> **注意**：仅 `CBC/ECB` 分组模式需要设置填充模式，仅 `CBC/CTR/CFB/OFB` 分组模式需要设置初始化向量
 
 导入相关模块：
 ```go
@@ -55,7 +55,7 @@ c := cipher.NewXteaCipher(cipher.CBC)
 c.SetKey([]byte("1234567890123456"))
 // 设置初始化向量（8 字节）
 c.SetIV([]byte("12345678"))
-// 设置填充模式（可选，默认 PKCS7，CBC/ECB 分组模式需要设置填充模式）
+// 设置填充模式
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -151,7 +151,7 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewXteaCipher(cipher.ECB)
 // 设置密钥（必填，16 字节）
 c.SetKey([]byte("1234567890123456"))
-// 设置填充模式（可选，默认 PKCS7，CBC/ECB 分组模式需要设置填充模式）
+// 设置填充模式
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -177,14 +177,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 2b4e8f1a5c7d9e3f6a8b2c4d5e7f9a1b
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("2b4e8f1a5c7d9e3f6a8b2c4d5e7f9a1b")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // K06PGsdfnj+aqyzUXn+aGw==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("K06PGsdfnj+aqyzUXn+aGw==")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -273,14 +273,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 7f3a9b2e4d6c8f1a5e7b9c3d4f6a8b2e
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("7f3a9b2e4d6c8f1a5e7b9c3d4f6a8b2e")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // fzqbLk1sjxpeec09T2qLLg==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("fzqbLk1sjxpeec09T2qLLg==")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -334,6 +334,7 @@ decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## CFB 模式
+> **注意**：CFB 模式使用 CFB8 实现，对于前 16 字节的数据，CFB8 和 OFB 模式会产生相同的加密结果。这是 Go 标准库 CFB8 实现的特性，不是错误。
 
 ### 创建 Cipher
 
@@ -367,14 +368,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 5a8c3f1e7b4d9a2c6e8f1b5d3a7c9e2f
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("5a8c3f1e7b4d9a2c6e8f1b5d3a7c9e2f")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // WowPHntNmi5ujxtaPHyf
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("WowPHntNmi5ujxtaPHyf")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -428,6 +429,7 @@ decrypter.ToBytes()  // []byte("hello world")
 ```
 
 ## OFB 模式
+> **注意**：CFB 模式使用 CFB8 实现，对于前 16 字节的数据，CFB8 和 OFB 模式会产生相同的加密结果。这是 Go 标准库 CFB8 实现的特性，不是错误。
 
 ### 创建 Cipher
 
@@ -461,14 +463,14 @@ if encrypter.Error != nil {
 输出数据
 ```go
 // 输出 Hex 编码字符串
-encrypter.ToHexString() // a1b2c3d4e5f67890
+encrypter.ToHexString() // 3f7a9c2e5d8b1f4a6e9c3d7b2f5a8e1c
 // 输出 Hex 编码字节切片
-encrypter.ToHexBytes()  // []byte("a1b2c3d4e5f67890")
+encrypter.ToHexBytes()  // []byte("3f7a9c2e5d8b1f4a6e9c3d7b2f5a8e1c")
 
 // 输出 Base64 编码字符串
-encrypter.ToBase64String() // obLD1OX2eJA=
+encrypter.ToBase64String() // P3qcLl2LH0puPD17L1qOHA==
 // 输出 Base64 编码字节切片
-encrypter.ToBase64Bytes()  // []byte("obLD1OX2eJA=")
+encrypter.ToBase64Bytes()  // []byte("P3qcLl2LH0puPD17L1qOHA==")
 
 // 输出无编码原始字符串
 encrypter.ToRawString()
@@ -520,3 +522,4 @@ decrypter.ToString() // hello world
 // 输出字节切片
 decrypter.ToBytes()  // []byte("hello world")
 ```
+

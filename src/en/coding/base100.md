@@ -3,10 +3,10 @@ title: Base100 Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Base100 Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Base100 encoding/decoding, uses Emoji characters for representation (each byte maps to a 4-byte UTF-8 emoji), supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, base100, emoji, base100-encoding, base100-decoding, emoji-encoding, emoji-decoding
+      content: dongle, go-dongle, encoding, decoding, Base100, Emoji, UTF-8, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Base100

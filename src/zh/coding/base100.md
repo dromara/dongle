@@ -3,10 +3,10 @@ title: Base100 编码/解码
 head:
   - - meta
     - name: description
-      content: Base100 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Base100 编码/解码，使用 Emoji 字符进行表示（每个字节映射为一个 4 字节 UTF-8 表情），支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, base100, emoji, base100-encoding, base100-decoding, emoji-encoding, emoji-decoding
+      content: dongle, go-dongle, 编码, 解码, Base100, Emoji, UTF-8, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Base100

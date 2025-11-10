@@ -3,10 +3,10 @@ title: Unicode エンコード/デコード
 head:
   - - meta
     - name: description
-      content: Unicode エンコード/デコード | 軽量で意味的、開発者フレンドリーな golang エンコーディング&暗号化ライブラリ
+      content: Unicode エンコード/デコード、\uXXXX エスケープシーケンスを使用して非 ASCII 文字を表現、strconv.QuoteToASCII に基づいて実装、標準およびストリーミング処理をサポート、文字列、バイト、ファイル入力をサポート、文字列とバイト出力を提供
   - - meta
     - name: keywords
-      content: エンコード, デコード, unicode, unicode-encoding, unicode-decoding, エスケープシーケンス, escape-sequence
+      content: dongle, go-dongle, エンコード, デコード, Unicode, エスケープシーケンス, \uXXXX, ASCII, strconv.QuoteToASCII, ストリーミング処理, 文字列入力, バイト入力, ファイル入力, 文字列出力, バイト出力
 ---
 
 # Unicode

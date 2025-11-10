@@ -3,10 +3,10 @@ title: ChaCha20-Poly1305 认证加密算法
 head:
   - - meta
     - name: description
-      content: ChaCha20-Poly1305 认证加密算法 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: ChaCha20-Poly1305 认证加密算法（AEAD），支持 32 字节密钥与 12 字节随机数（Nonce），支持附加认证数据（AAD），无需填充即可处理任意长度数据，支持标准和流式处理，支持 Hex 和 Base64 输出格式
   - - meta
     - name: keywords
-      content: 加密, 解密, ChaCha20-Poly1305, ChaCha20, Poly1305, 对称加密算法, 流密码, 消息认证码, 认证加密, AEAD
+      content: dongle, go-dongle, 加密, 解密, ChaCha20-Poly1305, ChaCha20, Poly1305, 对称加密算法, 流密码, 消息认证码, 认证加密, AEAD
 ---
 
 # ChaCha20-Poly1305
@@ -41,7 +41,7 @@ c.SetKey([]byte("dongle1234567890abcdef123456789x"))
 // 设置随机数（必须是 12 字节）
 c.SetNonce([]byte("123456789012"))
 // 设置附加认证数据（可选）
-c.SetAAD([]byte("additional authenticated data"))
+c.SetAAD([]byte("dongle"))
 ```
 
 ## 加密数据
@@ -68,14 +68,14 @@ if encrypter.Error != nil {
 
 ```go
 // 输出 Hex 编码字符串
-hexString := encrypter.ToHexString() // 4a1c8f2d3e5a6b7c...
+hexString := encrypter.ToHexString() // 04457bd9e26e18b1975a89ed76e38bbddc6364721923967b10ca4c
 // 输出 Hex 编码字节切片
-hexBytes := encrypter.ToHexBytes()   // []byte("4a1c8f2d3e5a6b7c...")
+hexBytes := encrypter.ToHexBytes()   // []byte("04457bd9e26e18b1975a89ed76e38bbddc6364721923967b10ca4c")
 
 // 输出 Base64 编码字符串
-base64String := encrypter.ToBase64String() // ShyPLT5aa3w=...
+base64String := encrypter.ToBase64String() // BEV72eJuGLGXWontduOLvdxjZHIZI5Z7EMpM
 // 输出 Base64 编码字节切片
-base64Bytes := encrypter.ToBase64Bytes()   // []byte("ShyPLT5aa3w=...")
+base64Bytes := encrypter.ToBase64Bytes()   // []byte("BEV72eJuGLGXWontduOLvdxjZHIZI5Z7EMpM")
 
 // 输出未编码原始字符串
 rawString := encrypter.ToRawString()

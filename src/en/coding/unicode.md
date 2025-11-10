@@ -3,10 +3,10 @@ title: Unicode Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Unicode Encoding/Decoding | A lightweight, semantic and developer-friendly golang encoding & crypto library
+      content: Unicode encoding/decoding, uses \uXXXX escape sequences to represent non-ASCII characters, based on strconv.QuoteToASCII implementation, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: encoding, decoding, unicode, unicode-encoding, unicode-decoding, escape-sequence
+      content: dongle, go-dongle, encoding, decoding, Unicode, escape sequence, \uXXXX, ASCII, strconv.QuoteToASCII, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Unicode

@@ -3,10 +3,10 @@ title: Base64 编码/解码
 head:
   - - meta
     - name: description
-      content: Base64 编码/解码 | 一个轻量级、语义化、对开发者友好的 golang 密码库
+      content: Base64 编码/解码，支持 Base64 与 Base64Url 两种变体，支持自定义字母表，支持标准和流式处理，支持字符串、字节与文件输入，提供字符串与字节输出
   - - meta
     - name: keywords
-      content: 编码, 解码, base64, base64Url, base64-encoding, base64-decoding, base64Url-encoding, base64Url-decoding
+      content: dongle, go-dongle, 编码, 解码, Base64, Base64Url, 字母表, 自定义字符集, 流式处理, 字符串输入, 字节输入, 文件输入, 字符串输出, 字节输出
 ---
 
 # Base64

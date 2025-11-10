@@ -3,10 +3,10 @@ title: Twofish 対称暗号化アルゴリズム
 head:
   - - meta
     - name: description
-      content: TWOFISH暗号化アルゴリズム|軽量で、セマンティック、開発者に優しいgolangエンコーディング&暗号化ライブラリ
+      content: Twofish 対称暗号化アルゴリズム。16、24、または 32 バイト鍵をサポートし、複数のブロックモード（CBC、ECB、CTR、GCM、CFB、OFB）とパディングモードを提供。標準処理とストリーム処理をサポートし、Hex および Base64 出力形式をサポートします
   - - meta
     - name: keywords
-      content: 暗号化, 復号化, Twofish, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, GCM, CFB, OFB
+      content: dongle, go-dongle, 暗号化, 復号化, Twofish, 対称暗号化アルゴリズム, ブロックモード, パディングモード, CBC, ECB, CTR, GCM, CFB, OFB
 ---
 
 # Twofish
@@ -16,11 +16,11 @@ Twofishは、`16`、`24`、または`32`バイトの固定長キーをサポー�
 以下のブロックモードがサポートされています：
 
 - **CBC（Cipher Block Chaining）**：暗号ブロック連鎖モード、キー`Key`、初期化ベクトル`IV`（16バイト）、パディングモード`Padding`の設定が必要
-- **CTR（Counter）**：カウンターモード、キー`Key`と初期化ベクトル`IV`（16バイト）の設定が必要
 - **ECB（Electronic Codebook）**：電子コードブックモード、キー`Key`とパディングモード`Padding`の設定が必要
+- **CTR（Counter）**：カウンターモード、キー`Key`と初期化ベクトル`IV`（16バイト）の設定が必要
+- **GCM（Galois/Counter Mode）**：ガロアカウンターモード、キー`Key`、ナンス`Nonce`（1-255バイト）、オプションの追加認証データ`AAD`の設定が必要
 - **CFB（Cipher Feedback）**：暗号フィードバックモード、キー`Key`と初期化ベクトル`IV`（16バイト）の設定が必要
 - **OFB（Output Feedback）**：出力フィードバックモード、キー`Key`と初期化ベクトル`IV`（16バイト）の設定が必要
-- **GCM（Galois/Counter Mode）**：ガロアカウンターモード、キー`Key`、ナンス`Nonce`（12バイト）、オプションの追加認証データ`AAD`の設定が必要
 
 以下のパディングモードがサポートされています：
 
@@ -35,7 +35,7 @@ Twofishは、`16`、`24`、または`32`バイトの固定長キーをサポー�
 - **Bit**：ビットパディング、平文の末尾に1ビットを追加し、ブロック境界まで0ビットでパディング
 - **TBC**：末尾ビット補数パディング、最後のデータバイトの最上位ビットに基づいてパディングバイトを決定（MSB=0は0x00、MSB=1は0xFFを使用）
 
-> **注意**：`CBC/ECB`ブロックモードのみパディングが必要です
+> **注意**：`CBC/ECB`ブロックモードのみパディングモードの設定が必要、`CBC/CTR/CFB/OFB`ブロックモードのみ初期化ベクトルの設定が必要
 
 関連モジュールをインポート：
 ```go
@@ -54,7 +54,7 @@ c := cipher.NewTwofishCipher(cipher.CBC)
 c.SetKey([]byte("1234567890123456"))
 // 初期化ベクトルを設定（16バイト）
 c.SetIV([]byte("1234567890123456"))
-// パディングモードを設定（オプション、デフォルトはPKCS7）
+// パディングモードを設定
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -82,14 +82,14 @@ if encrypter.Error != nil {
 
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 778e2e1e61afba198bb5128017cb4b81
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("778e2e1e61afba198bb5128017cb4b81")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // d44uHmGvuhmLtRKAF8tLgQ==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("d44uHmGvuhmLtRKAF8tLgQ==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -150,7 +150,7 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewTwofishCipher(cipher.ECB)
 // キーを設定（16、24、または32バイト）
 c.SetKey([]byte("1234567890123456"))
-// パディングモードを設定（オプション、デフォルトはPKCS7、CBC/ECBブロックモードのみパディングモードの設定が必要）
+// パディングモードを設定
 c.SetPadding(cipher.PKCS7)
 ```
 
@@ -176,14 +176,14 @@ if encrypter.Error != nil {
 出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 0fb94e36c8a2f1c2f66994638121d2c8
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("0fb94e36c8a2f1c2f66994638121d2c8")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // D7lONsii8cL2aZRjgSHSyA==
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("D7lONsii8cL2aZRjgSHSyA==")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -270,14 +270,14 @@ if encrypter.Error != nil {
 出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 7cd470bfd6d8e18b57d269
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7cd470bfd6d8e18b57d269")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // fNRwv9bY4YtX0mk=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("fNRwv9bY4YtX0mk=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -334,6 +334,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## CFBモード
 
+> **注意**：CFBモードはCFB8実装を使用します。最初の16バイトのデータの場合、CFB8とOFBモードは同じ暗号化結果を生成します。これはGo標準ライブラリCFB8実装の特性であり、バグではありません。
+
 ### 暗号器の作成
 
 ```go
@@ -366,14 +368,14 @@ if encrypter.Error != nil {
 出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 7cd470bfd6d8e18b57d269
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7cd470bfd6d8e18b57d269")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // fNRwv9bY4YtX0mk=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("fNRwv9bY4YtX0mk=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -428,6 +430,8 @@ decrypter.ToBytes()  // []byte("hello world")
 
 ## OFBモード
 
+> **注意**：CFBモードはCFB8実装を使用します。最初の16バイトのデータの場合、CFB8とOFBモードは同じ暗号化結果を生成します。これはGo標準ライブラリCFB8実装の特性であり、バグではありません。
+
 ### 暗号器の作成
 
 ```go
@@ -460,14 +464,14 @@ if encrypter.Error != nil {
 出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 7cd470bfd6d8e18b57d269
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("7cd470bfd6d8e18b57d269")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // fNRwv9bY4YtX0mk=
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("fNRwv9bY4YtX0mk=")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
@@ -528,12 +532,10 @@ decrypter.ToBytes()  // []byte("hello world")
 c := cipher.NewTwofishCipher(cipher.GCM)
 // キーを設定（16、24、または32バイト）
 c.SetKey([]byte("1234567890123456"))
-// ナンスを設定（12バイト）
-c.SetNonce([]byte("123456789012"))
+// ナンスを設定（1-255バイト）
+c.SetNonce([]byte("12345678"))
 // 追加認証データを設定（オプション）
-c.SetAAD([]byte("additional data"))
-// パディングモードを設定（GCMモードは通常Noパディングを使用）
-c.SetPadding(cipher.No)
+c.SetAAD([]byte("dongle"))
 ```
 
 ### データの暗号化
@@ -558,14 +560,14 @@ if encrypter.Error != nil {
 出力データ
 ```go
 // Hexエンコード文字列を出力
-encrypter.ToHexString() // 7fae94fd1a8b880d8d5454dd8df30c40
+encrypter.ToHexString() // 36059dc3fbbc82418a032f74ae9ffa55077aa925f61a1a16eb0dd0
 // Hexエンコードバイトスライスを出力
-encrypter.ToHexBytes()  // []byte("7fae94fd1a8b880d8d5454dd8df30c40")
+encrypter.ToHexBytes()  // []byte("36059dc3fbbc82418a032f74ae9ffa55077aa925f61a1a16eb0dd0")
 
 // Base64エンコード文字列を出力
-encrypter.ToBase64String() // f66U/RqLiA2NVFTdjfMMQA==
+encrypter.ToBase64String() // NgWdw/u8gkGKAy90rp/6VQd6qSX2GhoW6w3Q
 // Base64エンコードバイトスライスを出力
-encrypter.ToBase64Bytes()  // []byte("f66U/RqLiA2NVFTdjfMMQA==")
+encrypter.ToBase64Bytes()  // []byte("NgWdw/u8gkGKAy90rp/6VQd6qSX2GhoW6w3Q")
 
 // エンコードされていない生の文字列を出力
 encrypter.ToRawString()
