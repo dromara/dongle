@@ -168,7 +168,7 @@ dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
 dongle.Verify.FromString("hello world").WithBase64Sign(hexBytes).ByRsa(kp).ToBool()
 ```
 
-更多用法示例请查看 <a href="https://dongle.go-pkg.com/zh" target="_blank">官方文档</a>
+更多用法示例请查看 <a href="https://dongle.go-pkg.com/zh" target="_blank">官方文档</a>, 在线工具请访问 <a href="https://tools.go-pkg.com" target="_blank">Playground</a>
 
 ## 贡献者
 
