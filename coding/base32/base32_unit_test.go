@@ -97,8 +97,8 @@ func TestStdEncoder_Encode(t *testing.T) {
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		data1 := []byte("hello")
 		data2 := []byte(" world")
@@ -113,51 +113,51 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.Equal(t, "NBSWY3DPEB3W64TMMQ======", buf.String())
+		assert.Equal(t, "NBSWY3DPEB3W64TMMQ======", string(file.Bytes()))
 	})
 
 	t.Run("close with data success", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("test"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "ORSXG5A=", buf.String())
+		assert.Equal(t, "ORSXG5A=", string(file.Bytes()))
 	})
 
 	t.Run("close with single byte", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("a"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "ME======", buf.String())
+		assert.Equal(t, "ME======", string(file.Bytes()))
 	})
 
 	t.Run("close with two bytes", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("ab"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "MFRA====", buf.String())
+		assert.Equal(t, "MFRA====", string(file.Bytes()))
 	})
 
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("hello"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "NBSWY3DP", buf.String())
+		assert.Equal(t, "NBSWY3DP", string(file.Bytes()))
 	})
 }
 
@@ -260,8 +260,8 @@ func TestStdDecoder_Decode(t *testing.T) {
 
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		data := []byte("hello")
 		n, err := encoder.Write(data)
@@ -271,8 +271,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		data1 := []byte("hello")
 		data2 := []byte(" world")
@@ -292,8 +292,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write empty data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		var data []byte
 		n, err := encoder.Write(data)
@@ -303,8 +303,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with hex alphabet", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, HexAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, HexAlphabet)
 
 		data := []byte("hello world")
 		n, err := encoder.Write(data)
@@ -337,8 +337,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with exact block size", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write exactly 5 bytes (complete block, no remainder)
 		data := []byte("hello") // 5 bytes = complete block
@@ -346,12 +346,12 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 5, n)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, buf.String()) // Should have written encoded data
+		assert.NotEmpty(t, string(file.Bytes())) // Should have written encoded data
 	})
 
 	t.Run("write with multiple complete blocks", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write 10 bytes (2 complete blocks, no remainder)
 		data := []byte("helloworld") // 10 bytes = 2 complete blocks
@@ -359,7 +359,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 10, n)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, buf.String()) // Should have written encoded data
+		assert.NotEmpty(t, string(file.Bytes())) // Should have written encoded data
 	})
 
 	t.Run("write with existing error", func(t *testing.T) {
@@ -375,8 +375,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with no remainder", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write exactly 5 bytes (complete block, no remainder)
 		data := []byte("hello") // 5 bytes = complete block
@@ -384,7 +384,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 5, n)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, buf.String())
+		assert.NotEmpty(t, string(file.Bytes()))
 		// Verify that no bytes are buffered (remainder = 0)
 		streamEncoder := encoder.(*StreamEncoder)
 		assert.Empty(t, streamEncoder.buffer)
@@ -393,23 +393,23 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("hello"))
 		err := encoder.Close()
 
 		assert.Nil(t, err)
-		assert.Equal(t, "NBSWY3DP", buf.String())
+		assert.Equal(t, "NBSWY3DP", string(file.Bytes()))
 	})
 
 	t.Run("close without data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("close with error", func(t *testing.T) {
@@ -430,8 +430,8 @@ func TestStreamEncoder_Close(t *testing.T) {
 	})
 
 	t.Run("close with 3 bytes buffered", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write 3 bytes (incomplete block)
 		encoder.Write([]byte("abc"))
@@ -439,12 +439,12 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 		assert.Nil(t, err)
 		// 3 bytes should produce 5 characters + 3 padding
-		assert.Contains(t, buf.String(), "===")
+		assert.Contains(t, string(file.Bytes()), "===")
 	})
 
 	t.Run("close with 4 bytes buffered", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write 4 bytes (incomplete block)
 		encoder.Write([]byte("abcd"))
@@ -452,12 +452,12 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 		assert.Nil(t, err)
 		// 4 bytes should produce 7 characters + 1 padding
-		assert.Contains(t, buf.String(), "=")
+		assert.Contains(t, string(file.Bytes()), "=")
 	})
 
 	t.Run("close with no buffered data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write complete blocks only, no remainder
 		encoder.Write([]byte("hello")) // 5 bytes = complete block
@@ -465,7 +465,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 		assert.Nil(t, err)
 		// Should have written the complete block
-		assert.NotEmpty(t, buf.String())
+		assert.NotEmpty(t, string(file.Bytes()))
 	})
 
 	t.Run("close with write error during padding", func(t *testing.T) {

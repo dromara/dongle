@@ -98,11 +98,12 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // It provides efficient encoding for large data streams by processing data
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
-	writer   io.Writer        // Underlying writer for encoded output
-	encoder  *base32.Encoding // Base32 encoding implementation
-	buffer   []byte           // Buffer for accumulating partial bytes (0-4 bytes)
-	alphabet string           // The alphabet used for encoding
-	Error    error            // Error field for storing encoding errors
+	writer    io.Writer        // Underlying writer for encoded output
+	encoder   *base32.Encoding // Base32 encoding implementation
+	buffer    []byte           // Buffer for accumulating partial bytes (0-4 bytes)
+	alphabet  string           // The alphabet used for encoding
+	encodeBuf [8]byte          // Reusable buffer for encoding output (5 bytes -> 8 chars)
+	Error     error            // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base32 encoder that writes encoded data
@@ -139,10 +140,9 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	// Process complete 5-byte blocks (5 bytes = 8 characters)
 	blocks := len(data) / 5
 	for i := 0; i < blocks*5; i += 5 {
-		// Encode 5 bytes to 8 characters
-		encoded := make([]byte, 8)
-		e.encoder.Encode(encoded, data[i:i+5])
-		if _, err = e.writer.Write(encoded); err != nil {
+		// Encode 5 bytes to 8 characters using reusable buffer
+		e.encoder.Encode(e.encodeBuf[:], data[i:i+5])
+		if _, err = e.writer.Write(e.encodeBuf[:]); err != nil {
 			return len(p), err
 		}
 	}
@@ -202,12 +202,14 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader   io.Reader        // Underlying reader for encoded input
-	decoder  *base32.Encoding // Base32 encoding implementation
-	buffer   []byte           // Buffer for decoded data not yet read
-	pos      int              // Current position in the decoded buffer
-	alphabet string           // The alphabet used for decoding
-	Error    error            // Error field for storing decoding errors
+	reader    io.Reader        // Underlying reader for encoded input
+	decoder   *base32.Encoding // Base32 encoding implementation
+	buffer    []byte           // Buffer for decoded data not yet read
+	pos       int              // Current position in the decoded buffer
+	alphabet  string           // The alphabet used for decoding
+	readBuf   [1024]byte       // Reusable buffer for reading encoded data
+	decodeBuf [640]byte        // Reusable buffer for decoding (base32 decodes to 5/8 size)
+	Error     error            // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming base32 decoder that reads encoded data
@@ -238,9 +240,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	// Read encoded data in chunks using reusable buffer
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -249,19 +250,17 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	// Decode the data using the configured decoder
-	decodedLen := d.decoder.DecodedLen(rn)
-	decoded := make([]byte, decodedLen)
-	n, err = d.decoder.Decode(decoded, readBuf[:rn])
+	// Decode the data using the configured decoder with reusable buffer
+	n, err = d.decoder.Decode(d.decodeBuf[:], d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
 
 	// Copy decoded data to the provided buffer
-	copied := copy(p, decoded[:n])
+	copied := copy(p, d.decodeBuf[:n])
 	if copied < n {
 		// Buffer remaining data for next read
-		d.buffer = decoded[copied:n]
+		d.buffer = d.decodeBuf[copied:n]
 		d.pos = 0
 	}
 
