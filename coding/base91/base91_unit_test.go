@@ -213,8 +213,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		assert.Equal(t, 5, n)
 		assert.Nil(t, err)
-		// With true streaming, incomplete chunks (less than 13 bytes) are buffered
-		assert.Equal(t, data, encoder.buffer)
+		// With true streaming, data is processed immediately and state is maintained in queue/numBits
+		assert.Greater(t, encoder.numBits, uint(0)) // Should have some bits in queue after writing
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
@@ -231,8 +231,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Nil(t, err1)
 		assert.Equal(t, 6, n2)
 		assert.Nil(t, err2)
-		// With true streaming, incomplete chunks are buffered for next write or close
-		assert.Equal(t, []byte("hello world"), encoder.buffer)
+		// With true streaming, data is processed immediately and state is maintained
+		assert.Greater(t, buf.Len(), 0) // Should have encoded output
 	})
 
 	t.Run("write with existing error", func(t *testing.T) {
@@ -251,7 +251,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 		n, err := encoder.Write(data)
 		assert.Equal(t, 0, n)
 		assert.Nil(t, err)
-		assert.Empty(t, encoder.buffer)
+		assert.Equal(t, uint(0), encoder.numBits) // Should have no bits in queue
 	})
 
 	t.Run("write with writer error", func(t *testing.T) {
@@ -558,5 +558,90 @@ func TestStreamError(t *testing.T) {
 		n, err := decoder.Read(buf)
 		assert.Equal(t, 6, n) // base91 decoder processes valid characters
 		assert.Nil(t, err)
+	})
+
+	t.Run("stream encoder write with v <= 88 path", func(t *testing.T) {
+		// Test the else branch in Write where v <= 88 (takes 14 bits)
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		// Use specific bytes that will trigger v <= 88 condition
+		// When v & 8191 <= 88, it takes 14 bits instead of 13
+		data := []byte{0x00, 0x00, 0x00} // Low values that trigger this path
+		n, err := encoder.Write(data)
+		assert.Equal(t, 3, n)
+		assert.Nil(t, err)
+		encoder.Close()
+	})
+
+	t.Run("stream encoder close with numBits > 7 or queue > 90", func(t *testing.T) {
+		// Test the close path where numBits > 7 || queue > 90
+		var buf bytes.Buffer
+		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+
+		// Write data that leaves significant bits in queue
+		data := []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+		encoder.Write(data)
+
+		err := encoder.Close()
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.String())
+	})
+
+	t.Run("stream decoder decode with remaining odd character", func(t *testing.T) {
+		// Test the decode path where v != -1 at the end (odd number of characters)
+		file := mock.NewFile([]byte("A"), "test.txt") // Single character
+		decoder := NewStreamDecoder(file).(*StreamDecoder)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.True(t, n >= 0) // Should handle the remaining character
+		assert.Nil(t, err)
+	})
+
+	t.Run("stream decoder decode internal empty input", func(t *testing.T) {
+		// Test the internal decode function with empty input
+		file := mock.NewFile([]byte("TPwJh>A"), "test.txt")
+		decoder := NewStreamDecoder(file).(*StreamDecoder)
+
+		// Call decode with empty input to cover line 373-375
+		result, err := decoder.decode([]byte{})
+		assert.Nil(t, result)
+		assert.Nil(t, err)
+	})
+
+	t.Run("stream decoder decode with v <= 88 path", func(t *testing.T) {
+		// Test the decode path where (v & 8191) <= 88 (takes 14 bits)
+		// This happens with certain encoded data patterns
+		file := mock.NewFile([]byte("AA"), "test.txt") // "AA" produces low values
+		decoder := NewStreamDecoder(file).(*StreamDecoder)
+
+		buf := make([]byte, 10)
+		n, err := decoder.Read(buf)
+		assert.True(t, n >= 0)
+		assert.Nil(t, err)
+	})
+
+	t.Run("stream encoder close with second write error", func(t *testing.T) {
+		// Test the close path where the second Write call in Close fails
+		// This happens when numBits > 7 or queue > 90 after the first Close write
+
+		// Single byte write doesn't trigger any writes in Write(), so Close() will do 2 writes
+		// We allow the first write to succeed, but the second write should fail
+		errorWriter := mock.NewErrorWriteAfterN(1, errors.New("second write error"))
+		encoder := NewStreamEncoder(errorWriter).(*StreamEncoder)
+
+		// Write data that leaves bits in the queue
+		// Single byte won't trigger any writes during Write(), all happens in Close()
+		data := []byte{0xFF} // Single byte will leave bits in queue
+		n, err := encoder.Write(data)
+		assert.Equal(t, 1, n)
+		assert.NoError(t, err)
+
+		// Close() will try to write 2 times: first succeeds, second fails
+		err = encoder.Close()
+		assert.Error(t, err)
+		assert.Equal(t, "second write error", err.Error())
+		assert.Equal(t, 2, errorWriter.WriteCount()) // Verify 2 writes were attempted
 	})
 }

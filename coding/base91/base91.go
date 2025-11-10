@@ -14,6 +14,19 @@ import (
 // characters for a total of 91 characters, excluding space, apostrophe, hyphen, and backslash.
 var StdAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
 
+// stdDecodeMap is a pre-initialized global decode map to avoid repeated initialization.
+var stdDecodeMap [256]byte
+
+func init() {
+	// Initialize global decode map once at package initialization
+	for i := range stdDecodeMap {
+		stdDecodeMap[i] = 0xFF
+	}
+	for i, char := range StdAlphabet {
+		stdDecodeMap[byte(char)] = byte(i)
+	}
+}
+
 // StdEncoder represents a base91 encoder for standard encoding operations.
 // It implements base91 encoding following the specification at http://base91.sourceforge.net,
 // providing efficient encoding of binary data to base91 strings with optimal bit packing.
@@ -112,17 +125,11 @@ type StdDecoder struct {
 }
 
 // NewStdDecoder creates a new base91 decoder using the standard alphabet.
-// Initializes the decoding lookup table for efficient character mapping.
-// Invalid characters are marked with 0xFF for error detection.
+// Uses the pre-initialized global decode map for optimal performance.
 func NewStdDecoder() *StdDecoder {
 	d := &StdDecoder{alphabet: StdAlphabet}
-	alphabet := StdAlphabet
-	for i := 0; i < 256; i++ {
-		d.decodeMap[i] = 0xFF
-	}
-	for i := 0; i < len(alphabet); i++ {
-		d.decodeMap[alphabet[i]] = byte(i)
-	}
+	// Copy the pre-initialized global decode map
+	d.decodeMap = stdDecodeMap
 	return d
 }
 
@@ -210,20 +217,25 @@ func (d *StdDecoder) DecodedLen(n int) int {
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
 	writer   io.Writer // Underlying writer for encoded output
-	buffer   []byte    // Buffer for accumulating partial bytes (0-12 bytes)
+	queue    uint      // Bit accumulator for encoding state
+	numBits  uint      // Number of bits in queue
 	alphabet string    // The alphabet used for encoding
+	writeBuf [2]byte   // Reusable buffer for writing encoded output
 	Error    error     // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base91 encoder that writes encoded data
 // to the provided io.Writer. The encoder uses the standard base91 alphabet.
 func NewStreamEncoder(w io.Writer) io.WriteCloser {
-	return &StreamEncoder{writer: w, alphabet: StdAlphabet}
+	return &StreamEncoder{
+		writer:   w,
+		alphabet: StdAlphabet,
+	}
 }
 
 // Write implements the io.Writer interface for streaming base91 encoding.
-// Processes data in chunks while maintaining minimal state for cross-Write calls.
-// This is true streaming - processes data immediately without accumulating large buffers.
+// Processes data immediately using bit-packing algorithm without buffering.
+// This is true streaming - maintains only the minimal state (queue and numBits) for cross-Write calls.
 func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	if e.Error != nil {
 		return 0, e.Error
@@ -233,52 +245,55 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 		return 0, nil
 	}
 
-	// Combine any leftover bytes from previous write with new data
-	// This is necessary for true streaming across multiple Write calls
-	data := append(e.buffer, p...)
-	e.buffer = nil // Clear buffer after combining
+	// Process each byte immediately using base91 bit-packing algorithm
+	for i := 0; i < len(p); i++ {
+		e.queue |= uint(p[i]) << e.numBits
+		e.numBits += 8
+		if e.numBits > 13 {
+			var v = e.queue & 8191
 
-	// Process data in chunks of 13 bytes (optimal for base91 encoding)
-	// Base91 encoding converts 13 bits to 16 bits (2 characters)
-	chunkSize := 13
-	chunks := len(data) / chunkSize
-
-	for i := 0; i < chunks*chunkSize; i += chunkSize {
-		chunk := data[i : i+chunkSize]
-		enc := &StdEncoder{}
-		copy(enc.encodeMap[:], e.alphabet)
-		encoded := enc.Encode(chunk)
-		if _, err = e.writer.Write(encoded); err != nil {
-			return len(p), err
+			if v > 88 {
+				e.queue >>= 13
+				e.numBits -= 13
+			} else {
+				// We can take 14 bits.
+				v = e.queue & 16383
+				e.queue >>= 14
+				e.numBits -= 14
+			}
+			e.writeBuf[0] = StdAlphabet[v%91]
+			e.writeBuf[1] = StdAlphabet[v/91]
+			if _, err = e.writer.Write(e.writeBuf[:]); err != nil {
+				return len(p), err
+			}
 		}
-	}
-
-	// Buffer remaining 0-12 bytes for next write or close
-	remainder := len(data) % chunkSize
-	if remainder > 0 {
-		e.buffer = data[len(data)-remainder:]
 	}
 
 	return len(p), nil
 }
 
 // Close implements the io.Closer interface for streaming base91 encoding.
-// Encodes any remaining buffered bytes from the last Write call.
-// This is the only place where we handle cross-Write state.
+// Flushes any remaining bits in the queue from the last Write call.
 func (e *StreamEncoder) Close() error {
 	if e.Error != nil {
 		return e.Error
 	}
 
-	// Encode any remaining bytes (1-12 bytes) from the last Write
-	if len(e.buffer) > 0 {
-		enc := &StdEncoder{}
-		copy(enc.encodeMap[:], e.alphabet)
-		encoded := enc.Encode(e.buffer)
-		if _, err := e.writer.Write(encoded); err != nil {
+	// Flush any remaining bits in the queue
+	if e.numBits > 0 {
+		e.writeBuf[0] = StdAlphabet[e.queue%91]
+		if _, err := e.writer.Write(e.writeBuf[:1]); err != nil {
 			return err
 		}
-		e.buffer = nil
+
+		if e.numBits > 7 || e.queue > 90 {
+			e.writeBuf[0] = StdAlphabet[e.queue/91]
+			if _, err := e.writer.Write(e.writeBuf[:1]); err != nil {
+				return err
+			}
+		}
+		e.queue = 0
+		e.numBits = 0
 	}
 
 	return nil
@@ -288,24 +303,27 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader   io.Reader   // Underlying reader for encoded input
-	buffer   []byte      // Buffer for decoded data not yet read
-	pos      int         // Current position in the decoded buffer
-	decoder  *StdDecoder // Reuse decoder instance
-	alphabet string      // The alphabet used for decoding
-	Error    error       // Error field for storing decoding errors
+	reader    io.Reader  // Underlying reader for encoded input
+	buffer    []byte     // Buffer for decoded data not yet read
+	pos       int        // Current position in the decoded buffer
+	readBuf   [1024]byte // Reusable buffer for reading encoded data
+	decodeMap [256]byte  // Lookup table for fast decoding of characters to values
+	alphabet  string     // The alphabet used for decoding
+	Error     error      // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming base91 decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard base91 alphabet.
 func NewStreamDecoder(r io.Reader) io.Reader {
-	return &StreamDecoder{
-		reader:   r,
-		decoder:  NewStdDecoder(),
-		alphabet: StdAlphabet,
-		buffer:   make([]byte, 0, 1024), // Pre-allocate buffer for decoded data
-		pos:      0,
+	d := &StreamDecoder{reader: r, alphabet: StdAlphabet}
+	// Initialize decode map once
+	for i := range d.decodeMap {
+		d.decodeMap[i] = 0xFF
 	}
+	for i, char := range StdAlphabet {
+		d.decodeMap[byte(char)] = byte(i)
+	}
+	return d
 }
 
 // Read implements the io.Reader interface for streaming base91 decoding.
@@ -323,9 +341,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	// Read encoded data in chunks using reusable buffer
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -334,8 +351,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	// Decode the data using the configured decoder
-	decoded, err := d.decoder.Decode(readBuf[:rn])
+	// Decode the data directly using internal decode map
+	decoded, err := d.decode(d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
@@ -349,4 +366,58 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	return copied, nil
+}
+
+// decode decodes base91 data using the internal decode map
+func (d *StreamDecoder) decode(src []byte) ([]byte, error) {
+	if len(src) == 0 {
+		return nil, nil
+	}
+
+	// Calculate the maximum output size for pre-allocation
+	maxLen := int(math.Ceil(float64(len(src)) * 14.0 / 16.0))
+	dst := make([]byte, maxLen)
+
+	var queue, numBits uint
+	var v = -1
+	n := 0
+
+	for i := 0; i < len(src); i++ {
+		if d.decodeMap[src[i]] == 0xFF {
+			// The character is not in the encoding alphabet.
+			return nil, CorruptInputError(int64(i))
+		}
+
+		if v == -1 {
+			// Start the next value.
+			v = int(d.decodeMap[src[i]])
+		} else {
+			v += int(d.decodeMap[src[i]]) * 91
+			queue |= uint(v) << numBits
+
+			if (v & 8191) > 88 {
+				numBits += 13
+			} else {
+				numBits += 14
+			}
+
+			for ok := true; ok; ok = numBits > 7 {
+				dst[n] = byte(queue)
+				n++
+
+				queue >>= 8
+				numBits -= 8
+			}
+
+			// Mark this value complete.
+			v = -1
+		}
+	}
+
+	if v != -1 {
+		dst[n] = byte(queue | uint(v)<<numBits)
+		n++
+	}
+
+	return dst[:n], nil
 }
