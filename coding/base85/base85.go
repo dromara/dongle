@@ -130,18 +130,17 @@ func (d *StdDecoder) calculateActualBytes(charCount int) int {
 // It provides efficient encoding for large data streams by processing data
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
-	writer  io.Writer   // Underlying writer for encoded output
-	buffer  []byte      // Buffer for accumulating partial bytes (0-3 bytes)
-	encoder *StdEncoder // Encoder instance for consistent encoding
-	Error   error       // Error field for storing encoding errors
+	writer    io.Writer // Underlying writer for encoded output
+	buffer    []byte    // Buffer for accumulating partial bytes (0-3 bytes)
+	encodeBuf [5]byte   // Reusable buffer for encoding output (4 bytes -> 5 chars)
+	Error     error     // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming base85 encoder that writes encoded data
 // to the provided io.Writer. The encoder uses the standard ASCII85 alphabet.
 func NewStreamEncoder(w io.Writer) io.WriteCloser {
 	return &StreamEncoder{
-		writer:  w,
-		encoder: NewStdEncoder(),
+		writer: w,
 	}
 }
 
@@ -169,8 +168,9 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 
 	for i := 0; i < chunks*chunkSize; i += chunkSize {
 		chunk := data[i : i+chunkSize]
-		encoded := e.encoder.Encode(chunk)
-		if _, err = e.writer.Write(encoded); err != nil {
+		// Use reusable buffer for encoding to avoid allocations
+		n := ascii85.Encode(e.encodeBuf[:], chunk)
+		if _, err = e.writer.Write(e.encodeBuf[:n]); err != nil {
 			return len(p), err
 		}
 	}
@@ -194,8 +194,9 @@ func (e *StreamEncoder) Close() error {
 
 	// Encode any remaining bytes (1-3 bytes) from the last Write
 	if len(e.buffer) > 0 {
-		encoded := e.encoder.Encode(e.buffer)
-		if _, err := e.writer.Write(encoded); err != nil {
+		// Use reusable buffer for final encoding
+		n := ascii85.Encode(e.encodeBuf[:], e.buffer)
+		if _, err := e.writer.Write(e.encodeBuf[:n]); err != nil {
 			return err
 		}
 		e.buffer = nil
@@ -208,21 +209,18 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader  io.Reader   // Underlying reader for encoded input
-	buffer  []byte      // Buffer for decoded data not yet read
-	pos     int         // Current position in the decoded buffer
-	decoder *StdDecoder // Reuse decoder instance
-	Error   error       // Error field for storing decoding errors
+	reader  io.Reader  // Underlying reader for encoded input
+	buffer  []byte     // Buffer for decoded data not yet read
+	pos     int        // Current position in the decoded buffer
+	readBuf [1024]byte // Reusable buffer for reading encoded data
+	Error   error      // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming base85 decoder that reads encoded data
 // from the provided io.Reader. The decoder uses the standard ASCII85 alphabet.
 func NewStreamDecoder(r io.Reader) io.Reader {
 	return &StreamDecoder{
-		reader:  r,
-		decoder: NewStdDecoder(),
-		buffer:  make([]byte, 0, 1024), // Pre-allocate buffer for decoded data
-		pos:     0,
+		reader: r,
 	}
 }
 
@@ -241,9 +239,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	// Read encoded data in chunks
-	readBuf := make([]byte, 1024) // Pre-allocate read buffer
-	rn, err := d.reader.Read(readBuf)
+	// Read encoded data in chunks using reusable buffer
+	rn, err := d.reader.Read(d.readBuf[:])
 	if err != nil && err != io.EOF {
 		return 0, err
 	}
@@ -252,8 +249,8 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	// Decode the data using the configured decoder
-	decoded, err := d.decoder.Decode(readBuf[:rn])
+	// Decode the data directly
+	decoded, err := d.decode(d.readBuf[:rn])
 	if err != nil {
 		return 0, err
 	}
@@ -267,4 +264,65 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	return copied, nil
+}
+
+// decode decodes ASCII85 data using Go's standard library
+func (d *StreamDecoder) decode(src []byte) ([]byte, error) {
+	if len(src) == 0 {
+		return nil, nil
+	}
+
+	// Handle special case: "z" represents 4 zero bytes
+	if len(src) == 1 && src[0] == 'z' {
+		return []byte{0, 0, 0, 0}, nil
+	}
+
+	// For incomplete groups, we need to pad to complete 5-character groups
+	paddedSrc := src
+	if len(src)%5 != 0 {
+		// Pad with 'u' characters to complete the group
+		padding := 5 - (len(src) % 5)
+		paddedSrc = make([]byte, len(src)+padding)
+		copy(paddedSrc, src)
+		for i := len(src); i < len(paddedSrc); i++ {
+			paddedSrc[i] = 'u'
+		}
+	}
+
+	// Use Go's standard ascii85 decoding
+	dst := make([]byte, len(paddedSrc))
+	n, _, err := ascii85.Decode(dst, paddedSrc, true)
+	if err != nil {
+		return nil, CorruptInputError(0)
+	}
+
+	// Calculate the actual number of bytes based on the original input length
+	actualBytes := d.calculateActualBytes(len(src))
+	if actualBytes < n {
+		return dst[:actualBytes], nil
+	}
+
+	return dst[:n], nil
+}
+
+// calculateActualBytes calculates the actual number of bytes that were encoded
+func (d *StreamDecoder) calculateActualBytes(charCount int) int {
+	// ASCII85 encoding: 4 bytes -> 5 characters
+	completeGroups := charCount / 5
+	remainder := charCount % 5
+
+	// Each complete group of 5 chars represents 4 bytes
+	totalBytes := completeGroups * 4
+
+	// Add bytes for the remainder
+	switch remainder {
+	case 1, 2:
+		totalBytes += 1
+	case 3:
+		totalBytes += 2
+	case 4:
+		totalBytes += 3
+	}
+
+	return totalBytes
 }
