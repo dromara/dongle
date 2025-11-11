@@ -9,10 +9,18 @@ import (
 	"sync"
 )
 
+// ensure that *Curve implements elliptic.Curve
+var _ elliptic.Curve = (*curve)(nil)
+
 // OID constants for SM2 keys and curve.
 var (
 	oidEcPublicKey = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
 	oidSM2P256v1   = asn1.ObjectIdentifier{1, 2, 156, 10197, 1, 301}
+)
+
+var (
+	baseTableCache     = make(map[int][][3]field)
+	baseTableCacheLock sync.RWMutex
 )
 
 // curve implements SM2-P-256 using Jacobian coordinates with optional wNAF acceleration.
@@ -20,6 +28,12 @@ type curve struct {
 	params elliptic.CurveParams
 	a      *big.Int // curve coefficient a = p - 3
 	w      int      // desired wNAF window (2..6)
+}
+
+// pointField represents a point in Jacobian coordinates using field elements.
+// X, Y, Z are Jacobian coordinates where affine (x,y) = (X/Z^2, Y/Z^3).
+type pointField struct {
+	x, y, z field
 }
 
 // New returns a new SM2-P-256 curve instance.
@@ -52,9 +66,6 @@ func SetWindow(cv elliptic.Curve, w int) {
 		}
 	}
 }
-
-// ensure that *Curve implements elliptic.Curve
-var _ elliptic.Curve = (*curve)(nil)
 
 // Params returns the curve parameters.
 func (c *curve) Params() *elliptic.CurveParams { return &c.params }
@@ -147,7 +158,7 @@ func toWNAF(k *big.Int, w int) []int8 {
 		w = 4 // default
 	}
 
-	// Maximum length needed: bit length + 1 (for potential carry)
+	// Maximum length needed: a bit of length + 1 (for potential carry)
 	maxLen := k.BitLen() + 1
 	if maxLen < 256 {
 		maxLen = 256
@@ -209,7 +220,7 @@ func (c *curve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
 	naf := toWNAF(kInt, w)
 
 	// Perform scalar multiplication using wNAF
-	result := c.scalarMultWNAFFelem(table, naf)
+	result := c.scalarMultWNAFField(table, naf)
 
 	// Convert back to affine coordinates
 	return c.jacToAffine(&result)
@@ -239,7 +250,7 @@ func (c *curve) ScalarMult(Bx, By *big.Int, k []byte) (*big.Int, *big.Int) {
 	naf := toWNAF(kInt, w)
 
 	// Perform scalar multiplication
-	result := c.scalarMultWNAFFelem(table, naf)
+	result := c.scalarMultWNAFField(table, naf)
 
 	return c.jacToAffine(&result)
 }
@@ -265,22 +276,6 @@ func RandScalar(curve elliptic.Curve, random io.Reader) (*big.Int, error) {
 		}
 	}
 }
-
-// =============================================================================
-// Optimized implementation using fieldElement arithmetic
-// =============================================================================
-
-// pointFelem represents a point in Jacobian coordinates using field elements.
-// X, Y, Z are Jacobian coordinates where affine (x,y) = (X/Z^2, Y/Z^3).
-type pointFelem struct {
-	x, y, z field
-}
-
-var (
-	// Cache for precomputed base point tables (per window size)
-	baseTableCache     = make(map[int][][3]field)
-	baseTableCacheLock sync.RWMutex
-)
 
 // getBaseTable gets or creates the precomputed base point table.
 func (c *curve) getBaseTable(w int) [][3]field {
@@ -314,16 +309,16 @@ func (c *curve) precomputeTable(Bx, By *big.Int, w int) [][3]field {
 	table[0] = [3]field{bx, by, bz}
 
 	// Compute 2B
-	var twoB pointFelem
-	c.pointDoubleFelem(&twoB, &pointFelem{bx, by, bz})
+	var twoB pointField
+	c.pointDoubleField(&twoB, &pointField{bx, by, bz})
 
 	// Compute 3B, 5B, 7B, ...
 	for i := 1; i < tableSize; i++ {
-		var curr pointFelem
+		var curr pointField
 		curr.x, curr.y, curr.z = table[i-1][0], table[i-1][1], table[i-1][2]
 
-		var next pointFelem
-		c.pointAddFelem(&next, &curr, &twoB)
+		var next pointField
+		c.pointAddField(&next, &curr, &twoB)
 
 		table[i] = [3]field{next.x, next.y, next.z}
 	}
@@ -331,15 +326,15 @@ func (c *curve) precomputeTable(Bx, By *big.Int, w int) [][3]field {
 	return table
 }
 
-// scalarMultWNAFFelem performs wNAF scalar multiplication using field elements.
-func (c *curve) scalarMultWNAFFelem(table [][3]field, naf []int8) pointFelem {
-	var result pointFelem
+// scalarMultWNAFField performs wNAF scalar multiplication using field elements.
+func (c *curve) scalarMultWNAFField(table [][3]field, naf []int8) pointField {
+	var result pointField
 	// Start with point at infinity (z = 0)
 
 	for i := len(naf) - 1; i >= 0; i-- {
 		// Double if not at infinity
 		if !result.z.isZero() {
-			c.pointDoubleFelem(&result, &result)
+			c.pointDoubleField(&result, &result)
 		}
 
 		digit := naf[i]
@@ -358,15 +353,15 @@ func (c *curve) scalarMultWNAFFelem(table [][3]field, naf []int8) pointFelem {
 					result.y = table[idx][1]
 					result.z = table[idx][2]
 				} else {
-					tablePoint := pointFelem{table[idx][0], table[idx][1], table[idx][2]}
-					c.pointAddFelem(&result, &result, &tablePoint)
+					tablePoint := pointField{table[idx][0], table[idx][1], table[idx][2]}
+					c.pointAddField(&result, &result, &tablePoint)
 				}
 			} else {
 				// Subtract: add with negated Y
 				var negY field
 				negY.neg(&table[idx][1])
-				tablePoint := pointFelem{table[idx][0], negY, table[idx][2]}
-				c.pointAddFelem(&result, &result, &tablePoint)
+				tablePoint := pointField{table[idx][0], negY, table[idx][2]}
+				c.pointAddField(&result, &result, &tablePoint)
 			}
 		}
 	}
@@ -374,9 +369,9 @@ func (c *curve) scalarMultWNAFFelem(table [][3]field, naf []int8) pointFelem {
 	return result
 }
 
-// pointAddFelem performs Jacobian point addition using field elements.
+// pointAddField performs Jacobian point addition using field elements.
 // Computes out = p1 + p2 in Jacobian coordinates.
-func (c *curve) pointAddFelem(out, p1, p2 *pointFelem) {
+func (c *curve) pointAddField(out, p1, p2 *pointField) {
 	// Handle point at infinity cases
 	if p1.z.isZero() {
 		*out = *p2
@@ -414,10 +409,10 @@ func (c *curve) pointAddFelem(out, p1, p2 *pointFelem) {
 	if h.isZero() {
 		if r.isZero() {
 			// Points are equal, use doubling
-			c.pointDoubleFelem(out, p1)
+			c.pointDoubleField(out, p1)
 		} else {
 			// Points are inverse, result is infinity
-			*out = pointFelem{}
+			*out = pointField{}
 		}
 		return
 	}
@@ -444,11 +439,11 @@ func (c *curve) pointAddFelem(out, p1, p2 *pointFelem) {
 	out.z.mul(&t1, &h)
 }
 
-// pointDoubleFelem performs Jacobian point doubling using field elements.
+// pointDoubleField performs Jacobian point doubling using field elements.
 // Formula matches the standard jDouble implementation exactly.
-func (c *curve) pointDoubleFelem(out, p *pointFelem) {
+func (c *curve) pointDoubleField(out, p *pointField) {
 	if p.y.isZero() || p.z.isZero() {
-		*out = pointFelem{}
+		*out = pointField{}
 		return
 	}
 
@@ -505,7 +500,7 @@ func (c *curve) pointDoubleFelem(out, p *pointFelem) {
 }
 
 // jacToAffine converts Jacobian coordinates to affine.
-func (c *curve) jacToAffine(p *pointFelem) (*big.Int, *big.Int) {
+func (c *curve) jacToAffine(p *pointField) (*big.Int, *big.Int) {
 	if p.z.isZero() {
 		return nil, nil
 	}

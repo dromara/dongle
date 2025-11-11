@@ -365,28 +365,28 @@ func TestCurve_PointAddFelem(t *testing.T) {
 	gx, gy := c.params.Gx, c.params.Gy
 
 	// Create test points
-	p1 := pointFelem{
+	p1 := pointField{
 		x: *fromBigInt(gx),
 		y: *fromBigInt(gy),
 		z: field{limbs: [4]uint64{1, 0, 0, 0}},
 	}
 
 	// Test p1.z = 0 (should return p2)
-	p1Zero := pointFelem{}
-	var out pointFelem
-	c.pointAddFelem(&out, &p1Zero, &p1)
+	p1Zero := pointField{}
+	var out pointField
+	c.pointAddField(&out, &p1Zero, &p1)
 	if toBigInt(&out.x).Cmp(gx) != 0 || toBigInt(&out.y).Cmp(gy) != 0 {
 		t.Error("pointAddFelem with p1.z=0 should return p2")
 	}
 
 	// Test p2.z = 0 (should return p1)
-	c.pointAddFelem(&out, &p1, &p1Zero)
+	c.pointAddField(&out, &p1, &p1Zero)
 	if toBigInt(&out.x).Cmp(gx) != 0 || toBigInt(&out.y).Cmp(gy) != 0 {
 		t.Error("pointAddFelem with p2.z=0 should return p1")
 	}
 
 	// Test p1 = p2 (doubling case)
-	c.pointAddFelem(&out, &p1, &p1)
+	c.pointAddField(&out, &p1, &p1)
 	if out.z.isZero() {
 		t.Error("pointAddFelem(P, P) should not return infinity")
 	}
@@ -396,7 +396,7 @@ func TestCurve_PointAddFelem(t *testing.T) {
 	var negY field
 	negY.neg(&p1.y)
 	p1Neg.y = negY
-	c.pointAddFelem(&out, &p1, &p1Neg)
+	c.pointAddField(&out, &p1, &p1Neg)
 	if !out.z.isZero() {
 		t.Error("pointAddFelem(P, -P) should return infinity")
 	}
@@ -407,7 +407,7 @@ func TestCurve_PointDoubleFelem(t *testing.T) {
 	c := New().(*curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
-	p := pointFelem{
+	p := pointField{
 		x: *fromBigInt(gx),
 		y: *fromBigInt(gy),
 		z: field{limbs: [4]uint64{1, 0, 0, 0}},
@@ -416,8 +416,8 @@ func TestCurve_PointDoubleFelem(t *testing.T) {
 	// Test with y = 0
 	pZeroY := p
 	pZeroY.y = field{}
-	var out pointFelem
-	c.pointDoubleFelem(&out, &pZeroY)
+	var out pointField
+	c.pointDoubleField(&out, &pZeroY)
 	if !out.z.isZero() {
 		t.Error("pointDoubleFelem with y=0 should return infinity")
 	}
@@ -425,13 +425,13 @@ func TestCurve_PointDoubleFelem(t *testing.T) {
 	// Test with z = 0
 	pZeroZ := p
 	pZeroZ.z = field{}
-	c.pointDoubleFelem(&out, &pZeroZ)
+	c.pointDoubleField(&out, &pZeroZ)
 	if !out.z.isZero() {
 		t.Error("pointDoubleFelem with z=0 should return infinity")
 	}
 
 	// Test normal doubling
-	c.pointDoubleFelem(&out, &p)
+	c.pointDoubleField(&out, &p)
 	if out.z.isZero() {
 		t.Error("pointDoubleFelem should not return infinity for valid point")
 	}
@@ -442,7 +442,7 @@ func TestCurve_JacToAffine(t *testing.T) {
 	c := New().(*curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
-	p := pointFelem{
+	p := pointField{
 		x: *fromBigInt(gx),
 		y: *fromBigInt(gy),
 		z: field{limbs: [4]uint64{1, 0, 0, 0}},
@@ -455,7 +455,7 @@ func TestCurve_JacToAffine(t *testing.T) {
 	}
 
 	// Test with z = 0 (infinity)
-	pInf := pointFelem{}
+	pInf := pointField{}
 	x, y = c.jacToAffine(&pInf)
 	if x != nil || y != nil {
 		t.Error("jacToAffine with z=0 should return nil")
