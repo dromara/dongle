@@ -479,8 +479,8 @@ func TestBytesEqual(t *testing.T) {
 	d := []byte{1, 2, 4}
 	assert.False(t, bytesEqual(a, d))
 
-	e := []byte{}
-	f := []byte{}
+	var e []byte
+	var f []byte
 	assert.True(t, bytesEqual(e, f))
 
 	assert.False(t, bytesEqual(a, e))
