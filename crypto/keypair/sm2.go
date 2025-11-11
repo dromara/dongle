@@ -52,11 +52,11 @@ func (k *Sm2KeyPair) GenKeyPair() error {
 	privateKey := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: c, X: x, Y: y}, D: d}
 
 	// Marshal PKCS8 private key
-	privateKeyDer, _ := sm2curve.MarshalPKCS8(privateKey)
+	privateKeyDer, _ := sm2curve.MarshalPKCS8PrivateKey(privateKey)
 	k.PrivateKey = pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privateKeyDer})
 
 	// Marshal SPKI public key
-	publicKeyDer, _ := sm2curve.MarshalSPKI(&privateKey.PublicKey)
+	publicKeyDer, _ := sm2curve.MarshalSPKIPublicKey(&privateKey.PublicKey)
 	k.PublicKey = pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: publicKeyDer})
 	return nil
 }
@@ -127,7 +127,7 @@ func (k *Sm2KeyPair) ParsePublicKey() (*ecdsa.PublicKey, error) {
 	if block == nil || block.Type != "PUBLIC KEY" {
 		return nil, InvalidPublicKeyError{}
 	}
-	pub, err := sm2curve.ParseSPKI(block.Bytes)
+	pub, err := sm2curve.ParseSPKIPublicKey(block.Bytes)
 	if err != nil {
 		return nil, InvalidPublicKeyError{Err: err}
 	}
@@ -144,7 +144,7 @@ func (k *Sm2KeyPair) ParsePrivateKey() (*ecdsa.PrivateKey, error) {
 	if block == nil || block.Type != "PRIVATE KEY" {
 		return nil, InvalidPrivateKeyError{}
 	}
-	pri, err := sm2curve.ParsePKCS8(block.Bytes)
+	pri, err := sm2curve.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, InvalidPrivateKeyError{Err: err}
 	}

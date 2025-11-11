@@ -255,20 +255,20 @@ func TestASN1MarshalParsePublicPrivate(t *testing.T) {
 	x, y := c.ScalarBaseMult(d.Bytes())
 	pri := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: c, X: x, Y: y}, D: d}
 
-	derPri, err := sm2curve.MarshalPKCS8(pri)
+	derPri, err := sm2curve.MarshalPKCS8PrivateKey(pri)
 	if err != nil {
 		t.Fatalf("marshalPrivateKey: %v", err)
 	}
-	gotPri, err := sm2curve.ParsePKCS8(derPri)
+	gotPri, err := sm2curve.ParsePKCS8PrivateKey(derPri)
 	if err != nil || gotPri.D.Cmp(d) != 0 {
 		t.Fatalf("parsePrivateKey: %v", err)
 	}
 
-	derPub, err := sm2curve.MarshalSPKI(&pri.PublicKey)
+	derPub, err := sm2curve.MarshalSPKIPublicKey(&pri.PublicKey)
 	if err != nil {
 		t.Fatalf("marshaPublicKey: %v", err)
 	}
-	gotPub, err := sm2curve.ParseSPKI(derPub)
+	gotPub, err := sm2curve.ParseSPKIPublicKey(derPub)
 	if err != nil || gotPub.X.Cmp(x) != 0 || gotPub.Y.Cmp(y) != 0 {
 		t.Fatalf("parsePublicKey: %v", err)
 	}
@@ -280,18 +280,18 @@ func TestMarshalOIDPaths(t *testing.T) {
 	d := big.NewInt(2)
 	x, y := c.ScalarBaseMult(d.Bytes())
 	pri := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: c, X: x, Y: y}, D: d}
-	derPub, err := sm2curve.MarshalSPKI(&pri.PublicKey)
+	derPub, err := sm2curve.MarshalSPKIPublicKey(&pri.PublicKey)
 	if err != nil || len(derPub) == 0 {
 		t.Fatalf("marshaPublicKey: %v", err)
 	}
-	if _, err := sm2curve.ParseSPKI(derPub); err != nil {
+	if _, err := sm2curve.ParseSPKIPublicKey(derPub); err != nil {
 		t.Fatalf("parsePublicKey back: %v", err)
 	}
-	derPri, err := sm2curve.MarshalPKCS8(pri)
+	derPri, err := sm2curve.MarshalPKCS8PrivateKey(pri)
 	if err != nil || len(derPri) == 0 {
 		t.Fatalf("marshalPrivateKey: %v", err)
 	}
-	if _, err := sm2curve.ParsePKCS8(derPri); err != nil {
+	if _, err := sm2curve.ParsePKCS8PrivateKey(derPri); err != nil {
 		t.Fatalf("parsePrivateKey back: %v", err)
 	}
 }
@@ -409,7 +409,7 @@ func TestMarshalFunctions_DirectCall(t *testing.T) {
 	x, y := c.ScalarBaseMult(d.Bytes())
 	pri := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: c, X: x, Y: y}, D: d}
 
-	derPri, err := sm2curve.MarshalPKCS8(pri)
+	derPri, err := sm2curve.MarshalPKCS8PrivateKey(pri)
 	if err != nil {
 		t.Fatalf("MarshalPKCS8 failed: %v", err)
 	}
@@ -417,7 +417,7 @@ func TestMarshalFunctions_DirectCall(t *testing.T) {
 		t.Fatalf("MarshalPKCS8 returned empty result")
 	}
 
-	derPub, err := sm2curve.MarshalSPKI(&pri.PublicKey)
+	derPub, err := sm2curve.MarshalSPKIPublicKey(&pri.PublicKey)
 	if err != nil {
 		t.Fatalf("MarshalSPKI failed: %v", err)
 	}
@@ -425,12 +425,12 @@ func TestMarshalFunctions_DirectCall(t *testing.T) {
 		t.Fatalf("MarshalSPKI returned empty result")
 	}
 
-	gotPri, err := sm2curve.ParsePKCS8(derPri)
+	gotPri, err := sm2curve.ParsePKCS8PrivateKey(derPri)
 	if err != nil || gotPri.D.Cmp(d) != 0 {
 		t.Fatalf("ParsePKCS8 failed: %v", err)
 	}
 
-	gotPub, err := sm2curve.ParseSPKI(derPub)
+	gotPub, err := sm2curve.ParseSPKIPublicKey(derPub)
 	if err != nil || gotPub.X.Cmp(x) != 0 || gotPub.Y.Cmp(y) != 0 {
 		t.Fatalf("ParseSPKI failed: %v", err)
 	}
@@ -452,11 +452,11 @@ func TestParsePublicKey_ErrorBranches(t *testing.T) {
 		})
 	})
 	der, _ := b.Bytes()
-	if _, err := sm2curve.ParseSPKI(der); err == nil {
+	if _, err := sm2curve.ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expected algo OID error")
 	}
 
-	if _, err := sm2curve.ParseSPKI([]byte{0xff, 0x00}); err == nil {
+	if _, err := sm2curve.ParseSPKIPublicKey([]byte{0xff, 0x00}); err == nil {
 		t.Fatalf("expected unmarshal error")
 	}
 
@@ -474,7 +474,7 @@ func TestParsePublicKey_ErrorBranches(t *testing.T) {
 		})
 	})
 	der, _ = b2.Bytes()
-	if _, err := sm2curve.ParseSPKI(der); err == nil {
+	if _, err := sm2curve.ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expected point prefix error")
 	}
 
@@ -490,7 +490,7 @@ func TestParsePublicKey_ErrorBranches(t *testing.T) {
 		})
 	})
 	der, _ = b3.Bytes()
-	if _, err := sm2curve.ParseSPKI(der); err == nil {
+	if _, err := sm2curve.ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expected length error")
 	}
 
@@ -513,14 +513,14 @@ func TestParsePublicKey_ErrorBranches(t *testing.T) {
 		})
 	})
 	der, _ = b4.Bytes()
-	if _, err := sm2curve.ParseSPKI(der); err == nil {
+	if _, err := sm2curve.ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expected not on curve error")
 	}
 }
 
 // TestParsePrivateKey_ErrorBranches tests error paths in PKCS8 parsing.
 func TestParsePrivateKey_ErrorBranches(t *testing.T) {
-	if _, err := sm2curve.ParsePKCS8([]byte{0xff, 0xff}); err == nil {
+	if _, err := sm2curve.ParsePKCS8PrivateKey([]byte{0xff, 0xff}); err == nil {
 		t.Fatalf("expected unmarshal error")
 	}
 
@@ -539,7 +539,7 @@ func TestParsePrivateKey_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecDer) })
 	})
 	der, _ := p8.Bytes()
-	if _, err := sm2curve.ParsePKCS8(der); err == nil {
+	if _, err := sm2curve.ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expected algo OID error")
 	}
 
@@ -553,7 +553,7 @@ func TestParsePrivateKey_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes([]byte{0xff}) })
 	})
 	der, _ = p82.Bytes()
-	if _, err := sm2curve.ParsePKCS8(der); err == nil {
+	if _, err := sm2curve.ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expected inner unmarshal error")
 	}
 }
