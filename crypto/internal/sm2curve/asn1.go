@@ -9,8 +9,8 @@ import (
 	"golang.org/x/crypto/cryptobyte/asn1"
 )
 
-// MarshalSPKI encodes a SubjectPublicKeyInfo (SPKI) for the given SM2 public key.
-func MarshalSPKI(pub *ecdsa.PublicKey) ([]byte, error) {
+// MarshalSPKIPublicKey encodes a SubjectPublicKeyInfo (SPKI) for the given SM2 public key.
+func MarshalSPKIPublicKey(pub *ecdsa.PublicKey) ([]byte, error) {
 	pLen := (pub.Curve.Params().BitSize + 7) / 8
 	point := make([]byte, 1+2*pLen)
 	point[0] = 0x04
@@ -32,8 +32,8 @@ func MarshalSPKI(pub *ecdsa.PublicKey) ([]byte, error) {
 	return b.Bytes()
 }
 
-// MarshalPKCS8 encodes a PKCS#8 PrivateKeyInfo for the given SM2 private key.
-func MarshalPKCS8(pri *ecdsa.PrivateKey) ([]byte, error) {
+// MarshalPKCS8PrivateKey encodes a PKCS#8 PrivateKeyInfo for the given SM2 private key.
+func MarshalPKCS8PrivateKey(pri *ecdsa.PrivateKey) ([]byte, error) {
 	pLen := (pri.Params().BitSize + 7) / 8
 	point := make([]byte, 1+2*pLen)
 	point[0] = 0x04
@@ -68,9 +68,9 @@ func MarshalPKCS8(pri *ecdsa.PrivateKey) ([]byte, error) {
 	return p8.Bytes()
 }
 
-// ParseSPKI parses a SubjectPublicKeyInfo (SPKI) and returns an SM2 public key.
+// ParseSPKIPublicKey parses a SubjectPublicKeyInfo (SPKI) and returns an SM2 public key.
 // Simplified: only uncompressed points are supported.
-func ParseSPKI(der []byte) (*ecdsa.PublicKey, error) {
+func ParseSPKIPublicKey(der []byte) (*ecdsa.PublicKey, error) {
 	cv := New()
 	in := cryptobyte.String(der)
 	var spki, ai, bitStr cryptobyte.String
@@ -98,10 +98,9 @@ func ParseSPKI(der []byte) (*ecdsa.PublicKey, error) {
 	return &ecdsa.PublicKey{Curve: cv, X: x, Y: y}, nil
 }
 
-// ParsePKCS8 parses a PKCS#8 PrivateKeyInfo and returns an SM2 private key.
-// ParsePKCS8 parses a PKCS#8 PrivateKeyInfo and returns an SM2 private key.
+// ParsePKCS8PrivateKey parses a PKCS#8 PrivateKeyInfo and returns an SM2 private key.
 // Simplified: ignores optional parameters/publicKey fields inside ECPrivateKey.
-func ParsePKCS8(der []byte) (*ecdsa.PrivateKey, error) {
+func ParsePKCS8PrivateKey(der []byte) (*ecdsa.PrivateKey, error) {
 	cv := New()
 	in := cryptobyte.String(der)
 	var p8 cryptobyte.String

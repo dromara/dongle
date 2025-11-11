@@ -132,112 +132,6 @@ func TestCurve_Double(t *testing.T) {
 	}
 }
 
-// TestCurve_Jacobian tests Jacobian coordinate conversions
-func TestCurve_Jacobian(t *testing.T) {
-	c := New().(*curve)
-	gx, gy := c.params.Gx, c.params.Gy
-
-	// Test toJac/fromJac roundtrip
-	jx, jy, jz := c.toJac(gx, gy)
-	x, y := c.fromJac(jx, jy, jz)
-	if x.Cmp(gx) != 0 || y.Cmp(gy) != 0 {
-		t.Error("toJac/fromJac roundtrip failed")
-	}
-
-	// Test toJac with nil
-	jx, jy, jz = c.toJac(nil, nil)
-	if jx != nil || jy != nil || jz != nil {
-		t.Error("toJac(nil, nil) should return nil")
-	}
-
-	// Test fromJac with nil/zero Z
-	x, y = c.fromJac(jx, jy, nil)
-	if x != nil || y != nil {
-		t.Error("fromJac with nil Z should return nil")
-	}
-
-	x, y = c.fromJac(jx, jy, big.NewInt(0))
-	if x != nil || y != nil {
-		t.Error("fromJac with zero Z should return nil")
-	}
-}
-
-// TestCurve_JDouble tests Jacobian doubling
-func TestCurve_JDouble(t *testing.T) {
-	c := New().(*curve)
-	gx, gy := c.params.Gx, c.params.Gy
-	jx, jy, jz := c.toJac(gx, gy)
-
-	// Test normal doubling
-	x2, y2, z2 := c.jDouble(jx, jy, jz)
-	if x2 == nil || y2 == nil || z2 == nil {
-		t.Error("jDouble should not return nil")
-	}
-
-	// Test with nil Y
-	x, y, z := c.jDouble(jx, nil, jz)
-	if x != nil || y != nil || z != nil {
-		t.Error("jDouble with nil Y should return nil")
-	}
-
-	// Test with zero Y
-	x, y, z = c.jDouble(jx, big.NewInt(0), jz)
-	if x != nil || y != nil || z != nil {
-		t.Error("jDouble with zero Y should return nil")
-	}
-
-	// Test with nil Z
-	x, y, z = c.jDouble(jx, jy, nil)
-	if x != nil || y != nil || z != nil {
-		t.Error("jDouble with nil Z should return nil")
-	}
-}
-
-// TestCurve_JAdd tests Jacobian addition
-func TestCurve_JAdd(t *testing.T) {
-	c := New().(*curve)
-	gx, gy := c.params.Gx, c.params.Gy
-	jx1, jy1, jz1 := c.toJac(gx, gy)
-
-	x2, y2 := c.Double(gx, gy)
-	jx2, jy2, jz2 := c.toJac(x2, y2)
-
-	// Test Z1 = 0
-	x, y, z := c.jAdd(jx1, jy1, nil, jx2, jy2, jz2)
-	if x.Cmp(jx2) != 0 || y.Cmp(jy2) != 0 || z.Cmp(jz2) != 0 {
-		t.Error("jAdd with Z1=0 should return P2")
-	}
-
-	// Test Z2 = 0
-	x, y, z = c.jAdd(jx1, jy1, jz1, jx2, jy2, nil)
-	if x.Cmp(jx1) != 0 || y.Cmp(jy1) != 0 || z.Cmp(jz1) != 0 {
-		t.Error("jAdd with Z2=0 should return P1")
-	}
-
-	// Test P1 = P2 (doubling case)
-	x, y, z = c.jAdd(jx1, jy1, jz1, jx1, jy1, jz1)
-	x2d, y2d, z2d := c.jDouble(jx1, jy1, jz1)
-	xAff, yAff := c.fromJac(x, y, z)
-	x2Aff, y2Aff := c.fromJac(x2d, y2d, z2d)
-	if xAff.Cmp(x2Aff) != 0 || yAff.Cmp(y2Aff) != 0 {
-		t.Error("jAdd(P, P) should equal jDouble(P)")
-	}
-
-	// Test P1 = -P2 (inverse case)
-	negJy1 := new(big.Int).Neg(jy1)
-	negJy1.Mod(negJy1, c.params.P)
-	x, y, z = c.jAdd(jx1, jy1, jz1, jx1, negJy1, jz1)
-	if x != nil || y != nil || z != nil {
-		t.Error("jAdd(P, -P) should return infinity")
-	}
-
-	// Test normal addition
-	x, y, z = c.jAdd(jx1, jy1, jz1, jx2, jy2, jz2)
-	if x == nil || y == nil || z == nil {
-		t.Error("jAdd normal case should not return nil")
-	}
-}
-
 // TestCurve_WNAF tests wNAF conversion
 func TestCurve_WNAF(t *testing.T) {
 	// Test zero
@@ -399,46 +293,46 @@ func TestCurve_RandScalar(t *testing.T) {
 func TestCurve_OptimizedPaths(t *testing.T) {
 	c := New().(*curve)
 
-	// Test optimizedScalarBaseMult with empty k
-	x, y := c.optimizedScalarBaseMult([]byte{})
+	// Test ScalarBaseMult with empty k
+	x, y := c.ScalarBaseMult([]byte{})
 	if x != nil || y != nil {
-		t.Error("optimizedScalarBaseMult([]) should return nil")
+		t.Error("ScalarBaseMult([]) should return nil")
 	}
 
-	// Test optimizedScalarBaseMult with zero k
-	x, y = c.optimizedScalarBaseMult([]byte{0})
+	// Test ScalarBaseMult with zero k
+	x, y = c.ScalarBaseMult([]byte{0})
 	if x != nil || y != nil {
-		t.Error("optimizedScalarBaseMult(0) should return nil")
+		t.Error("ScalarBaseMult(0) should return nil")
 	}
 
-	// Test optimizedScalarBaseMult with invalid window
+	// Test ScalarBaseMult with invalid window
 	oldW := c.w
 	c.w = 1
-	x, y = c.optimizedScalarBaseMult([]byte{2})
+	x, y = c.ScalarBaseMult([]byte{2})
 	c.w = oldW
 	if x == nil || y == nil {
-		t.Error("optimizedScalarBaseMult should handle invalid window")
+		t.Error("ScalarBaseMult should handle invalid window")
 	}
 
-	// Test optimizedScalarMult with empty k
+	// Test ScalarMult with empty k
 	gx, gy := c.params.Gx, c.params.Gy
-	x, y = c.optimizedScalarMult(gx, gy, []byte{})
+	x, y = c.ScalarMult(gx, gy, []byte{})
 	if x != nil || y != nil {
-		t.Error("optimizedScalarMult([]) should return nil")
+		t.Error("ScalarMult([]) should return nil")
 	}
 
-	// Test optimizedScalarMult with zero k
-	x, y = c.optimizedScalarMult(gx, gy, []byte{0})
+	// Test ScalarMult with zero k
+	x, y = c.ScalarMult(gx, gy, []byte{0})
 	if x != nil || y != nil {
-		t.Error("optimizedScalarMult(0) should return nil")
+		t.Error("ScalarMult(0) should return nil")
 	}
 
-	// Test optimizedScalarMult with invalid window
+	// Test ScalarMult with invalid window
 	c.w = 7
-	x, y = c.optimizedScalarMult(gx, gy, []byte{2})
+	x, y = c.ScalarMult(gx, gy, []byte{2})
 	c.w = oldW
 	if x == nil || y == nil {
-		t.Error("optimizedScalarMult should handle invalid window")
+		t.Error("ScalarMult should handle invalid window")
 	}
 }
 
@@ -472,22 +366,22 @@ func TestCurve_PointAddFelem(t *testing.T) {
 
 	// Create test points
 	p1 := pointFelem{
-		x: felemFromBig(gx),
-		y: felemFromBig(gy),
-		z: felemOne(),
+		x: *fromBigInt(gx),
+		y: *fromBigInt(gy),
+		z: field{limbs: [4]uint64{1, 0, 0, 0}},
 	}
 
 	// Test p1.z = 0 (should return p2)
 	p1Zero := pointFelem{}
 	var out pointFelem
 	c.pointAddFelem(&out, &p1Zero, &p1)
-	if out.x.toBig().Cmp(gx) != 0 || out.y.toBig().Cmp(gy) != 0 {
+	if toBigInt(&out.x).Cmp(gx) != 0 || toBigInt(&out.y).Cmp(gy) != 0 {
 		t.Error("pointAddFelem with p1.z=0 should return p2")
 	}
 
 	// Test p2.z = 0 (should return p1)
 	c.pointAddFelem(&out, &p1, &p1Zero)
-	if out.x.toBig().Cmp(gx) != 0 || out.y.toBig().Cmp(gy) != 0 {
+	if toBigInt(&out.x).Cmp(gx) != 0 || toBigInt(&out.y).Cmp(gy) != 0 {
 		t.Error("pointAddFelem with p2.z=0 should return p1")
 	}
 
@@ -499,8 +393,8 @@ func TestCurve_PointAddFelem(t *testing.T) {
 
 	// Test p1 = -p2 (inverse case)
 	p1Neg := p1
-	var negY felem
-	felemNeg(&negY, &p1.y)
+	var negY field
+	negY.neg(&p1.y)
 	p1Neg.y = negY
 	c.pointAddFelem(&out, &p1, &p1Neg)
 	if !out.z.isZero() {
@@ -514,14 +408,14 @@ func TestCurve_PointDoubleFelem(t *testing.T) {
 	gx, gy := c.params.Gx, c.params.Gy
 
 	p := pointFelem{
-		x: felemFromBig(gx),
-		y: felemFromBig(gy),
-		z: felemOne(),
+		x: *fromBigInt(gx),
+		y: *fromBigInt(gy),
+		z: field{limbs: [4]uint64{1, 0, 0, 0}},
 	}
 
 	// Test with y = 0
 	pZeroY := p
-	pZeroY.y = felemZero()
+	pZeroY.y = field{}
 	var out pointFelem
 	c.pointDoubleFelem(&out, &pZeroY)
 	if !out.z.isZero() {
@@ -530,7 +424,7 @@ func TestCurve_PointDoubleFelem(t *testing.T) {
 
 	// Test with z = 0
 	pZeroZ := p
-	pZeroZ.z = felemZero()
+	pZeroZ.z = field{}
 	c.pointDoubleFelem(&out, &pZeroZ)
 	if !out.z.isZero() {
 		t.Error("pointDoubleFelem with z=0 should return infinity")
@@ -549,9 +443,9 @@ func TestCurve_JacToAffine(t *testing.T) {
 	gx, gy := c.params.Gx, c.params.Gy
 
 	p := pointFelem{
-		x: felemFromBig(gx),
-		y: felemFromBig(gy),
-		z: felemOne(),
+		x: *fromBigInt(gx),
+		y: *fromBigInt(gy),
+		z: field{limbs: [4]uint64{1, 0, 0, 0}},
 	}
 
 	// Test normal conversion
@@ -603,89 +497,6 @@ func TestCurve_Comprehensive(t *testing.T) {
 	x4, y4 := c.Double(x1, y1)
 	if !c.IsOnCurve(x4, y4) {
 		t.Error("Double result not on curve")
-	}
-}
-
-// TestCurve_LegacyPaths tests legacy non-optimized code paths
-func TestCurve_LegacyPaths(t *testing.T) {
-	c := New().(*curve)
-
-	// Temporarily disable optimized path to test legacy scalarMultWNAF
-	// by calling it directly
-	k := big.NewInt(5)
-	gx, gy := c.params.Gx, c.params.Gy
-
-	// Test scalarMultWNAF with base table
-	x1, y1 := c.scalarMultWNAF(gx, gy, k, true)
-	if x1 == nil || y1 == nil {
-		t.Error("scalarMultWNAF with base table returned nil")
-	}
-	if !c.IsOnCurve(x1, y1) {
-		t.Error("scalarMultWNAF result not on curve")
-	}
-
-	// Test scalarMultWNAF without base table (non-base point)
-	x2, y2 := c.Double(gx, gy)
-	x3, y3 := c.scalarMultWNAF(x2, y2, k, false)
-	if x3 == nil || y3 == nil {
-		t.Error("scalarMultWNAF without base table returned nil")
-	}
-	if !c.IsOnCurve(x3, y3) {
-		t.Error("scalarMultWNAF result not on curve")
-	}
-
-	// Test precomputeBaseTable
-	c.baseTable = nil // Clear any cached table
-	c.precomputeBaseTable(4)
-	if len(c.baseTable) == 0 {
-		t.Error("precomputeBaseTable should create table")
-	}
-
-	// Test with different window sizes
-	c.precomputeBaseTable(3)
-	if len(c.baseTable) != 4 { // 2^(3-1) = 4
-		t.Errorf("precomputeBaseTable(3) should create table of size 4, got %d", len(c.baseTable))
-	}
-
-	// Test scalarMultWNAF with empty NAF
-	x, y := c.scalarMultWNAF(gx, gy, big.NewInt(0), false)
-	if x != nil || y != nil {
-		t.Error("scalarMultWNAF with k=0 should return nil")
-	}
-
-	// Test scalarMultWNAF with invalid window (should use default)
-	c.w = 1
-	x, y = c.scalarMultWNAF(gx, gy, big.NewInt(3), false)
-	c.w = 4
-	if x == nil || y == nil {
-		t.Error("scalarMultWNAF with invalid window should still work")
-	}
-
-	// Test scalarMultWNAF with negative digit in wNAF
-	// Use a value that generates negative digits
-	k2 := big.NewInt(15) // This should generate wNAF with negative digits
-	x, y = c.scalarMultWNAF(gx, gy, k2, false)
-	if x == nil || y == nil {
-		t.Error("scalarMultWNAF with negative digits should work")
-	}
-
-	// Test scalarMultWNAF with base table when table is empty
-	c.baseTable = nil
-	x, y = c.scalarMultWNAF(gx, gy, big.NewInt(3), true)
-	if x == nil || y == nil {
-		t.Error("scalarMultWNAF should create base table if empty")
-	}
-	if len(c.baseTable) == 0 {
-		t.Error("Base table should be created")
-	}
-
-	// Test scalarMultWNAF with larger table size (w=6)
-	c.w = 6
-	c.baseTable = nil
-	x, y = c.scalarMultWNAF(gx, gy, big.NewInt(100), false)
-	c.w = 4
-	if x == nil || y == nil {
-		t.Error("scalarMultWNAF with w=6 should work")
 	}
 }
 
@@ -749,28 +560,28 @@ func TestCurve_Complete100(t *testing.T) {
 	c := New().(*curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
-	// Test optimizedScalarBaseMult with empty NAF (k generates empty wNAF)
+	// Test ScalarBaseMult with empty NAF (k generates empty wNAF)
 	// This is unlikely but we need to test the check
-	result1, result2 := c.optimizedScalarBaseMult([]byte{0})
+	result1, result2 := c.ScalarBaseMult([]byte{0})
 	if result1 != nil || result2 != nil {
-		t.Error("optimizedScalarBaseMult(0) should return nil")
+		t.Error("ScalarBaseMult(0) should return nil")
 	}
 
-	// Test optimizedScalarMult with empty NAF
-	result1, result2 = c.optimizedScalarMult(gx, gy, []byte{0})
+	// Test ScalarMult with empty NAF
+	result1, result2 = c.ScalarMult(gx, gy, []byte{0})
 	if result1 != nil || result2 != nil {
-		t.Error("optimizedScalarMult(0) should return nil")
+		t.Error("ScalarMult(0) should return nil")
 	}
 
-	// Test optimizedScalarBaseMult/Mult with valid small values to cover all paths
-	result1, result2 = c.optimizedScalarBaseMult([]byte{1})
+	// Test ScalarBaseMult with valid small values to cover all paths
+	result1, result2 = c.ScalarBaseMult([]byte{1})
 	if result1 == nil || result2 == nil {
-		t.Error("optimizedScalarBaseMult(1) should return result")
+		t.Error("ScalarBaseMult(1) should return result")
 	}
 
-	result1, result2 = c.optimizedScalarMult(gx, gy, []byte{1})
+	result1, result2 = c.ScalarMult(gx, gy, []byte{1})
 	if result1 == nil || result2 == nil {
-		t.Error("optimizedScalarMult(1) should return result")
+		t.Error("ScalarMult(1) should return result")
 	}
 
 	// Test getBaseTable with double-check path (concurrent access simulation)
@@ -791,41 +602,9 @@ func TestCurve_Complete100(t *testing.T) {
 		t.Error("getBaseTable should return cached table")
 	}
 
-	// Test precomputeBaseTable with invalid window (< 2)
-	c.w = 1
-	c.baseTable = nil
-	c.precomputeBaseTable(1)
-	if len(c.baseTable) != 8 { // Should use w=4 as default, giving 2^(4-1)=8 entries
-		t.Errorf("precomputeBaseTable(1) should use default w=4, got table size %d", len(c.baseTable))
-	}
-
-	// Test precomputeBaseTable with invalid window (> 6)
-	c.baseTable = nil
-	c.precomputeBaseTable(10)
-	if len(c.baseTable) != 8 { // Should use w=4 as default
-		t.Errorf("precomputeBaseTable(10) should use default w=4, got table size %d", len(c.baseTable))
-	}
-	c.w = 4
-
-	// Test scalarMultWNAF with all table creation paths
-	// Test with i > 1 in table creation loop
-	x, y := c.scalarMultWNAF(gx, gy, big.NewInt(31), false)
-	if x == nil || y == nil {
-		t.Error("scalarMultWNAF(31) should work")
-	}
-
-	// Test scalarMultWNAF with w=2 (minimal table size)
-	oldW := c.w
-	c.w = 2
-	x, y = c.scalarMultWNAF(gx, gy, big.NewInt(5), false)
-	c.w = oldW
-	if x == nil || y == nil {
-		t.Error("scalarMultWNAF with w=2 should work")
-	}
-
 	// Note: Some lines are unreachable for SM2 specifically:
 	// 1. RandScalar: (BitSize % 8 != 0) - SM2 has BitSize=256, 256%8=0
-	// 2. optimizedScalarBaseMult/Mult: len(naf)==0 check after k!=0 - toWNAF never returns empty for k!=0
+	// 2. ScalarBaseMult/ScalarMult: len(naf)==0 check after k!=0 - toWNAF never returns empty for k!=0
 	// 3. getBaseTable: double-check exists in concurrent scenario - hard to trigger deterministically
 	// These are defensive programming practices and acceptable for SM2-specific testing.
 }
@@ -842,7 +621,7 @@ func TestCurve_ConcurrentGetBaseTable(t *testing.T) {
 	// Launch multiple goroutines to access the same table simultaneously
 	// This tests the double-check locking mechanism
 	const numGoroutines = 10
-	results := make(chan [][3]felem, numGoroutines)
+	results := make(chan [][3]field, numGoroutines)
 
 	for i := 0; i < numGoroutines; i++ {
 		go func() {
@@ -852,7 +631,7 @@ func TestCurve_ConcurrentGetBaseTable(t *testing.T) {
 	}
 
 	// Collect results
-	var firstTable [][3]felem
+	var firstTable [][3]field
 	for i := 0; i < numGoroutines; i++ {
 		table := <-results
 		if i == 0 {

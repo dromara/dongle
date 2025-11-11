@@ -25,23 +25,23 @@ func genKey(t *testing.T) *ecdsa.PrivateKey {
 
 func TestASN1_RoundTrip(t *testing.T) {
 	pri := genKey(t)
-	spki, err := MarshalSPKI(&pri.PublicKey)
+	spki, err := MarshalSPKIPublicKey(&pri.PublicKey)
 	if err != nil {
 		t.Fatalf("spki: %v", err)
 	}
-	p8, err := MarshalPKCS8(pri)
+	p8, err := MarshalPKCS8PrivateKey(pri)
 	if err != nil {
 		t.Fatalf("p8: %v", err)
 	}
 
-	pub2, err := ParseSPKI(spki)
+	pub2, err := ParseSPKIPublicKey(spki)
 	if err != nil {
 		t.Fatalf("parse spki: %v", err)
 	}
 	if pub2.X.Cmp(pri.X) != 0 || pub2.Y.Cmp(pri.Y) != 0 {
 		t.Fatalf("pub mismatch")
 	}
-	pri2, err := ParsePKCS8(p8)
+	pri2, err := ParsePKCS8PrivateKey(p8)
 	if err != nil {
 		t.Fatalf("parse p8: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestASN1_RoundTrip(t *testing.T) {
 	}
 }
 
-func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
+func TestASN1_ParseSPKIPublicKey_CompressedAndErrors(t *testing.T) {
 	cv := New()
 	p := cv.Params()
 	coordLen := (p.BitSize + 7) / 8
@@ -64,7 +64,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) { b.AddUint8(0); b.AddBytes([]byte{0x04, 0x00}) })
 	})
 	bad, _ := b.Bytes()
-	if _, err := ParseSPKI(bad); err == nil {
+	if _, err := ParseSPKIPublicKey(bad); err == nil {
 		t.Fatalf("expect algo OID error")
 	}
 
@@ -81,7 +81,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) { b.AddUint8(0); b.AddBytes(comp) })
 	})
 	der, _ := bc.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect unsupported or invalid EC point")
 	}
 
@@ -96,7 +96,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) { b.AddUint8(0); b.AddBytes(comp) })
 	})
 	der, _ = bu.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect unsupported point format")
 	}
 
@@ -110,7 +110,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) { b.AddUint8(0) })
 	})
 	der, _ = be.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect unsupported or invalid EC point")
 	}
 
@@ -129,7 +129,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		})
 	})
 	der, _ = bl.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect invalid point len")
 	}
 
@@ -143,7 +143,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) { b.AddUint8(0); b.AddBytes([]byte{0x02}) })
 	})
 	der, _ = bc2.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect unsupported or invalid EC point")
 	}
 
@@ -163,7 +163,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) { b.AddUint8(0); b.AddBytes(raw) })
 	})
 	der, _ = bnc.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect not on curve")
 	}
 
@@ -174,12 +174,12 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) { b.AddUint8(0); b.AddBytes([]byte{0x04, 0x00}) })
 	})
 	der, _ = bmiss.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect missing algo OID")
 	}
 
 	// Top-level not a SEQUENCE
-	if _, err := ParseSPKI([]byte{0xff}); err == nil {
+	if _, err := ParseSPKIPublicKey([]byte{0xff}); err == nil {
 		t.Fatalf("expect invalid top-level SPKI")
 	}
 
@@ -194,7 +194,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 	})
 	der, _ = okspki.Bytes()
 	der = append(der, 0x00)
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect invalid SubjectPublicKeyInfo")
 	}
 
@@ -207,7 +207,7 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		})
 	})
 	der, _ = nobs.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect invalid subjectPublicKey")
 	}
 
@@ -221,14 +221,14 @@ func TestASN1_ParseSPKI_CompressedAndErrors(t *testing.T) {
 		b.AddASN1(cbasn1.BIT_STRING, func(b *cryptobyte.Builder) {})
 	})
 	der, _ = nobyte.Bytes()
-	if _, err := ParseSPKI(der); err == nil {
+	if _, err := ParseSPKIPublicKey(der); err == nil {
 		t.Fatalf("expect invalid BIT STRING")
 	}
 }
 
-func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
+func TestASN1_ParsePKCS8PrivateKey_ErrorBranches(t *testing.T) {
 	// Malformed top-level
-	if _, err := ParsePKCS8([]byte{0xff}); err == nil {
+	if _, err := ParsePKCS8PrivateKey([]byte{0xff}); err == nil {
 		t.Fatalf("expect malformed p8")
 	}
 
@@ -246,7 +246,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecDer) })
 	})
 	der, _ := p8.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect algo OID error")
 	}
 
@@ -266,7 +266,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		})
 	})
 	der, _ = p8cOID.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect curve OID error")
 	}
 
@@ -281,7 +281,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes([]byte{0xff}) })
 	})
 	der, _ = p82.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect inner unmarshal error")
 	}
 
@@ -306,7 +306,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecDER) })
 	})
 	der, _ = p83.Bytes()
-	if _, err := ParsePKCS8(der); err != nil {
+	if _, err := ParsePKCS8PrivateKey(der); err != nil {
 		t.Fatalf("unexpected error for ignored [0]: %v", err)
 	}
 
@@ -335,7 +335,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecDER2) })
 	})
 	der, _ = p84.Bytes()
-	if _, err := ParsePKCS8(der); err != nil {
+	if _, err := ParsePKCS8PrivateKey(der); err != nil {
 		t.Fatalf("unexpected error for ignored [1]: %v", err)
 	}
 
@@ -349,7 +349,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes([]byte{0x30, 0x00}) })
 	})
 	der, _ = p85.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect missing version")
 	}
 
@@ -360,7 +360,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes([]byte{0x30, 0x00}) })
 	})
 	der, _ = p86.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect missing AI")
 	}
 
@@ -372,7 +372,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes([]byte{0x30, 0x00}) })
 	})
 	der, _ = p87.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect missing algo OID")
 	}
 
@@ -386,7 +386,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		})
 	})
 	der, _ = p88.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect missing privateKey")
 	}
 
@@ -406,7 +406,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecDERBad) })
 	})
 	der, _ = p89.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect bad EC version")
 	}
 
@@ -430,7 +430,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecDERBad2) })
 	})
 	der, _ = p8a.Bytes()
-	if _, err := ParsePKCS8(der); err != nil {
+	if _, err := ParsePKCS8PrivateKey(der); err != nil {
 		t.Fatalf("unexpected error for ignored [1] structure: %v", err)
 	}
 
@@ -454,7 +454,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecDERBad3) })
 	})
 	der, _ = p8b.Bytes()
-	if _, err := ParsePKCS8(der); err != nil {
+	if _, err := ParsePKCS8PrivateKey(der); err != nil {
 		t.Fatalf("unexpected error for ignored [1] padding: %v", err)
 	}
 
@@ -476,7 +476,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecBad0DER) })
 	})
 	der, _ = p8c.Bytes()
-	if _, err := ParsePKCS8(der); err != nil {
+	if _, err := ParsePKCS8PrivateKey(der); err != nil {
 		t.Fatalf("unexpected error for ignored [0]: %v", err)
 	}
 
@@ -494,7 +494,7 @@ func TestASN1_ParsePKCS8_ErrorBranches(t *testing.T) {
 		b.AddASN1(cbasn1.OCTET_STRING, func(b *cryptobyte.Builder) { b.AddBytes(ecNoKeyDER) })
 	})
 	der, _ = p8d.Bytes()
-	if _, err := ParsePKCS8(der); err == nil {
+	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect missing EC privateKey")
 	}
 }
