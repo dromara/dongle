@@ -164,7 +164,7 @@ func expandKey(key *[KeySize]byte) [32]uint32 {
 	mk[3] ^= 0xb27022dc
 
 	// Generate round keys
-	for i := 0; i < 32; i++ {
+	for i := range 32 {
 		temp := mk[1] ^ mk[2] ^ mk[3] ^ ck[i]
 		temp = sBoxTransform(temp)
 		mk[0] ^= lPrimeTransform(temp)
@@ -180,7 +180,7 @@ func encrypt(x *[4]uint32, key *[KeySize]byte) {
 	rk := expandKey(key)
 
 	// 32 rounds of encryption
-	for i := 0; i < 32; i++ {
+	for i := range 32 {
 		t := x[1] ^ x[2] ^ x[3] ^ rk[i]
 		t = lTransform(sBoxTransform(t))
 		newVal := x[0] ^ t

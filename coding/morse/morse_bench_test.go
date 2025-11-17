@@ -48,7 +48,7 @@ func BenchmarkStdEncoder_EncodeSizes(b *testing.B) {
 	for _, size := range benchmarkSizes {
 		// Generate random text data
 		data := make([]byte, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			data[i] = byte('a' + (i % 26)) // Generate lowercase letters
 		}
 
@@ -68,7 +68,7 @@ func BenchmarkStdEncoder_EncodeRandom(b *testing.B) {
 	for _, size := range benchmarkSizes {
 		// Generate random text data
 		data := make([]byte, size)
-		for i := 0; i < size; i++ {
+		for i := range size {
 			data[i] = byte('a' + (i % 26)) // Generate lowercase letters
 		}
 

@@ -68,9 +68,9 @@ func (f *field) mul(a, b *field) {
 	var p [8]uint64
 
 	// Schoolbook multiplication
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		var carry uint64
-		for j := 0; j < 4; j++ {
+		for j := range 4 {
 			hi, lo := bits.Mul64(a.limbs[i], b.limbs[j])
 			p[i+j], carry = bits.Add64(p[i+j], lo, carry)
 			p[i+j+1], carry = bits.Add64(p[i+j+1], hi, carry)
@@ -134,7 +134,7 @@ func (f *field) reduce512(p *[8]uint64) {
 
 	// Convert limbs to big-endian bytes
 	// p[0] = LSB limb, p[7] = MSB limb
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		binary.BigEndian.PutUint64(bytes[56-i*8:64-i*8], p[i])
 	}
 

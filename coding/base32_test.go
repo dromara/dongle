@@ -682,7 +682,7 @@ func TestBase32EdgeCases(t *testing.T) {
 
 	t.Run("all possible byte values", func(t *testing.T) {
 		allBytes := make([]byte, 256)
-		for i := 0; i < 256; i++ {
+		for i := range 256 {
 			allBytes[i] = byte(i)
 		}
 

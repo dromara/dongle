@@ -78,7 +78,7 @@ func TestErrorHasher(t *testing.T) {
 	t.Run("test Sum method with long error message", func(t *testing.T) {
 		// Create a very long error message to test the else branch in Sum method
 		longErrMsg := ""
-		for i := 0; i < 50; i++ {
+		for range 50 {
 			longErrMsg += "a"
 		}
 		testErr := errors.New(longErrMsg)
@@ -93,7 +93,7 @@ func TestErrorHasher(t *testing.T) {
 		assert.Equal(t, 32, len(hashPart))
 		// First 32 bytes should match error message
 		errStr := testErr.Error()
-		for i := 0; i < 32; i++ {
+		for i := range 32 {
 			assert.Equal(t, errStr[i], hashPart[i])
 		}
 	})
@@ -101,7 +101,7 @@ func TestErrorHasher(t *testing.T) {
 	t.Run("test Sum method with exactly 32 byte error message", func(t *testing.T) {
 		// Create an error message that is exactly 32 bytes long
 		longErrMsg := ""
-		for i := 0; i < 32; i++ {
+		for range 32 {
 			longErrMsg += "b"
 		}
 		testErr := errors.New(longErrMsg)
@@ -112,7 +112,7 @@ func TestErrorHasher(t *testing.T) {
 		assert.Equal(t, 32, len(result))
 		// All 32 bytes should match error message
 		errStr := testErr.Error()
-		for i := 0; i < 32; i++ {
+		for i := range 32 {
 			assert.Equal(t, errStr[i], result[i])
 		}
 	})

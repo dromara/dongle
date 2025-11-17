@@ -549,7 +549,7 @@ func TestSM3ProcessBlocksDirectly(t *testing.T) {
 
 	// At least one hash value should be different from initial
 	hasChanged := false
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		if d.h[i] != initialHash[i] {
 			hasChanged = true
 			break
@@ -584,7 +584,7 @@ func TestSM3ProcessBlocksReturnFinalTrue(t *testing.T) {
 	}
 
 	// All hash values should remain the same as initial
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		assert.Equal(t, initialHash[i], d.h[i], "Digest state should not be updated when returnFinal=true")
 	}
 }
@@ -607,7 +607,7 @@ func TestSM3ProcessBlocksEmptyMessage(t *testing.T) {
 		0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e,
 	}
 
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		assert.Equal(t, initialHash[i], d.h[i], "Digest state should remain unchanged for empty message")
 	}
 

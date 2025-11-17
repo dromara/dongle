@@ -227,7 +227,7 @@ func BenchmarkStdDecoder_DecodeBinary(b *testing.B) {
 	// Create binary encoded data for testing
 	encoder := NewStdEncoder()
 	original := make([]byte, 1024)
-	for i := 0; i < len(original); i++ {
+	for i := range original {
 		original[i] = byte(i % 256)
 	}
 	encoded := encoder.Encode(original)
@@ -629,10 +629,7 @@ func BenchmarkStreamingBufferSizes(b *testing.B) {
 				buf.Reset()
 				// Write in chunks of buffer size
 				for j := 0; j < len(data); j += bufSize {
-					end := j + bufSize
-					if end > len(data) {
-						end = len(data)
-					}
+					end := min(j+bufSize, len(data))
 					encoder.Write(data[j:end])
 				}
 				encoder.Close()

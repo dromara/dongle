@@ -412,7 +412,7 @@ func TestFile_ConcurrentAccess(t *testing.T) {
 	}()
 
 	// Wait for all goroutines to complete
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		<-done
 	}
 }
@@ -846,7 +846,7 @@ func TestErrorWriteAfterN(t *testing.T) {
 		writer := NewErrorWriteAfterN(1000, errors.New("error"))
 
 		// Should succeed for many writes
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			n, err := writer.Write([]byte("data"))
 			assert.NoError(t, err)
 			assert.Equal(t, 4, n)

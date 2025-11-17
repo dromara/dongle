@@ -608,10 +608,7 @@ func BenchmarkStreamingBufferSizes(b *testing.B) {
 				buf.Reset()
 				// Write in chunks of buffer size
 				for j := 0; j < len(data); j += bufSize {
-					end := j + bufSize
-					if end > len(data) {
-						end = len(data)
-					}
+					end := min(j+bufSize, len(data))
 					encoder.Write(data[j:end])
 				}
 				encoder.Close()

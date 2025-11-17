@@ -623,7 +623,7 @@ func TestCurve_ConcurrentGetBaseTable(t *testing.T) {
 	const numGoroutines = 10
 	results := make(chan [][3]field, numGoroutines)
 
-	for i := 0; i < numGoroutines; i++ {
+	for range numGoroutines {
 		go func() {
 			table := c.getBaseTable(3)
 			results <- table
@@ -632,7 +632,7 @@ func TestCurve_ConcurrentGetBaseTable(t *testing.T) {
 
 	// Collect results
 	var firstTable [][3]field
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		table := <-results
 		if i == 0 {
 			firstTable = table

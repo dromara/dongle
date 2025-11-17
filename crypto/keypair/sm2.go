@@ -123,6 +123,13 @@ func (k *Sm2KeyPair) ParsePublicKey() (*ecdsa.PublicKey, error) {
 	if len(publicKey) == 0 {
 		return nil, EmptyPublicKeyError{}
 	}
+	if len(publicKey) == 65 {
+		pub, err := sm2curve.ParseDerPublicKey(publicKey)
+		if err != nil {
+			return nil, InvalidPublicKeyError{Err: err}
+		}
+		return pub, nil
+	}
 	block, _ := pem.Decode(publicKey)
 	if block == nil || block.Type != "PUBLIC KEY" {
 		return nil, InvalidPublicKeyError{}
@@ -139,6 +146,13 @@ func (k *Sm2KeyPair) ParsePrivateKey() (*ecdsa.PrivateKey, error) {
 	privateKey := k.PrivateKey
 	if len(privateKey) == 0 {
 		return nil, EmptyPrivateKeyError{}
+	}
+	if len(privateKey) == 32 {
+		pri, err := sm2curve.ParseDerPrivateKey(privateKey)
+		if err != nil {
+			return nil, InvalidPrivateKeyError{Err: err}
+		}
+		return pri, nil
 	}
 	block, _ := pem.Decode(privateKey)
 	if block == nil || block.Type != "PRIVATE KEY" {

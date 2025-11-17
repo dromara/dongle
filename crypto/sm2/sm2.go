@@ -277,7 +277,7 @@ func sm3KDF(length int, parts ...[]byte) (out []byte, ok bool) {
 	ct := 1
 	h := sm3.New()
 	blocks := (length + 31) / 32
-	for i := 0; i < blocks; i++ {
+	for i := range blocks {
 		h.Reset()
 		for _, p := range parts {
 			h.Write(p)
@@ -340,7 +340,7 @@ func encrypt(pub *ecdsa.PublicKey, src []byte, order keypair.CipherOrder, window
 	// C2 = M XOR KDF(x2||y2)
 	mask, _ := sm3KDF(n, x2b, y2b)
 	c2 := make([]byte, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		c2[i] = src[i] ^ mask[i]
 	}
 
@@ -378,7 +378,7 @@ func decrypt(pri *ecdsa.PrivateKey, src []byte, order keypair.CipherOrder, windo
 		n := len(src) - (2*coordLen + 32)
 		mask, _ := sm3KDF(n, x2b, y2b)
 		m := make([]byte, n)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			m[i] = src[2*coordLen+i] ^ mask[i]
 		}
 		macInput := make([]byte, 0, len(x2b)+n+len(y2b))
@@ -395,7 +395,7 @@ func decrypt(pri *ecdsa.PrivateKey, src []byte, order keypair.CipherOrder, windo
 	n := len(src) - (2*coordLen + 32)
 	mask, _ := sm3KDF(n, x2b, y2b)
 	m := make([]byte, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		m[i] = src[2*coordLen+32+i] ^ mask[i]
 	}
 	macInput := make([]byte, 0, len(x2b)+n+len(y2b))
