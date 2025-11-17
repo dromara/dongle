@@ -68,6 +68,8 @@ func MarshalPKCS8PrivateKey(pri *ecdsa.PrivateKey) ([]byte, error) {
 	return p8.Bytes()
 }
 
+// ParseDerPublicKey parses a BIT STRING and returns an SM2 public key.
+//
 //go:inline
 func ParseDerPublicKey(der []byte) (*ecdsa.PublicKey, error) {
 	cv := New()
@@ -103,6 +105,8 @@ func ParseSPKIPublicKey(der []byte) (*ecdsa.PublicKey, error) {
 	return ParseDerPublicKey(point)
 }
 
+// ParseDerPrivateKey parses a BIT STRING PrivateKeyInfo and returns an SM2 private key.
+//
 //go:inline
 func ParseDerPrivateKey(der []byte) (*ecdsa.PrivateKey, error) {
 	cv := New()
