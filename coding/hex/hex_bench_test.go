@@ -396,7 +396,7 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.`)
 func BenchmarkBinaryData(b *testing.B) {
 	// Binary data with various patterns
 	binaryData := make([]byte, 1024)
-	for i := 0; i < len(binaryData); i++ {
+	for i := range binaryData {
 		binaryData[i] = byte(i % 256)
 	}
 
@@ -704,10 +704,7 @@ func BenchmarkStreamingBufferSizes(b *testing.B) {
 				buf.Reset()
 				// Write in chunks of buffer size
 				for j := 0; j < len(data); j += bufSize {
-					end := j + bufSize
-					if end > len(data) {
-						end = len(data)
-					}
+					end := min(j+bufSize, len(data))
 					encoder.Write(data[j:end])
 				}
 				encoder.Close()

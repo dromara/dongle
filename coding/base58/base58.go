@@ -121,7 +121,7 @@ type StdDecoder struct {
 func NewStdDecoder() *StdDecoder {
 	d := &StdDecoder{alphabet: StdAlphabet}
 	// Initialize all bytes to 0xFF (invalid)
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		d.decodeMap[i] = 0xFF
 	}
 	// Set valid characters

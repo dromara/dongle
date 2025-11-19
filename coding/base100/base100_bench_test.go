@@ -458,7 +458,7 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.`)
 func BenchmarkBinaryData(b *testing.B) {
 	// Binary data with various patterns
 	binaryData := make([]byte, 1024)
-	for i := 0; i < len(binaryData); i++ {
+	for i := range binaryData {
 		binaryData[i] = byte(i % 256)
 	}
 
@@ -580,7 +580,7 @@ func BenchmarkUTF8Sequences(b *testing.B) {
 
 	// Test with data that will generate various UTF-8 sequences
 	testData := make([]byte, 256)
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		testData[i] = byte(i)
 	}
 

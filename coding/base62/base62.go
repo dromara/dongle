@@ -49,7 +49,7 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 	}
 
 	leadingZerosCount := 0
-	for i := 0; i < len(src); i++ {
+	for i := range src {
 		if src[i] != 0 {
 			break
 		}
@@ -67,7 +67,7 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 	}
 	zeroPadding := make([]byte, 0, zeroPaddingLen)
 
-	for i := 0; i < n; i++ {
+	for range n {
 		zeroPadding = append(zeroPadding, '0', e.encodeMap[len(e.encodeMap)-1])
 	}
 	if r > 0 {
@@ -123,7 +123,7 @@ type StdDecoder struct {
 func NewStdDecoder() *StdDecoder {
 	d := &StdDecoder{alphabet: StdAlphabet}
 	// Initialize all bytes to 0xFF (invalid)
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		d.decodeMap[i] = 0xFF
 	}
 	// Set valid characters
@@ -163,7 +163,7 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 			leadingNullBytes = newLeadingNullBytes
 		}
 
-		for i := 0; i < val; i++ {
+		for range val {
 			leadingNullBytes = append(leadingNullBytes, 0)
 		}
 

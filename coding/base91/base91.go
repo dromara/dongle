@@ -70,7 +70,7 @@ func (e *StdEncoder) encode(dst, src []byte) int {
 	var queue, numBits uint
 
 	n := 0
-	for i := 0; i < len(src); i++ {
+	for i := range src {
 		queue |= uint(src[i]) << numBits
 		numBits += 8
 		if numBits > 13 {
@@ -164,7 +164,7 @@ func (d *StdDecoder) decode(dst, src []byte) (int, error) {
 	var v = -1
 
 	n := 0
-	for i := 0; i < len(src); i++ {
+	for i := range src {
 		if d.decodeMap[src[i]] == 0xFF {
 			// The character is not in the encoding alphabet.
 			return n, CorruptInputError(int64(i))
@@ -246,7 +246,7 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	}
 
 	// Process each byte immediately using base91 bit-packing algorithm
-	for i := 0; i < len(p); i++ {
+	for i := range p {
 		e.queue |= uint(p[i]) << e.numBits
 		e.numBits += 8
 		if e.numBits > 13 {
@@ -382,7 +382,7 @@ func (d *StreamDecoder) decode(src []byte) ([]byte, error) {
 	var v = -1
 	n := 0
 
-	for i := 0; i < len(src); i++ {
+	for i := range src {
 		if d.decodeMap[src[i]] == 0xFF {
 			// The character is not in the encoding alphabet.
 			return nil, CorruptInputError(int64(i))

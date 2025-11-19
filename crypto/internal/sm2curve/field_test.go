@@ -149,7 +149,7 @@ func TestFelemZero(t *testing.T) {
 	}
 
 	// Verify all limbs are zero
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		if zero.limbs[i] != 0 {
 			t.Errorf("field{} limb[%d] should be 0, got %d", i, zero.limbs[i])
 		}
@@ -271,7 +271,7 @@ func TestFelemReduceCarry(t *testing.T) {
 	// Verify result is reduced mod p
 	resultBig = toBigInt(&result)
 	expectedBytes := make([]byte, 16)
-	for i := 0; i < 16; i++ {
+	for i := range 16 {
 		expectedBytes[i] = 0xFF
 	}
 	expectedBig := new(big.Int).SetBytes(expectedBytes)

@@ -56,7 +56,7 @@ func TestString2Bytes(t *testing.T) {
 	t.Run("very long string", func(t *testing.T) {
 		// Create a long string
 		longString := ""
-		for i := 0; i < 1000; i++ {
+		for range 1000 {
 			longString += "a"
 		}
 		result := String2Bytes(longString)

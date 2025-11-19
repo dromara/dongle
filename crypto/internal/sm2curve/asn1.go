@@ -68,10 +68,26 @@ func MarshalPKCS8PrivateKey(pri *ecdsa.PrivateKey) ([]byte, error) {
 	return p8.Bytes()
 }
 
+// ParseDerPublicKey parses a BIT_STRING and returns an SM2 public key.
+//
+//go:inline
+func ParseDerPublicKey(der []byte) (*ecdsa.PublicKey, error) {
+	cv := New()
+	pLen := (cv.Params().BitSize + 7) / 8
+	if len(der) != 1+2*pLen || der[0] != 0x04 {
+		return nil, stdAsn1.SyntaxError{Msg: "unsupported or invalid EC point"}
+	}
+	x := new(big.Int).SetBytes(der[1 : 1+pLen])
+	y := new(big.Int).SetBytes(der[1+pLen:])
+	if !cv.IsOnCurve(x, y) {
+		return nil, stdAsn1.StructuralError{Msg: "point not on curve"}
+	}
+	return &ecdsa.PublicKey{Curve: cv, X: x, Y: y}, nil
+}
+
 // ParseSPKIPublicKey parses a SubjectPublicKeyInfo (SPKI) and returns an SM2 public key.
 // Simplified: only uncompressed points are supported.
 func ParseSPKIPublicKey(der []byte) (*ecdsa.PublicKey, error) {
-	cv := New()
 	in := cryptobyte.String(der)
 	var spki, ai, bitStr cryptobyte.String
 	var alg, curveOID stdAsn1.ObjectIdentifier
@@ -86,22 +102,22 @@ func ParseSPKIPublicKey(der []byte) (*ecdsa.PublicKey, error) {
 	}
 	var point []byte
 	_ = bitStr.ReadBytes(&point, len(bitStr))
-	pLen := (cv.Params().BitSize + 7) / 8
-	if len(point) != 1+2*pLen || point[0] != 0x04 {
-		return nil, stdAsn1.SyntaxError{Msg: "unsupported or invalid EC point"}
-	}
-	x := new(big.Int).SetBytes(point[1 : 1+pLen])
-	y := new(big.Int).SetBytes(point[1+pLen:])
-	if !cv.IsOnCurve(x, y) {
-		return nil, stdAsn1.StructuralError{Msg: "point not on curve"}
-	}
-	return &ecdsa.PublicKey{Curve: cv, X: x, Y: y}, nil
+	return ParseDerPublicKey(point)
+}
+
+// ParseDerPrivateKey parses a BIT_STRING PrivateKeyInfo and returns an SM2 private key.
+//
+//go:inline
+func ParseDerPrivateKey(der []byte) (*ecdsa.PrivateKey, error) {
+	cv := New()
+	d := new(big.Int).SetBytes(der)
+	x, y := cv.ScalarBaseMult(der)
+	return &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: cv, X: x, Y: y}, D: d}, nil
 }
 
 // ParsePKCS8PrivateKey parses a PKCS#8 PrivateKeyInfo and returns an SM2 private key.
 // Simplified: ignores optional parameters/publicKey fields inside ECPrivateKey.
 func ParsePKCS8PrivateKey(der []byte) (*ecdsa.PrivateKey, error) {
-	cv := New()
 	in := cryptobyte.String(der)
 	var p8 cryptobyte.String
 	if !in.ReadASN1(&p8, asn1.SEQUENCE) || !in.Empty() {
@@ -141,7 +157,5 @@ func ParsePKCS8PrivateKey(der []byte) (*ecdsa.PrivateKey, error) {
 	if !ecSeq.ReadASN1(&keyOct, asn1.OCTET_STRING) {
 		return nil, stdAsn1.SyntaxError{Msg: "missing EC privateKey"}
 	}
-	d := new(big.Int).SetBytes(keyOct)
-	x, y := cv.ScalarBaseMult(d.Bytes())
-	return &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: cv, X: x, Y: y}, D: d}, nil
+	return ParseDerPrivateKey(keyOct)
 }

@@ -78,7 +78,7 @@ func (d *digest) Write(p []byte) (n int, err error) {
 
 	// Process complete blocks from the input
 	m := len(p) / BlockSize
-	for i := 0; i < m; i++ {
+	for range m {
 		d.block(p[:BlockSize])
 		p = p[BlockSize:]
 	}
@@ -106,7 +106,7 @@ func (d *digest) Sum(in []byte) []byte {
 		in = newIn
 	}
 	out := in[len(in) : len(in)+needed]
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		binary.BigEndian.PutUint32(out[i*4:], data[i])
 	}
 	return out
@@ -156,7 +156,7 @@ func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 
 	for len(msg) >= BlockSize {
 		// Convert bytes to words
-		for i := 0; i < 16; i++ {
+		for i := range 16 {
 			w[i] = binary.BigEndian.Uint32(msg[4*i : 4*(i+1)])
 		}
 
@@ -166,7 +166,7 @@ func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 		}
 
 		// Calculate W1 array
-		for i := 0; i < 64; i++ {
+		for i := range 64 {
 			w1[i] = w[i] ^ w[i+4]
 		}
 
@@ -174,7 +174,7 @@ func (d *digest) processBlocks(msg []byte, returnFinal bool) [8]uint32 {
 		A, B, C, D, E, F, G, H := a, b, c, dVal, e, f, g, h
 
 		// First 16 rounds
-		for i := 0; i < 16; i++ {
+		for i := range 16 {
 			SS1 := leftRotate(leftRotate(A, 12)+E+leftRotate(tj0, uint32(i)), 7)
 			SS2 := SS1 ^ leftRotate(A, 12)
 			TT1 := ff0(A, B, C) + D + SS2 + w1[i]

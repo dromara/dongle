@@ -121,7 +121,7 @@ func (d *digest) Write(p []byte) (n int, err error) {
 
 	m := len(p) / BlockSize
 	// For the rest, try hashing by the block size
-	for i := 0; i < m; i++ {
+	for range m {
 		d.block(p[:BlockSize])
 		p = p[BlockSize:]
 	}
@@ -166,15 +166,15 @@ func (d *digest) block(p []byte) {
 	copy(d.state[16:32], p[:16])
 
 	// Manually compute XOR for state[32:48]
-	for i := 0; i < 16; i++ {
+	for i := range 16 {
 		d.state[i+32] = p[i] ^ d.state[i] // XOR input with current state for state[32:48]
 	}
 
 	// Step 2: Process state buffer through S-box substitution
 	// Perform 18 rounds of S-box substitution on the entire 48-byte state buffer
 	// Each round uses the current value of t as an index into the S-box
-	for i := 0; i < 18; i++ {
-		for j := 0; j < 48; j++ {
+	for i := range 18 {
+		for j := range 48 {
 			d.state[j] = d.state[j] ^ sBox[t] // XOR state byte with S-box value
 			t = d.state[j]                    // Update t with the new state value
 		}
@@ -188,7 +188,7 @@ func (d *digest) block(p []byte) {
 
 	// Process each byte of the input block to update the digest
 	// Use the input byte XORed with t as an index into the S-box
-	for i := 0; i < 16; i++ {
+	for i := range 16 {
 		d.digest[i] = d.digest[i] ^ sBox[p[i]^t] // XOR digest byte with S-box value
 		t = d.digest[i]                          // Update t with the new digest value
 	}

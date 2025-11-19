@@ -1110,7 +1110,7 @@ func TestStreamVerifierWriteEdgeCases(t *testing.T) {
 		assert.True(t, ok)
 
 		// Write empty data multiple times
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			n, err := verifier.Write([]byte{})
 			assert.Nil(t, err)
 			assert.Equal(t, 0, n)

@@ -233,7 +233,7 @@ func TestXteaLargeData(t *testing.T) {
 
 		// Create large plaintext (multiple of 8 bytes)
 		plaintext := ""
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			plaintext += "12345678"
 		}
 
@@ -252,7 +252,7 @@ func TestXteaLargeData(t *testing.T) {
 
 		// Create large plaintext (multiple of 8 bytes)
 		plaintext := make([]byte, 800) // 100 * 8 bytes
-		for i := 0; i < len(plaintext); i++ {
+		for i := range plaintext {
 			plaintext[i] = byte(i % 256)
 		}
 
