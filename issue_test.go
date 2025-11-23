@@ -10,7 +10,6 @@ import (
 
 	"github.com/dromara/dongle/crypto/cipher"
 	"github.com/dromara/dongle/crypto/keypair"
-	"github.com/dromara/dongle/crypto/sm2"
 	"github.com/dromara/dongle/hash"
 	"github.com/stretchr/testify/assert"
 )
@@ -264,16 +263,12 @@ func TestIssue30(t *testing.T) {
 func TestIssue34(t *testing.T) {
 	kp := keypair.NewSm2KeyPair()
 	kp.SetOrder(keypair.C1C3C2)
-	kp.PrivateKey = []byte{
-		0x5e, 0xe5, 0xc6, 0x87,
-		0x8a, 0x00, 0xbb, 0xe7,
-		0x4b, 0x8e, 0xa8, 0x93,
-		0xfc, 0x76, 0xe3, 0x61,
-		0xb6, 0x69, 0x4e, 0x1b,
-		0xb3, 0x15, 0xb4, 0xeb,
-		0x5a, 0x58, 0xa7, 0xdc,
-		0x9d, 0x1f, 0x1a, 0x71,
-	}
+	kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgXuXGh4oAu+dLjqiT
+/HbjYbZpThuzFbTrWlin3J0fGnGgCgYIKoEcz1UBgi2hRANCAAR08hilFva9Maqq
+1Tk8nJR4EFNhHFBB4Vr5duPaxXqAypfNj/dguqBRrcQO6LYu/ucVFf4pS4/+z9WL
+luEJL+Cf
+-----END PRIVATE KEY-----`)
 	ciphertext := []byte{
 		0x04,
 		0xf9, 0x72, 0x8a, 0xc8, 0x32, 0xca, 0x24, 0xd4,
@@ -291,20 +286,12 @@ func TestIssue34(t *testing.T) {
 		0xf9, 0xd2, 0xc8, 0xb2, 0x06, 0xe3, 0x5b, 0xe9,
 		0xb9, 0xd5, 0xe4, 0x19, 0xb1, 0xb5, 0x83, 0x8c,
 	}
-	// Check ciphertext length
-	t.Logf("Total length of ciphertext: %d byte", len(ciphertext))
-	t.Logf("Length after removing 0x04: %d byte", len(ciphertext)-1)
-	plaintext, err := sm2.NewStdDecrypter(kp).Decrypt(ciphertext)
-	assert.Nil(t, err, "Decryption failed", err)
-	t.Logf("Partial decryption result: %X", plaintext)
 
-	// desired result
+	decrypter := Decrypt.FromRawBytes(ciphertext).BySm2(kp)
+	assert.Nil(t, decrypter.Error)
+
 	expectedHex := "c6f2cc55b8cb73f3a75bf88b5416e6a0"
-	actualHex := fmt.Sprintf("%x", plaintext)
+	actualHex := fmt.Sprintf("%x", decrypter.ToString())
 
-	if actualHex != expectedHex {
-		assert.False(t, false, fmt.Sprintf("Decryption result does not match!\nexpected: %s\nactual: %s", expectedHex, actualHex))
-	} else {
-		assert.True(t, true, fmt.Sprintf("✓ Issue #34 has been fixed! The decryption result is correct: %s", actualHex))
-	}
+	assert.Equal(t, expectedHex, actualHex)
 }
