@@ -37,7 +37,7 @@ func (f *field) add(a, b *field) {
 		f.limbs[0], borrow = bits.Sub64(f.limbs[0], prime.limbs[0], 0)
 		f.limbs[1], borrow = bits.Sub64(f.limbs[1], prime.limbs[1], borrow)
 		f.limbs[2], borrow = bits.Sub64(f.limbs[2], prime.limbs[2], borrow)
-		f.limbs[3], borrow = bits.Sub64(f.limbs[3], prime.limbs[3], borrow)
+		f.limbs[3], _ = bits.Sub64(f.limbs[3], prime.limbs[3], borrow)
 	}
 
 	// Final conditional reduction if result >= p
@@ -128,7 +128,6 @@ func (f *field) reduce256() {
 }
 
 // reduce512 reduces a 512-bit value to a field element mod p.
-// Currently uses big.Int; TODO: implement fast reduction for SM2 prime.
 func (f *field) reduce512(p *[8]uint64) {
 	bytes := make([]byte, 64)
 
