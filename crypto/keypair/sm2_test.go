@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"encoding/asn1"
+
 	"github.com/dromara/dongle/crypto/internal/sm2curve"
 	"golang.org/x/crypto/cryptobyte"
 	cbasn1 "golang.org/x/crypto/cryptobyte/asn1"
@@ -579,5 +580,113 @@ func TestSm2KeyPair_ParseBlockNilCases(t *testing.T) {
 	kp.PrivateKey = badPri
 	if _, err := kp.ParsePrivateKey(); err == nil {
 		t.Fatalf("expected inner private key parse error")
+	}
+}
+
+// TestParsePublicKey_RawDer covers len==65 branch (DER-encoded EC point) including error path.
+func TestParsePublicKey_RawDer(t *testing.T) {
+	kp := NewSm2KeyPair()
+	c := sm2curve.New()
+	p := c.Params()
+	coordLen := (p.BitSize + 7) / 8
+	pad := func(v *big.Int) []byte {
+		out := make([]byte, coordLen)
+		copy(out[coordLen-len(v.Bytes()):], v.Bytes())
+		return out
+	}
+
+	valid := make([]byte, 1+2*coordLen)
+	valid[0] = 0x04
+	copy(valid[1:], pad(p.Gx))
+	copy(valid[1+coordLen:], pad(p.Gy))
+	kp.PublicKey = valid
+	pub, err := kp.ParsePublicKey()
+	if err != nil {
+		t.Fatalf("ParsePublicKey raw valid: %v", err)
+	}
+	if pub.X.Cmp(p.Gx) != 0 || pub.Y.Cmp(p.Gy) != 0 {
+		t.Fatalf("ParsePublicKey raw returned unexpected point")
+	}
+
+	// Test error path: invalid prefix (not 0x04)
+	badPrefix := make([]byte, 1+2*coordLen)
+	badPrefix[0] = 0x03 // invalid prefix
+	copy(badPrefix[1:], pad(p.Gx))
+	copy(badPrefix[1+coordLen:], pad(p.Gy))
+	kp.PublicKey = badPrefix
+	if _, err := kp.ParsePublicKey(); err == nil {
+		t.Fatalf("ParsePublicKey raw expected error for invalid prefix")
+	} else {
+		var target InvalidPublicKeyError
+		if !errors.As(err, &target) {
+			t.Fatalf("ParsePublicKey raw error type = %T", err)
+		}
+		if target.Err == nil {
+			t.Fatalf("ParsePublicKey raw error missing underlying cause")
+		}
+	}
+
+	// Test error path: point not on curve
+	bad := append([]byte{}, valid...)
+	yy := new(big.Int).Add(p.Gy, big.NewInt(1))
+	yy.Mod(yy, p.P)
+	copy(bad[1+coordLen:], pad(yy))
+	kp.PublicKey = bad
+	if _, err := kp.ParsePublicKey(); err == nil {
+		t.Fatalf("ParsePublicKey raw expected error for point not on curve")
+	} else {
+		var target InvalidPublicKeyError
+		if !errors.As(err, &target) {
+			t.Fatalf("ParsePublicKey raw error type = %T", err)
+		}
+		if target.Err == nil {
+			t.Fatalf("ParsePublicKey raw error missing underlying cause")
+		}
+	}
+}
+
+// TestParsePrivateKey_RawDer covers len==32 branch (raw scalar) of ParsePrivateKey.
+func TestParsePrivateKey_RawDer(t *testing.T) {
+	kp := NewSm2KeyPair()
+	p := sm2curve.New().Params()
+	coordLen := (p.BitSize + 7) / 8
+	raw := make([]byte, coordLen)
+	raw[coordLen-1] = 1 // scalar = 1
+	kp.PrivateKey = raw
+	pri, err := kp.ParsePrivateKey()
+	if err != nil {
+		t.Fatalf("ParsePrivateKey raw valid: %v", err)
+	}
+	if pri.D.Cmp(big.NewInt(1)) != 0 {
+		t.Fatalf("ParsePrivateKey raw unexpected scalar: %v", pri.D)
+	}
+	if pri.X == nil || pri.Y == nil {
+		t.Fatalf("ParsePrivateKey raw missing public point")
+	}
+
+	// Test error path: simulate ParseDerPrivateKey returning an error
+	// by temporarily replacing parseDerPrivateKeyFunc
+	oldFunc := parseDerPrivateKeyFunc
+	defer func() { parseDerPrivateKeyFunc = oldFunc }()
+
+	testErr := errors.New("test error from ParseDerPrivateKey")
+	parseDerPrivateKeyFunc = func(der []byte) (*ecdsa.PrivateKey, error) {
+		return nil, testErr
+	}
+
+	kp.PrivateKey = raw
+	_, err = kp.ParsePrivateKey()
+	if err == nil {
+		t.Fatalf("ParsePrivateKey expected error when ParseDerPrivateKey fails")
+	}
+	var target InvalidPrivateKeyError
+	if !errors.As(err, &target) {
+		t.Fatalf("ParsePrivateKey error type = %T, expected InvalidPrivateKeyError", err)
+	}
+	if target.Err == nil {
+		t.Fatalf("ParsePrivateKey error missing underlying cause")
+	}
+	if target.Err.Error() != testErr.Error() {
+		t.Fatalf("ParsePrivateKey error cause = %v, expected %v", target.Err, testErr)
 	}
 }
