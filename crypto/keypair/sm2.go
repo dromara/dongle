@@ -13,6 +13,10 @@ import (
 	"github.com/dromara/dongle/utils"
 )
 
+// parseDerPrivateKeyFunc is a variable that can be overridden in tests
+// to simulate ParseDerPrivateKey returning an error.
+var parseDerPrivateKeyFunc = sm2curve.ParseDerPrivateKey
+
 // Sm2KeyPair represents an SM2 key pair with public and private keys.
 // Keys are handled in PKCS8 (for private) and PKIX (for public) PEM formats.
 type Sm2KeyPair struct {
@@ -148,7 +152,7 @@ func (k *Sm2KeyPair) ParsePrivateKey() (*ecdsa.PrivateKey, error) {
 		return nil, EmptyPrivateKeyError{}
 	}
 	if len(privateKey) == 32 {
-		pri, err := sm2curve.ParseDerPrivateKey(privateKey)
+		pri, err := parseDerPrivateKeyFunc(privateKey)
 		if err != nil {
 			return nil, InvalidPrivateKeyError{Err: err}
 		}
