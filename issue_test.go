@@ -262,9 +262,9 @@ func TestIssue30(t *testing.T) {
 
 // https://github.com/dromara/dongle/issues/34
 func TestIssue34(t *testing.T) {
-	priv := keypair.NewSm2KeyPair()
-	priv.SetOrder(keypair.C1C3C2)
-	priv.PrivateKey = []byte{
+	kp := keypair.NewSm2KeyPair()
+	kp.SetOrder(keypair.C1C3C2)
+	kp.PrivateKey = []byte{
 		0x5e, 0xe5, 0xc6, 0x87,
 		0x8a, 0x00, 0xbb, 0xe7,
 		0x4b, 0x8e, 0xa8, 0x93,
@@ -274,7 +274,7 @@ func TestIssue34(t *testing.T) {
 		0x5a, 0x58, 0xa7, 0xdc,
 		0x9d, 0x1f, 0x1a, 0x71,
 	}
-	var cipher_text = []byte{
+	ciphertext := []byte{
 		0x04,
 		0xf9, 0x72, 0x8a, 0xc8, 0x32, 0xca, 0x24, 0xd4,
 		0xc3, 0x83, 0xc1, 0x29, 0x89, 0x8f, 0xd9, 0x0b,
@@ -292,26 +292,19 @@ func TestIssue34(t *testing.T) {
 		0xb9, 0xd5, 0xe4, 0x19, 0xb1, 0xb5, 0x83, 0x8c,
 	}
 	// Check ciphertext length
-	t.Logf("Total length of ciphertext: %d byte", len(cipher_text))
-	t.Logf("Length after removing 0x04: %d byte", len(cipher_text)-1)
-	plain_text, err := sm2.NewStdDecrypter(priv).Decrypt(cipher_text)
-	if err != nil {
-		t.Logf("Decryption failed, error: %v", err)
-		// Try to output some information even if it fails
-		if plain_text != nil {
-			t.Logf("Partial decryption result: %X", plain_text)
-		}
-		t.Fatalf("解密失败: %v", err)
-	}
-	t.Logf("Dongle 解密结果: %X", plain_text)
+	t.Logf("Total length of ciphertext: %d byte", len(ciphertext))
+	t.Logf("Length after removing 0x04: %d byte", len(ciphertext)-1)
+	plaintext, err := sm2.NewStdDecrypter(kp).Decrypt(ciphertext)
+	assert.Nil(t, err, "Decryption failed", err)
+	t.Logf("Partial decryption result: %X", plaintext)
 
 	// desired result
 	expectedHex := "c6f2cc55b8cb73f3a75bf88b5416e6a0"
-	actualHex := fmt.Sprintf("%x", plain_text)
+	actualHex := fmt.Sprintf("%x", plaintext)
 
 	if actualHex != expectedHex {
-		t.Errorf("Decryption result does not match!\nexpected: %s\nactual: %s", expectedHex, actualHex)
+		assert.False(t, false, fmt.Sprintf("Decryption result does not match!\nexpected: %s\nactual: %s", expectedHex, actualHex))
 	} else {
-		t.Logf("✓ Issue #34 has been fixed! The decryption result is correct: %s", actualHex)
+		assert.True(t, true, fmt.Sprintf("✓ Issue #34 has been fixed! The decryption result is correct: %s", actualHex))
 	}
 }
