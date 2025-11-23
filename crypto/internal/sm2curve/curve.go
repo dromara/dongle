@@ -421,7 +421,10 @@ func toWNAF(k *big.Int, w int) []int8 {
 		w = 4 // default
 	}
 
-	maxLen := max(k.BitLen()+1, 256)
+	maxLen := k.BitLen() + 1
+	if maxLen < 256 {
+		maxLen = 256
+	}
 	naf := make([]int8, 0, maxLen)
 
 	kCopy := new(big.Int).Set(k)
@@ -437,14 +440,12 @@ func toWNAF(k *big.Int, w int) []int8 {
 			word := new(big.Int).And(kCopy, windowMask)
 
 			if word.Cmp(halfWindow) < 0 {
-				// kCopy = kCopy + word - 2^w
 				naf = append(naf, int8(word.Int64()))
 				kCopy.Sub(kCopy, word)
 			} else {
-				// kCopy = kCopy - word + 2^w
 				negWord := new(big.Int).Sub(word, windowSize)
 				naf = append(naf, int8(negWord.Int64()))
-				kCopy.Sub(kCopy, negWord)
+				kCopy.Add(kCopy, negWord)
 			}
 			kCopy.Rsh(kCopy, 1)
 		}
