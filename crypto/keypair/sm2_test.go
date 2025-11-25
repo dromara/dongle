@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	crand "crypto/rand"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
@@ -11,8 +12,6 @@ import (
 	"io/fs"
 	"math/big"
 	"testing"
-
-	"encoding/asn1"
 
 	"github.com/dromara/dongle/crypto/internal/sm2curve"
 	"golang.org/x/crypto/cryptobyte"
@@ -665,12 +664,12 @@ func TestParsePrivateKey_RawDer(t *testing.T) {
 	}
 
 	// Test error path: simulate ParseDerPrivateKey returning an error
-	// by temporarily replacing parseDerPrivateKeyFunc
-	oldFunc := parseDerPrivateKeyFunc
-	defer func() { parseDerPrivateKeyFunc = oldFunc }()
+	// by temporarily replacing bitStringPrivateKeyParser
+	oldFunc := bitStringPrivateKeyParser
+	defer func() { bitStringPrivateKeyParser = oldFunc }()
 
 	testErr := errors.New("test error from ParseDerPrivateKey")
-	parseDerPrivateKeyFunc = func(der []byte) (*ecdsa.PrivateKey, error) {
+	bitStringPrivateKeyParser = func(der []byte) (*ecdsa.PrivateKey, error) {
 		return nil, testErr
 	}
 
