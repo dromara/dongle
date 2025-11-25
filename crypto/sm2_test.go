@@ -5,7 +5,7 @@ import (
 
 	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/crypto/sm2"
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
 )
 

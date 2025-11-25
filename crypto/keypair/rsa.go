@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/internal/utils"
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.

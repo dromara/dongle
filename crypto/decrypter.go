@@ -8,7 +8,7 @@ import (
 	"github.com/dromara/dongle/coding"
 	"github.com/dromara/dongle/coding/base64"
 	"github.com/dromara/dongle/coding/hex"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/internal/utils"
 )
 
 // Decrypter defines a Decrypter struct.

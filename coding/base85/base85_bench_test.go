@@ -7,7 +7,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 )
 
 // Benchmark data sizes

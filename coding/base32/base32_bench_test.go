@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 )
 
 // BenchmarkStdEncoder_Encode benchmarks the standard base32 encoder with small data

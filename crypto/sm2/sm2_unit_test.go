@@ -8,7 +8,7 @@ import (
 
 	"github.com/dromara/dongle/crypto/internal/sm2curve"
 	"github.com/dromara/dongle/crypto/keypair"
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
 )
 

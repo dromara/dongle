@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 )
 
 func BenchmarkStdEncoder_Encode(b *testing.B) {

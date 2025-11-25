@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/keypair"
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 )
 
 // BenchmarkStdEncrypter tests the performance of standard SM2 encryption

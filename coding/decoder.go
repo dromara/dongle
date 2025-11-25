@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/fs"
 
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/internal/utils"
 )
 
 // Decoder defines a Decoder struct.

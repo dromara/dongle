@@ -6,7 +6,7 @@ import (
 	"io/fs"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/internal/utils"
 )
 
 // Verifier defines a Verifier struct.

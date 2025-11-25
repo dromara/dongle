@@ -10,7 +10,7 @@ import (
 
 	"github.com/dromara/dongle/coding"
 	"github.com/dromara/dongle/crypto/internal/sm2curve"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/internal/utils"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
 )
 

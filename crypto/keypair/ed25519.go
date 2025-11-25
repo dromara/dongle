@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/internal/utils"
 )
 
 // Ed25519KeyPair represents an ED25519 key pair with public and private keys.

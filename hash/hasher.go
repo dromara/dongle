@@ -11,7 +11,7 @@ import (
 	"io/fs"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/utils"
+	"github.com/dromara/dongle/internal/utils"
 )
 
 // BufferSize buffer size for streaming (64KB is a good balance)

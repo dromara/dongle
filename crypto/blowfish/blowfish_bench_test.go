@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
-	"github.com/dromara/dongle/mock"
+	"github.com/dromara/dongle/internal/mock"
 )
 
 // Benchmark data for various sizes
