@@ -289,6 +289,8 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		n, err := streamEncrypter.Write(testdataChaCha20)
 		assert.Nil(t, err)
 		assert.Equal(t, len(testdataChaCha20), n)
+		// Verify that data was written to the writer
+		assert.Equal(t, len(testdataChaCha20), writer.Len())
 	})
 }
 
@@ -559,13 +561,13 @@ func TestCipherCreationErrors(t *testing.T) {
 	t.Run("encrypt cipher creation error", func(t *testing.T) {
 		// Create an encrypter by bypassing constructor validation
 		// to test the error path in Encrypt method
-		invalidCipher := &cipher.ChaCha20Cipher{}
+		invalidCipher := cipher.NewChaCha20Cipher()
 		invalidCipher.SetKey(make([]byte, 16)) // Invalid key size (16 instead of 32)
 		invalidCipher.SetNonce(nonce12ChaCha20)
 
 		// Create encrypter without using NewStdEncrypter to bypass validation
 		encrypter := &StdEncrypter{
-			cipher: invalidCipher,
+			cipher: *invalidCipher,
 			Error:  nil, // No error initially
 		}
 
@@ -579,13 +581,13 @@ func TestCipherCreationErrors(t *testing.T) {
 	t.Run("decrypt cipher creation error", func(t *testing.T) {
 		// Create a decrypter by bypassing constructor validation
 		// to test the error path in Decrypt method
-		invalidCipher := &cipher.ChaCha20Cipher{}
+		invalidCipher := cipher.NewChaCha20Cipher()
 		invalidCipher.SetKey(make([]byte, 16)) // Invalid key size (16 instead of 32)
 		invalidCipher.SetNonce(nonce12ChaCha20)
 
 		// Create decrypter without using NewStdDecrypter to bypass validation
 		decrypter := &StdDecrypter{
-			cipher: invalidCipher,
+			cipher: *invalidCipher,
 			Error:  nil, // No error initially
 		}
 

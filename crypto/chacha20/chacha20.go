@@ -15,8 +15,8 @@ import (
 // It implements ChaCha20 encryption using the standard ChaCha20 algorithm with support
 // for 256-bit keys and 96-bit nonces.
 type StdEncrypter struct {
-	cipher *cipher.ChaCha20Cipher // The cipher interface for encryption operations
-	Error  error                  // Error field for storing encryption errors
+	cipher cipher.ChaCha20Cipher // The cipher interface for encryption operations
+	Error  error                 // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new ChaCha20 encrypter with the specified cipher and key.
@@ -24,7 +24,7 @@ type StdEncrypter struct {
 // The key must be exactly 32 bytes (256 bits) and nonce must be 12 bytes (96 bits).
 func NewStdEncrypter(c *cipher.ChaCha20Cipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 32 {
@@ -70,8 +70,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements ChaCha20 decryption using the standard ChaCha20 algorithm with support
 // for 256-bit keys and 96-bit nonces.
 type StdDecrypter struct {
-	cipher *cipher.ChaCha20Cipher // The cipher interface for decryption operations
-	Error  error                  // Error field for storing decryption errors
+	cipher cipher.ChaCha20Cipher // The cipher interface for decryption operations
+	Error  error                 // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new ChaCha20 decrypter with the specified cipher and key.
@@ -79,7 +79,7 @@ type StdDecrypter struct {
 // The key must be exactly 32 bytes (256 bits) and nonce must be 12 bytes.
 func NewStdDecrypter(c *cipher.ChaCha20Cipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 32 {
@@ -125,10 +125,10 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer.
 type StreamEncrypter struct {
-	writer io.Writer              // Underlying writer for encrypted output
-	cipher *cipher.ChaCha20Cipher // The cipher interface for encryption operations
-	stream stdCipher.Stream       // Reused cipher stream for better performance
-	Error  error                  // Error field for storing encryption errors
+	writer io.Writer             // Underlying writer for encrypted output
+	cipher cipher.ChaCha20Cipher // The cipher interface for encryption operations
+	stream stdCipher.Stream      // Reused cipher stream for better performance
+	Error  error                 // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming ChaCha20 encrypter that writes encrypted data
@@ -137,7 +137,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.ChaCha20Cipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 32 {
@@ -200,10 +200,10 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by reading encrypted data
 // from the underlying reader and decrypting it in real-time without buffering.
 type StreamDecrypter struct {
-	reader io.Reader              // Underlying reader for encrypted input
-	cipher *cipher.ChaCha20Cipher // The cipher interface for decryption operations
-	stream stdCipher.Stream       // Reused cipher stream for better performance
-	Error  error                  // Error field for storing decryption errors
+	reader io.Reader             // Underlying reader for encrypted input
+	cipher cipher.ChaCha20Cipher // The cipher interface for decryption operations
+	stream stdCipher.Stream      // Reused cipher stream for better performance
+	Error  error                 // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming ChaCha20 decrypter that reads encrypted data
@@ -212,7 +212,7 @@ type StreamDecrypter struct {
 func NewStreamDecrypter(r io.Reader, c *cipher.ChaCha20Cipher) io.Reader {
 	d := &StreamDecrypter{
 		reader: r,
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 32 {
