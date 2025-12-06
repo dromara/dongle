@@ -13,6 +13,22 @@ import (
 	"github.com/dromara/dongle/internal/utils"
 )
 
+// Sm2CipherOrder specifies the concatenation order of SM2 ciphertext
+// components. It controls how the library assembles (encrypt) and
+// interprets (decrypt) the C1, C2, C3 parts.
+//
+// C1: EC point (x1||y1) in uncompressed form; C2: XORed plaintext;
+// C3: SM3 digest over x2 || M || y2.
+type Sm2CipherOrder string
+
+// Supported SM2 ciphertext orders.
+const (
+	// C1C2C3 means ciphertext bytes are C1 || C2 || C3.
+	C1C2C3 Sm2CipherOrder = "c1c2c3"
+	// C1C3C2 means ciphertext bytes are C1 || C3 || C2.
+	C1C3C2 Sm2CipherOrder = "c1c3c2"
+)
+
 var (
 	bitStringPublicKeyParser  = sm2curve.ParseBitStringPublicKey
 	bitStringPrivateKeyParser = sm2curve.ParseBitStringPrivateKey
@@ -27,7 +43,7 @@ type Sm2KeyPair struct {
 	// PrivateKey contains the PEM-encoded private key
 	PrivateKey []byte
 
-	Order CipherOrder
+	Order Sm2CipherOrder
 	// Window controls internal SM2 fixed-base/wNAF window size (2..6).
 	// 4 means use library default.
 	Window int
@@ -72,7 +88,7 @@ func (k *Sm2KeyPair) GenKeyPair() error {
 
 // SetOrder sets ciphertext component order to C1C3C2 or C1C2C3.
 // It affects how Encrypt assembles and Decrypt interprets ciphertext.
-func (k *Sm2KeyPair) SetOrder(order CipherOrder) {
+func (k *Sm2KeyPair) SetOrder(order Sm2CipherOrder) {
 	k.Order = order
 }
 
