@@ -197,7 +197,7 @@ func BenchmarkCipherReuse(b *testing.B) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			// Simulate the old behavior: create cipher each time
-			enc := &StdEncrypter{cipher: c}
+			enc := &StdEncrypter{cipher: *c}
 			_, err := enc.Encrypt(data)
 			if err != nil {
 				b.Fatalf("Encrypt failed: %v", err)

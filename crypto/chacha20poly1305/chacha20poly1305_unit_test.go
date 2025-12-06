@@ -419,7 +419,7 @@ func TestDirectConstructorBypass(t *testing.T) {
 		c.SetNonce(nonce12ChaCha20Poly1305)
 
 		// Create encrypter directly without constructor
-		encrypter := &StdEncrypter{cipher: c}
+		encrypter := &StdEncrypter{cipher: *c}
 
 		// Now corrupt the key to make chacha20poly1305.New() fail
 		encrypter.cipher.Key = []byte("short") // This will make New() fail
@@ -436,7 +436,7 @@ func TestDirectConstructorBypass(t *testing.T) {
 		c.SetNonce(nonce12ChaCha20Poly1305)
 
 		// Create decrypter directly without constructor
-		decrypter := &StdDecrypter{cipher: c}
+		decrypter := &StdDecrypter{cipher: *c}
 
 		// Now corrupt the key to make chacha20poly1305.New() fail
 		decrypter.cipher.Key = []byte("short") // This will make New() fail
@@ -456,7 +456,7 @@ func TestDirectConstructorBypass(t *testing.T) {
 		// Create StreamEncrypter directly, simulating the state just before chacha20poly1305.New()
 		encrypter := &StreamEncrypter{
 			writer:    &buf,
-			cipher:    c,
+			cipher:    *c,
 			chunkSize: 4096,
 			// aead is nil, Error is nil - this simulates the state in NewStreamEncrypter
 			// just before the chacha20poly1305.New() call
@@ -666,7 +666,7 @@ func TestStreamDecrypterDirectCreateWithError(t *testing.T) {
 	// Create StreamDecrypter directly, simulating the state just before chacha20poly1305.New()
 	decrypter := &StreamDecrypter{
 		reader: reader,
-		cipher: c,
+		cipher: *c,
 		// aead is nil, Error is nil - this simulates the state in NewStreamDecrypter
 		// just before the chacha20poly1305.New() call
 	}
@@ -691,7 +691,7 @@ func TestStreamDecrypterDirectCreateWithNonceError(t *testing.T) {
 	reader := bytes.NewReader([]byte("test"))
 	decrypter := &StreamDecrypter{
 		reader: reader,
-		cipher: c,
+		cipher: *c,
 		// aead is nil, Error is nil
 	}
 
@@ -714,7 +714,7 @@ func TestStreamEncrypterDirectCreateWithNonceError(t *testing.T) {
 	var buf bytes.Buffer
 	encrypter := &StreamEncrypter{
 		writer:    &buf,
-		cipher:    c,
+		cipher:    *c,
 		chunkSize: 4096,
 		// aead is nil, Error is nil
 	}
@@ -737,7 +737,7 @@ func TestStreamEncrypterDirectCreateWithKeyError(t *testing.T) {
 	var buf bytes.Buffer
 	encrypter := &StreamEncrypter{
 		writer:    &buf,
-		cipher:    c,
+		cipher:    *c,
 		chunkSize: 4096,
 		// aead is nil, Error is nil
 	}
@@ -764,7 +764,7 @@ func TestStreamEncrypterLazyInitWithChacha20Poly1305NewError(t *testing.T) {
 	// Create StreamEncrypter directly without going through constructor
 	encrypter := &StreamEncrypter{
 		writer:    &buf,
-		cipher:    c,
+		cipher:    *c,
 		chunkSize: 4096,
 		// aead is nil, Error is nil - this will trigger lazy init in Write()
 	}
@@ -787,7 +787,7 @@ func TestStreamDecrypterLazyInitWithChacha20Poly1305NewError(t *testing.T) {
 	// Create StreamDecrypter directly without going through constructor
 	decrypter := &StreamDecrypter{
 		reader: reader,
-		cipher: c,
+		cipher: *c,
 		// aead is nil, Error is nil - this will trigger lazy init in Read()
 	}
 
@@ -809,7 +809,7 @@ func TestStreamDecrypterLazyInitWithChacha20Poly1305NewErrorPath(t *testing.T) {
 	reader := bytes.NewReader([]byte("test"))
 	decrypter := &StreamDecrypter{
 		reader: reader,
-		cipher: c,
+		cipher: *c,
 		// aead is nil
 	}
 
@@ -966,7 +966,7 @@ func TestManualErrorTrigger(t *testing.T) {
 		// Manually create the struct with the right state to trigger the error branch
 		e := &StreamEncrypter{
 			writer:    &buf,
-			cipher:    c,
+			cipher:    *c,
 			chunkSize: 4096,
 		}
 
