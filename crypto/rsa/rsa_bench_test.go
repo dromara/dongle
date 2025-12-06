@@ -250,7 +250,7 @@ func BenchmarkFormats(b *testing.B) {
 	data := make([]byte, 64)
 	rand.Read(data)
 
-	formats := []keypair.KeyFormat{keypair.PKCS1, keypair.PKCS8}
+	formats := []keypair.RsaKeyFormat{keypair.PKCS1, keypair.PKCS8}
 	for _, format := range formats {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(format)
@@ -288,7 +288,7 @@ func BenchmarkPaddings(b *testing.B) {
 	data := make([]byte, 64)
 	rand.Read(data)
 
-	paddings := []keypair.PaddingScheme{keypair.PKCS1v15, keypair.OAEP}
+	paddings := []keypair.RsaPaddingScheme{keypair.PKCS1v15, keypair.OAEP}
 	for _, padding := range paddings {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS1)
@@ -611,7 +611,7 @@ func BenchmarkSigningPaddings(b *testing.B) {
 	data := make([]byte, 256)
 	rand.Read(data)
 
-	paddings := []keypair.PaddingScheme{keypair.PKCS1v15, keypair.PSS}
+	paddings := []keypair.RsaPaddingScheme{keypair.PKCS1v15, keypair.PSS}
 	for _, padding := range paddings {
 		kp := keypair.NewRsaKeyPair()
 		kp.SetFormat(keypair.PKCS1)

@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func mustKeyPair(t *testing.T, format keypair.KeyFormat) *keypair.RsaKeyPair {
+func mustKeyPair(t *testing.T, format keypair.RsaKeyFormat) *keypair.RsaKeyPair {
 	t.Helper()
 	kp := keypair.NewRsaKeyPair()
 	kp.SetFormat(format)
@@ -92,7 +92,7 @@ func TestStdEncrypterEncrypt(t *testing.T) {
 
 	t.Run("invalid padding error", func(t *testing.T) {
 		kp := mustKeyPair(t, keypair.PKCS1)
-		kp.Padding = keypair.PaddingScheme("weird")
+		kp.Padding = keypair.RsaPaddingScheme("weird")
 		enc := NewStdEncrypter(kp)
 		_, err := enc.Encrypt([]byte("data"))
 		assert.Error(t, err)
@@ -185,7 +185,7 @@ func TestStdDecrypterDecrypt(t *testing.T) {
 
 	t.Run("invalid padding error", func(t *testing.T) {
 		kp := mustKeyPair(t, keypair.PKCS1)
-		kp.Padding = keypair.PaddingScheme("weird")
+		kp.Padding = keypair.RsaPaddingScheme("weird")
 		dec := NewStdDecrypter(kp)
 		_, err := dec.Decrypt([]byte("cipher"))
 		assert.Error(t, err)
@@ -220,7 +220,7 @@ func TestStreamEncrypterNew(t *testing.T) {
 	assert.IsType(t, EncryptError{}, bad.Error)
 
 	kp3 := mustKeyPair(t, keypair.PKCS1)
-	kp3.Padding = keypair.PaddingScheme("weird")
+	kp3.Padding = keypair.RsaPaddingScheme("weird")
 	invalid := NewStreamEncrypter(bytes.NewBuffer(nil), kp3).(*StreamEncrypter)
 	assert.IsType(t, EncryptError{}, invalid.Error)
 
@@ -318,7 +318,7 @@ func TestStreamEncrypterWriteCloseEncrypt(t *testing.T) {
 
 	t.Run("encrypt with invalid padding", func(t *testing.T) {
 		se := NewStreamEncrypter(&bytes.Buffer{}, kp).(*StreamEncrypter)
-		se.keypair.Padding = keypair.PaddingScheme("invalid")
+		se.keypair.Padding = keypair.RsaPaddingScheme("invalid")
 		_, err := se.encrypt([]byte("data"))
 		assert.Error(t, err)
 		assert.IsType(t, EncryptError{}, err)
@@ -453,7 +453,7 @@ func TestStreamDecrypterRead(t *testing.T) {
 
 	t.Run("invalid padding", func(t *testing.T) {
 		sd := NewStreamDecrypter(bytes.NewReader(cipher), kp).(*StreamDecrypter)
-		sd.keypair.Padding = keypair.PaddingScheme("weird")
+		sd.keypair.Padding = keypair.RsaPaddingScheme("weird")
 		sd.priKey, _ = kp.ParsePrivateKey()
 		_, err := sd.Read(make([]byte, 5))
 		assert.Error(t, err)
@@ -513,7 +513,7 @@ func TestStreamDecrypterRead(t *testing.T) {
 	t.Run("decrypt with invalid padding", func(t *testing.T) {
 		kp := mustKeyPair(t, keypair.PKCS1)
 		sd := NewStreamDecrypter(bytes.NewReader(nil), kp).(*StreamDecrypter)
-		sd.keypair.Padding = keypair.PaddingScheme("invalid")
+		sd.keypair.Padding = keypair.RsaPaddingScheme("invalid")
 		_, err := sd.decrypt([]byte("data"))
 		assert.Error(t, err)
 		assert.IsType(t, DecryptError{}, err)
@@ -604,7 +604,7 @@ func TestStdSigner(t *testing.T) {
 
 	t.Run("invalid padding error", func(t *testing.T) {
 		kp := mustKeyPair(t, keypair.PKCS1)
-		kp.Padding = keypair.PaddingScheme("weird")
+		kp.Padding = keypair.RsaPaddingScheme("weird")
 		s := NewStdSigner(kp)
 		_, err := s.Sign([]byte("data"))
 		assert.Error(t, err)
@@ -682,7 +682,7 @@ func TestStdVerifier(t *testing.T) {
 
 	t.Run("invalid padding error", func(t *testing.T) {
 		kp := mustKeyPair(t, keypair.PKCS1)
-		kp.Padding = keypair.PaddingScheme("weird")
+		kp.Padding = keypair.RsaPaddingScheme("weird")
 		v := NewStdVerifier(kp)
 		_, err := v.Verify([]byte("data"), []byte("sig"))
 		assert.Error(t, err)
@@ -789,7 +789,7 @@ func TestStreamSigner(t *testing.T) {
 
 	t.Run("sign with invalid padding", func(t *testing.T) {
 		ss := NewStreamSigner(&bytes.Buffer{}, kp).(*StreamSigner)
-		ss.keypair.Padding = keypair.PaddingScheme("invalid")
+		ss.keypair.Padding = keypair.RsaPaddingScheme("invalid")
 		_, err := ss.sign([]byte("hash"))
 		assert.Error(t, err)
 		assert.IsType(t, SignError{}, err)
@@ -917,7 +917,7 @@ func TestStreamVerifier(t *testing.T) {
 
 	t.Run("verify with invalid padding", func(t *testing.T) {
 		sv := NewStreamVerifier(bytes.NewReader(sign), validKP).(*StreamVerifier)
-		sv.keypair.Padding = keypair.PaddingScheme("invalid")
+		sv.keypair.Padding = keypair.RsaPaddingScheme("invalid")
 		_, err := sv.verify([]byte("hash"), sign)
 		assert.Error(t, err)
 		assert.IsType(t, VerifyError{}, err)
