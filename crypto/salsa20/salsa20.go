@@ -194,11 +194,11 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by reading encrypted data
 // from the underlying reader and decrypting it in chunks.
 type StreamDecrypter struct {
-	reader    io.Reader             // Underlying reader for encrypted input
-	cipher    *cipher.Salsa20Cipher // The cipher interface for decryption operations
-	decrypted []byte                // All decrypted data
-	pos       int                   // Current position in the decrypted data
-	Error     error                 // Error field for storing decryption errors
+	reader   io.Reader             // Underlying reader for encrypted input
+	cipher   *cipher.Salsa20Cipher // The cipher interface for decryption operations
+	buffer   []byte                // Buffer for decrypted data
+	position int                   // Current position in the buffer
+	Error    error                 // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming Salsa20 decrypter that reads encrypted data
@@ -206,10 +206,10 @@ type StreamDecrypter struct {
 // and validates the key length and nonce length for proper Salsa20 decryption.
 func NewStreamDecrypter(r io.Reader, c *cipher.Salsa20Cipher) io.Reader {
 	d := &StreamDecrypter{
-		reader:    r,
-		cipher:    c,
-		decrypted: nil, // Will be populated on first read
-		pos:       0,
+		reader:   r,
+		cipher:   c,
+		buffer:   nil, // Will be populated on first read
+		position: 0,
 	}
 
 	if len(c.Key) != 32 {
@@ -234,7 +234,7 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	}
 
 	// If we haven't decrypted the data yet, do it now
-	if d.decrypted == nil {
+	if d.buffer == nil {
 		// Read all encrypted data from the underlying reader
 		encryptedData, err := io.ReadAll(d.reader)
 		if err != nil {
@@ -254,19 +254,19 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 		decrypted := make([]byte, len(encryptedData))
 		salsa20.XORKeyStream(decrypted, encryptedData, d.cipher.Nonce, &key)
 
-		d.decrypted = decrypted
-		d.pos = 0
+		d.buffer = decrypted
+		d.position = 0
 	}
 
 	// If we've already returned all decrypted data, return EOF
-	if d.pos >= len(d.decrypted) {
+	if d.position >= len(d.buffer) {
 		return 0, io.EOF
 	}
 
 	// Copy as much decrypted data as possible to the provided buffer
-	remainingData := d.decrypted[d.pos:]
+	remainingData := d.buffer[d.position:]
 	copied := copy(p, remainingData)
-	d.pos += copied
+	d.position += copied
 
 	return copied, nil
 }
