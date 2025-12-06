@@ -15,8 +15,8 @@ import (
 // It implements Twofish encryption using the Twofish algorithm with support
 // for different key sizes and various cipher modes.
 type StdEncrypter struct {
-	cipher *cipher.TwofishCipher // The cipher interface for encryption operations
-	Error  error                 // Error field for storing encryption errors
+	cipher cipher.TwofishCipher // The cipher interface for encryption operations
+	Error  error                // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new Twofish encrypter with the specified cipher and key.
@@ -24,7 +24,7 @@ type StdEncrypter struct {
 // The key must be 16, 24, or 32 bytes for 128-bit, 192-bit, or 256-bit keys respectively.
 func NewStdEncrypter(c *cipher.TwofishCipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 	if len(c.Key) != 16 && len(c.Key) != 24 && len(c.Key) != 32 {
 		e.Error = KeySizeError(len(c.Key))
@@ -60,8 +60,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements Twofish decryption using the Twofish algorithm with support
 // for different key sizes and various cipher modes.
 type StdDecrypter struct {
-	cipher *cipher.TwofishCipher // The cipher interface for decryption operations
-	Error  error                 // Error field for storing decryption errors
+	cipher cipher.TwofishCipher // The cipher interface for decryption operations
+	Error  error                // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new Twofish decrypter with the specified cipher and key.
@@ -69,7 +69,7 @@ type StdDecrypter struct {
 // The key must be 16, 24, or 32 bytes for 128-bit, 192-bit, or 256-bit keys respectively.
 func NewStdDecrypter(c *cipher.TwofishCipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 	if len(c.Key) != 16 && len(c.Key) != 24 && len(c.Key) != 32 {
 		d.Error = KeySizeError(len(c.Key))
@@ -105,11 +105,11 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer with true streaming support.
 type StreamEncrypter struct {
-	writer io.Writer             // Underlying writer for encrypted output
-	cipher *cipher.TwofishCipher // The cipher interface for encryption operations
-	buffer []byte                // Buffer for accumulating incomplete blocks
-	block  stdCipher.Block       // Reused cipher block for better performance
-	Error  error                 // Error field for storing encryption errors
+	writer io.Writer            // Underlying writer for encrypted output
+	cipher cipher.TwofishCipher // The cipher interface for encryption operations
+	buffer []byte               // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block      // Reused cipher block for better performance
+	Error  error                // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming Twofish encrypter that writes encrypted data
@@ -118,7 +118,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.TwofishCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 		buffer: make([]byte, 0, 16), // Twofish block size is 16 bytes
 	}
 
