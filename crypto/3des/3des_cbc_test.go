@@ -468,7 +468,7 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		}
 	})
 
-	t.Run("write with nil block", func(t *testing.T) {
+	t.Run("write with multiple calls", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
@@ -476,12 +476,15 @@ func TestStreamEncrypter_Write(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		streamEncrypter.block = nil // Force nil block to test the nil check
 
-		n, err := encrypter.Write(testData)
-		assert.Equal(t, len(testData), n) // Should work as it recreates the block
-		assert.Nil(t, err)
+		// Multiple writes should work correctly
+		n1, err1 := encrypter.Write([]byte("hello"))
+		assert.Equal(t, 5, n1)
+		assert.Nil(t, err1)
+
+		n2, err2 := encrypter.Write([]byte(" world"))
+		assert.Equal(t, 6, n2)
+		assert.Nil(t, err2)
 	})
 }
 
@@ -648,7 +651,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 			} else {
 				// Success path - verify proper initialization
 				assert.NotNil(t, streamDecrypter.block)
-				assert.Equal(t, 0, streamDecrypter.pos)
+				assert.Equal(t, 0, streamDecrypter.position)
 			}
 
 			// If we're on the first iteration and got an error, we successfully covered the error path
@@ -789,21 +792,29 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		// This should trigger the d.cipher.Decrypt error path
 	})
 
-	t.Run("read with nil block", func(t *testing.T) {
-		file := mock.NewFile([]byte("test data"), "test.txt")
+	t.Run("read with valid initialization", func(t *testing.T) {
+		// First encrypt some data
+		var encBuf bytes.Buffer
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 		c.SetIV(iv8)
 		c.SetPadding(cipher.PKCS7)
 
+		encrypter := NewStreamEncrypter(&encBuf, c)
+		_, err := encrypter.Write([]byte("test data"))
+		assert.Nil(t, err)
+		err = encrypter.Close()
+		assert.Nil(t, err)
+
+		// Now decrypt it
+		file := mock.NewFile(encBuf.Bytes(), "encrypted.dat")
 		decrypter := NewStreamDecrypter(file, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		streamDecrypter.block = nil // Force nil block to test the nil check
 
 		buf := make([]byte, 100)
-		n, _ := decrypter.Read(buf)
-		// Should still work as it recreates the block
-		assert.True(t, n >= 0)
+		n, err := decrypter.Read(buf)
+		assert.True(t, n > 0)
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("test data"), buf[:n])
 	})
 
 	t.Run("read multiple times until EOF", func(t *testing.T) {

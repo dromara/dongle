@@ -548,7 +548,7 @@ func TestCoverage_MissingPaths(t *testing.T) {
 		}
 	})
 
-	t.Run("StreamEncrypter Close with nil block", func(t *testing.T) {
+	t.Run("StreamEncrypter Close with valid block", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key16Error)
@@ -556,20 +556,18 @@ func TestCoverage_MissingPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		streamEncrypter.buffer = []byte("test") // Add buffered data
-		streamEncrypter.block = nil             // Force nil block
 
-		// This should trigger the nil block path in lines 264-286
-		err := encrypter.Close()
-		// Should handle the nil block case
-		if err != nil {
-			assert.Error(t, err)
-		}
+		// Write some data
+		_, err := encrypter.Write([]byte("test data"))
+		assert.Nil(t, err)
+
+		// Close should work normally
+		err = encrypter.Close()
+		assert.Nil(t, err)
 	})
 
-	t.Run("StreamDecrypter Read nil block expandKey error", func(t *testing.T) {
-		// Use an invalid key length that will cause expandKey to fail
+	t.Run("StreamDecrypter Read with invalid key", func(t *testing.T) {
+		// Use an invalid key length
 		invalidKey := make([]byte, 15) // 15 bytes - invalid for 3DES
 
 		file := mock.NewFile([]byte("test data"), "test.bin")
@@ -579,16 +577,13 @@ func TestCoverage_MissingPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		decrypter := NewStreamDecrypter(file, c)
-		streamDecrypter := decrypter.(*StreamDecrypter)
-		streamDecrypter.Error = nil
-		streamDecrypter.block = nil // Force nil block
 
-		// This should trigger the expandKey error path in lines 441-444
+		// Should have KeySizeError from initialization
 		buf := make([]byte, 10)
 		n, err := decrypter.Read(buf)
 		assert.Equal(t, 0, n)
 		assert.Error(t, err)
-		assert.IsType(t, DecryptError{}, err)
+		assert.IsType(t, KeySizeError(0), err)
 	})
 
 	t.Run("StreamEncrypter Close cipher Encrypt error", func(t *testing.T) {
@@ -640,7 +635,7 @@ func TestCoverage_MissingPaths(t *testing.T) {
 		assert.IsType(t, KeySizeError(0), err)
 	})
 
-	t.Run("StreamEncrypter Close nil block cipher creation error and encrypt error", func(t *testing.T) {
+	t.Run("StreamEncrypter Close after Write", func(t *testing.T) {
 		var buf bytes.Buffer
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key16Error)
@@ -648,34 +643,28 @@ func TestCoverage_MissingPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		encrypter := NewStreamEncrypter(&buf, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		streamEncrypter.buffer = []byte("test") // Add buffered data
-		streamEncrypter.block = nil             // Force nil block
 
-		// This should test the normal nil block path in Close
-		err := encrypter.Close()
-		// Should succeed in normal cases
-		if err != nil {
-			assert.Error(t, err)
-		}
+		// Write and close should succeed
+		_, err := encrypter.Write([]byte("test"))
+		assert.Nil(t, err)
+
+		err = encrypter.Close()
+		assert.Nil(t, err)
 	})
 
-	t.Run("StreamEncrypter Close nil block write error", func(t *testing.T) {
-		writer := mock.NewErrorReadWriteCloser(errors.New("write error"))
+	t.Run("StreamEncrypter Close with write error", func(t *testing.T) {
+		writer := mock.NewCloseErrorWriteCloser(&bytes.Buffer{}, errors.New("close error"))
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key16Error)
 		c.SetIV(iv8Error)
 		c.SetPadding(cipher.No)
 
 		encrypter := NewStreamEncrypter(writer, c)
-		streamEncrypter := encrypter.(*StreamEncrypter)
-		streamEncrypter.buffer = []byte("12345678") // 8 bytes for No padding
-		streamEncrypter.block = nil                 // Force nil block
 
-		// The Close() method just closes the writer, triggering the close error
+		// Close should trigger the close error
 		err := encrypter.Close()
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "write error")
+		assert.Contains(t, err.Error(), "close error")
 	})
 
 	// Test cases to verify dead code paths - these paths are theoretically unreachable,
@@ -715,56 +704,50 @@ func TestCoverage_MissingPaths(t *testing.T) {
 		}
 	})
 
-	t.Run("StreamEncrypter unreachable des.NewTripleDESCipher errors", func(t *testing.T) {
-		// Test all the unreachable error paths in StreamEncrypter
+	t.Run("StreamEncrypter successful operation", func(t *testing.T) {
+		// Test normal StreamEncrypter operation
 		var buf bytes.Buffer
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key16Error)
 		c.SetIV(iv8Error)
 		c.SetPadding(cipher.PKCS7)
 
-		// Test NewStreamEncrypter path (lines 176-180)
+		// Test NewStreamEncrypter initialization
 		encrypter := NewStreamEncrypter(&buf, c)
 		streamEncrypter := encrypter.(*StreamEncrypter)
 		assert.Nil(t, streamEncrypter.Error)    // Should succeed
 		assert.NotNil(t, streamEncrypter.block) // Block should be created
 
-		// Test Write with nil block path (lines 217-220)
-		streamEncrypter.block = nil
+		// Test Write operation
 		n, err := encrypter.Write(testDataError)
-		assert.Equal(t, len(testDataError), n) // Should succeed by recreating block
+		assert.Equal(t, len(testDataError), n)
 		assert.Nil(t, err)
 
-		// Test Close with buffered data paths (lines 271-274, 344-347, 350-353)
-		streamEncrypter.buffer = []byte("test")
-		streamEncrypter.block = nil
+		// Test Close operation
 		err = encrypter.Close()
-		// Should succeed by recreating block
 		assert.Nil(t, err)
 	})
 
-	t.Run("StreamDecrypter unreachable des.NewTripleDESCipher errors", func(t *testing.T) {
-		// Test unreachable paths in StreamDecrypter
+	t.Run("StreamDecrypter successful initialization", func(t *testing.T) {
+		// Test normal StreamDecrypter initialization
 		file := mock.NewFile([]byte("test data"), "test.bin")
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key16Error)
 		c.SetIV(iv8Error)
 		c.SetPadding(cipher.PKCS7)
 
-		// Test NewStreamDecrypter path (lines 406-410)
+		// Test NewStreamDecrypter initialization
 		decrypter := NewStreamDecrypter(file, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.Nil(t, streamDecrypter.Error)    // Should succeed
 		assert.NotNil(t, streamDecrypter.block) // Block should be created
 
-		// Test Read with nil block path (lines 446-449)
-		streamDecrypter.block = nil
+		// Test Read operation (may fail due to invalid data format)
 		buf := make([]byte, 10)
 		_, err := decrypter.Read(buf)
-		// May fail due to invalid data, but not due to des.NewTripleDESCipher
+		// May get an error due to invalid encrypted data format, which is expected
 		if err != nil && err != io.EOF {
-			// Could be ReadError or DecryptError, but not from des.NewTripleDESCipher
-			t.Logf("Got expected error: %v", err)
+			t.Logf("Got expected error due to invalid data format: %v", err)
 		}
 	})
 }

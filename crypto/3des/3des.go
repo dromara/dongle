@@ -180,14 +180,6 @@ func (e *StreamEncrypter) Write(p []byte) (n int, err error) {
 	data := append(e.buffer, p...)
 	e.buffer = nil // Clear buffer after combining
 
-	// Check if cipher block is available (might be nil if key was invalid)
-	if e.block == nil {
-		// Try to create cipher block if it wasn't created during initialization
-		if block, err := des.NewTripleDESCipher(expandKey(e.cipher.Key)); err == nil {
-			e.block = block
-		}
-	}
-
 	// Use the cipher interface to encrypt data (maintains compatibility with tests)
 	// This ensures proper padding and mode handling
 	encrypted, err := e.cipher.Encrypt(data, e.block)
@@ -223,12 +215,12 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by reading all encrypted data
 // at once and then providing it in chunks to maintain compatibility with standard decryption.
 type StreamDecrypter struct {
-	reader    io.Reader               // Underlying reader for encrypted input
-	cipher    *cipher.TripleDesCipher // The cipher interface for decryption operations
-	decrypted []byte                  // All decrypted data
-	pos       int                     // Current position in the decrypted data
-	block     stdCipher.Block         // Reused cipher block for better performance
-	Error     error                   // Error field for storing decryption errors
+	reader   io.Reader               // Underlying reader for encrypted input
+	cipher   *cipher.TripleDesCipher // The cipher interface for decryption operations
+	buffer   []byte                  // Buffer for decrypted data
+	position int                     // Current position in the buffer
+	block    stdCipher.Block         // Reused cipher block for better performance
+	Error    error                   // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming Triple DES decrypter that reads encrypted data
@@ -237,10 +229,10 @@ type StreamDecrypter struct {
 // Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStreamDecrypter(r io.Reader, c *cipher.TripleDesCipher) io.Reader {
 	d := &StreamDecrypter{
-		reader:    r,
-		cipher:    c,
-		decrypted: nil,
-		pos:       0,
+		reader:   r,
+		cipher:   c,
+		buffer:   nil,
+		position: 0,
 	}
 
 	if len(d.cipher.Key) != 16 && len(d.cipher.Key) != 24 {
@@ -268,7 +260,7 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	}
 
 	// If we haven't decrypted the data yet, do it now
-	if d.decrypted == nil {
+	if d.buffer == nil {
 		// Read all encrypted data from the underlying reader
 		encryptedData, err := io.ReadAll(d.reader)
 		if err != nil {
@@ -280,16 +272,6 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 			return 0, io.EOF
 		}
 
-		// Check if cipher block is available
-		if d.block == nil {
-			// Try to create cipher block if it wasn't created during initialization
-			block, err := des.NewTripleDESCipher(expandKey(d.cipher.Key))
-			if err != nil {
-				return 0, DecryptError{Err: err}
-			}
-			d.block = block
-		}
-
 		// Decrypt all the data at once using the cipher interface
 		// This ensures proper handling of padding and cipher modes
 		decrypted, err := d.cipher.Decrypt(encryptedData, d.block)
@@ -297,19 +279,19 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 			return 0, DecryptError{Err: err}
 		}
 
-		d.decrypted = decrypted
-		d.pos = 0
+		d.buffer = decrypted
+		d.position = 0
 	}
 
 	// If we've already returned all decrypted data, return EOF
-	if d.pos >= len(d.decrypted) {
+	if d.position >= len(d.buffer) {
 		return 0, io.EOF
 	}
 
 	// Copy as much decrypted data as possible to the provided buffer
-	remainingData := d.decrypted[d.pos:]
+	remainingData := d.buffer[d.position:]
 	copied := copy(p, remainingData)
-	d.pos += copied
+	d.position += copied
 
 	return copied, nil
 }
