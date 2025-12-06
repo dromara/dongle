@@ -15,8 +15,8 @@ import (
 // It implements XTEA encryption using the extended Tiny Encryption Algorithm
 // with support for 128-bit keys and various cipher modes.
 type StdEncrypter struct {
-	cipher *cipher.XteaCipher // The cipher interface for encryption operations
-	Error  error              // Error field for storing encryption errors
+	cipher cipher.XteaCipher // The cipher interface for encryption operations
+	Error  error             // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new XTEA encrypter with the specified cipher and key.
@@ -24,7 +24,7 @@ type StdEncrypter struct {
 // The key must be exactly 16 bytes for XTEA-128.
 func NewStdEncrypter(c *cipher.XteaCipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 	if len(c.Key) != 16 {
 		e.Error = KeySizeError(len(c.Key))
@@ -65,8 +65,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements XTEA decryption using the extended Tiny Encryption Algorithm
 // with support for 128-bit keys and various cipher modes.
 type StdDecrypter struct {
-	cipher *cipher.XteaCipher // The cipher interface for decryption operations
-	Error  error              // Error field for storing decryption errors
+	cipher cipher.XteaCipher // The cipher interface for decryption operations
+	Error  error             // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new XTEA decrypter with the specified cipher and key.
@@ -74,7 +74,7 @@ type StdDecrypter struct {
 // The key must be exactly 16 bytes for XTEA-128.
 func NewStdDecrypter(c *cipher.XteaCipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 	if len(c.Key) != 16 {
 		d.Error = KeySizeError(len(c.Key))
@@ -115,11 +115,11 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer with true streaming support.
 type StreamEncrypter struct {
-	writer io.Writer          // Underlying writer for encrypted output
-	cipher *cipher.XteaCipher // The cipher interface for encryption operations
-	buffer []byte             // Buffer for accumulating incomplete blocks
-	block  stdCipher.Block    // Reused cipher block for better performance
-	Error  error              // Error field for storing encryption errors
+	writer io.Writer         // Underlying writer for encrypted output
+	cipher cipher.XteaCipher // The cipher interface for encryption operations
+	buffer []byte            // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block   // Reused cipher block for better performance
+	Error  error             // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming XTEA encrypter that writes encrypted data
@@ -128,7 +128,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.XteaCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 		buffer: make([]byte, 0, 8), // XTEA block size is 8 bytes
 	}
 
