@@ -41,7 +41,7 @@ func TestNewStdEncrypter_CFB(t *testing.T) {
 			encrypter := NewStdEncrypter(c)
 			assert.NotNil(t, encrypter)
 			assert.Nil(t, encrypter.Error)
-			assert.Equal(t, c, encrypter.cipher)
+			assert.Equal(t, *c, encrypter.cipher)
 		}
 	})
 

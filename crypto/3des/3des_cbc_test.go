@@ -45,7 +45,7 @@ func TestNewStdEncrypter(t *testing.T) {
 			encrypter := NewStdEncrypter(c)
 			assert.NotNil(t, encrypter)
 			assert.Nil(t, encrypter.Error)
-			assert.Equal(t, c, encrypter.cipher)
+			assert.Equal(t, *c, encrypter.cipher)
 		}
 	})
 
@@ -183,7 +183,7 @@ func TestNewStdDecrypter(t *testing.T) {
 			decrypter := NewStdDecrypter(c)
 			assert.NotNil(t, decrypter)
 			assert.Nil(t, decrypter.Error)
-			assert.Equal(t, c, decrypter.cipher)
+			assert.Equal(t, *c, decrypter.cipher)
 		}
 	})
 

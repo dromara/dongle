@@ -15,8 +15,8 @@ import (
 // It implements Triple DES encryption using the standard Triple DES algorithm with support
 // for 16-byte and 24-byte keys and various cipher modes.
 type StdEncrypter struct {
-	cipher *cipher.TripleDesCipher // The cipher interface for encryption operations
-	Error  error                   // Error field for storing encryption errors
+	cipher cipher.TripleDesCipher // The cipher interface for encryption operations
+	Error  error                  // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new Triple DES encrypter with the specified cipher and key.
@@ -25,7 +25,7 @@ type StdEncrypter struct {
 // Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdEncrypter(c *cipher.TripleDesCipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 16 && len(c.Key) != 24 {
@@ -74,8 +74,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements Triple DES decryption using the standard Triple DES algorithm with support
 // for 16-byte and 24-byte keys and various cipher modes.
 type StdDecrypter struct {
-	cipher *cipher.TripleDesCipher // The cipher interface for decryption operations
-	Error  error                   // Error field for storing decryption errors
+	cipher cipher.TripleDesCipher // The cipher interface for decryption operations
+	Error  error                  // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new Triple DES decrypter with the specified cipher and key.
@@ -84,7 +84,7 @@ type StdDecrypter struct {
 // Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdDecrypter(c *cipher.TripleDesCipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 16 && len(c.Key) != 24 {
@@ -130,11 +130,11 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer with true streaming support.
 type StreamEncrypter struct {
-	writer io.Writer               // Underlying writer for encrypted output
-	cipher *cipher.TripleDesCipher // The cipher interface for encryption operations
-	buffer []byte                  // Buffer for accumulating incomplete blocks
-	block  stdCipher.Block         // Reused cipher block for better performance
-	Error  error                   // Error field for storing encryption errors
+	writer io.Writer              // Underlying writer for encrypted output
+	cipher cipher.TripleDesCipher // The cipher interface for encryption operations
+	buffer []byte                 // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block        // Reused cipher block for better performance
+	Error  error                  // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming Triple DES encrypter that writes encrypted data
@@ -144,7 +144,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.TripleDesCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 		buffer: make([]byte, 0, 8), // 3DES block size is 8 bytes
 	}
 
@@ -215,12 +215,12 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by reading all encrypted data
 // at once and then providing it in chunks to maintain compatibility with standard decryption.
 type StreamDecrypter struct {
-	reader   io.Reader               // Underlying reader for encrypted input
-	cipher   *cipher.TripleDesCipher // The cipher interface for decryption operations
-	buffer   []byte                  // Buffer for decrypted data
-	position int                     // Current position in the buffer
-	block    stdCipher.Block         // Reused cipher block for better performance
-	Error    error                   // Error field for storing decryption errors
+	reader   io.Reader              // Underlying reader for encrypted input
+	cipher   cipher.TripleDesCipher // The cipher interface for decryption operations
+	buffer   []byte                 // Buffer for decrypted data
+	position int                    // Current position in the buffer
+	block    stdCipher.Block        // Reused cipher block for better performance
+	Error    error                  // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming Triple DES decrypter that reads encrypted data
@@ -230,7 +230,7 @@ type StreamDecrypter struct {
 func NewStreamDecrypter(r io.Reader, c *cipher.TripleDesCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:   r,
-		cipher:   c,
+		cipher:   *c,
 		buffer:   nil,
 		position: 0,
 	}
