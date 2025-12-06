@@ -214,12 +214,12 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by processing data
 // in chunks and reading decrypted output from the underlying reader with proper state management.
 type StreamDecrypter struct {
-	reader    io.Reader         // Underlying reader for encrypted input
-	cipher    *cipher.TeaCipher // The cipher interface for decryption operations
-	decrypted []byte            // All decrypted data
-	pos       int               // Current position in the decrypted data
-	block     stdCipher.Block   // Reused cipher block for better performance
-	Error     error             // Error field for storing decryption errors
+	reader   io.Reader         // Underlying reader for encrypted input
+	cipher   *cipher.TeaCipher // The cipher interface for decryption operations
+	buffer   []byte            // Buffer for decrypted data
+	position int               // Current position in the buffer
+	block    stdCipher.Block   // Reused cipher block for better performance
+	Error    error             // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming TEA decrypter that reads encrypted data
@@ -227,10 +227,10 @@ type StreamDecrypter struct {
 // and validates the key length for proper TEA decryption.
 func NewStreamDecrypter(r io.Reader, c *cipher.TeaCipher) io.Reader {
 	d := &StreamDecrypter{
-		reader:    r,
-		cipher:    c,
-		decrypted: nil, // Will be populated on first read
-		pos:       0,
+		reader:   r,
+		cipher:   c,
+		buffer:   nil, // Will be populated on first read
+		position: 0,
 	}
 
 	if len(c.Key) != 16 {
@@ -256,7 +256,7 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	}
 
 	// If we haven't decrypted the data yet, do it now
-	if d.decrypted == nil {
+	if d.buffer == nil {
 		// Read all encrypted data from the underlying reader
 		encryptedData, err := io.ReadAll(d.reader)
 		if err != nil {
@@ -285,19 +285,19 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 			return 0, d.Error
 		}
 
-		d.decrypted = decrypted
-		d.pos = 0
+		d.buffer = decrypted
+		d.position = 0
 	}
 
 	// If we've already returned all decrypted data, return EOF
-	if d.pos >= len(d.decrypted) {
+	if d.position >= len(d.buffer) {
 		return 0, io.EOF
 	}
 
 	// Copy as much decrypted data as possible to the provided buffer
-	remainingData := d.decrypted[d.pos:]
+	remainingData := d.buffer[d.position:]
 	copied := copy(p, remainingData)
-	d.pos += copied
+	d.position += copied
 
 	return copied, nil
 }
