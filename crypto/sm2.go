@@ -44,3 +44,70 @@ func (d Decrypter) BySm2(kp *keypair.Sm2KeyPair) Decrypter {
 	}
 	return d
 }
+
+// BySm2 signs by SM2.
+func (s Signer) BySm2(kp *keypair.Sm2KeyPair) Signer {
+	if s.Error != nil {
+		return s
+	}
+
+	// Streaming signing mode
+	if s.reader != nil {
+		s.sign, s.Error = s.stream(func(w io.Writer) io.WriteCloser {
+			return sm2.NewStreamSigner(w, kp)
+		})
+		return s
+	}
+
+	// Standard signing mode
+	if len(s.data) > 0 {
+		s.sign, s.Error = sm2.NewStdSigner(kp).Sign(s.data)
+	}
+
+	return s
+}
+
+// BySm2 verifies by SM2.
+func (v Verifier) BySm2(kp *keypair.Sm2KeyPair) Verifier {
+	if v.Error != nil {
+		return v
+	}
+
+	// Streaming verification mode
+	if v.reader != nil {
+		verifier := sm2.NewStreamVerifier(v.reader, kp)
+
+		// Write the data to be verified
+		if len(v.data) > 0 {
+			_, v.Error = verifier.Write(v.data)
+		}
+
+		// Close the verifier to perform verification
+		v.Error = verifier.Close()
+		if v.Error != nil {
+			return v
+		}
+
+		v.verify = true
+		return v
+	}
+
+	// Standard verification mode
+	if len(v.data) > 0 {
+		if len(v.sign) == 0 {
+			v.Error = &keypair.EmptySignatureError{}
+			return v
+		}
+
+		valid, err := sm2.NewStdVerifier(kp).Verify(v.data, v.sign)
+		if err != nil {
+			v.Error = err
+			return v
+		}
+		if valid {
+			v.verify = true
+		}
+	}
+
+	return v
+}

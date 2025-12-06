@@ -76,7 +76,7 @@ func TestEncrypterBySm2(t *testing.T) {
 
 		enc := NewEncrypter().FromString("hello world").BySm2(kp)
 		assert.NotNil(t, enc.Error)
-		assert.IsType(t, sm2.KeyPairError{}, enc.Error)
+		assert.IsType(t, sm2.EncryptError{}, enc.Error)
 	})
 
 	t.Run("streaming encryption error with invalid public key", func(t *testing.T) {
@@ -211,7 +211,7 @@ func TestDecrypterBySm2(t *testing.T) {
 
 		dec := NewDecrypter().FromRawString("hello world").BySm2(kp)
 		assert.NotNil(t, dec.Error)
-		assert.IsType(t, sm2.KeyPairError{}, dec.Error)
+		assert.IsType(t, sm2.DecryptError{}, dec.Error)
 	})
 
 	t.Run("streaming decryption error with invalid private key", func(t *testing.T) {
@@ -353,5 +353,404 @@ func TestDecrypterBySm2(t *testing.T) {
 		dec := NewDecrypter().FromRawBytes(enc.dst).BySm2(kp)
 		assert.Nil(t, dec.Error)
 		assert.Equal(t, binaryData, dec.ToBytes())
+	})
+}
+
+// TestSignerBySm2 tests Signer.BySm2 method
+func TestSignerBySm2(t *testing.T) {
+	t.Run("standard signing mode", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Test string input
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+		assert.NotEmpty(t, signer.sign)
+
+		// Test bytes input
+		signer2 := NewSigner().FromBytes([]byte("hello world")).BySm2(kp)
+		assert.Nil(t, signer2.Error)
+		assert.NotEmpty(t, signer2.sign)
+
+		// Signatures should differ due to randomness in k
+		assert.NotEqual(t, signer.sign, signer2.sign)
+
+		// But both should verify successfully
+		verifier := NewVerifier().FromString("hello world").WithRawSign(signer.sign).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+
+		verifier2 := NewVerifier().FromString("hello world").WithRawSign(signer2.sign).BySm2(kp)
+		assert.Nil(t, verifier2.Error)
+		assert.True(t, verifier2.ToBool())
+	})
+
+	t.Run("streaming signing mode", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
+
+		signer := NewSigner().FromFile(file).BySm2(kp)
+		assert.Nil(t, signer.Error)
+		assert.NotEmpty(t, signer.sign)
+
+		// Verify the signature
+		verifier := NewVerifier().FromString("hello world").WithRawSign(signer.sign).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+	})
+
+	t.Run("with existing error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		signer := Signer{Error: assert.AnError}
+		result := signer.FromString("hello world").BySm2(kp)
+		assert.Equal(t, assert.AnError, result.Error)
+		assert.Nil(t, result.sign)
+	})
+
+	t.Run("signing error with empty private key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.NotNil(t, signer.Error)
+		assert.IsType(t, sm2.SignError{}, signer.Error)
+	})
+
+	t.Run("signing error with invalid private key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.SetPrivateKey([]byte("invalid key"))
+
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.NotNil(t, signer.Error)
+		assert.IsType(t, sm2.SignError{}, signer.Error)
+	})
+
+	t.Run("empty source data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Test empty string
+		signer := NewSigner().FromString("").BySm2(kp)
+		assert.Nil(t, signer.Error)
+		assert.Empty(t, signer.sign)
+
+		// Test empty bytes
+		signer2 := NewSigner().FromBytes([]byte{}).BySm2(kp)
+		assert.Nil(t, signer2.Error)
+		assert.Empty(t, signer2.sign)
+	})
+
+	t.Run("with custom UID", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		customUID := []byte("user@example.com")
+		kp.SetUID(customUID)
+
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+		assert.NotEmpty(t, signer.sign)
+
+		// Verify with same UID
+		verifier := NewVerifier().FromString("hello world").WithRawSign(signer.sign).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+	})
+
+	t.Run("hex encoding", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+
+		hexSig := signer.ToHexBytes()
+		assert.NotEmpty(t, hexSig)
+
+		verifier := NewVerifier().FromString("hello world").WithHexSign(hexSig).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+	})
+
+	t.Run("base64 encoding", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+
+		b64Sig := signer.ToBase64Bytes()
+		assert.NotEmpty(t, b64Sig)
+
+		verifier := NewVerifier().FromString("hello world").WithBase64Sign(b64Sig).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+	})
+
+	t.Run("unicode data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		unicodeData := "Hello 世界 🌍 测试 🧪"
+
+		signer := NewSigner().FromString(unicodeData).BySm2(kp)
+		assert.Nil(t, signer.Error)
+		assert.NotEmpty(t, signer.sign)
+
+		verifier := NewVerifier().FromString(unicodeData).WithRawSign(signer.sign).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+	})
+
+	t.Run("large data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		largeData := make([]byte, 10000)
+		for i := range largeData {
+			largeData[i] = byte(i % 256)
+		}
+
+		signer := NewSigner().FromBytes(largeData).BySm2(kp)
+		assert.Nil(t, signer.Error)
+		assert.NotEmpty(t, signer.sign)
+
+		verifier := NewVerifier().FromBytes(largeData).WithRawSign(signer.sign).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+	})
+}
+
+// TestVerifierBySm2 tests Verifier.BySm2 method
+func TestVerifierBySm2(t *testing.T) {
+	t.Run("standard verification mode", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Sign data first
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+
+		// Test verification
+		verifier := NewVerifier().FromString("hello world").WithRawSign(signer.sign).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.ToBool())
+	})
+
+	t.Run("streaming verification mode", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Sign data first
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+
+		// Create a file with the signature
+		sigFile := mock.NewFile(signer.sign, "signature.bin")
+		defer sigFile.Close()
+
+		// Test streaming verification with data
+		verifier := NewVerifier().FromString("hello world").FromFile(sigFile).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, verifier.verify)
+	})
+
+	t.Run("streaming verification mode with empty data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Sign empty data
+		signer := NewSigner().FromString("").BySm2(kp)
+		assert.Nil(t, signer.Error)
+
+		// Create a file with the signature
+		sigFile := mock.NewFile(signer.sign, "signature.bin")
+		defer sigFile.Close()
+
+		// Test streaming verification with empty data
+		verifier := NewVerifier().FromString("").FromFile(sigFile).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		// Empty data verification should succeed if signature is valid
+		assert.True(t, verifier.verify)
+	})
+
+	t.Run("streaming verification error with invalid public key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.SetPublicKey([]byte("invalid key"))
+
+		// Create a file with some signature data
+		sigFile := mock.NewFile([]byte("signature"), "signature.bin")
+		defer sigFile.Close()
+
+		verifier := NewVerifier().FromString("hello world").FromFile(sigFile).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+		assert.IsType(t, sm2.VerifyError{}, verifier.Error)
+	})
+
+	t.Run("streaming verification error with read error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Create an error file that will fail on read
+		errorFile := mock.NewErrorFile(assert.AnError)
+
+		verifier := NewVerifier().FromString("hello world").FromFile(errorFile).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+	})
+
+	t.Run("standard verification with empty data and no signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Test with empty data and no signature - should not set verify to true
+		verifier := NewVerifier().FromString("").BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.False(t, verifier.verify)
+	})
+
+	t.Run("standard verification with valid signature but invalid result", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Sign data
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+
+		// Verify with wrong data - should return error and verify should be false
+		verifier := NewVerifier().FromString("wrong data").WithRawSign(signer.sign).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+		assert.False(t, verifier.verify)
+	})
+
+	t.Run("with existing error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		verifier := Verifier{Error: assert.AnError}
+		result := verifier.FromString("hello world").BySm2(kp)
+		assert.Equal(t, assert.AnError, result.Error)
+		assert.False(t, result.verify)
+	})
+
+	t.Run("verification error with empty public key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+
+		verifier := NewVerifier().FromString("hello world").WithRawSign([]byte("sig")).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+		assert.IsType(t, sm2.VerifyError{}, verifier.Error)
+	})
+
+	t.Run("verification error with invalid public key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.SetPublicKey([]byte("invalid key"))
+
+		verifier := NewVerifier().FromString("hello world").WithRawSign([]byte("sig")).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+		assert.IsType(t, sm2.VerifyError{}, verifier.Error)
+	})
+
+	t.Run("empty source data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		// Test empty string
+		verifier := NewVerifier().FromString("").WithRawSign([]byte("sig")).BySm2(kp)
+		assert.Nil(t, verifier.Error)
+		assert.False(t, verifier.verify)
+
+		// Test empty bytes
+		verifier2 := NewVerifier().FromBytes([]byte{}).WithRawSign([]byte("sig")).BySm2(kp)
+		assert.Nil(t, verifier2.Error)
+		assert.False(t, verifier2.verify)
+	})
+
+	t.Run("empty signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		verifier := NewVerifier().FromString("hello world").WithRawSign([]byte{}).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+	})
+
+	t.Run("invalid signature format", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		invalidSig := []byte{0x00, 0x01, 0x02, 0x03}
+		verifier := NewVerifier().FromString("hello world").WithRawSign(invalidSig).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+		assert.IsType(t, sm2.VerifyError{}, verifier.Error)
+	})
+
+	t.Run("wrong message", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		err := kp.GenKeyPair()
+		assert.Nil(t, err)
+
+		signer := NewSigner().FromString("hello world").BySm2(kp)
+		assert.Nil(t, signer.Error)
+
+		// Try to verify with different message
+		verifier := NewVerifier().FromString("goodbye world").WithRawSign(signer.sign).BySm2(kp)
+		assert.NotNil(t, verifier.Error)
+		assert.False(t, verifier.ToBool())
+	})
+
+	t.Run("different UID", func(t *testing.T) {
+		signKp := keypair.NewSm2KeyPair()
+		err := signKp.GenKeyPair()
+		assert.Nil(t, err)
+		signKp.SetUID([]byte("signer@example.com"))
+
+		signer := NewSigner().FromString("hello world").BySm2(signKp)
+		assert.Nil(t, signer.Error)
+
+		// Try to verify with different UID
+		verifyKp := signKp
+		verifyKp.SetUID([]byte("verifier@example.com"))
+
+		verifier := NewVerifier().FromString("hello world").WithRawSign(signer.sign).BySm2(verifyKp)
+		assert.False(t, verifier.ToBool())
+	})
+
+	t.Run("wrong key pair", func(t *testing.T) {
+		kp1 := keypair.NewSm2KeyPair()
+		err := kp1.GenKeyPair()
+		assert.Nil(t, err)
+
+		kp2 := keypair.NewSm2KeyPair()
+		err = kp2.GenKeyPair()
+		assert.Nil(t, err)
+
+		signer := NewSigner().FromString("hello world").BySm2(kp1)
+		assert.Nil(t, signer.Error)
+
+		// Try to verify with different key pair
+		verifier := NewVerifier().FromString("hello world").WithRawSign(signer.sign).BySm2(kp2)
+		assert.NotNil(t, verifier.Error)
+		assert.False(t, verifier.ToBool())
 	})
 }
