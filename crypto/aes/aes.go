@@ -15,8 +15,8 @@ import (
 // It implements AES encryption using the standard AES algorithm with support
 // for different key sizes and various cipher modes.
 type StdEncrypter struct {
-	cipher *cipher.AesCipher // The cipher interface for encryption operations
-	Error  error             // Error field for storing encryption errors
+	cipher cipher.AesCipher // The cipher interface for encryption operations
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new AES encrypter with the specified cipher and key.
@@ -24,7 +24,7 @@ type StdEncrypter struct {
 // The key must be 16, 24, or 32 bytes for AES-128, AES-192, or AES-256 respectively.
 func NewStdEncrypter(c *cipher.AesCipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 	if len(c.Key) != 16 && len(c.Key) != 24 && len(c.Key) != 32 {
 		e.Error = KeySizeError(len(c.Key))
@@ -60,8 +60,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements AES decryption using the standard AES algorithm with support
 // for different key sizes and various cipher modes.
 type StdDecrypter struct {
-	cipher *cipher.AesCipher // The cipher interface for decryption operations
-	Error  error             // Error field for storing decryption errors
+	cipher cipher.AesCipher // The cipher interface for decryption operations
+	Error  error            // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new AES decrypter with the specified cipher and key.
@@ -69,7 +69,7 @@ type StdDecrypter struct {
 // The key must be 16, 24, or 32 bytes for AES-128, AES-192, or AES-256 respectively.
 func NewStdDecrypter(c *cipher.AesCipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 	if len(c.Key) != 16 && len(c.Key) != 24 && len(c.Key) != 32 {
 		d.Error = KeySizeError(len(c.Key))
@@ -104,11 +104,11 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer with true streaming support.
 type StreamEncrypter struct {
-	writer io.Writer         // Underlying writer for encrypted output
-	cipher *cipher.AesCipher // The cipher interface for encryption operations
-	buffer []byte            // Buffer for accumulating incomplete blocks
-	block  stdCipher.Block   // Reused cipher block for better performance
-	Error  error             // Error field for storing encryption errors
+	writer io.Writer        // Underlying writer for encrypted output
+	cipher cipher.AesCipher // The cipher interface for encryption operations
+	buffer []byte           // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block  // Reused cipher block for better performance
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming AES encrypter that writes encrypted data
@@ -117,7 +117,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.AesCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 		buffer: make([]byte, 0, 16), // AES block size is 16 bytes
 	}
 
@@ -190,12 +190,12 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by processing data
 // in chunks and reading decrypted output from the underlying reader with proper state management.
 type StreamDecrypter struct {
-	reader   io.Reader         // Underlying reader for encrypted input
-	cipher   *cipher.AesCipher // The cipher interface for decryption operations
-	buffer   []byte            // Buffer for decrypted data
-	position int               // Current position in the buffer
-	block    stdCipher.Block   // Reused cipher block for better performance
-	Error    error             // Error field for storing decryption errors
+	reader   io.Reader        // Underlying reader for encrypted input
+	cipher   cipher.AesCipher // The cipher interface for decryption operations
+	buffer   []byte           // Buffer for decrypted data
+	position int              // Current position in the buffer
+	block    stdCipher.Block  // Reused cipher block for better performance
+	Error    error            // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming AES decrypter that reads encrypted data
@@ -204,7 +204,7 @@ type StreamDecrypter struct {
 func NewStreamDecrypter(r io.Reader, c *cipher.AesCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:   r,
-		cipher:   c,
+		cipher:   *c,
 		buffer:   nil, // Will be populated on first read
 		position: 0,
 	}
