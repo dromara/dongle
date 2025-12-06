@@ -14,8 +14,8 @@ import (
 // It implements Salsa20 encryption using the standard Salsa20 algorithm with support
 // for 32-byte keys and 8-byte nonces.
 type StdEncrypter struct {
-	cipher *cipher.Salsa20Cipher // The cipher interface for encryption operations
-	Error  error                 // Error field for storing encryption errors
+	cipher cipher.Salsa20Cipher // The cipher interface for encryption operations
+	Error  error                // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new Salsa20 encrypter with the specified cipher and key.
@@ -23,7 +23,7 @@ type StdEncrypter struct {
 // The key must be exactly 32 bytes and nonce must be exactly 8 bytes.
 func NewStdEncrypter(c *cipher.Salsa20Cipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 32 {
@@ -68,8 +68,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements Salsa20 decryption using the standard Salsa20 algorithm with support
 // for 32-byte keys and 8-byte nonces.
 type StdDecrypter struct {
-	cipher *cipher.Salsa20Cipher // The cipher interface for decryption operations
-	Error  error                 // Error field for storing decryption errors
+	cipher cipher.Salsa20Cipher // The cipher interface for decryption operations
+	Error  error                // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new Salsa20 decrypter with the specified cipher and key.
@@ -77,7 +77,7 @@ type StdDecrypter struct {
 // The key must be exactly 32 bytes and nonce must be exactly 8 bytes.
 func NewStdDecrypter(c *cipher.Salsa20Cipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 32 {
@@ -122,9 +122,9 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer.
 type StreamEncrypter struct {
-	writer io.Writer             // Underlying writer for encrypted output
-	cipher *cipher.Salsa20Cipher // The cipher interface for encryption operations
-	Error  error                 // Error field for storing encryption errors
+	writer io.Writer            // Underlying writer for encrypted output
+	cipher cipher.Salsa20Cipher // The cipher interface for encryption operations
+	Error  error                // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming Salsa20 encrypter that writes encrypted data
@@ -133,7 +133,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.Salsa20Cipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 32 {
