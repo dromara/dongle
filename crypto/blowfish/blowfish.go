@@ -15,8 +15,8 @@ import (
 // It implements Blowfish encryption using the standard Blowfish algorithm with support
 // for different key sizes and various cipher modes.
 type StdEncrypter struct {
-	cipher *cipher.BlowfishCipher // The cipher interface for encryption operations
-	Error  error                  // Error field for storing encryption errors
+	cipher cipher.BlowfishCipher // The cipher interface for encryption operations
+	Error  error                 // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new Blowfish encrypter with the specified cipher and key.
@@ -25,7 +25,7 @@ type StdEncrypter struct {
 // Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdEncrypter(c *cipher.BlowfishCipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) < 4 || len(c.Key) > 56 {
@@ -71,8 +71,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements Blowfish decryption using the standard Blowfish algorithm with support
 // for different key sizes and various cipher modes.
 type StdDecrypter struct {
-	cipher *cipher.BlowfishCipher // The cipher interface for decryption operations
-	Error  error                  // Error field for storing decryption errors
+	cipher cipher.BlowfishCipher // The cipher interface for decryption operations
+	Error  error                 // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new Blowfish decrypter with the specified cipher and key.
@@ -81,7 +81,7 @@ type StdDecrypter struct {
 // Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdDecrypter(c *cipher.BlowfishCipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) < 4 || len(c.Key) > 56 {
@@ -128,11 +128,11 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It provides efficient encryption for large data streams by processing data
 // in chunks and writing encrypted output to the underlying writer.
 type StreamEncrypter struct {
-	writer io.Writer              // Underlying writer for encrypted output
-	cipher *cipher.BlowfishCipher // The cipher interface for encryption operations
-	buffer []byte                 // Buffer for accumulating incomplete blocks
-	block  stdCipher.Block        // Reused cipher block for better performance
-	Error  error                  // Error field for storing encryption errors
+	writer io.Writer             // Underlying writer for encrypted output
+	cipher cipher.BlowfishCipher // The cipher interface for encryption operations
+	buffer []byte                // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block       // Reused cipher block for better performance
+	Error  error                 // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming Blowfish encrypter that writes encrypted data
@@ -142,7 +142,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.BlowfishCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 		buffer: make([]byte, 0, 8), // Blowfish block size is 8 bytes
 	}
 
@@ -223,12 +223,12 @@ func (e *StreamEncrypter) Close() error {
 // It provides efficient decryption for large data streams by processing data
 // in chunks and reading decrypted output from the underlying reader.
 type StreamDecrypter struct {
-	reader   io.Reader              // Underlying reader for encrypted input
-	cipher   *cipher.BlowfishCipher // The cipher interface for decryption operations
-	buffer   []byte                 // Buffer for decrypted data
-	position int                    // Current position in the buffer
-	block    stdCipher.Block        // Reused cipher block for better performance
-	Error    error                  // Error field for storing decryption errors
+	reader   io.Reader             // Underlying reader for encrypted input
+	cipher   cipher.BlowfishCipher // The cipher interface for decryption operations
+	buffer   []byte                // Buffer for decrypted data
+	position int                   // Current position in the buffer
+	block    stdCipher.Block       // Reused cipher block for better performance
+	Error    error                 // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new streaming Blowfish decrypter that reads encrypted data
@@ -238,7 +238,7 @@ type StreamDecrypter struct {
 func NewStreamDecrypter(r io.Reader, c *cipher.BlowfishCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:   r,
-		cipher:   c,
+		cipher:   *c,
 		buffer:   nil, // Will be populated on first read
 		position: 0,
 	}
