@@ -100,13 +100,7 @@ func (v Verifier) ByRsa(kp *keypair.RsaKeyPair) Verifier {
 
 	// Standard verification mode
 	if len(v.data) > 0 {
-		signature := v.sign
-		if len(signature) == 0 {
-			v.Error = &rsa.NoSignatureError{}
-			return v
-		}
-
-		valid, err := rsa.NewStdVerifier(kp).Verify(v.data, signature)
+		valid, err := rsa.NewStdVerifier(kp).Verify(v.data, v.sign)
 		if err != nil {
 			v.Error = err
 			return v

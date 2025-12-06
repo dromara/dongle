@@ -80,7 +80,9 @@ func TestEncrypterByRsa(t *testing.T) {
 
 		enc := NewEncrypter().FromString("hello world").ByRsa(kp)
 		assert.NotNil(t, enc.Error)
-		assert.IsType(t, rsa.KeyPairError{}, enc.Error)
+		// The error should be an EncryptError wrapping a parsing error
+		var encErr rsa.EncryptError
+		assert.ErrorAs(t, enc.Error, &encErr)
 	})
 
 	t.Run("streaming encryption error", func(t *testing.T) {
@@ -218,7 +220,9 @@ func TestDecrypterByRsa(t *testing.T) {
 
 		dec := NewDecrypter().FromRawString("hello world").ByRsa(kp)
 		assert.NotNil(t, dec.Error)
-		assert.IsType(t, rsa.KeyPairError{}, dec.Error)
+		// The error should be a DecryptError wrapping a parsing error
+		var decErr rsa.DecryptError
+		assert.ErrorAs(t, dec.Error, &decErr)
 	})
 
 	t.Run("streaming decryption error", func(t *testing.T) {
@@ -350,7 +354,9 @@ func TestSignerByRsa(t *testing.T) {
 
 		signer := NewSigner().FromString("hello world").ByRsa(kp)
 		assert.NotNil(t, signer.Error)
-		assert.IsType(t, rsa.KeyPairError{}, signer.Error)
+		// The error should be a SignError wrapping a parsing error
+		var signErr rsa.SignError
+		assert.ErrorAs(t, signer.Error, &signErr)
 	})
 
 	t.Run("streaming signing error", func(t *testing.T) {
