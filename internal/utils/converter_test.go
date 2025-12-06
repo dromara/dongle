@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/binary"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -323,8 +324,8 @@ func TestEdgeCases(t *testing.T) {
 			{"a", 1},
 			{"1", 1},
 			{"!", 1},
-			{"你", 3}, // UTF-8 编码占用 3 字节
-			{"👋", 4}, // UTF-8 编码占用 4 字节
+			{"你", 3}, // UTF-8 encoding takes 3 bytes
+			{"👋", 4}, // UTF-8 encoding takes 4 bytes
 			{"\x00", 1},
 		}
 
@@ -348,5 +349,130 @@ func TestEdgeCases(t *testing.T) {
 				assert.Equal(t, 1, len(result))
 			})
 		}
+	})
+}
+
+func TestInt2Bytes(t *testing.T) {
+	t.Run("zero", func(t *testing.T) {
+		result := Int2Bytes(0)
+		expected := []byte{0x00, 0x00, 0x00, 0x00}
+		assert.Equal(t, expected, result)
+		assert.Equal(t, 4, len(result))
+	})
+
+	t.Run("positive small number", func(t *testing.T) {
+		result := Int2Bytes(1)
+		expected := []byte{0x00, 0x00, 0x00, 0x01}
+		assert.Equal(t, expected, result)
+		assert.Equal(t, 4, len(result))
+	})
+
+	t.Run("positive medium number", func(t *testing.T) {
+		result := Int2Bytes(1234567890)
+		expected := []byte{0x49, 0x96, 0x02, 0xD2}
+		assert.Equal(t, expected, result)
+		assert.Equal(t, 4, len(result))
+	})
+
+	t.Run("positive large number", func(t *testing.T) {
+		result := Int2Bytes(2147483647) // Max int32
+		expected := []byte{0x7F, 0xFF, 0xFF, 0xFF}
+		assert.Equal(t, expected, result)
+		assert.Equal(t, 4, len(result))
+	})
+
+	t.Run("negative number", func(t *testing.T) {
+		result := Int2Bytes(-1)
+		// -1 as uint32 is 0xFFFFFFFF
+		expected := []byte{0xFF, 0xFF, 0xFF, 0xFF}
+		assert.Equal(t, expected, result)
+		assert.Equal(t, 4, len(result))
+	})
+
+	t.Run("negative medium number", func(t *testing.T) {
+		result := Int2Bytes(-1234567890)
+		// -1234567890 as uint32
+		expected := []byte{0xB6, 0x69, 0xFD, 0x2E}
+		assert.Equal(t, expected, result)
+		assert.Equal(t, 4, len(result))
+	})
+
+	t.Run("minimum int32", func(t *testing.T) {
+		result := Int2Bytes(-2147483648) // Min int32
+		expected := []byte{0x80, 0x00, 0x00, 0x00}
+		assert.Equal(t, expected, result)
+		assert.Equal(t, 4, len(result))
+	})
+
+	t.Run("boundary values", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			input    int
+			expected []byte
+		}{
+			{"zero", 0, []byte{0x00, 0x00, 0x00, 0x00}},
+			{"one", 1, []byte{0x00, 0x00, 0x00, 0x01}},
+			{"255", 255, []byte{0x00, 0x00, 0x00, 0xFF}},
+			{"256", 256, []byte{0x00, 0x00, 0x01, 0x00}},
+			{"65535", 65535, []byte{0x00, 0x00, 0xFF, 0xFF}},
+			{"65536", 65536, []byte{0x00, 0x01, 0x00, 0x00}},
+			{"16777215", 16777215, []byte{0x00, 0xFF, 0xFF, 0xFF}},
+			{"16777216", 16777216, []byte{0x01, 0x00, 0x00, 0x00}},
+			{"max int32", 2147483647, []byte{0x7F, 0xFF, 0xFF, 0xFF}},
+			{"min int32", -2147483648, []byte{0x80, 0x00, 0x00, 0x00}},
+			{"negative one", -1, []byte{0xFF, 0xFF, 0xFF, 0xFF}},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				result := Int2Bytes(tc.input)
+				assert.Equal(t, tc.expected, result)
+				assert.Equal(t, 4, len(result))
+			})
+		}
+	})
+
+	t.Run("big-endian encoding verification", func(t *testing.T) {
+		// Test that the encoding is truly big-endian
+		result := Int2Bytes(0x12345678)
+		expected := []byte{0x12, 0x34, 0x56, 0x78}
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("round trip with binary.BigEndian", func(t *testing.T) {
+		testCases := []struct {
+			name  string
+			input int
+		}{
+			{"zero", 0},
+			{"one", 1},
+			{"255", 255},
+			{"256", 256},
+			{"65535", 65535},
+			{"65536", 65536},
+			{"16777215", 16777215},
+			{"16777216", 16777216},
+			{"max_int32", 2147483647},
+			{"negative_one", -1},
+			{"min_int32", -2147483648},
+		}
+		for _, tc := range testCases {
+			t.Run("input: "+tc.name, func(t *testing.T) {
+				result := Int2Bytes(tc.input)
+				// Verify using binary.BigEndian
+				var expected [4]byte
+				binary.BigEndian.PutUint32(expected[:], uint32(tc.input))
+				assert.Equal(t, expected[:], result)
+			})
+		}
+	})
+
+	t.Run("consistency across multiple calls", func(t *testing.T) {
+		input := 1234567890
+		result1 := Int2Bytes(input)
+		result2 := Int2Bytes(input)
+		assert.Equal(t, result1, result2)
+		assert.Equal(t, 4, len(result1))
+		assert.Equal(t, 4, len(result2))
 	})
 }

@@ -528,6 +528,78 @@ func TestWriteCloser(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, closeError, err)
 	})
+
+	t.Run("close error read closer", func(t *testing.T) {
+		data := []byte("test data for reading")
+		closeError := errors.New("close error")
+		rc := NewCloseErrorReadCloser(bytes.NewReader(data), closeError)
+
+		// Test Read works normally
+		buf := make([]byte, 9)
+		n, err := rc.Read(buf)
+		assert.NoError(t, err)
+		assert.Equal(t, 9, n)
+		assert.Equal(t, []byte("test data"), buf)
+
+		// Test another Read
+		buf2 := make([]byte, 12)
+		n, err = rc.Read(buf2)
+		assert.NoError(t, err)
+		assert.Equal(t, 12, n)
+		assert.Equal(t, []byte(" for reading"), buf2)
+
+		// Test Close returns error
+		err = rc.Close()
+		assert.Error(t, err)
+		assert.Equal(t, closeError, err)
+	})
+
+	t.Run("close error read closer with multiple operations", func(t *testing.T) {
+		data := []byte("Hello, World!")
+		closeErr := errors.New("cannot close reader")
+		rc := NewCloseErrorReadCloser(bytes.NewReader(data), closeErr)
+
+		// Test multiple reads
+		buf := make([]byte, 5)
+		n, err := rc.Read(buf)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, n)
+		assert.Equal(t, []byte("Hello"), buf)
+
+		// Read more data
+		n, err = rc.Read(buf)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, n)
+		assert.Equal(t, []byte(", Wor"), buf)
+
+		// Test Close still returns error
+		err = rc.Close()
+		assert.Error(t, err)
+		assert.Equal(t, closeErr, err)
+	})
+
+	t.Run("close error read closer with EOF", func(t *testing.T) {
+		data := []byte("short")
+		closeErr := errors.New("close failed")
+		rc := NewCloseErrorReadCloser(bytes.NewReader(data), closeErr)
+
+		// Read all data
+		buf := make([]byte, 100)
+		n, err := rc.Read(buf)
+		assert.NoError(t, err)
+		assert.Equal(t, 5, n)
+		assert.Equal(t, []byte("short"), buf[:n])
+
+		// Read at EOF
+		n, err = rc.Read(buf)
+		assert.Equal(t, io.EOF, err)
+		assert.Equal(t, 0, n)
+
+		// Close should still return the custom error
+		err = rc.Close()
+		assert.Error(t, err)
+		assert.Equal(t, closeErr, err)
+	})
 }
 
 func TestFile_AdditionalMethods(t *testing.T) {

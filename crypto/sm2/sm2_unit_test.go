@@ -2,6 +2,7 @@ package sm2
 
 import (
 	"bytes"
+	"crypto/rand"
 	"errors"
 	"io"
 	"testing"
@@ -11,28 +12,6 @@ import (
 	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
 )
-
-// Test helper: reader that implements io.ReadCloser with configurable close error
-type readerWithCloseError struct {
-	data []byte
-	pos  int
-	err  error
-}
-
-func newReaderWithCloseError(data []byte, closeErr error) *readerWithCloseError {
-	return &readerWithCloseError{data: data, pos: 0, err: closeErr}
-}
-
-func (r *readerWithCloseError) Read(p []byte) (int, error) {
-	if r.pos >= len(r.data) {
-		return 0, io.EOF
-	}
-	n := copy(p, r.data[r.pos:])
-	r.pos += n
-	return n, nil
-}
-
-func (r *readerWithCloseError) Close() error { return r.err }
 
 // TestStdEncryptDecrypt_SM2 tests standard SM2 encryption and decryption.
 func TestStdEncryptDecrypt_SM2(t *testing.T) {
@@ -137,7 +116,7 @@ func TestStreamEncrypter_WriteAfterError(t *testing.T) {
 	enc := NewStreamEncrypter(nil, kp) // nil writer will cause error
 	_, err := enc.Write([]byte("test"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, EncryptError{}, err)
 }
 
 // TestStreamEncrypter_EmptyWriteAndClose tests closing without writing data.
@@ -211,7 +190,7 @@ func TestStdEncryptDecrypt_ModeStrictness(t *testing.T) {
 
 // TestScalarBaseMult_Equals_ScalarMult verifies ScalarBaseMult equals ScalarMult for base point.
 func TestScalarBaseMult_Equals_ScalarMult(t *testing.T) {
-	cv := sm2curve.New()
+	cv := sm2curve.NewCurve()
 	sm2curve.SetWindow(cv, 6)
 	gx, gy := cv.Params().Gx, cv.Params().Gy
 	for i := 1; i <= 10; i++ {
@@ -272,89 +251,22 @@ func TestStreamEncrypter_WriteEmptyData(t *testing.T) {
 	assert.Equal(t, 0, n)
 }
 
-// TestNilKeyPairError tests NilKeyPairError.
-func TestNilKeyPairError(t *testing.T) {
-	err := NilKeyPairError{}
-	assert.Equal(t, "key pair cannot be nil", err.Error())
-}
-
-// TestPublicKeyUnsetError tests PublicKeyUnsetError.
-func TestPublicKeyUnsetError(t *testing.T) {
-	err := PublicKeyUnsetError{}
-	assert.Equal(t, "public key not set, please use SetPublicKey() method", err.Error())
-}
-
-// TestPrivateKeyUnsetError tests PrivateKeyUnsetError.
-func TestPrivateKeyUnsetError(t *testing.T) {
-	err := PrivateKeyUnsetError{}
-	assert.Equal(t, "private key not set, please use SetPrivateKey() method", err.Error())
-}
-
-// TestKeyPairError tests KeyPairError.
-func TestKeyPairError(t *testing.T) {
-	err1 := KeyPairError{Err: nil}
-	assert.Equal(t, "invalid key pair", err1.Error())
-
-	err2 := KeyPairError{Err: errors.New("parse error")}
-	assert.Equal(t, "invalid key pair: parse error", err2.Error())
-}
-
-// TestSignError tests SignError.
-func TestSignError(t *testing.T) {
-	err1 := SignError{Err: nil}
-	assert.Equal(t, "sign error", err1.Error())
-
-	err2 := SignError{Err: errors.New("sign failed")}
-	assert.Equal(t, "sign error: sign failed", err2.Error())
-}
-
-// TestVerifyError tests VerifyError.
-func TestVerifyError(t *testing.T) {
-	err1 := VerifyError{Err: nil}
-	assert.Equal(t, "verify error", err1.Error())
-
-	err2 := VerifyError{Err: errors.New("verify failed")}
-	assert.Equal(t, "verify error: verify failed", err2.Error())
-}
-
 // TestReadError tests ReadError.
 func TestReadError(t *testing.T) {
-	err1 := ReadError{Err: nil}
-	assert.Equal(t, "read error", err1.Error())
-
-	err2 := ReadError{Err: errors.New("read failed")}
-	assert.Equal(t, "read error: read failed", err2.Error())
-}
-
-// TestNoSignatureError tests NoSignatureError.
-func TestNoSignatureError(t *testing.T) {
-	err := NoSignatureError{}
-	assert.Equal(t, "crypto/sm2: no signature provided for verification", err.Error())
+	err := ReadError{Err: errors.New("read failed")}
+	assert.Equal(t, "crypto/sm2: failed to read encrypted data: read failed", err.Error())
 }
 
 // TestEncryptError tests EncryptError.
 func TestEncryptError(t *testing.T) {
-	err1 := EncryptError{Err: nil}
-	assert.Equal(t, "encrypt error", err1.Error())
-
-	err2 := EncryptError{Err: errors.New("encrypt failed")}
-	assert.Equal(t, "encrypt error: encrypt failed", err2.Error())
+	err := EncryptError{Err: errors.New("encrypt failed")}
+	assert.Equal(t, "crypto/sm2: failed to encrypt data: encrypt failed", err.Error())
 }
 
 // TestDecryptError tests DecryptError.
 func TestDecryptError(t *testing.T) {
-	err1 := DecryptError{Err: nil}
-	assert.Equal(t, "decrypt error", err1.Error())
-
-	err2 := DecryptError{Err: errors.New("decrypt failed")}
-	assert.Equal(t, "decrypt error: decrypt failed", err2.Error())
-}
-
-// TestNewStdEncrypterWithNilKeyPair tests encrypter with nil key pair.
-func TestNewStdEncrypterWithNilKeyPair(t *testing.T) {
-	enc := NewStdEncrypter(nil)
-	assert.NotNil(t, enc.Error)
-	assert.IsType(t, NilKeyPairError{}, enc.Error)
+	err := DecryptError{Err: errors.New("decrypt failed")}
+	assert.Equal(t, "crypto/sm2: failed to decrypt data: decrypt failed", err.Error())
 }
 
 // TestNewStdEncrypterWithEmptyPublicKey tests encrypter with empty public key.
@@ -362,7 +274,7 @@ func TestNewStdEncrypterWithEmptyPublicKey(t *testing.T) {
 	kp := keypair.NewSm2KeyPair()
 	enc := NewStdEncrypter(kp)
 	assert.NotNil(t, enc.Error)
-	assert.IsType(t, KeyPairError{}, enc.Error)
+	assert.IsType(t, EncryptError{}, enc.Error)
 }
 
 // TestNewStdEncrypterWithValidKeyPair tests encrypter with valid key pair.
@@ -373,19 +285,12 @@ func TestNewStdEncrypterWithValidKeyPair(t *testing.T) {
 	assert.Nil(t, enc.Error)
 }
 
-// TestNewStdDecrypterWithNilKeyPair tests decrypter with nil key pair.
-func TestNewStdDecrypterWithNilKeyPair(t *testing.T) {
-	dec := NewStdDecrypter(nil)
-	assert.NotNil(t, dec.Error)
-	assert.IsType(t, NilKeyPairError{}, dec.Error)
-}
-
 // TestNewStdDecrypterWithEmptyPrivateKey tests decrypter with empty private key.
 func TestNewStdDecrypterWithEmptyPrivateKey(t *testing.T) {
 	kp := keypair.NewSm2KeyPair()
 	dec := NewStdDecrypter(kp)
 	assert.NotNil(t, dec.Error)
-	assert.IsType(t, KeyPairError{}, dec.Error)
+	assert.IsType(t, DecryptError{}, dec.Error)
 }
 
 // TestNewStdDecrypterWithValidKeyPair tests decrypter with valid key pair.
@@ -406,15 +311,6 @@ func TestNewStreamDecrypterWithValidKeyPair(t *testing.T) {
 	assert.Equal(t, io.EOF, err)
 }
 
-// TestStreamDecrypterWithNilKeyPair tests stream decrypter with nil key pair.
-func TestStreamDecrypterWithNilKeyPair(t *testing.T) {
-	dec := NewStreamDecrypter(nil, nil)
-	buf := make([]byte, 1)
-	_, err := dec.Read(buf)
-	assert.NotNil(t, err)
-	assert.IsType(t, NilKeyPairError{}, err)
-}
-
 // TestStreamDecrypter_ReadAfterError tests reading after an error occurs.
 func TestStreamDecrypter_ReadAfterError(t *testing.T) {
 	kp := keypair.NewSm2KeyPair()
@@ -422,7 +318,7 @@ func TestStreamDecrypter_ReadAfterError(t *testing.T) {
 	buf := make([]byte, 1)
 	_, err := dec.Read(buf)
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, DecryptError{}, err)
 
 	_, err2 := dec.Read(buf)
 	assert.Equal(t, err, err2)
@@ -467,32 +363,13 @@ func TestStreamDecrypter_ReadWithValidData(t *testing.T) {
 	assert.Equal(t, "test message", string(buf[:n]))
 }
 
-// TestBytesEqual tests bytesEqual function.
-func TestBytesEqual(t *testing.T) {
-	a := []byte{1, 2, 3}
-	b := []byte{1, 2, 3}
-	assert.True(t, bytesEqual(a, b))
-
-	c := []byte{1, 2}
-	assert.False(t, bytesEqual(a, c))
-
-	d := []byte{1, 2, 4}
-	assert.False(t, bytesEqual(a, d))
-
-	var e []byte
-	var f []byte
-	assert.True(t, bytesEqual(e, f))
-
-	assert.False(t, bytesEqual(a, e))
-}
-
 // TestEncryptWithNilPublicKey tests encryption with nil public key.
 func TestEncryptWithNilPublicKey(t *testing.T) {
 	kp := keypair.NewSm2KeyPair()
 	enc := NewStdEncrypter(kp)
 	_, err := enc.Encrypt([]byte("test"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, EncryptError{}, err)
 }
 
 // TestDecryptWithNilPrivateKey tests decryption with nil private key.
@@ -501,7 +378,7 @@ func TestDecryptWithNilPrivateKey(t *testing.T) {
 	dec := NewStdDecrypter(kp)
 	_, err := dec.Decrypt([]byte("test"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, DecryptError{}, err)
 }
 
 // TestStreamDecrypter_ReadWithValidData2 tests reading valid encrypted data (variant 2).
@@ -526,13 +403,16 @@ func TestEncryptFunctionWithDifferentWindowSizes(t *testing.T) {
 	kp.GenKeyPair()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext := encrypt(pub, []byte("test message"), keypair.C1C3C2, 2)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 2)
+	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 
-	ciphertext = encrypt(pub, []byte("test message"), keypair.C1C3C2, 6)
+	ciphertext, err = sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 6)
+	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 
-	ciphertext = encrypt(pub, []byte("test message"), keypair.C1C3C2, 1)
+	ciphertext, err = sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 1)
+	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 }
 
@@ -542,16 +422,16 @@ func TestDecryptFunctionWithInvalidData(t *testing.T) {
 	kp.GenKeyPair()
 	pri, _ := kp.ParsePrivateKey()
 
-	_, err := decrypt(pri, []byte{}, keypair.C1C3C2, 0)
+	_, err := sm2curve.Decrypt(pri, []byte{}, sm2curve.C1C3C2, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 
-	_, err = decrypt(pri, []byte{0x01, 0x02}, keypair.C1C3C2, 0)
+	_, err = sm2curve.Decrypt(pri, []byte{0x01, 0x02}, sm2curve.C1C3C2, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 
-	_, err = decrypt(pri, []byte{0x04, 0x01, 0x02}, keypair.C1C3C2, 0)
+	_, err = sm2curve.Decrypt(pri, []byte{0x04, 0x01, 0x02}, sm2curve.C1C3C2, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 
-	_, err = decrypt(pri, []byte{0x04, 0x01, 0x02}, keypair.C1C2C3, 0)
+	_, err = sm2curve.Decrypt(pri, []byte{0x04, 0x01, 0x02}, sm2curve.C1C2C3, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 }
 
@@ -562,9 +442,10 @@ func TestDecryptFunctionWithValidData(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext := encrypt(pub, []byte("test message"), keypair.C1C3C2, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 0)
+	assert.Nil(t, err)
 
-	plaintext, err := decrypt(pri, ciphertext, keypair.C1C3C2, 0)
+	plaintext, err := sm2curve.Decrypt(pri, ciphertext, sm2curve.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test message", string(plaintext))
 }
@@ -575,7 +456,8 @@ func TestEncryptFunctionWithC1C2C3Order(t *testing.T) {
 	kp.GenKeyPair()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext := encrypt(pub, []byte("test message"), keypair.C1C2C3, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C2C3, 0)
+	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 }
 
@@ -586,50 +468,12 @@ func TestDecryptFunctionWithC1C2C3Order(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext := encrypt(pub, []byte("test message"), keypair.C1C2C3, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C2C3, 0)
+	assert.Nil(t, err)
 
-	plaintext, err := decrypt(pri, ciphertext, keypair.C1C2C3, 0)
+	plaintext, err := sm2curve.Decrypt(pri, ciphertext, sm2curve.C1C2C3, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test message", string(plaintext))
-}
-
-// TestPadLeft tests padLeft function.
-func TestPadLeft(t *testing.T) {
-	b := []byte{1, 2, 3}
-	result := padLeft(b, 5)
-	expected := []byte{0, 0, 1, 2, 3}
-	assert.Equal(t, expected, result)
-
-	result2 := padLeft(b, 3)
-	assert.Equal(t, b, result2)
-
-	result3 := padLeft(b, 10)
-	expected3 := []byte{0, 0, 0, 0, 0, 0, 0, 1, 2, 3}
-	assert.Equal(t, expected3, result3)
-}
-
-// TestIntToBytes tests intToBytes function.
-func TestIntToBytes(t *testing.T) {
-	result := intToBytes(0x12345678)
-	expected := []byte{0x12, 0x34, 0x56, 0x78}
-	assert.Equal(t, expected, result)
-}
-
-// TestSm3KDF tests sm3KDF function.
-func TestSm3KDF(t *testing.T) {
-	result, ok := sm3KDF(32, []byte("test"))
-	assert.True(t, ok)
-	assert.Len(t, result, 32)
-
-	result2, _ := sm3KDF(16, []byte("another test"))
-	assert.Len(t, result2, 16)
-}
-
-// TestSm3KDFWithZeroOutput tests sm3KDF with zero output case.
-func TestSm3KDFWithZeroOutput(t *testing.T) {
-	result, ok := sm3KDF(16, []byte("test"))
-	assert.True(t, ok)
-	assert.Len(t, result, 16)
 }
 
 // TestStreamEncrypter_CloseWithWriteError tests close with write error.
@@ -649,7 +493,7 @@ func TestStdEncrypter_EncryptWithError(t *testing.T) {
 	enc := NewStdEncrypter(kp)
 	_, err := enc.Encrypt([]byte("test"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, EncryptError{}, err)
 }
 
 // TestStdDecrypter_DecryptWithError tests decryption when Error is already set.
@@ -658,7 +502,7 @@ func TestStdDecrypter_DecryptWithError(t *testing.T) {
 	dec := NewStdDecrypter(kp)
 	_, err := dec.Decrypt([]byte("test"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, DecryptError{}, err)
 }
 
 // TestStreamDecrypter_ReadPartial tests partial reads.
@@ -713,11 +557,12 @@ func TestDecrypt_Without0x04Prefix(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext := encrypt(pub, []byte("test"), keypair.C1C3C2, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	assert.Nil(t, err)
 
 	ciphertextWithoutPrefix := ciphertext[1:]
 
-	plaintext, err := decrypt(pri, ciphertextWithoutPrefix, keypair.C1C3C2, 0)
+	plaintext, err := sm2curve.Decrypt(pri, ciphertextWithoutPrefix, sm2curve.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test", string(plaintext))
 }
@@ -729,11 +574,12 @@ func TestDecrypt_WithVerificationFailure_C1C3C2(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext := encrypt(pub, []byte("test"), keypair.C1C3C2, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	assert.Nil(t, err)
 
 	ciphertext[len(ciphertext)-1] ^= 0xFF
 
-	_, err := decrypt(pri, ciphertext[1:], keypair.C1C3C2, 0)
+	_, err = sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 0)
 	assert.NotNil(t, err)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 }
@@ -745,24 +591,14 @@ func TestDecrypt_WithVerificationFailure_C1C2C3(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext := encrypt(pub, []byte("test"), keypair.C1C2C3, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C2C3, 0)
+	assert.Nil(t, err)
 
 	ciphertext[len(ciphertext)-1] ^= 0xFF
 
-	_, err := decrypt(pri, ciphertext[1:], keypair.C1C2C3, 0)
+	_, err = sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C2C3, 0)
 	assert.NotNil(t, err)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
-}
-
-// TestSm3KDF_WithNonMultipleOf32 tests sm3KDF with non-multiple of 32 lengths.
-func TestSm3KDF_WithNonMultipleOf32(t *testing.T) {
-	result, ok := sm3KDF(15, []byte("test"))
-	assert.True(t, ok)
-	assert.Len(t, result, 15)
-
-	result2, ok2 := sm3KDF(50, []byte("test"))
-	assert.True(t, ok2)
-	assert.Len(t, result2, 50)
 }
 
 // TestEncrypt_WithWindowSizeOutsideRange tests encryption with invalid window sizes.
@@ -772,15 +608,18 @@ func TestEncrypt_WithWindowSizeOutsideRange(t *testing.T) {
 	pub, _ := kp.ParsePublicKey()
 
 	// Test with window size 0 (should use default)
-	ciphertext := encrypt(pub, []byte("test"), keypair.C1C3C2, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 
 	// Test with window size 7 (should be clamped)
-	ciphertext2 := encrypt(pub, []byte("test"), keypair.C1C3C2, 7)
+	ciphertext2, err2 := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 7)
+	assert.Nil(t, err2)
 	assert.NotNil(t, ciphertext2)
 
 	// Test with window size 1 (should be clamped)
-	ciphertext3 := encrypt(pub, []byte("test"), keypair.C1C3C2, 1)
+	ciphertext3, err3 := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 1)
+	assert.Nil(t, err3)
 	assert.NotNil(t, ciphertext3)
 }
 
@@ -792,31 +631,23 @@ func TestDecrypt_WithWindowSizeOutsideRange(t *testing.T) {
 	pub, _ := kp.ParsePublicKey()
 
 	// Encrypt with default window
-	ciphertext := encrypt(pub, []byte("test"), keypair.C1C3C2, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	assert.Nil(t, err)
 
 	// Decrypt with window size 0
-	plaintext, err := decrypt(pri, ciphertext[1:], keypair.C1C3C2, 0)
+	plaintext, err := sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test", string(plaintext))
 
 	// Decrypt with window size 7 (should be clamped)
-	plaintext2, err2 := decrypt(pri, ciphertext[1:], keypair.C1C3C2, 7)
+	plaintext2, err2 := sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 7)
 	assert.Nil(t, err2)
 	assert.Equal(t, "test", string(plaintext2))
 
 	// Decrypt with window size 1 (should be clamped)
-	plaintext3, err3 := decrypt(pri, ciphertext[1:], keypair.C1C3C2, 1)
+	plaintext3, err3 := sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 1)
 	assert.Nil(t, err3)
 	assert.Equal(t, "test", string(plaintext3))
-}
-
-// TestStreamDecrypter_ReadWithError tests read when Error is already set.
-func TestStreamDecrypter_ReadWithError(t *testing.T) {
-	dec := NewStreamDecrypter(nil, nil)
-	buf := make([]byte, 10)
-	_, err := dec.Read(buf)
-	assert.NotNil(t, err)
-	assert.IsType(t, NilKeyPairError{}, err)
 }
 
 // TestStreamDecrypter_ReadWithDecryptError tests read with decryption error.
@@ -854,7 +685,7 @@ func TestStreamEncrypter_CloseWithEncryptError(t *testing.T) {
 	_, _ = enc.Write([]byte("test data"))
 	err := enc.Close()
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, EncryptError{}, err)
 }
 
 // Test NewStreamEncrypter with valid key pair (to cover the path where PublicKey is not empty)
@@ -869,17 +700,6 @@ func TestNewStreamEncrypter_WithValidKeyPair(t *testing.T) {
 	assert.NotNil(t, enc)
 }
 
-// Test sm3KDF returning false (all zeros) - this is very difficult to test deterministically
-// but we can try to find inputs that might produce all zeros (though unlikely)
-func TestSm3KDF_ReturningFalse(t *testing.T) {
-	// This is difficult to test deterministically because we need all output bytes to be 0
-	// which is extremely unlikely with a cryptographic hash function
-	// We'll just verify the function handles the case correctly
-	result, ok := sm3KDF(32, []byte("test"))
-	assert.True(t, ok) // In practice, this will almost always be true
-	assert.Len(t, result, 32)
-}
-
 // Test encrypt with sm3KDF returning false (retry loop)
 // This is also difficult to test deterministically, but the code handles it
 func TestEncrypt_WithSm3KDFRetry(t *testing.T) {
@@ -889,7 +709,8 @@ func TestEncrypt_WithSm3KDFRetry(t *testing.T) {
 
 	// The encrypt function will retry if sm3KDF returns false
 	// In practice, this is extremely rare, so we just verify normal operation
-	ciphertext := encrypt(pub, []byte("test"), keypair.C1C3C2, 0)
+	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 }
 
@@ -902,7 +723,7 @@ func TestStdEncrypter_EncryptWithParsePublicKeyError(t *testing.T) {
 	enc := NewStdEncrypter(kp)
 	_, err := enc.Encrypt([]byte("test"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, EncryptError{}, err)
 }
 
 // Test StdDecrypter.Decrypt when decrypt function returns error
@@ -912,7 +733,7 @@ func TestStdDecrypter_DecryptWithParsePrivateKeyError(t *testing.T) {
 	dec := NewStdDecrypter(kp)
 	_, err := dec.Decrypt([]byte("test"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, DecryptError{}, err)
 }
 
 // Test StreamDecrypter.Read returning nil (more data available)
@@ -953,14 +774,14 @@ func TestNewStreamEncrypter_OrderPath(t *testing.T) {
 	streamEnc, ok := enc.(*StreamEncrypter)
 	assert.True(t, ok)
 	assert.Nil(t, streamEnc.Error)
-	assert.Equal(t, keypair.C1C2C3, streamEnc.order)
+	assert.Equal(t, keypair.C1C2C3, streamEnc.keypair.Order)
 
 	// Test with C1C3C2 order
 	kp.SetOrder(keypair.C1C3C2)
 	enc2 := NewStreamEncrypter(&buf, kp)
 	streamEnc2, ok := enc2.(*StreamEncrypter)
 	assert.True(t, ok)
-	assert.Equal(t, keypair.C1C3C2, streamEnc2.order)
+	assert.Equal(t, keypair.C1C3C2, streamEnc2.keypair.Order)
 }
 
 // Test NewStreamDecrypter order setting
@@ -972,14 +793,14 @@ func TestNewStreamDecrypter_OrderPath(t *testing.T) {
 	streamDec, ok := dec.(*StreamDecrypter)
 	assert.True(t, ok)
 	assert.Nil(t, streamDec.Error)
-	assert.Equal(t, keypair.C1C2C3, streamDec.order)
+	assert.Equal(t, keypair.C1C2C3, streamDec.keypair.Order)
 
 	// Test with C1C3C2 order
 	kp.SetOrder(keypair.C1C3C2)
 	dec2 := NewStreamDecrypter(bytes.NewReader([]byte{}), kp)
 	streamDec2, ok := dec2.(*StreamDecrypter)
 	assert.True(t, ok)
-	assert.Equal(t, keypair.C1C3C2, streamDec2.order)
+	assert.Equal(t, keypair.C1C3C2, streamDec2.keypair.Order)
 }
 
 // Test encrypt with sm3KDF retry (attempting to trigger the continue branch)
@@ -994,7 +815,8 @@ func TestEncrypt_AttemptSm3KDFRetry(t *testing.T) {
 	// but we try a reasonable number of times
 	successCount := 0
 	for i := 0; i < 100; i++ {
-		ciphertext := encrypt(pub, []byte("test"), keypair.C1C3C2, 0)
+		ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+		assert.Nil(t, err)
 		if ciphertext != nil {
 			successCount++
 		}
@@ -1020,7 +842,8 @@ func TestEncrypt_NormalOperation(t *testing.T) {
 	}
 
 	for _, msg := range messages {
-		ciphertext := encrypt(pub, []byte(msg), keypair.C1C3C2, 0)
+		ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte(msg), sm2curve.C1C3C2, 0)
+		assert.Nil(t, err)
 		assert.NotNil(t, ciphertext)
 		assert.Greater(t, len(ciphertext), 0)
 	}
@@ -1061,15 +884,6 @@ func TestStdDecrypter_DecryptWithDecryptError2(t *testing.T) {
 }
 
 // Test NewStreamEncrypter with nil keypair - should return early
-func TestNewStreamEncrypter_WithNilKeyPair(t *testing.T) {
-	var buf bytes.Buffer
-	enc := NewStreamEncrypter(&buf, nil)
-	streamEnc, ok := enc.(*StreamEncrypter)
-	assert.True(t, ok)
-	assert.NotNil(t, streamEnc.Error)
-	assert.IsType(t, NilKeyPairError{}, streamEnc.Error)
-}
-
 // Test StreamEncrypter.Close with buffer and closer writer that succeeds
 func TestStreamEncrypter_CloseWithBufferAndSuccessfulCloser(t *testing.T) {
 	kp := keypair.NewSm2KeyPair()
@@ -1079,27 +893,6 @@ func TestStreamEncrypter_CloseWithBufferAndSuccessfulCloser(t *testing.T) {
 	_, _ = enc.Write([]byte("test data"))
 	err := enc.Close()
 	assert.Nil(t, err)
-}
-
-// Test StdEncrypter.Encrypt where ParsePublicKey succeeds but needs to trigger EncryptError path
-// We'll use a mock random reader that fails to trigger encrypt error
-func TestStdEncrypter_EncryptWithEncryptFunctionError(t *testing.T) {
-	kp := keypair.NewSm2KeyPair()
-	kp.GenKeyPair()
-
-	// We need to trigger the encrypt function to fail
-	// The only way encrypt can fail is if RandScalar fails
-	// Since we can't directly pass a custom reader to StdEncrypter.Encrypt,
-	// we need to test the error path differently
-	// Let's test by ensuring the EncryptError wrapping works
-	enc := NewStdEncrypter(kp)
-
-	// First verify normal operation works
-	_, err := enc.Encrypt([]byte("test"))
-	assert.Nil(t, err)
-
-	// The EncryptError path is hard to trigger without mocking rand.Reader
-	// But we've already tested it indirectly through other tests
 }
 
 // Test StdDecrypter.Decrypt where ParsePrivateKey succeeds but decrypt fails
@@ -1135,11 +928,11 @@ func TestStdEncrypter_EncryptWithParsePublicKeyError2(t *testing.T) {
 	result, err := enc.Encrypt([]byte("test data"))
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, EncryptError{}, err)
 
 	// Verify the error was stored in the encrypter
 	assert.NotNil(t, enc.Error)
-	assert.IsType(t, KeyPairError{}, enc.Error)
+	assert.IsType(t, EncryptError{}, enc.Error)
 }
 
 // Test StdDecrypter.Decrypt with ParsePrivateKey error - line 176-179
@@ -1157,11 +950,11 @@ func TestStdDecrypter_DecryptWithParsePrivateKeyError2(t *testing.T) {
 	result, err := dec.Decrypt([]byte("test data"))
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+	assert.IsType(t, DecryptError{}, err)
 
 	// Verify the error was stored in the decrypter
 	assert.NotNil(t, dec.Error)
-	assert.IsType(t, KeyPairError{}, dec.Error)
+	assert.IsType(t, DecryptError{}, dec.Error)
 }
 
 // Test StreamEncrypter.Close with Encrypt error - line 129-131
@@ -1172,18 +965,20 @@ func TestStreamEncrypter_CloseWithNewStdEncrypterError(t *testing.T) {
 	var buf bytes.Buffer
 	enc := NewStreamEncrypter(&buf, kp)
 
-	// StreamEncrypter should not have Error set (PublicKey is not empty)
+	// StreamEncrypter should have Error set because public key parsing fails in NewStreamEncrypter
 	streamEnc, ok := enc.(*StreamEncrypter)
 	assert.True(t, ok)
-	assert.Nil(t, streamEnc.Error)
+	assert.NotNil(t, streamEnc.Error)
+	assert.IsType(t, EncryptError{}, streamEnc.Error)
 
-	// Write some data to buffer
-	_, _ = enc.Write([]byte("test data"))
-
-	// Close should trigger NewStdEncrypter().Encrypt() error (line 129-131)
-	err := enc.Close()
+	// Write should return error due to preset Error
+	_, err := enc.Write([]byte("test data"))
 	assert.NotNil(t, err)
-	assert.IsType(t, KeyPairError{}, err)
+
+	// Close should also return error
+	err = enc.Close()
+	assert.NotNil(t, err)
+	assert.IsType(t, EncryptError{}, err)
 }
 
 func TestDecryptWithDerPrivateKey(t *testing.T) {
@@ -1223,4 +1018,738 @@ func TestDecryptWithDerPrivateKey(t *testing.T) {
 		0xa7, 0x5b, 0xf8, 0x8b,
 		0x54, 0x16, 0xe6, 0xa0,
 	}, plaintext)
+}
+
+// TestStreamEncrypter_EncryptEmptyData tests encrypt method with empty data
+func TestStreamEncrypter_EncryptEmptyData(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	err := kp.GenKeyPair()
+	assert.NoError(t, err)
+
+	enc := NewStreamEncrypter(&bytes.Buffer{}, kp).(*StreamEncrypter)
+	encrypted, err := enc.encrypt(nil)
+	assert.Nil(t, encrypted)
+	assert.NoError(t, err)
+}
+
+// TestStreamEncrypter_EncryptWithOrder tests encrypt method with different orders
+func TestStreamEncrypter_EncryptWithOrder(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	err := kp.GenKeyPair()
+	assert.NoError(t, err)
+
+	t.Run("encrypt with C1C2C3 order", func(t *testing.T) {
+		kp.SetOrder(keypair.C1C2C3)
+		enc := NewStreamEncrypter(&bytes.Buffer{}, kp).(*StreamEncrypter)
+		encrypted, err := enc.encrypt([]byte("test data"))
+		assert.NoError(t, err)
+		assert.NotNil(t, encrypted)
+	})
+
+	t.Run("encrypt with C1C3C2 order", func(t *testing.T) {
+		kp.SetOrder(keypair.C1C3C2)
+		enc := NewStreamEncrypter(&bytes.Buffer{}, kp).(*StreamEncrypter)
+		encrypted, err := enc.encrypt([]byte("test data"))
+		assert.NoError(t, err)
+		assert.NotNil(t, encrypted)
+	})
+}
+
+// TestStreamEncrypter_CloseWithEmptyBufferNoCloser tests Close with empty buffer
+func TestStreamEncrypter_CloseWithEmptyBufferNoCloser(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	err := kp.GenKeyPair()
+	assert.NoError(t, err)
+
+	buf := &bytes.Buffer{}
+	enc := NewStreamEncrypter(buf, kp)
+	// Don't write anything, buffer is empty
+	err = enc.Close()
+	assert.NoError(t, err)
+}
+
+// TestStreamDecrypter_DecryptEmptyData tests decrypt method with empty data
+func TestStreamDecrypter_DecryptEmptyData(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	err := kp.GenKeyPair()
+	assert.NoError(t, err)
+
+	dec := NewStreamDecrypter(&bytes.Buffer{}, kp).(*StreamDecrypter)
+	decrypted, err := dec.decrypt(nil)
+	assert.Nil(t, decrypted)
+	assert.NoError(t, err)
+}
+
+// TestStreamDecrypter_DecryptWithOrder tests decrypt method with different orders
+func TestStreamDecrypter_DecryptWithOrder(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	err := kp.GenKeyPair()
+	assert.NoError(t, err)
+
+	t.Run("decrypt with C1C2C3 order", func(t *testing.T) {
+		kp.SetOrder(keypair.C1C2C3)
+		enc := NewStdEncrypter(kp)
+		encrypted, err := enc.Encrypt([]byte("test data"))
+		assert.NoError(t, err)
+
+		dec := NewStreamDecrypter(&bytes.Buffer{}, kp).(*StreamDecrypter)
+		decrypted, err := dec.decrypt(encrypted)
+		assert.NoError(t, err)
+		assert.Equal(t, []byte("test data"), decrypted)
+	})
+
+	t.Run("decrypt with C1C3C2 order", func(t *testing.T) {
+		kp.SetOrder(keypair.C1C3C2)
+		enc := NewStdEncrypter(kp)
+		encrypted, err := enc.Encrypt([]byte("test data"))
+		assert.NoError(t, err)
+
+		dec := NewStreamDecrypter(&bytes.Buffer{}, kp).(*StreamDecrypter)
+		decrypted, err := dec.decrypt(encrypted)
+		assert.NoError(t, err)
+		assert.Equal(t, []byte("test data"), decrypted)
+	})
+}
+
+// TestStreamDecrypter_DecryptError tests decrypt method error handling
+func TestStreamDecrypter_DecryptError(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	err := kp.GenKeyPair()
+	assert.NoError(t, err)
+
+	dec := NewStreamDecrypter(&bytes.Buffer{}, kp).(*StreamDecrypter)
+	decrypted, err := dec.decrypt([]byte("invalid ciphertext"))
+	assert.Nil(t, decrypted)
+	assert.Error(t, err)
+	assert.IsType(t, DecryptError{}, dec.Error)
+}
+
+// TestNewStreamDecrypter_WithInvalidPrivateKey tests NewStreamDecrypter with invalid private key
+func TestNewStreamDecrypter_WithInvalidPrivateKey(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	kp.PrivateKey = []byte("invalid private key")
+
+	dec := NewStreamDecrypter(&bytes.Buffer{}, kp).(*StreamDecrypter)
+	assert.NotNil(t, dec.Error)
+	assert.IsType(t, DecryptError{}, dec.Error)
+}
+
+// TestStreamEncrypter_CloseWithNonCloserWriter tests Close with writer that doesn't implement io.Closer
+func TestStreamEncrypter_CloseWithNonCloserWriter(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	err := kp.GenKeyPair()
+	assert.NoError(t, err)
+
+	buf := &bytes.Buffer{}
+	enc := NewStreamEncrypter(buf, kp)
+	_, err = enc.Write([]byte("test data"))
+	assert.NoError(t, err)
+
+	err = enc.Close()
+	assert.NoError(t, err)
+}
+
+// TestStreamEncrypter_EncryptErrorPath tests encrypt method error path
+func TestStreamEncrypter_EncryptErrorPath(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	kp.GenKeyPair()
+
+	// Create an encrypter with invalid public key to trigger error in encrypt
+	kp.PublicKey = []byte("invalid")
+	enc := NewStreamEncrypter(&bytes.Buffer{}, kp)
+	streamEnc, ok := enc.(*StreamEncrypter)
+	assert.True(t, ok)
+	assert.NotNil(t, streamEnc.Error)
+
+	// Try to encrypt, should return error
+	_, err := streamEnc.encrypt([]byte("test"))
+	assert.NotNil(t, err)
+}
+
+// TestNewStdSigner tests NewStdSigner
+func TestNewStdSigner(t *testing.T) {
+	t.Run("with empty private key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		signer := NewStdSigner(kp)
+		assert.NotNil(t, signer.Error)
+		assert.IsType(t, SignError{}, signer.Error)
+	})
+
+	t.Run("with valid key pair", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStdSigner(kp)
+		assert.Nil(t, signer.Error)
+	})
+}
+
+// TestStdSigner_Sign tests Sign method
+func TestStdSigner_Sign(t *testing.T) {
+	t.Run("sign with valid key pair", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStdSigner(kp)
+
+		signature, err := signer.Sign([]byte("test message"))
+		assert.Nil(t, err)
+		assert.NotNil(t, signature)
+	})
+
+	t.Run("sign with empty message", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStdSigner(kp)
+
+		signature, err := signer.Sign([]byte{})
+		assert.Nil(t, err)
+		assert.Nil(t, signature)
+	})
+
+	t.Run("sign with error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		signer := NewStdSigner(kp)
+
+		_, err := signer.Sign([]byte("test"))
+		assert.NotNil(t, err)
+		assert.IsType(t, SignError{}, err)
+	})
+
+	t.Run("sign with invalid private key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.PrivateKey = []byte("invalid private key")
+		signer := NewStdSigner(kp)
+
+		_, err := signer.Sign([]byte("test"))
+		assert.NotNil(t, err)
+		assert.IsType(t, SignError{}, err)
+	})
+}
+
+// TestNewStdVerifier tests NewStdVerifier
+func TestNewStdVerifier(t *testing.T) {
+	t.Run("with empty public key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		verifier := NewStdVerifier(kp)
+		assert.NotNil(t, verifier.Error)
+		assert.IsType(t, VerifyError{}, verifier.Error)
+	})
+
+	t.Run("with valid key pair", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		verifier := NewStdVerifier(kp)
+		assert.Nil(t, verifier.Error)
+	})
+}
+
+// TestStdVerifier_Verify tests Verify method
+func TestStdVerifier_Verify(t *testing.T) {
+	t.Run("verify with valid signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStdSigner(kp)
+		message := []byte("test message")
+		signature, err := signer.Sign(message)
+		assert.Nil(t, err)
+
+		verifier := NewStdVerifier(kp)
+		valid, err := verifier.Verify(message, signature)
+		assert.Nil(t, err)
+		assert.True(t, valid)
+	})
+
+	t.Run("verify with invalid signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		verifier := NewStdVerifier(kp)
+		valid, err := verifier.Verify([]byte("test message"), []byte("invalid signature"))
+		assert.NotNil(t, err)
+		assert.False(t, valid)
+		assert.IsType(t, VerifyError{}, err)
+	})
+
+	t.Run("verify with empty message", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		verifier := NewStdVerifier(kp)
+		valid, err := verifier.Verify([]byte{}, []byte("signature"))
+		assert.Nil(t, err)
+		assert.False(t, valid)
+	})
+
+	t.Run("verify with empty signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		verifier := NewStdVerifier(kp)
+		valid, err := verifier.Verify([]byte("test message"), []byte{})
+		assert.NotNil(t, err)
+		assert.False(t, valid)
+		assert.IsType(t, VerifyError{}, err)
+	})
+
+	t.Run("verify with error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		verifier := NewStdVerifier(kp)
+
+		_, err := verifier.Verify([]byte("test"), []byte("signature"))
+		assert.NotNil(t, err)
+		assert.IsType(t, VerifyError{}, err)
+	})
+
+	t.Run("verify with invalid public key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.PublicKey = []byte("invalid public key")
+		verifier := NewStdVerifier(kp)
+
+		_, err := verifier.Verify([]byte("test"), []byte("signature"))
+		assert.NotNil(t, err)
+		assert.IsType(t, VerifyError{}, err)
+	})
+}
+
+// TestNewStreamSigner tests NewStreamSigner
+func TestNewStreamSigner(t *testing.T) {
+	t.Run("with empty private key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+		streamSigner, ok := signer.(*StreamSigner)
+		assert.True(t, ok)
+		assert.NotNil(t, streamSigner.Error)
+		assert.IsType(t, SignError{}, streamSigner.Error)
+	})
+
+	t.Run("with valid key pair", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+		streamSigner, ok := signer.(*StreamSigner)
+		assert.True(t, ok)
+		assert.Nil(t, streamSigner.Error)
+	})
+
+	t.Run("with invalid private key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.PrivateKey = []byte("invalid private key")
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+		streamSigner, ok := signer.(*StreamSigner)
+		assert.True(t, ok)
+		assert.NotNil(t, streamSigner.Error)
+		assert.IsType(t, SignError{}, streamSigner.Error)
+	})
+}
+
+// TestStreamSigner_Sign tests sign method
+func TestStreamSigner_Sign(t *testing.T) {
+	t.Run("sign with valid data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+		streamSigner, _ := signer.(*StreamSigner)
+
+		signature, err := streamSigner.sign([]byte("test message"))
+		assert.Nil(t, err)
+		assert.NotNil(t, signature)
+	})
+
+	t.Run("sign with empty data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+		streamSigner, _ := signer.(*StreamSigner)
+
+		signature, err := streamSigner.sign([]byte{})
+		assert.Nil(t, err)
+		assert.Nil(t, signature)
+	})
+}
+
+// TestStreamSigner_Write tests Write method
+func TestStreamSigner_Write(t *testing.T) {
+	t.Run("write with valid data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+
+		n, err := signer.Write([]byte("test data"))
+		assert.Nil(t, err)
+		assert.Equal(t, len("test data"), n)
+	})
+
+	t.Run("write with empty data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+
+		n, err := signer.Write([]byte{})
+		assert.Nil(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("write with error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+
+		_, err := signer.Write([]byte("test"))
+		assert.NotNil(t, err)
+		assert.IsType(t, SignError{}, err)
+	})
+}
+
+// TestStreamSigner_Close tests Close method
+func TestStreamSigner_Close(t *testing.T) {
+	t.Run("close with buffered data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		var buf bytes.Buffer
+		signer := NewStreamSigner(&buf, kp)
+		_, _ = signer.Write([]byte("test message"))
+
+		err := signer.Close()
+		assert.Nil(t, err)
+		assert.NotEmpty(t, buf.Bytes())
+	})
+
+	t.Run("close with empty buffer", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+
+		err := signer.Close()
+		assert.Nil(t, err)
+	})
+
+	t.Run("close with empty buffer and closer", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		mw := mock.NewErrorWriteCloser(nil)
+		signer := NewStreamSigner(mw, kp)
+
+		err := signer.Close()
+		assert.Nil(t, err)
+	})
+
+	t.Run("close with empty buffer and error closer", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		mw := mock.NewErrorWriteCloser(assert.AnError)
+		signer := NewStreamSigner(mw, kp)
+
+		err := signer.Close()
+		assert.Equal(t, assert.AnError, err)
+	})
+
+	t.Run("close with error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+
+		err := signer.Close()
+		assert.NotNil(t, err)
+		assert.IsType(t, SignError{}, err)
+	})
+
+	t.Run("close with write error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		mw := mock.NewErrorWriteCloser(assert.AnError)
+		signer := NewStreamSigner(mw, kp)
+		_, _ = signer.Write([]byte("test"))
+
+		err := signer.Close()
+		assert.Equal(t, assert.AnError, err)
+	})
+}
+
+// TestNewStreamVerifier tests NewStreamVerifier
+func TestNewStreamVerifier(t *testing.T) {
+	t.Run("with empty public key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		streamVerifier, ok := verifier.(*StreamVerifier)
+		assert.True(t, ok)
+		assert.NotNil(t, streamVerifier.Error)
+		assert.IsType(t, VerifyError{}, streamVerifier.Error)
+	})
+
+	t.Run("with valid key pair", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		streamVerifier, ok := verifier.(*StreamVerifier)
+		assert.True(t, ok)
+		assert.Nil(t, streamVerifier.Error)
+	})
+
+	t.Run("with invalid public key", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.PublicKey = []byte("invalid public key")
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		streamVerifier, ok := verifier.(*StreamVerifier)
+		assert.True(t, ok)
+		assert.NotNil(t, streamVerifier.Error)
+		assert.IsType(t, VerifyError{}, streamVerifier.Error)
+	})
+}
+
+// TestStreamVerifier_Verify tests verify method
+func TestStreamVerifier_Verify(t *testing.T) {
+	t.Run("verify with valid signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		signer := NewStdSigner(kp)
+		message := []byte("test message")
+		signature, err := signer.Sign(message)
+		assert.Nil(t, err)
+
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		streamVerifier, _ := verifier.(*StreamVerifier)
+
+		valid, err := streamVerifier.verify(message, signature)
+		assert.Nil(t, err)
+		assert.True(t, valid)
+	})
+
+	t.Run("verify with invalid signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		streamVerifier, _ := verifier.(*StreamVerifier)
+
+		valid, err := streamVerifier.verify([]byte("test message"), []byte("invalid signature"))
+		assert.NotNil(t, err)
+		assert.False(t, valid)
+		assert.IsType(t, VerifyError{}, err)
+	})
+
+	t.Run("verify with empty data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		streamVerifier, _ := verifier.(*StreamVerifier)
+
+		valid, err := streamVerifier.verify([]byte{}, []byte("signature"))
+		assert.Nil(t, err)
+		assert.False(t, valid)
+	})
+
+	t.Run("verify with empty signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		streamVerifier, _ := verifier.(*StreamVerifier)
+
+		valid, err := streamVerifier.verify([]byte("test"), []byte{})
+		assert.Nil(t, err)
+		assert.False(t, valid)
+	})
+}
+
+// TestStreamVerifier_Write tests Write method
+func TestStreamVerifier_Write(t *testing.T) {
+	t.Run("write with valid data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+
+		n, err := verifier.Write([]byte("test data"))
+		assert.Nil(t, err)
+		assert.Equal(t, len("test data"), n)
+	})
+
+	t.Run("write with empty data", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.GenKeyPair()
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+
+		n, err := verifier.Write([]byte{})
+		assert.Nil(t, err)
+		assert.Equal(t, 0, n)
+	})
+
+	t.Run("write with error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+
+		_, err := verifier.Write([]byte("test"))
+		assert.NotNil(t, err)
+		assert.IsType(t, VerifyError{}, err)
+	})
+}
+
+// TestSignError tests SignError.Error method
+func TestSignError(t *testing.T) {
+	err := SignError{Err: errors.New("sign failed")}
+	assert.Equal(t, "crypto/sm2: failed to sign data: sign failed", err.Error())
+}
+
+// TestVerifyError tests VerifyError.Error method
+func TestVerifyError(t *testing.T) {
+	err := VerifyError{Err: errors.New("verify failed")}
+	assert.Equal(t, "crypto/sm2: failed to verify signature: verify failed", err.Error())
+
+	err2 := VerifyError{Err: nil}
+	assert.Equal(t, "crypto/sm2: failed to verify signature: <nil>", err2.Error())
+}
+
+// Test StdEncrypter Encrypt error wrapping when randomness fails.
+func TestStdEncrypter_EncryptWithRandError(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	assert.Nil(t, kp.GenKeyPair())
+	enc := NewStdEncrypter(kp)
+
+	orig := rand.Reader
+	rand.Reader = mock.NewErrorFile(assert.AnError)
+	t.Cleanup(func() { rand.Reader = orig })
+
+	out, err := enc.Encrypt([]byte("data"))
+	assert.Nil(t, out)
+	assert.Error(t, err)
+	assert.IsType(t, EncryptError{}, err)
+}
+
+// Test StreamEncrypter.Close when encryption fails after buffering data.
+func TestStreamEncrypter_CloseEncryptError(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	assert.Nil(t, kp.GenKeyPair())
+	enc := NewStreamEncrypter(&bytes.Buffer{}, kp).(*StreamEncrypter)
+
+	_, _ = enc.Write([]byte("data"))
+	enc.pubKey = nil // force sm2curve.Encrypt to fail
+
+	err := enc.Close()
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, io.ErrUnexpectedEOF))
+	assert.IsType(t, EncryptError{}, enc.Error)
+}
+
+// Test StdSigner.Sign error path when private scalar is invalid after parsing.
+func TestStdSigner_SignWithInvalidPrivateScalar(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	kp.PrivateKey = make([]byte, 32) // parses successfully but yields D=0
+
+	signer := NewStdSigner(kp)
+	signature, err := signer.Sign([]byte("msg"))
+	assert.Nil(t, signature)
+	assert.Error(t, err)
+	assert.IsType(t, SignError{}, err)
+}
+
+// Test StreamSigner.sign error propagation.
+func TestStreamSigner_SignErrorPath(t *testing.T) {
+	kp := keypair.NewSm2KeyPair()
+	kp.PrivateKey = make([]byte, 32) // produces invalid scalar
+
+	signer := NewStreamSigner(&bytes.Buffer{}, kp).(*StreamSigner)
+	signature, err := signer.sign([]byte("msg"))
+	assert.Nil(t, signature)
+	assert.Error(t, err)
+	assert.IsType(t, SignError{}, err)
+}
+
+// Test StreamSigner.Close when sign fails and when writer implements io.Closer.
+func TestStreamSigner_CloseAdditionalPaths(t *testing.T) {
+	t.Run("sign failure in close", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		kp.PrivateKey = make([]byte, 32)
+
+		signer := NewStreamSigner(&bytes.Buffer{}, kp)
+		streamSigner, _ := signer.(*StreamSigner)
+		_, _ = streamSigner.Write([]byte("data"))
+
+		err := streamSigner.Close()
+		assert.Error(t, err)
+		assert.IsType(t, SignError{}, err)
+	})
+
+	t.Run("writer with closer", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		assert.Nil(t, kp.GenKeyPair())
+		var buf bytes.Buffer
+		wc := mock.NewCloseErrorWriteCloser(&buf, nil)
+		signer := NewStreamSigner(wc, kp)
+
+		_, _ = signer.Write([]byte("data"))
+		err := signer.Close()
+		assert.NoError(t, err)
+		assert.NotZero(t, buf.Len())
+	})
+}
+
+// Test StreamVerifier.Close across success, empty, read error, and verify error paths.
+func TestStreamVerifier_Close(t *testing.T) {
+	message := []byte("test message")
+
+	t.Run("successful close with closer reader", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		assert.Nil(t, kp.GenKeyPair())
+		sig, err := NewStdSigner(kp).Sign(message)
+		assert.NoError(t, err)
+
+		reader := io.NopCloser(bytes.NewReader(sig))
+		verifier := NewStreamVerifier(reader, kp)
+		_, _ = verifier.Write(message)
+
+		err = verifier.Close()
+		assert.NoError(t, err)
+		streamVerifier, _ := verifier.(*StreamVerifier)
+		assert.True(t, streamVerifier.verified)
+	})
+
+	t.Run("empty signature", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		assert.Nil(t, kp.GenKeyPair())
+		verifier := NewStreamVerifier(bytes.NewReader(nil), kp)
+		_, _ = verifier.Write(message)
+
+		err := verifier.Close()
+		assert.NoError(t, err)
+	})
+
+	t.Run("read error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		assert.Nil(t, kp.GenKeyPair())
+		verifier := NewStreamVerifier(mock.NewErrorFile(assert.AnError), kp)
+
+		err := verifier.Close()
+		assert.Error(t, err)
+		assert.IsType(t, ReadError{}, err)
+	})
+
+	t.Run("verify error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		assert.Nil(t, kp.GenKeyPair())
+		verifier := NewStreamVerifier(bytes.NewReader([]byte("invalid signature")), kp)
+		_, _ = verifier.Write(message)
+
+		err := verifier.Close()
+		assert.Error(t, err)
+		assert.IsType(t, VerifyError{}, err)
+	})
+
+	t.Run("preset error", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair() // no public key -> NewStreamVerifier sets Error
+		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
+		err := verifier.Close()
+		assert.Error(t, err)
+		assert.IsType(t, VerifyError{}, err)
+	})
+
+	t.Run("success without closer", func(t *testing.T) {
+		kp := keypair.NewSm2KeyPair()
+		assert.Nil(t, kp.GenKeyPair())
+		sig, err := NewStdSigner(kp).Sign(message)
+		assert.NoError(t, err)
+
+		verifier := NewStreamVerifier(bytes.NewReader(sig), kp)
+		_, _ = verifier.Write(message)
+		err = verifier.Close()
+		assert.NoError(t, err)
+	})
 }

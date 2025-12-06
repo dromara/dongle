@@ -1,44 +1,29 @@
-// Package sm2 implements SM2 public key encryption and decryption
+// Package sm2 implements SM2 public key encryption, decryption, signing and verification
 // with optional streaming helpers.
 package sm2
 
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
-	"encoding/binary"
 	"io"
-	"math/big"
 
 	"github.com/dromara/dongle/crypto/internal/sm2curve"
 	"github.com/dromara/dongle/crypto/keypair"
-	"github.com/dromara/dongle/hash/sm3"
 )
-
-// This package implements only encryption/decryption. Signing code is removed.
 
 // StdEncrypter encrypts data using an SM2 public key.
 // The ciphertext component order is derived from Sm2KeyPair.Order.
 type StdEncrypter struct {
-	keypair *keypair.Sm2KeyPair
-	order   keypair.CipherOrder
+	keypair keypair.Sm2KeyPair
 	Error   error
 }
 
 // NewStdEncrypter creates a new SM2 encrypter bound to the given key pair.
 func NewStdEncrypter(kp *keypair.Sm2KeyPair) *StdEncrypter {
-	e := &StdEncrypter{keypair: kp, order: keypair.C1C3C2}
-	if kp == nil {
-		e.Error = NilKeyPairError{}
-		return e
-	}
+	e := &StdEncrypter{keypair: *kp}
 	if len(kp.PublicKey) == 0 {
-		e.Error = KeyPairError{Err: nil}
-	}
-	// pick order from keypair setting
-	if kp.Order == keypair.C1C2C3 {
-		e.order = keypair.C1C2C3
-	} else {
-		e.order = keypair.C1C3C2
+		e.Error = EncryptError{Err: keypair.EmptyPublicKeyError{}}
+		return e
 	}
 	return e
 }
@@ -49,22 +34,63 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 		return nil, e.Error
 	}
 	if len(src) == 0 {
-		return nil, nil
+		return
 	}
 	pub, err := e.keypair.ParsePublicKey()
 	if err != nil {
-		e.Error = KeyPairError{Err: err}
+		e.Error = EncryptError{Err: err}
 		return nil, e.Error
 	}
-	out := encrypt(pub, src, e.order, e.keypair.Window)
+	out, err := sm2curve.Encrypt(rand.Reader, pub, src, sm2curve.CipherOrder(string(e.keypair.Order)), e.keypair.Window)
+	if err != nil {
+		e.Error = EncryptError{Err: err}
+		return nil, e.Error
+	}
+	return out, nil
+}
+
+// StdDecrypter decrypts data using an SM2 private key.
+type StdDecrypter struct {
+	keypair keypair.Sm2KeyPair
+	Error   error
+}
+
+// NewStdDecrypter creates a new SM2 decrypter bound to the given key pair.
+func NewStdDecrypter(kp *keypair.Sm2KeyPair) *StdDecrypter {
+	d := &StdDecrypter{keypair: *kp}
+	if len(kp.PrivateKey) == 0 {
+		d.Error = DecryptError{Err: keypair.EmptyPrivateKeyError{}}
+		return d
+	}
+	return d
+}
+
+// Decrypt decrypts data with SM2 private key.
+func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
+	if d.Error != nil {
+		return nil, d.Error
+	}
+	if len(src) == 0 {
+		return nil, nil
+	}
+	pri, err := d.keypair.ParsePrivateKey()
+	if err != nil {
+		d.Error = DecryptError{Err: err}
+		return nil, d.Error
+	}
+	out, err := sm2curve.Decrypt(pri, src, sm2curve.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
+	if err != nil {
+		d.Error = DecryptError{Err: err}
+		return nil, d.Error
+	}
 	return out, nil
 }
 
 // StreamEncrypter buffers plaintext and writes SM2 ciphertext on Close.
 type StreamEncrypter struct {
 	writer  io.Writer
-	keypair *keypair.Sm2KeyPair
-	order   keypair.CipherOrder
+	keypair keypair.Sm2KeyPair
+	pubKey  *ecdsa.PublicKey // Cached public key for better performance
 	buffer  []byte
 	Error   error
 }
@@ -74,24 +100,38 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, kp *keypair.Sm2KeyPair) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer:  w,
-		keypair: kp,
-		order:   keypair.C1C3C2,
+		keypair: *kp,
 		buffer:  make([]byte, 0),
 	}
-	if kp == nil {
-		e.Error = NilKeyPairError{}
+	if len(kp.PublicKey) == 0 {
+		e.Error = EncryptError{Err: keypair.EmptyPublicKeyError{}}
 		return e
 	}
-	if len(kp.PublicKey) == 0 {
-		e.Error = KeyPairError{Err: nil}
+
+	// Parse and cache the public key for reuse
+	pubKey, err := kp.ParsePublicKey()
+	if err != nil {
+		e.Error = EncryptError{Err: err}
+		return e
 	}
-	// pick order from keypair setting
-	if kp.Order == keypair.C1C2C3 {
-		e.order = keypair.C1C2C3
-	} else {
-		e.order = keypair.C1C3C2
-	}
+	e.pubKey = pubKey
+
 	return e
+}
+
+// encrypt encrypts plaintext with SM2 public key.
+func (e *StreamEncrypter) encrypt(data []byte) (encrypted []byte, err error) {
+	if len(data) == 0 {
+		return
+	}
+
+	encrypted, err = sm2curve.Encrypt(rand.Reader, e.pubKey, data, sm2curve.CipherOrder(string(e.keypair.Order)), e.keypair.Window)
+	if err != nil {
+		e.Error = EncryptError{Err: err}
+		return nil, err
+	}
+
+	return encrypted, nil
 }
 
 // Write buffers plaintext to be encrypted.
@@ -119,11 +159,11 @@ func (e *StreamEncrypter) Close() error {
 		return nil
 	}
 	// Encrypt and write
-	out, err := NewStdEncrypter(e.keypair).Encrypt(e.buffer)
+	out, err := e.encrypt(e.buffer)
 	if err != nil {
 		return err
 	}
-	if _, err = e.writer.Write(out); err != nil {
+	if _, err := e.writer.Write(out); err != nil {
 		return err
 	}
 	if closer, ok := e.writer.(io.Closer); ok {
@@ -132,87 +172,54 @@ func (e *StreamEncrypter) Close() error {
 	return nil
 }
 
-// StdDecrypter decrypts data using an SM2 private key.
-type StdDecrypter struct {
-	keypair *keypair.Sm2KeyPair
-	order   keypair.CipherOrder
-	Error   error
-}
-
-// NewStdDecrypter creates a new SM2 decrypter bound to the given key pair.
-func NewStdDecrypter(kp *keypair.Sm2KeyPair) *StdDecrypter {
-	d := &StdDecrypter{keypair: kp, order: keypair.C1C3C2}
-	if kp == nil {
-		d.Error = NilKeyPairError{}
-		return d
-	}
-	if len(kp.PrivateKey) == 0 {
-		d.Error = KeyPairError{Err: nil}
-	}
-	// pick order from keypair setting
-	if kp.Order == keypair.C1C2C3 {
-		d.order = keypair.C1C2C3
-	} else {
-		d.order = keypair.C1C3C2
-	}
-	return d
-}
-
-// Decrypt decrypts data with SM2 private key.
-func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
-	if d.Error != nil {
-		return nil, d.Error
-	}
-	if len(src) == 0 {
-		return nil, nil
-	}
-	pri, err := d.keypair.ParsePrivateKey()
-	if err != nil {
-		d.Error = KeyPairError{Err: err}
-		return nil, d.Error
-	}
-	out, err := decrypt(pri, src, d.order, d.keypair.Window)
-	if err != nil {
-		d.Error = DecryptError{Err: err}
-		return nil, d.Error
-	}
-	return out, nil
-}
-
 // StreamDecrypter reads all ciphertext from an io.Reader and exposes the
 // decrypted plaintext via Read.
 type StreamDecrypter struct {
-	reader    io.Reader
-	keypair   *keypair.Sm2KeyPair
-	order     keypair.CipherOrder
-	decrypted []byte
-	pos       int
-	Error     error
+	reader   io.Reader
+	keypair  keypair.Sm2KeyPair
+	priKey   *ecdsa.PrivateKey // Cached private key for better performance
+	buffer   []byte
+	position int
+	Error    error
 }
 
 // NewStreamDecrypter creates a Reader that decrypts the entire input from r
 // using the provided key pair, serving plaintext on subsequent Read calls.
 func NewStreamDecrypter(r io.Reader, kp *keypair.Sm2KeyPair) io.Reader {
 	d := &StreamDecrypter{
-		reader:  r,
-		keypair: kp,
-		order:   keypair.C1C3C2,
-		pos:     0,
-	}
-	if kp == nil {
-		d.Error = NilKeyPairError{}
-		return d
+		reader:   r,
+		keypair:  *kp,
+		position: 0,
 	}
 	if len(kp.PrivateKey) == 0 {
-		d.Error = KeyPairError{Err: nil}
+		d.Error = DecryptError{Err: keypair.EmptyPrivateKeyError{}}
+		return d
 	}
-	// pick order from keypair setting
-	if kp.Order == keypair.C1C2C3 {
-		d.order = keypair.C1C2C3
-	} else {
-		d.order = keypair.C1C3C2
+
+	// Parse and cache the private key for reuse
+	priKey, err := kp.ParsePrivateKey()
+	if err != nil {
+		d.Error = DecryptError{Err: err}
+		return d
 	}
+	d.priKey = priKey
+
 	return d
+}
+
+// decrypt decrypts ciphertext with SM2 private key.
+func (d *StreamDecrypter) decrypt(data []byte) (decrypted []byte, err error) {
+	if len(data) == 0 {
+		return
+	}
+
+	decrypted, err = sm2curve.Decrypt(d.priKey, data, sm2curve.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
+	if err != nil {
+		d.Error = DecryptError{Err: err}
+		return nil, d.Error
+	}
+
+	return decrypted, nil
 }
 
 // Read serves decrypted plaintext from the internal buffer.
@@ -220,11 +227,11 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	if d.Error != nil {
 		return 0, d.Error
 	}
-	// Serve from decrypted buffer if available
-	if d.pos < len(d.decrypted) {
-		n = copy(p, d.decrypted[d.pos:])
-		d.pos += n
-		if d.pos >= len(d.decrypted) {
+	// Serve from buffer if available
+	if d.position < len(d.buffer) {
+		n = copy(p, d.buffer[d.position:])
+		d.position += n
+		if d.position >= len(d.buffer) {
 			return n, io.EOF
 		}
 		return n, nil
@@ -238,174 +245,288 @@ func (d *StreamDecrypter) Read(p []byte) (n int, err error) {
 	if len(enc) == 0 {
 		return 0, io.EOF
 	}
-	out, err := NewStdDecrypter(d.keypair).Decrypt(enc)
+	out, err := d.decrypt(enc)
 	if err != nil {
-		d.Error = err
-		return 0, d.Error
+		return 0, err
 	}
-	d.decrypted = out
-	d.pos = 0
+	d.buffer = out
+	d.position = 0
 	// Return plaintext
-	n = copy(p, d.decrypted)
-	d.pos += n
-	if d.pos >= len(d.decrypted) {
+	n = copy(p, d.buffer)
+	d.position += n
+	if d.position >= len(d.buffer) {
 		return n, io.EOF
 	}
 	return n, nil
 }
 
-// intToBytes returns x encoded as a 4‑byte big‑endian slice.
-func intToBytes(x int) []byte {
-	var buf [4]byte
-	binary.BigEndian.PutUint32(buf[:], uint32(x))
-	return buf[:]
+// StdSigner signs data using an SM2 private key.
+type StdSigner struct {
+	keypair keypair.Sm2KeyPair
+	Error   error
 }
 
-// padLeft left‑pads b with zeros to reach size bytes.
-func padLeft(b []byte, size int) []byte {
-	if len(b) >= size {
-		return b
+// NewStdSigner creates a new SM2 signer bound to the given key pair.
+func NewStdSigner(kp *keypair.Sm2KeyPair) *StdSigner {
+	s := &StdSigner{keypair: *kp}
+	if len(kp.PrivateKey) == 0 {
+		s.Error = SignError{Err: keypair.EmptyPrivateKeyError{}}
+		return s
 	}
-	out := make([]byte, size)
-	copy(out[size-len(b):], b)
-	return out
+	return s
 }
 
-// sm3KDF derives length bytes using SM3 over the provided parts.
-func sm3KDF(length int, parts ...[]byte) (out []byte, ok bool) {
-	out = make([]byte, length) // Pre-allocate output buffer
-	ct := 1
-	h := sm3.New()
-	blocks := (length + 31) / 32
-	for i := range blocks {
-		h.Reset()
-		for _, p := range parts {
-			h.Write(p)
+// Sign generates an SM2 signature for the given data.
+func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	if len(src) == 0 {
+		return
+	}
+
+	// Parse the private key
+	pri, err := s.keypair.ParsePrivateKey()
+	if err != nil {
+		s.Error = SignError{Err: err}
+		return nil, s.Error
+	}
+
+	// Sign the message (Sign internally calculates ZA and digest)
+	sign, err = sm2curve.Sign(nil, pri, src, s.keypair.UID)
+	if err != nil {
+		s.Error = SignError{Err: err}
+		return nil, s.Error
+	}
+
+	return sign, nil
+}
+
+// StdVerifier verifies data using an SM2 public key.
+type StdVerifier struct {
+	keypair keypair.Sm2KeyPair
+	Error   error
+}
+
+// NewStdVerifier creates a new SM2 verifier bound to the given key pair.
+func NewStdVerifier(kp *keypair.Sm2KeyPair) *StdVerifier {
+	v := &StdVerifier{keypair: *kp}
+	if len(kp.PublicKey) == 0 {
+		v.Error = VerifyError{Err: keypair.EmptyPublicKeyError{}}
+		return v
+	}
+	return v
+}
+
+// Verify verifies an SM2 signature for the given data.
+func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
+	if v.Error != nil {
+		return false, v.Error
+	}
+	if len(src) == 0 {
+		return false, nil
+	}
+	if len(sign) == 0 {
+		err = VerifyError{Err: keypair.EmptySignatureError{}}
+		return false, err
+	}
+
+	// Parse the public key
+	pub, err := v.keypair.ParsePublicKey()
+	if err != nil {
+		v.Error = VerifyError{Err: err}
+		return false, v.Error
+	}
+
+	// Verify the signature (Verify internally calculates ZA and digest)
+	valid = sm2curve.Verify(pub, src, v.keypair.UID, sign)
+	if !valid {
+		v.Error = VerifyError{Err: nil}
+		return false, v.Error
+	}
+
+	return valid, nil
+}
+
+// StreamSigner buffers data and writes SM2 signature on Close.
+type StreamSigner struct {
+	writer  io.Writer
+	keypair keypair.Sm2KeyPair
+	priKey  *ecdsa.PrivateKey // Cached private key for better performance
+	buffer  []byte
+	Error   error
+}
+
+// NewStreamSigner returns a WriteCloser that signs all written data
+// with the provided key pair and writes the signature on Close.
+func NewStreamSigner(w io.Writer, kp *keypair.Sm2KeyPair) io.WriteCloser {
+	s := &StreamSigner{
+		writer:  w,
+		keypair: *kp,
+		buffer:  make([]byte, 0),
+	}
+	if len(kp.PrivateKey) == 0 {
+		s.Error = SignError{Err: keypair.EmptyPrivateKeyError{}}
+		return s
+	}
+
+	// Parse and cache the private key for reuse
+	priKey, err := kp.ParsePrivateKey()
+	if err != nil {
+		s.Error = SignError{Err: err}
+		return s
+	}
+	s.priKey = priKey
+
+	return s
+}
+
+// sign generates a signature for the given data.
+func (s *StreamSigner) sign(data []byte) (signature []byte, err error) {
+	if len(data) == 0 {
+		return
+	}
+
+	// Sign the data (Sign internally calculates ZA and digest)
+	signature, err = sm2curve.Sign(nil, s.priKey, data, s.keypair.UID)
+	if err != nil {
+		s.Error = SignError{Err: err}
+		return nil, s.Error
+	}
+
+	return signature, nil
+}
+
+// Write buffers data to be signed.
+func (s *StreamSigner) Write(p []byte) (n int, err error) {
+	if s.Error != nil {
+		return 0, s.Error
+	}
+	if len(p) == 0 {
+		return 0, nil
+	}
+	s.buffer = append(s.buffer, p...)
+	return len(p), nil
+}
+
+// Close signs the buffered data and writes the signature to the
+// underlying writer. If the writer implements io.Closer, it is closed.
+func (s *StreamSigner) Close() error {
+	if s.Error != nil {
+		return s.Error
+	}
+	if len(s.buffer) == 0 {
+		if closer, ok := s.writer.(io.Closer); ok {
+			return closer.Close()
 		}
-		h.Write(intToBytes(ct))
-		sum := h.Sum(nil)
-		start := i * 32
-		end := start + 32
-		if end > length {
-			end = length
-		}
-		copy(out[start:end], sum[:end-start])
-		ct++
+		return nil
 	}
-	return out, true
+	// Sign the buffered data
+	signature, err := s.sign(s.buffer)
+	if err != nil {
+		return err
+	}
+	// Write signature to the underlying writer
+	if _, err = s.writer.Write(signature); err != nil {
+		return err
+	}
+	if closer, ok := s.writer.(io.Closer); ok {
+		return closer.Close()
+	}
+	return nil
 }
 
-// bytesEqual compares two byte slices in constant time.
-func bytesEqual(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	var v byte
-	for i := range a {
-		v |= a[i] ^ b[i]
-	}
-	return v == 0
+// StreamVerifier reads signature from an io.Reader and verifies data written to it.
+type StreamVerifier struct {
+	reader    io.Reader
+	keypair   keypair.Sm2KeyPair
+	pubKey    *ecdsa.PublicKey // Cached public key for better performance
+	buffer    []byte
+	signature []byte
+	verified  bool
+	Error     error
 }
 
-// encrypt applies SM2 public‑key encryption with the requested order and window.
-func encrypt(pub *ecdsa.PublicKey, src []byte, order keypair.CipherOrder, window int) []byte {
-	n := len(src)
-	curve := sm2curve.New()
-	if window >= 2 && window <= 6 {
-		sm2curve.SetWindow(curve, window)
+// NewStreamVerifier creates a WriteCloser that verifies data written to it
+// using the signature read from the provided reader.
+func NewStreamVerifier(r io.Reader, kp *keypair.Sm2KeyPair) io.WriteCloser {
+	v := &StreamVerifier{
+		reader:  r,
+		keypair: *kp,
+		buffer:  make([]byte, 0),
 	}
-	coordLen := (curve.Params().BitSize + 7) / 8
-	k, _ := sm2curve.RandScalar(curve, rand.Reader)
-	x1, y1 := curve.ScalarBaseMult(k.Bytes())
-	x2, y2 := curve.ScalarMult(pub.X, pub.Y, k.Bytes())
-	x1b := padLeft(x1.Bytes(), coordLen)
-	y1b := padLeft(y1.Bytes(), coordLen)
-	x2b := padLeft(x2.Bytes(), coordLen)
-	y2b := padLeft(y2.Bytes(), coordLen)
-
-	// C1: uncompressed point (x1||y1)
-	c1 := make([]byte, 0, 2*coordLen)
-	c1 = append(c1, x1b...)
-	c1 = append(c1, y1b...)
-
-	// C3 = SM3(x2 || M || y2)
-	macInput := make([]byte, 0, len(x2b)+n+len(y2b))
-	macInput = append(macInput, x2b...)
-	macInput = append(macInput, src...)
-	macInput = append(macInput, y2b...)
-	hh := sm3.New()
-	hh.Write(macInput)
-	c3 := hh.Sum(nil)
-
-	// C2 = M XOR KDF(x2||y2)
-	mask, _ := sm3KDF(n, x2b, y2b)
-	c2 := make([]byte, n)
-	for i := range n {
-		c2[i] = src[i] ^ mask[i]
+	if len(kp.PublicKey) == 0 {
+		v.Error = VerifyError{Err: keypair.EmptyPublicKeyError{}}
+		return v
 	}
 
-	var payload []byte
-	if order == keypair.C1C2C3 {
-		payload = append(append(c1, c2...), c3...)
-	} else {
-		payload = append(append(c1, c3...), c2...)
+	// Parse and cache the public key for reuse
+	pubKey, err := kp.ParsePublicKey()
+	if err != nil {
+		v.Error = VerifyError{Err: err}
+		return v
 	}
-	return append([]byte{0x04}, payload...)
+	v.pubKey = pubKey
+
+	return v
 }
 
-// decrypt applies SM2 private‑key decryption with the requested order and window.
-func decrypt(pri *ecdsa.PrivateKey, src []byte, order keypair.CipherOrder, window int) ([]byte, error) {
-	if len(src) < 1 {
-		return nil, io.ErrUnexpectedEOF
+// verify verifies the signature for the given data.
+func (v *StreamVerifier) verify(data, signature []byte) (valid bool, err error) {
+	if len(data) == 0 || len(signature) == 0 {
+		return false, nil
 	}
-	if src[0] == 0x04 {
-		src = src[1:]
+
+	// Verify the signature (Verify internally calculates ZA and digest)
+	valid = sm2curve.Verify(v.pubKey, data, v.keypair.UID, signature)
+	if !valid {
+		v.Error = VerifyError{Err: nil}
+		return false, v.Error
 	}
-	curve := sm2curve.New()
-	if window >= 2 && window <= 6 {
-		sm2curve.SetWindow(curve, window)
+
+	return valid, nil
+}
+
+// Write buffers data for verification.
+func (v *StreamVerifier) Write(p []byte) (n int, err error) {
+	if v.Error != nil {
+		return 0, v.Error
 	}
-	coordLen := (curve.Params().BitSize + 7) / 8
-	if len(src) < 2*coordLen+32 {
-		return nil, io.ErrUnexpectedEOF
+	if len(p) == 0 {
+		return 0, nil
 	}
-	x := new(big.Int).SetBytes(src[:coordLen])
-	y := new(big.Int).SetBytes(src[coordLen : 2*coordLen])
-	x2, y2 := curve.ScalarMult(x, y, pri.D.Bytes())
-	x2b := padLeft(x2.Bytes(), coordLen)
-	y2b := padLeft(y2.Bytes(), coordLen)
-	if order == keypair.C1C2C3 {
-		n := len(src) - (2*coordLen + 32)
-		mask, _ := sm3KDF(n, x2b, y2b)
-		m := make([]byte, n)
-		for i := range n {
-			m[i] = src[2*coordLen+i] ^ mask[i]
-		}
-		macInput := make([]byte, 0, len(x2b)+n+len(y2b))
-		macInput = append(macInput, x2b...)
-		macInput = append(macInput, m...)
-		macInput = append(macInput, y2b...)
-		hh := sm3.New()
-		hh.Write(macInput)
-		if !bytesEqual(hh.Sum(nil), src[2*coordLen+n:]) {
-			return nil, io.ErrUnexpectedEOF
-		}
-		return m, nil
+	v.buffer = append(v.buffer, p...)
+	return len(p), nil
+}
+
+// Close reads the signature from the underlying reader and performs verification.
+func (v *StreamVerifier) Close() error {
+	if v.Error != nil {
+		return v.Error
 	}
-	n := len(src) - (2*coordLen + 32)
-	mask, _ := sm3KDF(n, x2b, y2b)
-	m := make([]byte, n)
-	for i := range n {
-		m[i] = src[2*coordLen+32+i] ^ mask[i]
+
+	// Read signature data from the underlying reader
+	var err error
+	v.signature, err = io.ReadAll(v.reader)
+	if err != nil {
+		return ReadError{Err: err}
 	}
-	macInput := make([]byte, 0, len(x2b)+n+len(y2b))
-	macInput = append(macInput, x2b...)
-	macInput = append(macInput, m...)
-	macInput = append(macInput, y2b...)
-	hh := sm3.New()
-	hh.Write(macInput)
-	if !bytesEqual(hh.Sum(nil), src[2*coordLen:2*coordLen+32]) {
-		return nil, io.ErrUnexpectedEOF
+	if len(v.signature) == 0 {
+		return nil
 	}
-	return m, nil
+
+	// Verify the signature using the buffered data
+	valid, err := v.verify(v.buffer, v.signature)
+	if err != nil {
+		return err
+	}
+
+	v.verified = valid
+
+	// Close the underlying reader if it implements io.Closer
+	if closer, ok := v.reader.(io.Closer); ok {
+		return closer.Close()
+	}
+
+	return nil
 }

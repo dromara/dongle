@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/binary"
 	"unsafe"
 )
 
@@ -35,4 +36,11 @@ func Bytes2String(b []byte) string {
 		return ""
 	}
 	return *(*string)(unsafe.Pointer(&b))
+}
+
+// Int2Bytes returns i encoded as a 4-byte big-endian slice.
+func Int2Bytes(i int) []byte {
+	var buf [4]byte
+	binary.BigEndian.PutUint32(buf[:], uint32(i))
+	return buf[:]
 }

@@ -356,3 +356,28 @@ func (e *ErrorWriteAfterN) Reset() {
 	e.writeCount = 0
 	e.totalBytes = 0
 }
+
+// CloseErrorReadCloser is a mock io.ReadCloser where only the Close() method returns an error.
+// This is useful for testing scenarios where reads succeed but closing fails.
+type CloseErrorReadCloser struct {
+	r   io.Reader // Underlying reader for successful read operations
+	err error     // Error to return when Close() is called
+}
+
+// NewCloseErrorReadCloser creates a new ReadCloser that reads successfully
+// but returns an error when Close() is called. This simulates partial failure scenarios.
+func NewCloseErrorReadCloser(r io.Reader, err error) *CloseErrorReadCloser {
+	return &CloseErrorReadCloser{r: r, err: err}
+}
+
+// Read implements the io.Reader interface by delegating to the underlying reader.
+// This method always succeeds, allowing testing of close error scenarios.
+func (c *CloseErrorReadCloser) Read(p []byte) (int, error) {
+	return c.r.Read(p)
+}
+
+// Close always returns the configured error, simulating a close failure
+// while allowing reads to succeed.
+func (c *CloseErrorReadCloser) Close() error {
+	return c.err
+}
