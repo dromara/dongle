@@ -21,8 +21,8 @@ type Ed25519KeyPair struct {
 	// PrivateKey contains the PEM-encoded private key
 	PrivateKey []byte
 
-	// Sign contains the signature bytes for verification
-	Sign []byte
+	// Signature contains the signature bytes for verification
+	Signature []byte
 }
 
 // NewEd25519KeyPair returns a new Ed25519KeyPair instance.
@@ -101,7 +101,7 @@ func (k *Ed25519KeyPair) ParsePublicKey() (ed25519.PublicKey, error) {
 		}
 		return pub.(ed25519.PublicKey), nil
 	}
-	return nil, UnsupportedPemTypeError{}
+	return nil, UnsupportedKeyFormatError{}
 }
 
 // ParsePrivateKey parses the private key from PEM format and returns a Go crypto/ed25519.PrivateKey.
@@ -127,7 +127,7 @@ func (k *Ed25519KeyPair) ParsePrivateKey() (ed25519.PrivateKey, error) {
 		}
 		return pri.(ed25519.PrivateKey), nil
 	}
-	return nil, UnsupportedPemTypeError{}
+	return nil, UnsupportedKeyFormatError{}
 }
 
 // FormatPublicKey formats base64-encoded der public key into the specified PEM format.
