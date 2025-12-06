@@ -7,7 +7,7 @@ import (
 	"crypto/rand"
 	"io"
 
-	"github.com/dromara/dongle/crypto/internal/sm2curve"
+	"github.com/dromara/dongle/crypto/internal/sm2"
 	"github.com/dromara/dongle/crypto/keypair"
 )
 
@@ -41,7 +41,7 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 		e.Error = EncryptError{Err: err}
 		return nil, e.Error
 	}
-	out, err := sm2curve.Encrypt(rand.Reader, pub, src, sm2curve.CipherOrder(string(e.keypair.Order)), e.keypair.Window)
+	out, err := sm2.Encrypt(rand.Reader, pub, src, sm2.CipherOrder(string(e.keypair.Order)), e.keypair.Window)
 	if err != nil {
 		e.Error = EncryptError{Err: err}
 		return nil, e.Error
@@ -78,7 +78,7 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 		d.Error = DecryptError{Err: err}
 		return nil, d.Error
 	}
-	out, err := sm2curve.Decrypt(pri, src, sm2curve.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
+	out, err := sm2.Decrypt(pri, src, sm2.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
 	if err != nil {
 		d.Error = DecryptError{Err: err}
 		return nil, d.Error
@@ -125,7 +125,7 @@ func (e *StreamEncrypter) encrypt(data []byte) (encrypted []byte, err error) {
 		return
 	}
 
-	encrypted, err = sm2curve.Encrypt(rand.Reader, e.pubKey, data, sm2curve.CipherOrder(string(e.keypair.Order)), e.keypair.Window)
+	encrypted, err = sm2.Encrypt(rand.Reader, e.pubKey, data, sm2.CipherOrder(string(e.keypair.Order)), e.keypair.Window)
 	if err != nil {
 		e.Error = EncryptError{Err: err}
 		return nil, err
@@ -213,7 +213,7 @@ func (d *StreamDecrypter) decrypt(data []byte) (decrypted []byte, err error) {
 		return
 	}
 
-	decrypted, err = sm2curve.Decrypt(d.priKey, data, sm2curve.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
+	decrypted, err = sm2.Decrypt(d.priKey, data, sm2.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
 	if err != nil {
 		d.Error = DecryptError{Err: err}
 		return nil, d.Error
@@ -293,7 +293,7 @@ func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
 	}
 
 	// Sign the message (Sign internally calculates ZA and digest)
-	sign, err = sm2curve.Sign(nil, pri, src, s.keypair.UID)
+	sign, err = sm2.Sign(nil, pri, src, s.keypair.UID)
 	if err != nil {
 		s.Error = SignError{Err: err}
 		return nil, s.Error
@@ -339,7 +339,7 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	}
 
 	// Verify the signature (Verify internally calculates ZA and digest)
-	valid = sm2curve.Verify(pub, src, v.keypair.UID, sign)
+	valid = sm2.Verify(pub, src, v.keypair.UID, sign)
 	if !valid {
 		v.Error = VerifyError{Err: nil}
 		return false, v.Error
@@ -388,7 +388,7 @@ func (s *StreamSigner) sign(data []byte) (signature []byte, err error) {
 	}
 
 	// Sign the data (Sign internally calculates ZA and digest)
-	signature, err = sm2curve.Sign(nil, s.priKey, data, s.keypair.UID)
+	signature, err = sm2.Sign(nil, s.priKey, data, s.keypair.UID)
 	if err != nil {
 		s.Error = SignError{Err: err}
 		return nil, s.Error
@@ -478,7 +478,7 @@ func (v *StreamVerifier) verify(data, signature []byte) (valid bool, err error) 
 	}
 
 	// Verify the signature (Verify internally calculates ZA and digest)
-	valid = sm2curve.Verify(v.pubKey, data, v.keypair.UID, signature)
+	valid = sm2.Verify(v.pubKey, data, v.keypair.UID, signature)
 	if !valid {
 		v.Error = VerifyError{Err: nil}
 		return false, v.Error

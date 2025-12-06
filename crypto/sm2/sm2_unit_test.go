@@ -7,7 +7,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/dromara/dongle/crypto/internal/sm2curve"
+	"github.com/dromara/dongle/crypto/internal/sm2"
 	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
@@ -190,8 +190,8 @@ func TestStdEncryptDecrypt_ModeStrictness(t *testing.T) {
 
 // TestScalarBaseMult_Equals_ScalarMult verifies ScalarBaseMult equals ScalarMult for base point.
 func TestScalarBaseMult_Equals_ScalarMult(t *testing.T) {
-	cv := sm2curve.NewCurve()
-	sm2curve.SetWindow(cv, 6)
+	cv := sm2.NewCurve()
+	sm2.SetWindow(cv, 6)
 	gx, gy := cv.Params().Gx, cv.Params().Gy
 	for i := 1; i <= 10; i++ {
 		k := make([]byte, 32)
@@ -403,15 +403,15 @@ func TestEncryptFunctionWithDifferentWindowSizes(t *testing.T) {
 	kp.GenKeyPair()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 2)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test message"), sm2.C1C3C2, 2)
 	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 
-	ciphertext, err = sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 6)
+	ciphertext, err = sm2.Encrypt(rand.Reader, pub, []byte("test message"), sm2.C1C3C2, 6)
 	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 
-	ciphertext, err = sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 1)
+	ciphertext, err = sm2.Encrypt(rand.Reader, pub, []byte("test message"), sm2.C1C3C2, 1)
 	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 }
@@ -422,16 +422,16 @@ func TestDecryptFunctionWithInvalidData(t *testing.T) {
 	kp.GenKeyPair()
 	pri, _ := kp.ParsePrivateKey()
 
-	_, err := sm2curve.Decrypt(pri, []byte{}, sm2curve.C1C3C2, 0)
+	_, err := sm2.Decrypt(pri, []byte{}, sm2.C1C3C2, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 
-	_, err = sm2curve.Decrypt(pri, []byte{0x01, 0x02}, sm2curve.C1C3C2, 0)
+	_, err = sm2.Decrypt(pri, []byte{0x01, 0x02}, sm2.C1C3C2, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 
-	_, err = sm2curve.Decrypt(pri, []byte{0x04, 0x01, 0x02}, sm2curve.C1C3C2, 0)
+	_, err = sm2.Decrypt(pri, []byte{0x04, 0x01, 0x02}, sm2.C1C3C2, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 
-	_, err = sm2curve.Decrypt(pri, []byte{0x04, 0x01, 0x02}, sm2curve.C1C2C3, 0)
+	_, err = sm2.Decrypt(pri, []byte{0x04, 0x01, 0x02}, sm2.C1C2C3, 0)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 }
 
@@ -442,10 +442,10 @@ func TestDecryptFunctionWithValidData(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C3C2, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test message"), sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 
-	plaintext, err := sm2curve.Decrypt(pri, ciphertext, sm2curve.C1C3C2, 0)
+	plaintext, err := sm2.Decrypt(pri, ciphertext, sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test message", string(plaintext))
 }
@@ -456,7 +456,7 @@ func TestEncryptFunctionWithC1C2C3Order(t *testing.T) {
 	kp.GenKeyPair()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C2C3, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test message"), sm2.C1C2C3, 0)
 	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 }
@@ -468,10 +468,10 @@ func TestDecryptFunctionWithC1C2C3Order(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test message"), sm2curve.C1C2C3, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test message"), sm2.C1C2C3, 0)
 	assert.Nil(t, err)
 
-	plaintext, err := sm2curve.Decrypt(pri, ciphertext, sm2curve.C1C2C3, 0)
+	plaintext, err := sm2.Decrypt(pri, ciphertext, sm2.C1C2C3, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test message", string(plaintext))
 }
@@ -557,12 +557,12 @@ func TestDecrypt_Without0x04Prefix(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 
 	ciphertextWithoutPrefix := ciphertext[1:]
 
-	plaintext, err := sm2curve.Decrypt(pri, ciphertextWithoutPrefix, sm2curve.C1C3C2, 0)
+	plaintext, err := sm2.Decrypt(pri, ciphertextWithoutPrefix, sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test", string(plaintext))
 }
@@ -574,12 +574,12 @@ func TestDecrypt_WithVerificationFailure_C1C3C2(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 
 	ciphertext[len(ciphertext)-1] ^= 0xFF
 
-	_, err = sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 0)
+	_, err = sm2.Decrypt(pri, ciphertext[1:], sm2.C1C3C2, 0)
 	assert.NotNil(t, err)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 }
@@ -591,12 +591,12 @@ func TestDecrypt_WithVerificationFailure_C1C2C3(t *testing.T) {
 	pri, _ := kp.ParsePrivateKey()
 	pub, _ := kp.ParsePublicKey()
 
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C2C3, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C2C3, 0)
 	assert.Nil(t, err)
 
 	ciphertext[len(ciphertext)-1] ^= 0xFF
 
-	_, err = sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C2C3, 0)
+	_, err = sm2.Decrypt(pri, ciphertext[1:], sm2.C1C2C3, 0)
 	assert.NotNil(t, err)
 	assert.Equal(t, io.ErrUnexpectedEOF, err)
 }
@@ -608,17 +608,17 @@ func TestEncrypt_WithWindowSizeOutsideRange(t *testing.T) {
 	pub, _ := kp.ParsePublicKey()
 
 	// Test with window size 0 (should use default)
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 
 	// Test with window size 7 (should be clamped)
-	ciphertext2, err2 := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 7)
+	ciphertext2, err2 := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 7)
 	assert.Nil(t, err2)
 	assert.NotNil(t, ciphertext2)
 
 	// Test with window size 1 (should be clamped)
-	ciphertext3, err3 := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 1)
+	ciphertext3, err3 := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 1)
 	assert.Nil(t, err3)
 	assert.NotNil(t, ciphertext3)
 }
@@ -631,21 +631,21 @@ func TestDecrypt_WithWindowSizeOutsideRange(t *testing.T) {
 	pub, _ := kp.ParsePublicKey()
 
 	// Encrypt with default window
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 
 	// Decrypt with window size 0
-	plaintext, err := sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 0)
+	plaintext, err := sm2.Decrypt(pri, ciphertext[1:], sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, "test", string(plaintext))
 
 	// Decrypt with window size 7 (should be clamped)
-	plaintext2, err2 := sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 7)
+	plaintext2, err2 := sm2.Decrypt(pri, ciphertext[1:], sm2.C1C3C2, 7)
 	assert.Nil(t, err2)
 	assert.Equal(t, "test", string(plaintext2))
 
 	// Decrypt with window size 1 (should be clamped)
-	plaintext3, err3 := sm2curve.Decrypt(pri, ciphertext[1:], sm2curve.C1C3C2, 1)
+	plaintext3, err3 := sm2.Decrypt(pri, ciphertext[1:], sm2.C1C3C2, 1)
 	assert.Nil(t, err3)
 	assert.Equal(t, "test", string(plaintext3))
 }
@@ -709,7 +709,7 @@ func TestEncrypt_WithSm3KDFRetry(t *testing.T) {
 
 	// The encrypt function will retry if sm3KDF returns false
 	// In practice, this is extremely rare, so we just verify normal operation
-	ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+	ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 0)
 	assert.Nil(t, err)
 	assert.NotNil(t, ciphertext)
 }
@@ -815,7 +815,7 @@ func TestEncrypt_AttemptSm3KDFRetry(t *testing.T) {
 	// but we try a reasonable number of times
 	successCount := 0
 	for i := 0; i < 100; i++ {
-		ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte("test"), sm2curve.C1C3C2, 0)
+		ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte("test"), sm2.C1C3C2, 0)
 		assert.Nil(t, err)
 		if ciphertext != nil {
 			successCount++
@@ -842,7 +842,7 @@ func TestEncrypt_NormalOperation(t *testing.T) {
 	}
 
 	for _, msg := range messages {
-		ciphertext, err := sm2curve.Encrypt(rand.Reader, pub, []byte(msg), sm2curve.C1C3C2, 0)
+		ciphertext, err := sm2.Encrypt(rand.Reader, pub, []byte(msg), sm2.C1C3C2, 0)
 		assert.Nil(t, err)
 		assert.NotNil(t, ciphertext)
 		assert.Greater(t, len(ciphertext), 0)

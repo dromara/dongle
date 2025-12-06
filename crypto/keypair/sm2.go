@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/crypto/internal/sm2curve"
+	"github.com/dromara/dongle/crypto/internal/sm2"
 	"github.com/dromara/dongle/internal/utils"
 )
 
@@ -30,8 +30,8 @@ const (
 )
 
 var (
-	bitStringPublicKeyParser  = sm2curve.ParseBitStringPublicKey
-	bitStringPrivateKeyParser = sm2curve.ParseBitStringPrivateKey
+	bitStringPublicKeyParser  = sm2.ParseBitStringPublicKey
+	bitStringPrivateKeyParser = sm2.ParseBitStringPrivateKey
 )
 
 // Sm2KeyPair represents an SM2 key pair with public and private keys.
@@ -65,10 +65,10 @@ func NewSm2KeyPair() *Sm2KeyPair {
 // GenKeyPair generates a new SM2 key pair and fills PublicKey/PrivateKey.
 // Private key is PKCS#8 (PEM "PRIVATE KEY"), public key is SPKI/PKIX (PEM "PUBLIC KEY").
 func (k *Sm2KeyPair) GenKeyPair() error {
-	c := sm2curve.NewCurve()
+	c := sm2.NewCurve()
 
 	// Generate unbiased scalar d in range [1, n-1]
-	d, err := sm2curve.RandScalar(c, rand.Reader)
+	d, err := sm2.RandScalar(c, rand.Reader)
 	if err != nil {
 		return err
 	}
@@ -77,11 +77,11 @@ func (k *Sm2KeyPair) GenKeyPair() error {
 	privateKey := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: c, X: x, Y: y}, D: d}
 
 	// Marshal PKCS8 private key
-	privateKeyDer, _ := sm2curve.MarshalPKCS8PrivateKey(privateKey)
+	privateKeyDer, _ := sm2.MarshalPKCS8PrivateKey(privateKey)
 	k.PrivateKey = pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privateKeyDer})
 
 	// Marshal SPKI public key
-	publicKeyDer, _ := sm2curve.MarshalSPKIPublicKey(&privateKey.PublicKey)
+	publicKeyDer, _ := sm2.MarshalSPKIPublicKey(&privateKey.PublicKey)
 	k.PublicKey = pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: publicKeyDer})
 	return nil
 }
@@ -165,7 +165,7 @@ func (k *Sm2KeyPair) ParsePublicKey() (*ecdsa.PublicKey, error) {
 	if block == nil || block.Type != "PUBLIC KEY" {
 		return nil, InvalidPublicKeyError{}
 	}
-	pub, err := sm2curve.ParseSPKIPublicKey(block.Bytes)
+	pub, err := sm2.ParseSPKIPublicKey(block.Bytes)
 	if err != nil {
 		return nil, InvalidPublicKeyError{Err: err}
 	}
@@ -189,7 +189,7 @@ func (k *Sm2KeyPair) ParsePrivateKey() (*ecdsa.PrivateKey, error) {
 	if block == nil || block.Type != "PRIVATE KEY" {
 		return nil, InvalidPrivateKeyError{}
 	}
-	pri, err := sm2curve.ParsePKCS8PrivateKey(block.Bytes)
+	pri, err := sm2.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, InvalidPrivateKeyError{Err: err}
 	}

@@ -11,7 +11,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dromara/dongle/crypto/internal/sm2curve"
+	"github.com/dromara/dongle/crypto/internal/sm2"
 	"github.com/dromara/dongle/internal/mock"
 )
 
@@ -220,7 +220,7 @@ func TestCompressKeys_WithVariousWhitespace(t *testing.T) {
 
 func TestParsePublicKey_RawDer(t *testing.T) {
 	kp := NewSm2KeyPair()
-	c := sm2curve.NewCurve()
+	c := sm2.NewCurve()
 	p := c.Params()
 	coordLen := (p.BitSize + 7) / 8
 	pad := func(v *big.Int) []byte {
@@ -279,7 +279,7 @@ func TestParsePublicKey_RawDer(t *testing.T) {
 
 func TestParsePrivateKey_RawDer(t *testing.T) {
 	kp := NewSm2KeyPair()
-	p := sm2curve.NewCurve().Params()
+	p := sm2.NewCurve().Params()
 	coordLen := (p.BitSize + 7) / 8
 	raw := make([]byte, coordLen)
 	raw[coordLen-1] = 1

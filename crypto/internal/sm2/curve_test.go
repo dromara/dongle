@@ -1,4 +1,4 @@
-package sm2curve
+package sm2
 
 import (
 	"crypto/elliptic"
