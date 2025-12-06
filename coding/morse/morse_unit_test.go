@@ -357,7 +357,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 		// Write data with Chinese character (unsupported) to test error handling
 		n, err := encoder.Write([]byte("ab测"))
-		assert.Equal(t, 5, n) // 5 bytes for "ab测" (Chinese is 3 bytes UTF-8)
+		assert.Equal(t, 5, n) // 5 bytes for "ab测" (Chinese character is 3 bytes in UTF-8)
 		assert.Error(t, err)
 		assert.IsType(t, InvalidInputError{}, err)
 

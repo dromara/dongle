@@ -170,7 +170,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	// 额外补充：覆盖 Decode 中领先零处理的“无需扩容”分支（val=0）
+	// Additional coverage: covers the "no expansion needed" branch in Decode's leading zero handling (val=0)
 	t.Run("decode only leading zero with zero-count (\"00\")", func(t *testing.T) {
 		decoder := NewStdDecoder()
 		decoded, err := decoder.Decode([]byte("00"))

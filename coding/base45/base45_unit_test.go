@@ -376,24 +376,24 @@ func TestStdEncoderDecoder_ErrorFlags(t *testing.T) {
 func TestInternalSizeHelpers(t *testing.T) {
 	t.Run("encoder.getOutputSize direct", func(t *testing.T) {
 		enc := NewStdEncoder()
-		// 覆盖 inputLen==0 分支
+		// Cover inputLen==0 branch
 		sz0 := enc.getOutputSize(0)
 		assert.Equal(t, 0, sz0)
-		// 常规分支：偶数/奇数长度
+		// Regular branch: even/odd length
 		assert.Equal(t, 3, enc.getOutputSize(2))
 		assert.Equal(t, 5, enc.getOutputSize(3))
 	})
 
 	t.Run("decoder.getDecodedSize direct", func(t *testing.T) {
 		dec := NewStdDecoder()
-		// 覆盖 encodedLen==0 分支
+		// Cover encodedLen==0 branch
 		sz0 := dec.getDecodedSize(0)
 		assert.Equal(t, 0, sz0)
-		// 常规分支：3 的倍数与余 2
+		// Regular branch: multiples of 3 and remainder of 2
 		assert.Equal(t, 2, dec.getDecodedSize(3))
 		assert.Equal(t, 1, dec.getDecodedSize(2))
 		assert.Equal(t, 3, dec.getDecodedSize(5))
-		// 额外覆盖：余 1 的情况虽然非法，但函数行为应是 groups*2 + 0
+		// Additional coverage: remainder of 1 is invalid, but function behavior should be groups*2 + 0
 		assert.Equal(t, 2, dec.getDecodedSize(4))
 	})
 }

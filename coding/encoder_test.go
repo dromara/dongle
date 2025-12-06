@@ -217,12 +217,12 @@ func TestEncoder_stream(t *testing.T) {
 
 	t.Run("copy error returned", func(t *testing.T) {
 		copyErr := errors.New("copy error")
-		// 作为 reader：Read 立刻返回错误
+		// As reader: Read returns error immediately
 		errRWC := mock.NewErrorReadWriteCloser(copyErr)
 		encoder := NewEncoder()
 		encoder.reader = errRWC
 		out, err := encoder.stream(func(w io.Writer) io.WriteCloser {
-			// writer 同样返回错误，但 io.CopyBuffer 会先在 Read 处失败
+			// writer also returns error, but io.CopyBuffer will fail at Read first
 			return errRWC
 		})
 		assert.Error(t, err)
@@ -234,7 +234,7 @@ func TestEncoder_stream(t *testing.T) {
 		file := mock.NewFile([]byte("payload"), "p.txt")
 		encoder := NewEncoder().FromFile(file)
 		out, err := encoder.stream(func(w io.Writer) io.WriteCloser {
-			// 写成功，但 Close 返回错误
+			// Write succeeds, but Close returns error
 			return mock.NewCloseErrorWriteCloser(w, errors.New("close error"))
 		})
 		assert.Error(t, err)
