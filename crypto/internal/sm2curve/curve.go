@@ -9,8 +9,8 @@ import (
 	"sync"
 )
 
-// Ensure *curve implements elliptic.Curve interface.
-var _ elliptic.Curve = (*curve)(nil)
+// Ensure *sm2Curve implements elliptic.Curve interface.
+var _ elliptic.Curve = (*sm2Curve)(nil)
 
 // ASN.1 OIDs for SM2.
 var (
@@ -18,11 +18,11 @@ var (
 	oidSM2P256v1   = asn1.ObjectIdentifier{1, 2, 156, 10197, 1, 301}
 )
 
-// curve implements SM2-P-256 using Jacobian coordinates with wNAF acceleration.
-type curve struct {
+// sm2Curve implements SM2-P-256 using Jacobian coordinates with wNAF acceleration.
+type sm2Curve struct {
 	params elliptic.CurveParams
-	a      *big.Int // Curve coefficient a = p - 3
-	w      int      // wNAF window size (2-6)
+	bigint *big.Int // Curve coefficient
+	window int      // wNAF window size (2-6)
 }
 
 // pointField represents a Jacobian point using field elements.
@@ -31,15 +31,15 @@ type pointField struct {
 	x, y, z field
 }
 
-// New returns a new SM2-P-256 curve instance.
-func New() elliptic.Curve {
+// NewCurve returns a new SM2-P-256 curve instance.
+func NewCurve() elliptic.Curve {
 	p, _ := new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF", 16)
 	a := new(big.Int).Sub(new(big.Int).Set(p), big.NewInt(3))
 	b, _ := new(big.Int).SetString("28E9FA9E9D9F5E344D5A9E4BCF6509A7F39789F515AB8F92DDBCBD414D940E93", 16)
 	n, _ := new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123", 16)
 	gx, _ := new(big.Int).SetString("32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7", 16)
 	gy, _ := new(big.Int).SetString("BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0", 16)
-	c := &curve{params: elliptic.CurveParams{}}
+	c := &sm2Curve{params: elliptic.CurveParams{}}
 	c.params.P = p
 	c.params.N = n
 	c.params.B = b
@@ -47,63 +47,63 @@ func New() elliptic.Curve {
 	c.params.Gy = gy
 	c.params.BitSize = 256
 	c.params.Name = "SM2-P-256"
-	c.a = a
-	c.w = 4
+	c.bigint = a
+	c.window = 4
 	return c
 }
 
 // Params returns the curve parameters.
-func (c *curve) Params() *elliptic.CurveParams { return &c.params }
+func (c *sm2Curve) Params() *elliptic.CurveParams { return &c.params }
 
 // mod computes x mod p.
-func (c *curve) mod(x *big.Int) *big.Int { return x.Mod(x, c.params.P) }
+func (c *sm2Curve) mod(x *big.Int) *big.Int { return x.Mod(x, c.params.P) }
 
 // add computes (x + y) mod p.
-func (c *curve) add(x, y *big.Int) *big.Int {
+func (c *sm2Curve) add(x, y *big.Int) *big.Int {
 	bigInt := getBigInt()
 	bigInt.Add(x, y)
 	return c.mod(bigInt)
 }
 
 // sub computes (x - y) mod p.
-func (c *curve) sub(x, y *big.Int) *big.Int {
+func (c *sm2Curve) sub(x, y *big.Int) *big.Int {
 	bigInt := getBigInt()
 	bigInt.Sub(x, y)
 	return c.mod(bigInt)
 }
 
 // mul computes (x × y) mod p.
-func (c *curve) mul(x, y *big.Int) *big.Int {
+func (c *sm2Curve) mul(x, y *big.Int) *big.Int {
 	bigInt := getBigInt()
 	bigInt.Mul(x, y)
 	return c.mod(bigInt)
 }
 
 // sqr computes x² mod p.
-func (c *curve) sqr(x *big.Int) *big.Int { return c.mul(x, x) }
+func (c *sm2Curve) sqr(x *big.Int) *big.Int { return c.mul(x, x) }
 
 // inv computes x⁻¹ mod p.
-func (c *curve) inv(x *big.Int) *big.Int {
+func (c *sm2Curve) inv(x *big.Int) *big.Int {
 	bigInt := getBigInt()
 	bigInt.ModInverse(x, c.params.P)
 	return bigInt
 }
 
 // IsOnCurve checks if point (x, y) satisfies the curve equation y^2 = x^3 + ax + b.
-func (c *curve) IsOnCurve(x, y *big.Int) bool {
+func (c *sm2Curve) IsOnCurve(x, y *big.Int) bool {
 	if x == nil || y == nil {
 		return false
 	}
 	y2 := c.sqr(y)
 	x3 := c.mul(c.sqr(x), x)
-	ax := c.mul(c.a, x)
+	ax := c.mul(c.bigint, x)
 	rhs := c.add(c.add(x3, ax), c.params.B)
 	return y2.Cmp(rhs) == 0
 }
 
 // Add computes (x1, y1) + (x2, y2) in affine coordinates.
 // Returns (nil, nil) for point at infinity.
-func (c *curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
+func (c *sm2Curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
 	if x1 == nil || y1 == nil {
 		return new(big.Int).Set(x2), new(big.Int).Set(y2)
 	}
@@ -129,12 +129,12 @@ func (c *curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
 
 // Double computes 2×(x1, y1) in affine coordinates.
 // Returns (nil, nil) for point at infinity.
-func (c *curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
+func (c *sm2Curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 	if y1 == nil || y1.Sign() == 0 {
 		return nil, nil
 	}
 	slope := c.mul(big.NewInt(3), c.sqr(x1))
-	num := c.add(slope, c.a)
+	num := c.add(slope, c.bigint)
 	den := c.add(y1, y1)
 	denInv := c.inv(den)
 	lam := c.mul(num, denInv)
@@ -143,8 +143,8 @@ func (c *curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 	return x3, y3
 }
 
-// ScalarBaseMult computes k×G using wNAF with precomputed table.
-func (c *curve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
+// performScalar performs common scalar multiplication logic.
+func (c *sm2Curve) performScalar(k []byte, table [][3]field, w int) (*big.Int, *big.Int) {
 	if len(k) == 0 {
 		return nil, nil
 	}
@@ -154,39 +154,30 @@ func (c *curve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
 		return nil, nil
 	}
 
-	w := c.w
-	if w < 2 || w > 6 {
-		w = 4
-	}
-
-	table := c.getBaseTable(w)
 	naf := toWNAF(kInt, w)
 	result := c.scalarMultWNAFField(table, naf)
 	return c.jacToAffine(&result)
 }
 
-// ScalarMult computes k×B using wNAF.
-// Returns (nil, nil) for point at infinity.
-func (c *curve) ScalarMult(Bx, By *big.Int, k []byte) (*big.Int, *big.Int) {
-	if len(k) == 0 {
-		return nil, nil
-	}
-
-	kInt := new(big.Int).SetBytes(k)
-	if kInt.Sign() == 0 {
-		return nil, nil
-	}
-
-	w := c.w
+// ScalarBaseMult computes k×G using wNAF with precomputed table.
+func (c *sm2Curve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
+	w := c.window
 	if w < 2 || w > 6 {
 		w = 4
 	}
+	table := c.getBaseTable(w)
+	return c.performScalar(k, table, w)
+}
 
+// ScalarMult computes k×B using wNAF.
+// Returns (nil, nil) for point at infinity.
+func (c *sm2Curve) ScalarMult(Bx, By *big.Int, k []byte) (*big.Int, *big.Int) {
+	w := c.window
+	if w < 2 || w > 6 {
+		w = 4
+	}
 	table := c.precomputeTable(Bx, By, w)
-	naf := toWNAF(kInt, w)
-	result := c.scalarMultWNAFField(table, naf)
-
-	return c.jacToAffine(&result)
+	return c.performScalar(k, table, w)
 }
 
 var (
@@ -195,7 +186,7 @@ var (
 )
 
 // getBaseTable returns cached or creates base point table.
-func (c *curve) getBaseTable(w int) [][3]field {
+func (c *sm2Curve) getBaseTable(w int) [][3]field {
 	baseTableCacheLock.Lock()
 	defer baseTableCacheLock.Unlock()
 
@@ -210,7 +201,7 @@ func (c *curve) getBaseTable(w int) [][3]field {
 }
 
 // precomputeTable creates table of odd multiples: B, 3B, 5B, ..., (2^(w-1)-1)×B.
-func (c *curve) precomputeTable(Bx, By *big.Int, w int) [][3]field {
+func (c *sm2Curve) precomputeTable(Bx, By *big.Int, w int) [][3]field {
 	tableSize := 1 << uint(w-1)
 	table := make([][3]field, tableSize)
 
@@ -235,7 +226,7 @@ func (c *curve) precomputeTable(Bx, By *big.Int, w int) [][3]field {
 }
 
 // scalarMultWNAFField performs wNAF scalar multiplication.
-func (c *curve) scalarMultWNAFField(table [][3]field, naf []int8) pointField {
+func (c *sm2Curve) scalarMultWNAFField(table [][3]field, naf []int8) pointField {
 	var result pointField
 
 	for i := len(naf) - 1; i >= 0; i-- {
@@ -273,7 +264,7 @@ func (c *curve) scalarMultWNAFField(table [][3]field, naf []int8) pointField {
 }
 
 // pointAddField computes out = p1 + p2 in Jacobian coordinates.
-func (c *curve) pointAddField(out, p1, p2 *pointField) {
+func (c *sm2Curve) pointAddField(out, p1, p2 *pointField) {
 	if p1.z.isZero() {
 		*out = *p2
 		return
@@ -336,7 +327,7 @@ func (c *curve) pointAddField(out, p1, p2 *pointField) {
 }
 
 // pointDoubleField computes 2×p in Jacobian coordinates.
-func (c *curve) pointDoubleField(out, p *pointField) {
+func (c *sm2Curve) pointDoubleField(out, p *pointField) {
 	if p.y.isZero() || p.z.isZero() {
 		*out = pointField{}
 		return
@@ -394,7 +385,7 @@ func (c *curve) pointDoubleField(out, p *pointField) {
 }
 
 // jacToAffine converts Jacobian coordinates to affine.
-func (c *curve) jacToAffine(p *pointField) (*big.Int, *big.Int) {
+func (c *sm2Curve) jacToAffine(p *pointField) (*big.Int, *big.Int) {
 	if p.z.isZero() {
 		return nil, nil
 	}
@@ -455,9 +446,9 @@ func toWNAF(k *big.Int, w int) []int8 {
 
 // SetWindow sets wNAF window size (2-6).
 func SetWindow(cv elliptic.Curve, w int) {
-	if c, ok := cv.(*curve); ok {
+	if c, ok := cv.(*sm2Curve); ok {
 		if w >= 2 && w <= 6 {
-			c.w = w
+			c.window = w
 		}
 	}
 }

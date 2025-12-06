@@ -39,7 +39,7 @@ func (m *maskCurve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) { return m.c.S
 
 // TestCurve_Basic tests basic curve operations
 func TestCurve_Basic(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	p := c.Params()
 
 	// Test curve parameters
@@ -66,7 +66,7 @@ func TestCurve_Basic(t *testing.T) {
 
 // TestCurve_Add tests point addition
 func TestCurve_Add(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
 	// Test nil cases
@@ -107,7 +107,7 @@ func TestCurve_Add(t *testing.T) {
 
 // TestCurve_Double tests point doubling
 func TestCurve_Double(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
 	// Test nil Y
@@ -166,7 +166,7 @@ func TestCurve_WNAF(t *testing.T) {
 
 // TestCurve_ScalarBaseMult tests scalar multiplication with base point
 func TestCurve_ScalarBaseMult(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 
 	// Test empty bytes
 	x, y := c.ScalarBaseMult([]byte{})
@@ -198,7 +198,7 @@ func TestCurve_ScalarBaseMult(t *testing.T) {
 
 // TestCurve_ScalarMult tests scalar multiplication with arbitrary point
 func TestCurve_ScalarMult(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
 	// Test empty bytes
@@ -231,27 +231,27 @@ func TestCurve_ScalarMult(t *testing.T) {
 
 // TestCurve_SetWindow tests window size setting
 func TestCurve_SetWindow(t *testing.T) {
-	c := New()
+	c := NewCurve()
 
 	// Test valid window sizes
 	for w := 2; w <= 6; w++ {
 		SetWindow(c, w)
-		cv := c.(*curve)
-		if cv.w != w {
+		cv := c.(*sm2Curve)
+		if cv.window != w {
 			t.Errorf("SetWindow(%d) failed", w)
 		}
 	}
 
 	// Test invalid window sizes (should not change)
 	SetWindow(c, 1)
-	cv := c.(*curve)
-	if cv.w == 1 {
-		t.Error("SetWindow(1) should not set w=1")
+	cv := c.(*sm2Curve)
+	if cv.window == 1 {
+		t.Error("SetWindow(1) should not set window=1")
 	}
 
 	SetWindow(c, 7)
-	if cv.w == 7 {
-		t.Error("SetWindow(7) should not set w=7")
+	if cv.window == 7 {
+		t.Error("SetWindow(7) should not set window=7")
 	}
 
 	// Test with invalid curve type
@@ -261,7 +261,7 @@ func TestCurve_SetWindow(t *testing.T) {
 
 // TestCurve_RandScalar tests random scalar generation
 func TestCurve_RandScalar(t *testing.T) {
-	c := New()
+	c := NewCurve()
 
 	// Test with default reader
 	d, err := RandScalar(c, nil)
@@ -291,7 +291,7 @@ func TestCurve_RandScalar(t *testing.T) {
 
 // TestCurve_OptimizedPaths tests optimized field element paths
 func TestCurve_OptimizedPaths(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 
 	// Test ScalarBaseMult with empty k
 	x, y := c.ScalarBaseMult([]byte{})
@@ -306,10 +306,10 @@ func TestCurve_OptimizedPaths(t *testing.T) {
 	}
 
 	// Test ScalarBaseMult with invalid window
-	oldW := c.w
-	c.w = 1
+	oldW := c.window
+	c.window = 1
 	x, y = c.ScalarBaseMult([]byte{2})
-	c.w = oldW
+	c.window = oldW
 	if x == nil || y == nil {
 		t.Error("ScalarBaseMult should handle invalid window")
 	}
@@ -328,9 +328,9 @@ func TestCurve_OptimizedPaths(t *testing.T) {
 	}
 
 	// Test ScalarMult with invalid window
-	c.w = 7
+	c.window = 7
 	x, y = c.ScalarMult(gx, gy, []byte{2})
-	c.w = oldW
+	c.window = oldW
 	if x == nil || y == nil {
 		t.Error("ScalarMult should handle invalid window")
 	}
@@ -338,7 +338,7 @@ func TestCurve_OptimizedPaths(t *testing.T) {
 
 // TestCurve_GetBaseTable tests base table caching
 func TestCurve_GetBaseTable(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 
 	// First call should create table
 	table1 := c.getBaseTable(4)
@@ -361,7 +361,7 @@ func TestCurve_GetBaseTable(t *testing.T) {
 
 // TestCurve_PointAddFelem tests field element point addition edge cases
 func TestCurve_PointAddFelem(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
 	// Create test points
@@ -404,7 +404,7 @@ func TestCurve_PointAddFelem(t *testing.T) {
 
 // TestCurve_PointDoubleFelem tests field element point doubling edge cases
 func TestCurve_PointDoubleFelem(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
 	p := pointField{
@@ -439,7 +439,7 @@ func TestCurve_PointDoubleFelem(t *testing.T) {
 
 // TestCurve_JacToAffine tests Jacobian to affine conversion
 func TestCurve_JacToAffine(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
 	p := pointField{
@@ -464,7 +464,7 @@ func TestCurve_JacToAffine(t *testing.T) {
 
 // TestCurve_Comprehensive tests comprehensive operations
 func TestCurve_Comprehensive(t *testing.T) {
-	c := New()
+	c := NewCurve()
 
 	// Generate random scalar
 	k, err := RandScalar(c, rand.Reader)
@@ -502,7 +502,7 @@ func TestCurve_Comprehensive(t *testing.T) {
 
 // TestCurve_RandScalar_EdgeCases tests edge cases in RandScalar
 func TestCurve_RandScalar_EdgeCases(t *testing.T) {
-	c := New()
+	c := NewCurve()
 
 	// Test with reader that returns values >= N (should retry)
 	// Create a reader that first returns N, then a valid value
@@ -557,7 +557,7 @@ func TestCurve_RandScalar_EdgeCases(t *testing.T) {
 
 // TestCurve_Complete100 tests remaining uncovered lines
 func TestCurve_Complete100(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 	gx, gy := c.params.Gx, c.params.Gy
 
 	// Test ScalarBaseMult with empty NAF (k generates empty wNAF)
@@ -611,7 +611,7 @@ func TestCurve_Complete100(t *testing.T) {
 
 // TestCurve_ConcurrentGetBaseTable tests concurrent access to getBaseTable
 func TestCurve_ConcurrentGetBaseTable(t *testing.T) {
-	c := New().(*curve)
+	c := NewCurve().(*sm2Curve)
 
 	// Clear cache for window size 3
 	baseTableCacheLock.Lock()

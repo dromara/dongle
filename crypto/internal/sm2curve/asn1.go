@@ -136,7 +136,7 @@ func ParsePKCS8PrivateKey(der []byte) (*ecdsa.PrivateKey, error) {
 //
 //go:inline
 func ParseBitStringPublicKey(key []byte) (*ecdsa.PublicKey, error) {
-	cv := New()
+	cv := NewCurve()
 	pLen := (cv.Params().BitSize + 7) / 8
 	if len(key) != 1+2*pLen || key[0] != 0x04 {
 		return nil, encodingAsn1.SyntaxError{Msg: "unsupported or invalid EC point"}
@@ -153,7 +153,7 @@ func ParseBitStringPublicKey(key []byte) (*ecdsa.PublicKey, error) {
 //
 //go:inline
 func ParseBitStringPrivateKey(key []byte) (*ecdsa.PrivateKey, error) {
-	cv := New()
+	cv := NewCurve()
 	d := new(big.Int).SetBytes(key)
 	x, y := cv.ScalarBaseMult(key)
 	return &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: cv, X: x, Y: y}, D: d}, nil

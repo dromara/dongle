@@ -91,7 +91,7 @@ func TestFelemInv(t *testing.T) {
 }
 
 func TestFelemBasePointConversion(t *testing.T) {
-	c := New()
+	c := NewCurve()
 	p := c.Params()
 
 	// Test base point coordinates

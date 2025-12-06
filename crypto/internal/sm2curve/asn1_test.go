@@ -14,7 +14,7 @@ import (
 // genKey generates a test SM2 key pair
 func genKey(t *testing.T) *ecdsa.PrivateKey {
 	t.Helper()
-	cv := New()
+	cv := NewCurve()
 	d, err := RandScalar(cv, rand.Reader)
 	if err != nil {
 		t.Fatalf("RandScalar: %v", err)
@@ -51,7 +51,7 @@ func TestASN1_RoundTrip(t *testing.T) {
 }
 
 func TestASN1_ParseSPKIPublicKey_CompressedAndErrors(t *testing.T) {
-	cv := New()
+	cv := NewCurve()
 	p := cv.Params()
 	coordLen := (p.BitSize + 7) / 8
 
@@ -311,7 +311,7 @@ func TestASN1_ParsePKCS8PrivateKey_ErrorBranches(t *testing.T) {
 	}
 
 	// [1] publicKey ignored
-	cv := New()
+	cv := NewCurve()
 	x, y := cv.ScalarBaseMult([]byte{2})
 	plen := (cv.Params().BitSize + 7) / 8
 	pt := make([]byte, 1+2*plen)
