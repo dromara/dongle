@@ -1,5 +1,3 @@
-// Package keypair provides RSA key pair management functionality.
-// It supports key generation, formatting, parsing, and manipulation for both PKCS1 and PKCS8 formats.
 package keypair
 
 import (
@@ -12,6 +10,69 @@ import (
 
 	"github.com/dromara/dongle/coding"
 	"github.com/dromara/dongle/internal/utils"
+)
+
+// RsaKeyFormat represents the PEM encoding format for RSA keys.
+// This ONLY affects key generation (GenKeyPair) and determines the PEM header.
+//
+// IMPORTANT: RsaKeyFormat does NOT affect encryption/decryption/signing operations.
+// For cryptographic operations, use RsaPaddingScheme instead.
+//
+// Key parsing (ParsePublicKey/ParsePrivateKey) automatically detects the format
+// from PEM headers, so this field is not used during parsing.
+type RsaKeyFormat string
+
+// Key format constants for RSA key pairs.
+const (
+	// PKCS1 generates keys with RSA-specific PEM headers.
+	// - Private key: "-----BEGIN RSA PRIVATE KEY-----"
+	// - Public key: "-----BEGIN RSA PUBLIC KEY-----"
+	// - Usage: Legacy compatibility, OpenSSL traditional format
+	PKCS1 RsaKeyFormat = "pkcs1"
+
+	// PKCS8 generates keys with generic PEM headers (recommended).
+	// - Private key: "-----BEGIN PRIVATE KEY-----"
+	// - Public key: "-----BEGIN PUBLIC KEY-----"
+	// - Usage: Modern standard, works with multiple key algorithms
+	PKCS8 RsaKeyFormat = "pkcs8"
+)
+
+// RsaPaddingScheme represents the padding scheme for RSA cryptographic operations.
+//
+// Different padding schemes are used for different operations:
+// - PKCS1v15: Can be used for both encryption and signing
+// - OAEP: Only for encryption (more secure than PKCS1v15)
+// - PSS: Only for signing (more secure than PKCS1v15)
+type RsaPaddingScheme string
+
+const (
+	// PKCS1v15 uses PKCS#1 v1.5 padding for RSA operations.
+	// - For encryption/decryption: rsa.EncryptPKCS1v15 / rsa.DecryptPKCS1v15
+	// - For signing/verification: rsa.SignPKCS1v15 / rsa.VerifyPKCS1v15
+	// - Compatibility: Works with JSEncrypt, PHP openssl_* defaults
+	// - Security: Adequate for most applications, widely supported
+	// - Usage: Can be used for both encryption and signing operations
+	PKCS1v15 RsaPaddingScheme = "pkcs1v15"
+
+	// OAEP uses Optimal Asymmetric Encryption Padding (more secure).
+	// - For encryption/decryption: rsa.EncryptOAEP / rsa.DecryptOAEP
+	// - Compatibility: Modern standard, may not work with older libraries
+	// - Security: Recommended for encryption in new applications
+	// - Usage: ONLY for encryption/decryption operations
+	//
+	// Note: Attempting to use OAEP for signing/verification will return an error.
+	// For signing, use PKCS1v15 or PSS instead.
+	OAEP RsaPaddingScheme = "oaep"
+
+	// PSS uses Probabilistic Signature Scheme (more secure for signing).
+	// - For signing/verification: rsa.SignPSS / rsa.VerifyPSS
+	// - Compatibility: Modern standard, may not work with older libraries
+	// - Security: Recommended for signing in new applications
+	// - Usage: ONLY for signing/verification operations
+	//
+	// Note: Attempting to use PSS for encryption/decryption will return an error.
+	// For encryption, use PKCS1v15 or OAEP instead.
+	PSS RsaPaddingScheme = "pss"
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.
@@ -33,7 +94,7 @@ type RsaKeyPair struct {
 	//   - FormatPublicKey(): PEM header format when formatting public keys
 	//   - FormatPrivateKey(): PEM header format when formatting private keys
 	// It does NOT affect cryptographic operations.
-	Format KeyFormat
+	Format RsaKeyFormat
 
 	// Padding specifies the padding scheme for RSA cryptographic operations.
 	// This field affects encryption, decryption, signing, and verification algorithms.
@@ -44,7 +105,7 @@ type RsaKeyPair struct {
 	// - PSS: ONLY for signing/verification (error if used for encryption/decryption)
 	//
 	// Note: Padding is independent from Format. You can use any padding with any key format.
-	Padding PaddingScheme
+	Padding RsaPaddingScheme
 
 	// Hash specifies the hash function used for RSA cryptographic operations.
 	// Usage depends on the Padding scheme:
@@ -148,7 +209,7 @@ func (k *RsaKeyPair) SetPrivateKey(privateKey []byte) error {
 //   - PKCS1v15: Can be used for both encryption and signing
 //   - OAEP: ONLY for encryption (returns error if used for signing)
 //   - PSS: ONLY for signing (returns error if used for encryption)
-func (k *RsaKeyPair) SetPadding(padding PaddingScheme) {
+func (k *RsaKeyPair) SetPadding(padding RsaPaddingScheme) {
 	k.Padding = padding
 }
 
@@ -157,7 +218,7 @@ func (k *RsaKeyPair) SetPadding(padding PaddingScheme) {
 //   - GenKeyPair(): Determines the PEM header format when generating keys
 //   - FormatPublicKey(): Determines the PEM header format when formatting public keys
 //   - FormatPrivateKey(): Determines the PEM header format when formatting private keys
-func (k *RsaKeyPair) SetFormat(format KeyFormat) {
+func (k *RsaKeyPair) SetFormat(format RsaKeyFormat) {
 	k.Format = format
 }
 

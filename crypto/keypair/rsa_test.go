@@ -305,7 +305,7 @@ func TestRSA_SetPadding(t *testing.T) {
 	kp := NewRsaKeyPair()
 
 	// Test default padding (empty, will use fallback)
-	assert.Equal(t, PaddingScheme(""), kp.Padding)
+	assert.Equal(t, RsaPaddingScheme(""), kp.Padding)
 
 	// Test SetPadding
 	kp.SetPadding(PKCS1v15)
@@ -324,16 +324,16 @@ func TestRSA_SetFormat_OnlyAffectsFormat(t *testing.T) {
 
 	// Verify default values
 	assert.Equal(t, PKCS8, kp.Format)
-	assert.Equal(t, PaddingScheme(""), kp.Padding)
+	assert.Equal(t, RsaPaddingScheme(""), kp.Padding)
 
 	// SetFormat should ONLY affect Format field, not Padding
 	kp.SetFormat(PKCS1)
 	assert.Equal(t, PKCS1, kp.Format)
-	assert.Equal(t, PaddingScheme(""), kp.Padding) // Padding unchanged
+	assert.Equal(t, RsaPaddingScheme(""), kp.Padding) // Padding unchanged
 
 	kp.SetFormat(PKCS8)
 	assert.Equal(t, PKCS8, kp.Format)
-	assert.Equal(t, PaddingScheme(""), kp.Padding) // Padding still unchanged
+	assert.Equal(t, RsaPaddingScheme(""), kp.Padding) // Padding still unchanged
 }
 
 // TestRSA_FormatVsPadding verifies that Format and Padding are independent
