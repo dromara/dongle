@@ -930,8 +930,8 @@ func TestVerify(t *testing.T) {
 	t.Run("verification with various digest sizes", func(t *testing.T) {
 		// Test with different digest sizes to ensure all code paths
 		digestSizes := [][]byte{
-			[]byte{0x00},
-			[]byte{0x00, 0x01, 0x02, 0x03},
+			{0x00},
+			{0x00, 0x01, 0x02, 0x03},
 			make([]byte, 32),
 			make([]byte, 64),
 		}
