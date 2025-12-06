@@ -171,6 +171,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 {text: 'rsa 🔥', link: 'signature/rsa'},
                 {text: 'ed25519', link: 'signature/ed25519'},
+                {text: 'sm2', link: 'signature/sm2'},
             ]
         },
     ]

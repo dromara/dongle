@@ -15,8 +15,13 @@ RSA is an asymmetric encryption algorithm that uses public key for encryption an
 
 Supported key formats:
 
-- **PKCS1**: PKCS#1 format, uses `PKCS1v15` padding mode, `no need` to specify hash algorithm
-- **PKCS8**: PKCS#8 format, uses `PSS` padding mode, `requires` specifying hash algorithm, provides better security
+- **PKCS1**: PKCS#1 format, keys use `-----BEGIN RSA PRIVATE KEY-----` and `-----BEGIN RSA PUBLIC KEY-----` as header and footer 
+- **PKCS8**: PKCS#8 format, keys use `-----BEGIN PRIVATE KEY-----` and `-----BEGIN PUBLIC KEY-----` as header and footer (recommended)
+
+Supported padding modes:
+
+- **PKCS1v15**: PKCS#1 v1.5 padding mode, can be used for encryption and signing, good compatibility
+- **OAEP**: Optimal Asymmetric Encryption Padding, only used for encryption/decryption, higher security (recommended for encryption)
 
 Supported hash algorithms:
 
@@ -43,7 +48,8 @@ Supported hash algorithms:
 Important Notes:
 
 - **Key length**: It is recommended to use `2048` bits or longer key length to ensure security
-- **Key format**: It is recommended to use `PKCS8` format, which uses the more secure `OAEP` padding mode
+- **Key format**: It is recommended to use `PKCS8` format (modern standard)
+- **Padding mode**: It is recommended to use `OAEP` for encryption/decryption
 - **Hash algorithm**: It is recommended to use `SHA256` or stronger hash algorithms, avoid using `MD5` and `SHA1`
 - **Data length limitation**: RSA encrypted data length is limited by key length, for large amounts of data it is recommended to use hybrid encryption
 - **Private key security**: Private keys must be properly protected and cannot be leaked
@@ -62,8 +68,10 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256, only PKCS8 key format need to set hash algorithm)
-kp.SetHash(crypto.SHA256)
+// Set padding mode (optional, default is empty, PKCS1 format defaults to PKCS1v15, PKCS8 format defaults to OAEP)
+kp.SetPadding(keypair.OAEP)  // or keypair.PKCS1v15
+// Set hash algorithm (optional, default is SHA256, used for OAEP padding mode)
+kp.SetHash(crypto.SHA256)   
 ```
 
 ### Generate key pair
