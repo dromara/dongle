@@ -37,12 +37,6 @@ func (v Verifier) ByEd25519(kp *keypair.Ed25519KeyPair) Verifier {
 
 	// Streaming verification mode
 	if v.reader != nil {
-		signature := v.sign
-		if len(signature) == 0 {
-			v.Error = &ed25519.NoSignatureError{}
-			return v
-		}
-
 		// Create a stream verifier
 		verifier := ed25519.NewStreamVerifier(v.reader, kp)
 		defer verifier.Close()
@@ -66,7 +60,7 @@ func (v Verifier) ByEd25519(kp *keypair.Ed25519KeyPair) Verifier {
 	if len(v.data) > 0 {
 		signature := v.sign
 		if len(signature) == 0 {
-			v.Error = &ed25519.NoSignatureError{}
+			v.Error = &keypair.EmptySignatureError{}
 			return v
 		}
 

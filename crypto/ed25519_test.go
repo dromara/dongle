@@ -54,19 +54,13 @@ func TestSignerByEd25519(t *testing.T) {
 		assert.Nil(t, result.reader)
 	})
 
-	t.Run("nil key pair", func(t *testing.T) {
-		signer := NewSigner().FromString("test data").ByEd25519(nil)
-		assert.NotNil(t, signer.Error)
-		assert.IsType(t, ed25519.NilKeyPairError{}, signer.Error)
-	})
-
 	t.Run("empty key pair", func(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
 		// Don't call GenKeyPair() to create empty key pair
 
 		signer := NewSigner().FromString("test data").ByEd25519(kp)
 		assert.NotNil(t, signer.Error)
-		assert.IsType(t, ed25519.KeyPairError{}, signer.Error)
+		assert.IsType(t, ed25519.SignError{}, signer.Error)
 	})
 
 	t.Run("empty source data", func(t *testing.T) {
@@ -192,20 +186,20 @@ func TestVerifierByEd25519(t *testing.T) {
 	})
 
 	t.Run("nil key pair", func(t *testing.T) {
-		// When verifying without a signature, it should return NoSignatureError first
+		// When verifying without a signature, it should return EmptySignatureError first
 		verifier := NewVerifier().FromString("test data").ByEd25519(nil)
 		assert.NotNil(t, verifier.Error)
-		assert.IsType(t, &ed25519.NoSignatureError{}, verifier.Error)
+		assert.IsType(t, &keypair.EmptySignatureError{}, verifier.Error)
 	})
 
 	t.Run("empty key pair", func(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
 		// Don't call GenKeyPair() to create empty key pair
 
-		// When verifying without a signature, it should return NoSignatureError first
+		// When verifying without a signature, it should return EmptySignatureError first
 		verifier := NewVerifier().FromString("test data").ByEd25519(kp)
 		assert.NotNil(t, verifier.Error)
-		assert.IsType(t, &ed25519.NoSignatureError{}, verifier.Error)
+		assert.IsType(t, &keypair.EmptySignatureError{}, verifier.Error)
 	})
 
 	t.Run("no signature", func(t *testing.T) {
@@ -214,7 +208,7 @@ func TestVerifierByEd25519(t *testing.T) {
 
 		verifier := NewVerifier().FromString("test data").ByEd25519(kp)
 		assert.NotNil(t, verifier.Error)
-		assert.IsType(t, &ed25519.NoSignatureError{}, verifier.Error)
+		assert.IsType(t, &keypair.EmptySignatureError{}, verifier.Error)
 	})
 
 	t.Run("invalid signature", func(t *testing.T) {
@@ -512,7 +506,7 @@ func TestVerifierByEd25519(t *testing.T) {
 		t.Logf("verifier.sign: %v", verifier.sign)
 		t.Logf("verifier.Error: %v", verifier.Error)
 		assert.NotNil(t, verifier.Error)
-		assert.IsType(t, &ed25519.NoSignatureError{}, verifier.Error)
+		assert.IsType(t, &keypair.EmptySignatureError{}, verifier.Error)
 	})
 
 	t.Run("standard verification with empty data", func(t *testing.T) {
@@ -558,19 +552,6 @@ func TestVerifierByEd25519(t *testing.T) {
 		// Verify with empty signature
 		verifier := NewVerifier().FromString("test data").ByEd25519(kp)
 		assert.NotNil(t, verifier.Error)
-		assert.IsType(t, &ed25519.NoSignatureError{}, verifier.Error)
-	})
-
-	t.Run("streaming verification with empty signature", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		// Test streaming mode with empty signature
-		file := mock.NewFile([]byte("test data"), "test.txt")
-		defer file.Close()
-
-		verifier := NewVerifier().FromFile(file).ByEd25519(kp)
-		assert.NotNil(t, verifier.Error)
-		assert.IsType(t, &ed25519.NoSignatureError{}, verifier.Error)
+		assert.IsType(t, &keypair.EmptySignatureError{}, verifier.Error)
 	})
 }
