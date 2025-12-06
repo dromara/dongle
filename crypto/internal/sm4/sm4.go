@@ -51,14 +51,14 @@ type sm4Cipher struct {
 
 // NewCipher creates a new SM4 cipher with the given key.
 // The key must be exactly 16 bytes (128 bits).
-func NewCipher(key []byte) (cipher.Block, error) {
+func NewCipher(key []byte) cipher.Block {
 	if len(key) != KeySize {
-		return nil, KeySizeError(len(key))
+		panic("crypto/sm4: invalid key size")
 	}
 
 	c := &sm4Cipher{}
 	copy(c.key[:], key)
-	return c, nil
+	return c
 }
 
 // BlockSize returns the SM4 block size.
@@ -83,7 +83,7 @@ func (c *sm4Cipher) Encrypt(dst, src []byte) {
 	x[2] = binary.BigEndian.Uint32(src[8:12])
 	x[3] = binary.BigEndian.Uint32(src[12:16])
 
-	encrypt(&x, &c.key)
+	encryptRounds(&x, &c.key)
 
 	// Convert output back to bytes
 	binary.BigEndian.PutUint32(dst[0:4], x[0])
@@ -109,7 +109,7 @@ func (c *sm4Cipher) Decrypt(dst, src []byte) {
 	x[2] = binary.BigEndian.Uint32(src[8:12])
 	x[3] = binary.BigEndian.Uint32(src[12:16])
 
-	decrypt(&x, &c.key)
+	decryptRounds(&x, &c.key)
 
 	// Convert output back to bytes
 	binary.BigEndian.PutUint32(dst[0:4], x[0])
@@ -126,12 +126,12 @@ func sBoxTransform(a uint32) uint32 {
 		uint32(sBox[a&0xff])
 }
 
-// L transformation
+// lTransform performs the L transformation
 func lTransform(b uint32) uint32 {
 	return b ^ rotateLeft(b, 2) ^ rotateLeft(b, 10) ^ rotateLeft(b, 18) ^ rotateLeft(b, 24)
 }
 
-// L` transformation
+// lPrimeTransform performs the L' transformation
 func lPrimeTransform(b uint32) uint32 {
 	return b ^ rotateLeft(b, 13) ^ rotateLeft(b, 23)
 }
@@ -141,12 +141,7 @@ func rotateLeft(x uint32, n uint) uint32 {
 	return (x << n) | (x >> (32 - n))
 }
 
-// T transformation
-func tTransform(x uint32) uint32 {
-	return lTransform(sBoxTransform(x))
-}
-
-// expands the SM4 key into round keys
+// expandKey expands the SM4 key into round keys
 func expandKey(key *[KeySize]byte) [32]uint32 {
 	var mk [4]uint32
 	var rk [32]uint32
@@ -176,7 +171,8 @@ func expandKey(key *[KeySize]byte) [32]uint32 {
 	return rk
 }
 
-func encrypt(x *[4]uint32, key *[KeySize]byte) {
+// encryptRounds performs 32 rounds of SM4 encryption on a single block
+func encryptRounds(x *[4]uint32, key *[KeySize]byte) {
 	rk := expandKey(key)
 
 	// 32 rounds of encryption
@@ -193,7 +189,8 @@ func encrypt(x *[4]uint32, key *[KeySize]byte) {
 	x[1], x[2] = x[2], x[1]
 }
 
-func decrypt(x *[4]uint32, key *[KeySize]byte) {
+// decryptRounds performs 32 rounds of SM4 decryption on a single block
+func decryptRounds(x *[4]uint32, key *[KeySize]byte) {
 	rk := expandKey(key)
 
 	// 32 rounds of decryption (using round keys in reverse order)
