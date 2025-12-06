@@ -15,8 +15,8 @@ import (
 )
 
 // RsaKeyPair represents an RSA key pair with public and private keys.
-// It supports both PKCS1 and PKCS8 formats and provides methods for key generation,
-// formatting, and parsing.
+// It supports both PKCS1 and PKCS8 key formats and provides methods for
+// key generation, formatting, and parsing.
 type RsaKeyPair struct {
 	// PublicKey contains the PEM-encoded public key
 	PublicKey []byte
@@ -24,19 +24,49 @@ type RsaKeyPair struct {
 	// PrivateKey contains the PEM-encoded private key
 	PrivateKey []byte
 
-	// Sign contains the signature bytes for verification
-	Sign []byte
+	// Signature contains the signature bytes for verification
+	Signature []byte
 
-	// Format specifies the key format (PKCS1 or PKCS8)
+	// Format specifies the key format for PEM encoding.
+	// This field affects:
+	//   - GenKeyPair(): PEM header format when generating keys
+	//   - FormatPublicKey(): PEM header format when formatting public keys
+	//   - FormatPrivateKey(): PEM header format when formatting private keys
+	// It does NOT affect cryptographic operations.
 	Format KeyFormat
 
-	// Hash specifies the hash function used for RSA operations
-	// This is used for OAEP padding in encryption and for signature generation/verification
+	// Padding specifies the padding scheme for RSA cryptographic operations.
+	// This field affects encryption, decryption, signing, and verification algorithms.
+	//
+	// Available padding schemes:
+	// - PKCS1v15: Can be used for both encryption and signing operations
+	// - OAEP: ONLY for encryption/decryption (error if used for signing/verification)
+	// - PSS: ONLY for signing/verification (error if used for encryption/decryption)
+	//
+	// Note: Padding is independent from Format. You can use any padding with any key format.
+	Padding PaddingScheme
+
+	// Hash specifies the hash function used for RSA cryptographic operations.
+	// Usage depends on the Padding scheme:
+	// - PKCS1v15: Used for hashing message data before signing
+	// - OAEP: Used for mask generation in encryption/decryption
+	// - PSS: Used for mask generation in signing/verification
 	Hash crypto.Hash
 }
 
-// NewRsaKeyPair returns a new RsaKeyPair instance.
-// The default format is PKCS8 and the default hash function is SHA256.
+// NewRsaKeyPair returns a new RsaKeyPair instance with default settings.
+// Defaults:
+//   - Format: PKCS8 (modern standard for key generation)
+//   - Padding: "" (empty, will use PKCS1v15 as fallback in cryptographic operations)
+//   - Hash: SHA256
+//
+// Note: When Padding is not explicitly set, cryptographic operations will use PKCS1v15
+// as the default fallback, which works for both encryption and signing.
+//
+// For explicit security requirements:
+//   - For encryption: kp.SetPadding(keypair.OAEP)
+//   - For signing: kp.SetPadding(keypair.PSS)
+//   - For both: kp.SetPadding(keypair.PKCS1v15)
 func NewRsaKeyPair() *RsaKeyPair {
 	return &RsaKeyPair{
 		Format: PKCS8,
@@ -89,7 +119,7 @@ func (k *RsaKeyPair) GenKeyPair(size int) error {
 		}
 		return nil
 	}
-	return UnsupportedPemTypeError{}
+	return UnsupportedKeyFormatError{}
 }
 
 // SetPublicKey sets the public key and formats it according to the current format.
@@ -112,15 +142,26 @@ func (k *RsaKeyPair) SetPrivateKey(privateKey []byte) error {
 	return err
 }
 
+// SetPadding sets the padding scheme for RSA cryptographic operations.
+//
+// Padding schemes:
+//   - PKCS1v15: Can be used for both encryption and signing
+//   - OAEP: ONLY for encryption (returns error if used for signing)
+//   - PSS: ONLY for signing (returns error if used for encryption)
+func (k *RsaKeyPair) SetPadding(padding PaddingScheme) {
+	k.Padding = padding
+}
+
 // SetFormat sets the key format for the RSA key pair.
-// This affects how keys are generated, formatted, and parsed.
-// The format can be either PKCS1 or PKCS8.
+// This affects:
+//   - GenKeyPair(): Determines the PEM header format when generating keys
+//   - FormatPublicKey(): Determines the PEM header format when formatting public keys
+//   - FormatPrivateKey(): Determines the PEM header format when formatting private keys
 func (k *RsaKeyPair) SetFormat(format KeyFormat) {
 	k.Format = format
 }
 
 // SetHash sets the hash function used for OAEP padding in RSA operations.
-// This is particularly important for PKCS8 format keys that use OAEP padding.
 func (k *RsaKeyPair) SetHash(hash crypto.Hash) {
 	k.Hash = hash
 }
@@ -156,7 +197,7 @@ func (k *RsaKeyPair) ParsePublicKey() (*rsa.PublicKey, error) {
 		}
 		return pub.(*rsa.PublicKey), err
 	}
-	return nil, UnsupportedPemTypeError{}
+	return nil, UnsupportedKeyFormatError{}
 }
 
 // ParsePrivateKey parses the private key from PEM format.
@@ -190,7 +231,7 @@ func (k *RsaKeyPair) ParsePrivateKey() (*rsa.PrivateKey, error) {
 		}
 		return pri.(*rsa.PrivateKey), err
 	}
-	return nil, UnsupportedPemTypeError{}
+	return nil, UnsupportedKeyFormatError{}
 }
 
 // FormatPublicKey formats base64-encoded der public key into the specified PEM format.
@@ -211,7 +252,7 @@ func (k *RsaKeyPair) FormatPublicKey(publicKey []byte) ([]byte, error) {
 	case PKCS8:
 		blockType = "PUBLIC KEY"
 	default:
-		return []byte{}, UnsupportedPemTypeError{}
+		return []byte{}, UnsupportedKeyFormatError{}
 	}
 
 	// Use pem.EncodeToMemory to format the key
@@ -239,7 +280,7 @@ func (k *RsaKeyPair) FormatPrivateKey(privateKey []byte) ([]byte, error) {
 	case PKCS8:
 		blockType = "PRIVATE KEY"
 	default:
-		return []byte{}, UnsupportedPemTypeError{}
+		return []byte{}, UnsupportedKeyFormatError{}
 	}
 
 	// Use pem.EncodeToMemory to format the key

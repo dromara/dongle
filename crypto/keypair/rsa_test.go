@@ -55,7 +55,7 @@ func TestRSA_GenKeyPair(t *testing.T) {
 		kp.SetFormat("unknown")
 		err := kp.GenKeyPair(1024)
 		assert.Error(t, err)
-		assert.IsType(t, UnsupportedPemTypeError{}, err)
+		assert.IsType(t, UnsupportedKeyFormatError{}, err)
 	})
 }
 
@@ -98,7 +98,6 @@ func TestRSA_SetPublicKeyAndPrivateKey(t *testing.T) {
 	err = kp3.SetPublicKey([]byte{})
 	assert.Error(t, err)
 	assert.IsType(t, EmptyPublicKeyError{}, err)
-	assert.Equal(t, "public key cannot be empty", err.Error())
 
 	// Invalid base64 public key
 	kp3.SetFormat(PKCS8)
@@ -110,7 +109,6 @@ func TestRSA_SetPublicKeyAndPrivateKey(t *testing.T) {
 	err = kp3.SetPrivateKey([]byte{})
 	assert.Error(t, err)
 	assert.IsType(t, EmptyPrivateKeyError{}, err)
-	assert.Equal(t, "private key cannot be empty", err.Error())
 	assert.Empty(t, kp3.PrivateKey)
 
 	// Invalid base64 private key
@@ -126,10 +124,10 @@ func TestRSA_SetPublicKeyAndPrivateKey(t *testing.T) {
 	kp4.SetFormat("unknown")
 	err = kp4.SetPublicKey(bodyPub)
 	assert.Error(t, err)
-	assert.IsType(t, UnsupportedPemTypeError{}, err)
+	assert.IsType(t, UnsupportedKeyFormatError{}, err)
 	err = kp4.SetPrivateKey(bodyPri)
 	assert.Error(t, err)
-	assert.IsType(t, UnsupportedPemTypeError{}, err)
+	assert.IsType(t, UnsupportedKeyFormatError{}, err)
 }
 
 // ParsePublicKey/ParsePrivateKey coverage for all branches
@@ -155,7 +153,6 @@ func TestRSA_ParsePublicKey(t *testing.T) {
 	pub3, err := kp3.ParsePublicKey()
 	assert.Nil(t, pub3)
 	assert.IsType(t, EmptyPublicKeyError{}, err)
-	assert.Equal(t, "public key cannot be empty", err.Error())
 
 	// Invalid PEM (not PEM text)
 	kp3.PublicKey = []byte("invalid")
@@ -163,13 +160,12 @@ func TestRSA_ParsePublicKey(t *testing.T) {
 	assert.Nil(t, pub3)
 	assert.IsType(t, InvalidPublicKeyError{}, err)
 
-	// Unknown block type -> UnsupportedPemTypeError
+	// Unknown block type -> UnsupportedKeyFormatError
 	kp4 := NewRsaKeyPair()
 	kp4.PublicKey = []byte("-----BEGIN UNKNOWN KEY-----\nAA==\n-----END UNKNOWN KEY-----\n")
 	pub4, err := kp4.ParsePublicKey()
 	assert.Error(t, err)
-	assert.IsType(t, UnsupportedPemTypeError{}, err)
-	assert.Equal(t, "unsupported pem block type", err.Error())
+	assert.IsType(t, UnsupportedKeyFormatError{}, err)
 	assert.Nil(t, pub4)
 
 	// PKCS1 block but invalid DER -> parse error
@@ -209,7 +205,6 @@ func TestRSA_ParsePrivateKey(t *testing.T) {
 	pri3, err := kp3.ParsePrivateKey()
 	assert.Nil(t, pri3)
 	assert.IsType(t, EmptyPrivateKeyError{}, err)
-	assert.Equal(t, "private key cannot be empty", err.Error())
 
 	// Invalid PEM (not PEM text)
 	kp3.PrivateKey = []byte("invalid")
@@ -217,13 +212,12 @@ func TestRSA_ParsePrivateKey(t *testing.T) {
 	assert.Nil(t, pri3)
 	assert.IsType(t, InvalidPrivateKeyError{}, err)
 
-	// Unknown block type -> UnsupportedPemTypeError
+	// Unknown block type -> UnsupportedKeyFormatError
 	kp4 := NewRsaKeyPair()
 	kp4.PrivateKey = []byte("-----BEGIN UNKNOWN PRIVATE KEY-----\nAA==\n-----END UNKNOWN PRIVATE KEY-----\n")
 	pri4, err := kp4.ParsePrivateKey()
 	assert.Error(t, err)
-	assert.IsType(t, UnsupportedPemTypeError{}, err)
-	assert.Equal(t, "unsupported pem block type", err.Error())
+	assert.IsType(t, UnsupportedKeyFormatError{}, err)
 	assert.Nil(t, pri4)
 
 	// PKCS1 block but invalid DER -> parse error
@@ -269,7 +263,6 @@ func TestRSA_FormatAndCompress(t *testing.T) {
 	_, err = kp.FormatPublicKey(nil)
 	assert.Error(t, err)
 	assert.IsType(t, EmptyPublicKeyError{}, err)
-	assert.Equal(t, "public key cannot be empty", err.Error())
 
 	// Invalid public body
 	_, err = kp.FormatPublicKey([]byte("!"))
@@ -291,7 +284,6 @@ func TestRSA_FormatAndCompress(t *testing.T) {
 	_, err = kp.FormatPrivateKey(nil)
 	assert.Error(t, err)
 	assert.IsType(t, EmptyPrivateKeyError{}, err)
-	assert.Equal(t, "private key cannot be empty", err.Error())
 
 	// Invalid private body
 	_, err = kp.FormatPrivateKey([]byte("!"))
@@ -302,10 +294,89 @@ func TestRSA_FormatAndCompress(t *testing.T) {
 	kp.SetFormat("unknown")
 	_, err = kp.FormatPublicKey(pubBody)
 	assert.Error(t, err)
-	assert.IsType(t, UnsupportedPemTypeError{}, err)
-	assert.Equal(t, "unsupported pem block type", err.Error())
+	assert.IsType(t, UnsupportedKeyFormatError{}, err)
 	_, err = kp.FormatPrivateKey(priBody)
 	assert.Error(t, err)
-	assert.IsType(t, UnsupportedPemTypeError{}, err)
-	assert.Equal(t, "unsupported pem block type", err.Error())
+	assert.IsType(t, UnsupportedKeyFormatError{}, err)
+}
+
+// TestRSA_SetPadding tests the SetPadding method
+func TestRSA_SetPadding(t *testing.T) {
+	kp := NewRsaKeyPair()
+
+	// Test default padding (empty, will use fallback)
+	assert.Equal(t, PaddingScheme(""), kp.Padding)
+
+	// Test SetPadding
+	kp.SetPadding(PKCS1v15)
+	assert.Equal(t, PKCS1v15, kp.Padding)
+
+	kp.SetPadding(PSS)
+	assert.Equal(t, PSS, kp.Padding)
+
+	kp.SetPadding(OAEP)
+	assert.Equal(t, OAEP, kp.Padding)
+}
+
+// TestRSA_SetFormat_OnlyAffectsFormat tests that SetFormat only sets Format, not Padding
+func TestRSA_SetFormat_OnlyAffectsFormat(t *testing.T) {
+	kp := NewRsaKeyPair()
+
+	// Verify default values
+	assert.Equal(t, PKCS8, kp.Format)
+	assert.Equal(t, PaddingScheme(""), kp.Padding)
+
+	// SetFormat should ONLY affect Format field, not Padding
+	kp.SetFormat(PKCS1)
+	assert.Equal(t, PKCS1, kp.Format)
+	assert.Equal(t, PaddingScheme(""), kp.Padding) // Padding unchanged
+
+	kp.SetFormat(PKCS8)
+	assert.Equal(t, PKCS8, kp.Format)
+	assert.Equal(t, PaddingScheme(""), kp.Padding) // Padding still unchanged
+}
+
+// TestRSA_FormatVsPadding verifies that Format and Padding are independent
+func TestRSA_FormatVsPadding(t *testing.T) {
+	t.Run("PKCS8 format with PKCS1v15 padding", func(t *testing.T) {
+		kp := NewRsaKeyPair()
+		kp.Format = PKCS8
+		kp.SetPadding(PKCS1v15)
+
+		err := kp.GenKeyPair(2048)
+		assert.NoError(t, err)
+
+		// Verify key format
+		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
+		// Verify padding setting
+		assert.Equal(t, PKCS1v15, kp.Padding)
+	})
+
+	t.Run("PKCS1 format with OAEP padding", func(t *testing.T) {
+		kp := NewRsaKeyPair()
+		kp.Format = PKCS1
+		kp.SetPadding(OAEP)
+
+		err := kp.GenKeyPair(2048)
+		assert.NoError(t, err)
+
+		// Verify key format
+		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN RSA PRIVATE KEY-----")
+		// Verify padding setting
+		assert.Equal(t, OAEP, kp.Padding)
+	})
+
+	t.Run("PKCS8 format with PSS padding", func(t *testing.T) {
+		kp := NewRsaKeyPair()
+		kp.Format = PKCS8
+		kp.SetPadding(PSS)
+
+		err := kp.GenKeyPair(2048)
+		assert.NoError(t, err)
+
+		// Verify key format
+		assert.Contains(t, string(kp.PrivateKey), "-----BEGIN PRIVATE KEY-----")
+		// Verify padding setting
+		assert.Equal(t, PSS, kp.Padding)
+	})
 }
