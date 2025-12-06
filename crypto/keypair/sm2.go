@@ -31,6 +31,10 @@ type Sm2KeyPair struct {
 	// Window controls internal SM2 fixed-base/wNAF window size (2..6).
 	// 4 means use library default.
 	Window int
+
+	// UID is the user identifier for SM2 signature operations.
+	// If empty, the default UID "1234567812345678" will be used (per GM/T 0009-2012).
+	UID []byte
 }
 
 // NewSm2KeyPair returns a new Sm2KeyPair with defaults
@@ -45,7 +49,7 @@ func NewSm2KeyPair() *Sm2KeyPair {
 // GenKeyPair generates a new SM2 key pair and fills PublicKey/PrivateKey.
 // Private key is PKCS#8 (PEM "PRIVATE KEY"), public key is SPKI/PKIX (PEM "PUBLIC KEY").
 func (k *Sm2KeyPair) GenKeyPair() error {
-	c := sm2curve.New()
+	c := sm2curve.NewCurve()
 
 	// Generate unbiased scalar d in range [1, n-1]
 	d, err := sm2curve.RandScalar(c, rand.Reader)
@@ -82,6 +86,12 @@ func (k *Sm2KeyPair) SetWindow(window int) {
 		window = 6
 	}
 	k.Window = window
+}
+
+// SetUID sets the user identifier for SM2 signature operations.
+// If uid is nil or empty, the default UID "1234567812345678" will be used.
+func (k *Sm2KeyPair) SetUID(uid []byte) {
+	k.UID = uid
 }
 
 // SetPublicKey sets the public key after formatting to PEM.
