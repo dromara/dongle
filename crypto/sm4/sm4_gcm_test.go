@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/internal/sm4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -222,7 +223,7 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		// Create encrypter
 		encrypter := NewStdEncrypter(c)
 		// Override the block to bypass NewCipher validation
-		block, _ := NewCipher([]byte("1234567890123456"))
+		block := sm4.NewCipher([]byte("1234567890123456"))
 		encrypter.block = block
 
 		// Try to encrypt - should fail
@@ -241,7 +242,7 @@ func TestSM4GCMErrorHandling(t *testing.T) {
 		// Create decrypter
 		decrypter := NewStdDecrypter(c)
 		// Override the block to bypass NewCipher validation
-		block, _ := NewCipher([]byte("1234567890123456"))
+		block := sm4.NewCipher([]byte("1234567890123456"))
 		decrypter.block = block
 
 		// Try to decrypt - should fail

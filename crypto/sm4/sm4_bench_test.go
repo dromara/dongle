@@ -43,39 +43,6 @@ var testVectors = []struct {
 	},
 }
 
-func TestSM4EncryptDecrypt(t *testing.T) {
-	for i, test := range testVectors {
-		// Create cipher
-		cipher, err := NewCipher(test.key)
-		if err != nil {
-			t.Errorf("Test %d: Failed to create cipher: %v", i, err)
-			continue
-		}
-
-		// Encrypt
-		encrypted := make([]byte, BlockSize)
-		cipher.Encrypt(encrypted, test.plaintext)
-
-		// Check encryption result
-		for j := range encrypted {
-			if encrypted[j] != test.ciphertext[j] {
-				t.Errorf("Test %d: Encryption mismatch at byte %d: expected 0x%02x, got 0x%02x", i, j, test.ciphertext[j], encrypted[j])
-			}
-		}
-
-		// Decrypt
-		decrypted := make([]byte, BlockSize)
-		cipher.Decrypt(decrypted, encrypted)
-
-		// Check decryption result
-		for j := range decrypted {
-			if decrypted[j] != test.plaintext[j] {
-				t.Errorf("Test %d: Decryption mismatch at byte %d: expected 0x%02x, got 0x%02x", i, j, test.plaintext[j], decrypted[j])
-			}
-		}
-	}
-}
-
 // BenchmarkStdEncrypter_Encrypt benchmarks the standard encrypter for various data types
 func BenchmarkStdEncrypter_Encrypt(b *testing.B) {
 	c := cipher.NewSm4Cipher(cipher.CBC)

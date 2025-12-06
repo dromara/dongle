@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/crypto/internal/sm4"
 	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -553,181 +554,6 @@ func TestStreamDecrypterErrors(t *testing.T) {
 	})
 }
 
-// TestTTransform tests the tTransform function directly
-func TestTTransform(t *testing.T) {
-	t.Run("tTransform with various inputs", func(t *testing.T) {
-		// Test with different input values to ensure tTransform works correctly
-		testCases := []struct {
-			input    uint32
-			expected uint32
-		}{
-			{0x00000000, 0x5b5b5b5b},
-			{0xffffffff, 0x21212121},
-			{0x12345678, 0xf32f23e8},
-			{0x87654321, 0xb0758a02},
-		}
-
-		for _, tc := range testCases {
-			result := tTransform(tc.input)
-			assert.Equal(t, tc.expected, result, "tTransform(%08x) = %08x, expected %08x", tc.input, result, tc.expected)
-		}
-	})
-}
-
-// TestTPrime tests the tPrime function directly
-func TestTPrime(t *testing.T) {
-	t.Run("tPrime equivalent with various inputs", func(t *testing.T) {
-		// Test with different input values to ensure tPrime works correctly
-		testCases := []struct {
-			input    uint32
-			expected uint32
-		}{
-			{0x00000000, 0x67676767},
-			{0xffffffff, 0x65656565},
-			{0x12345678, 0x87cd2df8},
-			{0x87654321, 0x8b8a0697},
-		}
-
-		for _, tc := range testCases {
-			// tPrime(x) == L'(S(x))
-			result := lPrimeTransform(sBoxTransform(tc.input))
-			assert.Equal(t, tc.expected, result, "L'(S(%08x)) = %08x, expected %08x", tc.input, result, tc.expected)
-		}
-	})
-}
-
-// TestF tests the f function directly
-func TestRound(t *testing.T) {
-	t.Run("round equivalent with various inputs", func(t *testing.T) {
-		// Test with different input values to ensure f function works correctly
-		testCases := []struct {
-			x0, x1, x2, x3, rk uint32
-			expected           uint32
-		}{
-			{0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x5b5b5b5b},
-			{0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xa4a4a4a4},
-			{0x12345678, 0x9abcdef0, 0x12345678, 0x9abcdef0, 0x12345678, 0x496f0d23},
-		}
-
-		for _, tc := range testCases {
-			// round(x0,x1,x2,x3,rk) == x0 ^ T(x1^x2^x3^rk)
-			result := tc.x0 ^ tTransform(tc.x1^tc.x2^tc.x3^tc.rk)
-			assert.Equal(t, tc.expected, result, "x0 ^ T(x1^x2^x3^rk) (%08x, %08x, %08x, %08x, %08x) = %08x, expected %08x",
-				tc.x0, tc.x1, tc.x2, tc.x3, tc.rk, result, tc.expected)
-		}
-	})
-}
-
-// TestNewCipherErrorPaths tests error paths in NewCipher function
-func TestNewCipherErrorPaths(t *testing.T) {
-	t.Run("NewCipher with invalid key size", func(t *testing.T) {
-		// Test with various invalid key sizes
-		invalidKeys := [][]byte{
-			nil,
-			{},
-			[]byte("short"),
-			[]byte("this_key_is_way_too_long_and_invalid"),
-		}
-
-		for _, key := range invalidKeys {
-			block, err := NewCipher(key)
-			assert.Nil(t, block)
-			assert.NotNil(t, err)
-			assert.IsType(t, KeySizeError(0), err)
-		}
-	})
-
-	t.Run("NewCipher with valid key size", func(t *testing.T) {
-		validKey := []byte("1234567890123456") // 16 bytes
-		block, err := NewCipher(validKey)
-		assert.NotNil(t, block)
-		assert.Nil(t, err)
-		assert.IsType(t, &sm4Cipher{}, block)
-	})
-}
-
-// TestEncryptPanicPaths tests panic paths in Encrypt function
-func TestEncryptPanicPaths(t *testing.T) {
-	t.Run("Encrypt with short source", func(t *testing.T) {
-		key := []byte("1234567890123456")
-		block, _ := NewCipher(key)
-
-		src := []byte("short") // Less than BlockSize
-		dst := make([]byte, BlockSize)
-
-		assert.PanicsWithValue(t, "crypto/sm4: input not full block", func() {
-			block.Encrypt(dst, src)
-		})
-	})
-
-	t.Run("Encrypt with short destination", func(t *testing.T) {
-		key := []byte("1234567890123456")
-		block, _ := NewCipher(key)
-
-		src := make([]byte, BlockSize)
-		dst := []byte("short") // Less than BlockSize
-
-		assert.PanicsWithValue(t, "crypto/sm4: output not full block", func() {
-			block.Encrypt(dst, src)
-		})
-	})
-
-	t.Run("Encrypt with valid buffers", func(t *testing.T) {
-		key := []byte("1234567890123456")
-		block, _ := NewCipher(key)
-
-		src := make([]byte, BlockSize)
-		dst := make([]byte, BlockSize)
-
-		// Should not panic with valid buffers
-		assert.NotPanics(t, func() {
-			block.Encrypt(dst, src)
-		})
-		assert.Len(t, dst, BlockSize)
-	})
-}
-
-// TestDecryptPanicPaths tests panic paths in Decrypt function
-func TestDecryptPanicPaths(t *testing.T) {
-	t.Run("Decrypt with short source", func(t *testing.T) {
-		key := []byte("1234567890123456")
-		block, _ := NewCipher(key)
-
-		src := []byte("short") // Less than BlockSize
-		dst := make([]byte, BlockSize)
-
-		assert.PanicsWithValue(t, "crypto/sm4: input not full block", func() {
-			block.Decrypt(dst, src)
-		})
-	})
-
-	t.Run("Decrypt with short destination", func(t *testing.T) {
-		key := []byte("1234567890123456")
-		block, _ := NewCipher(key)
-
-		src := make([]byte, BlockSize)
-		dst := []byte("short") // Less than BlockSize
-
-		assert.PanicsWithValue(t, "crypto/sm4: output not full block", func() {
-			block.Decrypt(dst, src)
-		})
-	})
-
-	t.Run("Decrypt with valid buffers", func(t *testing.T) {
-		key := []byte("1234567890123456")
-		block, _ := NewCipher(key)
-
-		src := make([]byte, BlockSize)
-		dst := make([]byte, BlockSize)
-
-		// Should not panic with valid buffers
-		assert.NotPanics(t, func() {
-			block.Decrypt(dst, src)
-		})
-		assert.Len(t, dst, BlockSize)
-	})
-}
-
 // TestStdEncrypterErrorPaths tests error paths in StdEncrypter methods
 func TestStdEncrypterErrorPaths(t *testing.T) {
 	t.Run("StdEncrypter Encrypt with existing error", func(t *testing.T) {
@@ -845,7 +671,7 @@ func TestStdEncrypterEncryptError(t *testing.T) {
 		encrypter := NewStdEncrypter(c)
 
 		// Override the block to bypass NewCipher validation
-		block, _ := NewCipher(key16Error)
+		block := sm4.NewCipher(key16Error)
 		encrypter.block = block
 
 		result, err := encrypter.Encrypt([]byte("test data"))
@@ -878,7 +704,7 @@ func TestStdDecrypterDecryptError(t *testing.T) {
 		decrypter := NewStdDecrypter(c)
 
 		// Override the block to bypass NewCipher validation
-		block, _ := NewCipher(key16Error)
+		block := sm4.NewCipher(key16Error)
 		decrypter.block = block
 
 		result, err := decrypter.Decrypt([]byte("test data"))
@@ -928,7 +754,7 @@ func TestStreamEncrypterWriteError(t *testing.T) {
 		encrypter := NewStreamEncrypter(&buf, c)
 
 		// Override the block to bypass NewCipher validation
-		block, _ := NewCipher(key16Error)
+		block := sm4.NewCipher(key16Error)
 		streamEncrypter := encrypter.(*StreamEncrypter)
 		streamEncrypter.block = block
 

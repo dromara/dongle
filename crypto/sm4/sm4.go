@@ -5,6 +5,7 @@ package sm4
 
 import (
 	stdCipher "crypto/cipher"
+	"github.com/dromara/dongle/crypto/internal/sm4"
 	"io"
 
 	"github.com/dromara/dongle/crypto/cipher"
@@ -12,21 +13,21 @@ import (
 
 // StdEncrypter represents an SM4 encrypter for standard encryption operations.
 type StdEncrypter struct {
-	cipher *cipher.Sm4Cipher // The cipher interface for encryption operations
-	block  stdCipher.Block   // Pre-created cipher block for reuse
-	Error  error             // Error field for storing encryption errors
+	cipher cipher.Sm4Cipher // The cipher interface for encryption operations
+	block  stdCipher.Block  // Pre-created cipher block for reuse
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new SM4 encrypter with the specified cipher and key.
 func NewStdEncrypter(c *cipher.Sm4Cipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
-	if len(c.Key) != KeySize {
+	if len(c.Key) != sm4.KeySize {
 		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
-	e.block, e.Error = NewCipher(c.Key)
+	e.block = sm4.NewCipher(c.Key)
 	return e
 }
 
@@ -52,21 +53,21 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 
 // StdDecrypter represents an SM4 decrypter for standard decryption operations.
 type StdDecrypter struct {
-	cipher *cipher.Sm4Cipher // The cipher interface for decryption operations
-	block  stdCipher.Block   // Pre-created cipher block for reuse
-	Error  error             // Error field for storing decryption errors
+	cipher cipher.Sm4Cipher // The cipher interface for decryption operations
+	block  stdCipher.Block  // Pre-created cipher block for reuse
+	Error  error            // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new SM4 decrypter with the specified cipher and key.
 func NewStdDecrypter(c *cipher.Sm4Cipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
-	if len(c.Key) != KeySize {
+	if len(c.Key) != sm4.KeySize {
 		d.Error = KeySizeError(len(c.Key))
 		return d
 	}
-	d.block, d.Error = NewCipher(c.Key)
+	d.block = sm4.NewCipher(c.Key)
 	return d
 }
 
@@ -92,11 +93,11 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 
 // StreamEncrypter represents a streaming SM4 encrypter that implements io.WriteCloser.
 type StreamEncrypter struct {
-	writer io.Writer         // Underlying writer for encrypted output
-	cipher *cipher.Sm4Cipher // The cipher interface for encryption operations
-	buffer []byte            // Buffer for accumulating incomplete blocks
-	block  stdCipher.Block   // Reused cipher block for better performance
-	Error  error             // Error field for storing encryption errors
+	writer io.Writer        // Underlying writer for encrypted output
+	cipher cipher.Sm4Cipher // The cipher interface for encryption operations
+	buffer []byte           // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block  // Reused cipher block for better performance
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new streaming SM4 encrypter that writes encrypted data
@@ -105,14 +106,14 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.Sm4Cipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
-		buffer: make([]byte, 0, BlockSize), // SM4 block size is 16 bytes
+		cipher: *c,
+		buffer: make([]byte, 0, sm4.BlockSize), // SM4 block size is 16 bytes
 	}
-	if len(c.Key) != KeySize {
+	if len(c.Key) != sm4.KeySize {
 		e.Error = KeySizeError(len(c.Key))
 		return e
 	}
-	e.block, e.Error = NewCipher(c.Key)
+	e.block = sm4.NewCipher(c.Key)
 	return e
 }
 
@@ -179,11 +180,11 @@ func NewStreamDecrypter(r io.Reader, c *cipher.Sm4Cipher) io.Reader {
 		buffer:   nil, // Will be populated on first read
 		position: 0,
 	}
-	if len(c.Key) != KeySize {
+	if len(c.Key) != sm4.KeySize {
 		d.Error = KeySizeError(len(c.Key))
 		return d
 	}
-	d.block, d.Error = NewCipher(c.Key)
+	d.block = sm4.NewCipher(c.Key)
 	return d
 }
 
