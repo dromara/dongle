@@ -15,8 +15,8 @@ import (
 // It implements DES encryption using the standard DES algorithm with support
 // for 64-bit keys and various cipher modes.
 type StdEncrypter struct {
-	cipher *cipher.DesCipher // The cipher interface for encryption operations
-	Error  error             // Error field for storing encryption errors
+	cipher cipher.DesCipher // The cipher interface for encryption operations
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStdEncrypter creates a new DES encrypter with the specified cipher.
@@ -25,7 +25,7 @@ type StdEncrypter struct {
 // Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdEncrypter(c *cipher.DesCipher) *StdEncrypter {
 	e := &StdEncrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 8 {
@@ -70,8 +70,8 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 // It implements DES decryption using the standard DES algorithm with support
 // for 64-bit keys and various cipher modes.
 type StdDecrypter struct {
-	cipher *cipher.DesCipher // The cipher interface for decryption operations
-	Error  error             // Error field for storing decryption errors
+	cipher cipher.DesCipher // The cipher interface for decryption operations
+	Error  error            // Error field for storing decryption errors
 }
 
 // NewStdDecrypter creates a new DES decrypter with the specified cipher.
@@ -80,7 +80,7 @@ type StdDecrypter struct {
 // Only CBC, CTR, ECB, CFB, and OFB modes are supported.
 func NewStdDecrypter(c *cipher.DesCipher) *StdDecrypter {
 	d := &StdDecrypter{
-		cipher: c,
+		cipher: *c,
 	}
 
 	if len(c.Key) != 8 {
@@ -125,11 +125,11 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 // It implements DES encryption using the standard DES algorithm with support
 // for 64-bit keys and various cipher modes, providing streaming capabilities with true streaming support.
 type StreamEncrypter struct {
-	writer io.Writer         // Underlying writer for encrypted output
-	cipher *cipher.DesCipher // The cipher interface for encryption operations
-	buffer []byte            // Buffer for accumulating incomplete blocks
-	block  stdCipher.Block   // Reused cipher block for better performance
-	Error  error             // Error field for storing encryption errors
+	writer io.Writer        // Underlying writer for encrypted output
+	cipher cipher.DesCipher // The cipher interface for encryption operations
+	buffer []byte           // Buffer for accumulating incomplete blocks
+	block  stdCipher.Block  // Reused cipher block for better performance
+	Error  error            // Error field for storing encryption errors
 }
 
 // NewStreamEncrypter creates a new DES stream encrypter with the specified writer and cipher.
@@ -139,7 +139,7 @@ type StreamEncrypter struct {
 func NewStreamEncrypter(w io.Writer, c *cipher.DesCipher) io.WriteCloser {
 	e := &StreamEncrypter{
 		writer: w,
-		cipher: c,
+		cipher: *c,
 		buffer: make([]byte, 0, 8), // DES block size is 8 bytes
 	}
 
@@ -218,12 +218,12 @@ func (e *StreamEncrypter) Close() error {
 // It implements DES decryption using the standard DES algorithm with support
 // for 64-bit keys and various cipher modes, providing streaming capabilities with proper state management.
 type StreamDecrypter struct {
-	reader   io.Reader         // Underlying reader for encrypted input
-	cipher   *cipher.DesCipher // The cipher interface for decryption operations
-	buffer   []byte            // Buffer for decrypted data
-	position int               // Current position in the buffer
-	block    stdCipher.Block   // Reused cipher block for better performance
-	Error    error             // Error field for storing decryption errors
+	reader   io.Reader        // Underlying reader for encrypted input
+	cipher   cipher.DesCipher // The cipher interface for decryption operations
+	buffer   []byte           // Buffer for decrypted data
+	position int              // Current position in the buffer
+	block    stdCipher.Block  // Reused cipher block for better performance
+	Error    error            // Error field for storing decryption errors
 }
 
 // NewStreamDecrypter creates a new DES stream decrypter with the specified reader and cipher.
@@ -233,7 +233,7 @@ type StreamDecrypter struct {
 func NewStreamDecrypter(r io.Reader, c *cipher.DesCipher) io.Reader {
 	d := &StreamDecrypter{
 		reader:   r,
-		cipher:   c,
+		cipher:   *c,
 		buffer:   nil, // Will be populated on first read
 		position: 0,
 	}
