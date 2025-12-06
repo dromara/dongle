@@ -938,9 +938,9 @@ func TestStreamDecrypter_Read_Comprehensive(t *testing.T) {
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 
-		// Add some data to decrypted to test position handling
-		streamDecrypter.decrypted = []byte("prefix")
-		streamDecrypter.pos = 0
+		// Add some data to buffer to test position handling
+		streamDecrypter.buffer = []byte("prefix")
+		streamDecrypter.position = 0
 
 		buf := make([]byte, 100)
 		n, err := decrypter.Read(buf)
