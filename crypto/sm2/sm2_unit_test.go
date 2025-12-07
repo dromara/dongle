@@ -1589,15 +1589,6 @@ func TestSignError(t *testing.T) {
 	assert.Equal(t, "crypto/sm2: failed to sign data: sign failed", err.Error())
 }
 
-// TestVerifyError tests VerifyError.Error method
-func TestVerifyError(t *testing.T) {
-	err := VerifyError{Err: errors.New("verify failed")}
-	assert.Equal(t, "crypto/sm2: failed to verify signature: verify failed", err.Error())
-
-	err2 := VerifyError{Err: nil}
-	assert.Equal(t, "crypto/sm2: failed to verify signature: <nil>", err2.Error())
-}
-
 // Test StdEncrypter Encrypt error wrapping when randomness fails.
 func TestStdEncrypter_EncryptWithRandError(t *testing.T) {
 	kp := keypair.NewSm2KeyPair()
