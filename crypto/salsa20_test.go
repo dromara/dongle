@@ -1,10 +1,10 @@
 package crypto
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,10 +33,9 @@ func TestEncrypter_BySalsa20(t *testing.T) {
 		c.SetNonce(salsa20Nonce)
 
 		// Test streaming encryption with file reader
-		file := strings.NewReader(string(salsa20Data))
-		e := NewEncrypter()
-		e.reader = file // Set reader directly for stream processing
-		encrypted := e.BySalsa20(c).ToRawBytes()
+		file := mock.NewFile(salsa20Data, "test.txt")
+		defer file.Close()
+		encrypted := NewEncrypter().FromFile(file).BySalsa20(c).ToRawBytes()
 
 		assert.NotEmpty(t, encrypted)
 		assert.NotEqual(t, salsa20Data, encrypted)
@@ -62,10 +61,9 @@ func TestEncrypter_BySalsa20(t *testing.T) {
 		c.SetNonce(salsa20Nonce)
 
 		// Test streaming encryption with empty file reader
-		emptyReader := strings.NewReader("")
-		e := NewEncrypter()
-		e.reader = emptyReader // Set reader directly for stream processing
-		encrypted := e.BySalsa20(c).ToRawBytes()
+		emptyFile := mock.NewFile([]byte{}, "empty.txt")
+		defer emptyFile.Close()
+		encrypted := NewEncrypter().FromFile(emptyFile).BySalsa20(c).ToRawBytes()
 
 		assert.Empty(t, encrypted)
 	})
@@ -173,17 +171,16 @@ func TestEncrypter_BySalsa20(t *testing.T) {
 		encrypted := NewEncrypter().FromBytes(salsa20Data).BySalsa20(c1).ToRawBytes()
 		assert.NotEmpty(t, encrypted)
 
-		// Create a reader from the encrypted data
-		reader := strings.NewReader(string(encrypted))
+		// Create a mock file from the encrypted data
+		file := mock.NewFile(encrypted, "encrypted.txt")
+		defer file.Close()
 
 		// Test streaming decryption with file reader
 		c2 := cipher.NewSalsa20Cipher()
 		c2.SetKey(salsa20Key)
 		c2.SetNonce(salsa20Nonce)
 
-		d := NewDecrypter()
-		d.reader = reader // Set reader directly for stream processing
-		decrypted := d.BySalsa20(c2).ToBytes()
+		decrypted := NewDecrypter().FromRawFile(file).BySalsa20(c2).ToBytes()
 		assert.Equal(t, salsa20Data, decrypted)
 	})
 
@@ -207,10 +204,9 @@ func TestEncrypter_BySalsa20(t *testing.T) {
 		c.SetNonce(salsa20Nonce)
 
 		// Test streaming decryption with empty file reader
-		emptyReader := strings.NewReader("")
-		d := NewDecrypter()
-		d.reader = emptyReader // Set reader directly for stream processing
-		decrypted := d.BySalsa20(c).ToBytes()
+		emptyFile := mock.NewFile([]byte{}, "empty.txt")
+		defer emptyFile.Close()
+		decrypted := NewDecrypter().FromRawFile(emptyFile).BySalsa20(c).ToBytes()
 
 		assert.Empty(t, decrypted)
 	})
@@ -281,10 +277,9 @@ func TestEncrypter_BySalsa20(t *testing.T) {
 		c.SetNonce(salsa20Nonce)
 
 		// Test streaming encryption branch
-		file := strings.NewReader(string(salsa20Data))
-		e := NewEncrypter()
-		e.reader = file
-		result := e.BySalsa20(c)
+		file := mock.NewFile(salsa20Data, "test.txt")
+		defer file.Close()
+		result := NewEncrypter().FromFile(file).BySalsa20(c)
 
 		assert.Nil(t, result.Error)
 		assert.NotEmpty(t, result.ToRawBytes())
@@ -300,14 +295,13 @@ func TestEncrypter_BySalsa20(t *testing.T) {
 		assert.NotEmpty(t, encrypted)
 
 		// Test streaming decryption branch
-		reader := strings.NewReader(string(encrypted))
+		file := mock.NewFile(encrypted, "encrypted.txt")
+		defer file.Close()
 		c2 := cipher.NewSalsa20Cipher()
 		c2.SetKey(salsa20Key)
 		c2.SetNonce(salsa20Nonce)
 
-		d := NewDecrypter()
-		d.reader = reader
-		result := d.BySalsa20(c2)
+		result := NewDecrypter().FromRawFile(file).BySalsa20(c2)
 
 		assert.Nil(t, result.Error)
 		assert.Equal(t, salsa20Data, result.ToBytes())

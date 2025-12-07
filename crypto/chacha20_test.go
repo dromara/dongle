@@ -1,10 +1,10 @@
 package crypto
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/cipher"
+	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,10 +33,9 @@ func TestEncrypter_ByChaCha20(t *testing.T) {
 		c.SetNonce(chaCha20Nonce)
 
 		// Test streaming encryption with file reader
-		file := strings.NewReader(string(chaCha20Data))
-		e := NewEncrypter()
-		e.reader = file // Set reader directly for stream processing
-		encrypted := e.ByChaCha20(c).ToRawBytes()
+		file := mock.NewFile(chaCha20Data, "test.txt")
+		defer file.Close()
+		encrypted := NewEncrypter().FromFile(file).ByChaCha20(c).ToRawBytes()
 
 		assert.NotEmpty(t, encrypted)
 		assert.NotEqual(t, chaCha20Data, encrypted)
@@ -62,10 +61,9 @@ func TestEncrypter_ByChaCha20(t *testing.T) {
 		c.SetNonce(chaCha20Nonce)
 
 		// Test streaming encryption with empty file reader
-		emptyReader := strings.NewReader("")
-		e := NewEncrypter()
-		e.reader = emptyReader // Set reader directly for stream processing
-		encrypted := e.ByChaCha20(c).ToRawBytes()
+		emptyFile := mock.NewFile([]byte{}, "empty.txt")
+		defer emptyFile.Close()
+		encrypted := NewEncrypter().FromFile(emptyFile).ByChaCha20(c).ToRawBytes()
 
 		assert.Empty(t, encrypted)
 	})
@@ -173,17 +171,16 @@ func TestEncrypter_ByChaCha20(t *testing.T) {
 		encrypted := NewEncrypter().FromBytes(chaCha20Data).ByChaCha20(c1).ToRawBytes()
 		assert.NotEmpty(t, encrypted)
 
-		// Create a reader from the encrypted data
-		reader := strings.NewReader(string(encrypted))
+		// Create a mock file from the encrypted data
+		file := mock.NewFile(encrypted, "encrypted.txt")
+		defer file.Close()
 
 		// Test streaming decryption with file reader
 		c2 := cipher.NewChaCha20Cipher()
 		c2.SetKey(chaCha20Key)
 		c2.SetNonce(chaCha20Nonce)
 
-		d := NewDecrypter()
-		d.reader = reader // Set reader directly for stream processing
-		decrypted := d.ByChaCha20(c2).ToBytes()
+		decrypted := NewDecrypter().FromRawFile(file).ByChaCha20(c2).ToBytes()
 		assert.Equal(t, chaCha20Data, decrypted)
 	})
 
@@ -207,10 +204,9 @@ func TestEncrypter_ByChaCha20(t *testing.T) {
 		c.SetNonce(chaCha20Nonce)
 
 		// Test streaming decryption with empty file reader
-		emptyReader := strings.NewReader("")
-		d := NewDecrypter()
-		d.reader = emptyReader // Set reader directly for stream processing
-		decrypted := d.ByChaCha20(c).ToBytes()
+		emptyFile := mock.NewFile([]byte{}, "empty.txt")
+		defer emptyFile.Close()
+		decrypted := NewDecrypter().FromRawFile(emptyFile).ByChaCha20(c).ToBytes()
 
 		assert.Empty(t, decrypted)
 	})
