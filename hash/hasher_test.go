@@ -55,6 +55,7 @@ func TestHasher_FromBytes(t *testing.T) {
 func TestHasher_FromFile(t *testing.T) {
 	t.Run("normal file", func(t *testing.T) {
 		file := mock.NewFile([]byte("hello"), "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file)
 		assert.Equal(t, file, hasher.reader)
 		assert.Equal(t, hasher, hasher.FromFile(file))
@@ -244,6 +245,7 @@ func TestHasher_ToHexBytes(t *testing.T) {
 func TestHasher_stream(t *testing.T) {
 	t.Run("normal stream", func(t *testing.T) {
 		file := mock.NewFile([]byte("hello"), "test.txt")
+		defer file.Close()
 		hasher := &Hasher{reader: file}
 		result, err := hasher.stream(md2.New)
 		assert.Nil(t, err)
@@ -253,6 +255,7 @@ func TestHasher_stream(t *testing.T) {
 
 	t.Run("empty stream", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := &Hasher{reader: file}
 		result, err := hasher.stream(md2.New)
 		assert.Nil(t, err)
@@ -262,6 +265,7 @@ func TestHasher_stream(t *testing.T) {
 	t.Run("large stream", func(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		file := mock.NewFile([]byte(data), "large.txt")
+		defer file.Close()
 		hasher := &Hasher{reader: file}
 		result, err := hasher.stream(md2.New)
 		assert.Nil(t, err)
@@ -272,6 +276,7 @@ func TestHasher_stream(t *testing.T) {
 	t.Run("stream with hasher write error", func(t *testing.T) {
 		// Create a mock reader that returns data
 		file := mock.NewFile([]byte("hello"), "test.txt")
+		defer file.Close()
 		hasher := &Hasher{reader: file}
 
 		// Create a custom hash function that returns an error on Write
@@ -300,6 +305,7 @@ func TestHasher_hmac(t *testing.T) {
 
 	t.Run("hmac with reader data", func(t *testing.T) {
 		file := mock.NewFile([]byte("hello"), "test.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -321,6 +327,7 @@ func TestHasher_hmac(t *testing.T) {
 
 	t.Run("hmac with empty reader", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -333,6 +340,7 @@ func TestHasher_hmac(t *testing.T) {
 	t.Run("hmac with seeker reader", func(t *testing.T) {
 		// Create a mock file that implements io.Seeker
 		file := mock.NewFile([]byte("hello"), "test.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -348,6 +356,7 @@ func TestHasher_hmac(t *testing.T) {
 		// Create a large data stream to test buffer handling
 		largeData := strings.Repeat("abcdefghijklmnopqrstuvwxyz", 1000) // ~26KB
 		file := mock.NewFile([]byte(largeData), "large.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -363,6 +372,7 @@ func TestHasher_hmac(t *testing.T) {
 		// Create data that will require multiple buffer reads
 		data := strings.Repeat("test", 20000) // ~80KB, will need multiple 64KB reads
 		file := mock.NewFile([]byte(data), "multiread.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -378,6 +388,7 @@ func TestHasher_hmac(t *testing.T) {
 		// Create data that is exactly the buffer size (64KB)
 		data := strings.Repeat("x", 64*1024)
 		file := mock.NewFile([]byte(data), "exact_buffer.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -393,6 +404,7 @@ func TestHasher_hmac(t *testing.T) {
 		// Create data smaller than the 64KB buffer
 		data := strings.Repeat("small", 1000) // ~5KB
 		file := mock.NewFile([]byte(data), "small.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -411,6 +423,7 @@ func TestHasher_hmac(t *testing.T) {
 			binaryData[i] = byte(i % 256)
 		}
 		file := mock.NewFile(binaryData, "binary.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),
@@ -424,6 +437,7 @@ func TestHasher_hmac(t *testing.T) {
 
 	t.Run("hmac with hasher write error", func(t *testing.T) {
 		file := mock.NewFile([]byte("hello"), "test.txt")
+		defer file.Close()
 		hasher := &Hasher{
 			reader: file,
 			key:    []byte("secret"),

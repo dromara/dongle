@@ -41,6 +41,7 @@ func TestHasher_ByMd4_Hash(t *testing.T) {
 
 	t.Run("hash file", func(t *testing.T) {
 		file := mock.NewFile(md4HashSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).ByMd4()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, md4HashHexDst, hasher.ToHexString())
@@ -103,6 +104,7 @@ func TestHasher_ByMd4_Hash(t *testing.T) {
 
 	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).ByMd4()
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
@@ -140,11 +142,13 @@ func TestHasher_ByMd4_HMAC(t *testing.T) {
 
 	t.Run("hmac file", func(t *testing.T) {
 		file := mock.NewFile(md4HmacSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(md4HmacKey).ByMd4()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, md4HmacHexDst, hasher.ToHexString())
 
 		file2 := mock.NewFile(md4HmacSrc, "test2.txt")
+		defer file2.Close()
 		hasher2 := NewHasher().FromFile(file2).WithKey(md4HmacKey).ByMd4()
 		assert.Nil(t, hasher2.Error)
 		assert.Equal(t, md4HmacBase64Dst, hasher2.ToBase64String())
@@ -205,10 +209,12 @@ func TestHasher_ByMd4_HMAC(t *testing.T) {
 
 	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(md4HmacKey).ByMd4()
 		assert.Nil(t, hasher.Error)
 		// Calculate expected HMAC for empty file using the same method
 		file2 := mock.NewFile([]byte{}, "empty2.txt")
+		defer file2.Close()
 		expectedHasher := NewHasher().FromFile(file2).WithKey(md4HmacKey).ByMd4()
 		assert.Nil(t, expectedHasher.Error)
 		expectedHex := expectedHasher.ToHexString()

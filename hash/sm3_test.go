@@ -41,6 +41,7 @@ func TestHasher_BySm3_Hash(t *testing.T) {
 
 	t.Run("hash file", func(t *testing.T) {
 		file := mock.NewFile(sm3HashSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).BySm3()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sm3HashHexDst, hasher.ToHexString())
@@ -103,6 +104,7 @@ func TestHasher_BySm3_Hash(t *testing.T) {
 
 	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).BySm3()
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
@@ -140,11 +142,13 @@ func TestHasher_BySm3_HMAC(t *testing.T) {
 
 	t.Run("hmac file", func(t *testing.T) {
 		file := mock.NewFile(sm3HmacSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(sm3HmacKey).BySm3()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sm3HmacHexDst, hasher.ToHexString())
 
 		file2 := mock.NewFile(sm3HmacSrc, "test2.txt")
+		defer file2.Close()
 		hasher2 := NewHasher().FromFile(file2).WithKey(sm3HmacKey).BySm3()
 		assert.Nil(t, hasher2.Error)
 		assert.Equal(t, sm3HmacBase64Dst, hasher2.ToBase64String())
@@ -199,10 +203,12 @@ func TestHasher_BySm3_HMAC(t *testing.T) {
 
 	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(sm3HmacKey).BySm3()
 		assert.Nil(t, hasher.Error)
 		// Calculate expected HMAC for empty file using the same method
 		file2 := mock.NewFile([]byte{}, "empty2.txt")
+		defer file2.Close()
 		expectedHasher := NewHasher().FromFile(file2).WithKey(sm3HmacKey).BySm3()
 		assert.Nil(t, expectedHasher.Error)
 		expectedHex := expectedHasher.ToHexString()

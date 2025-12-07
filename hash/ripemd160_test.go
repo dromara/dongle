@@ -41,6 +41,7 @@ func TestHasher_ByRipemd160_Hash(t *testing.T) {
 
 	t.Run("hash file", func(t *testing.T) {
 		file := mock.NewFile(ripemd160HashSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HashHexDst, hasher.ToHexString())
@@ -91,6 +92,7 @@ func TestHasher_ByRipemd160_Hash(t *testing.T) {
 
 	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
@@ -122,6 +124,7 @@ func TestHasher_ByRipemd160_HMAC(t *testing.T) {
 
 	t.Run("hmac file", func(t *testing.T) {
 		file := mock.NewFile(ripemd160HmacSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HmacHexDst, hasher.ToHexString())
@@ -165,6 +168,7 @@ func TestHasher_ByRipemd160_HMAC(t *testing.T) {
 
 	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())

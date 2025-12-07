@@ -41,6 +41,7 @@ func TestHasher_ByMd2_Hash(t *testing.T) {
 
 	t.Run("hash file", func(t *testing.T) {
 		file := mock.NewFile(md2HashSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).ByMd2()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, md2HashHexDst, hasher.ToHexString())
@@ -91,6 +92,7 @@ func TestHasher_ByMd2_Hash(t *testing.T) {
 
 	t.Run("empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).ByMd2()
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
@@ -122,6 +124,7 @@ func TestHasher_ByMd2_HMAC(t *testing.T) {
 
 	t.Run("hmac file", func(t *testing.T) {
 		file := mock.NewFile(md2HmacSrc, "test.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(md2HmacKey).ByMd2()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, md2HmacHexDst, hasher.ToHexString())
@@ -165,6 +168,7 @@ func TestHasher_ByMd2_HMAC(t *testing.T) {
 
 	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		hasher := NewHasher().FromFile(file).WithKey(md2HmacKey).ByMd2()
 		assert.Nil(t, hasher.Error)
 		assert.Empty(t, hasher.ToHexString())
