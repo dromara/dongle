@@ -124,7 +124,9 @@ func TestLoadPublicPrivateKey(t *testing.T) {
 	}
 
 	pubFile := mock.NewFile(kp.PublicKey, "public.pem")
+	defer pubFile.Close()
 	priFile := mock.NewFile(kp.PrivateKey, "private.pem")
+	defer priFile.Close()
 
 	if err := kp.LoadPublicKey(pubFile); err != nil {
 		t.Fatalf("LoadPublicKey: %v", err)

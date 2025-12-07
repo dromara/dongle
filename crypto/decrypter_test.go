@@ -368,7 +368,9 @@ func TestDecrypter_ToBytes(t *testing.T) {
 func TestDecrypter_Stream(t *testing.T) {
 	t.Run("stream with success", func(t *testing.T) {
 		decrypter := NewDecrypter()
-		decrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
+		decrypter.reader = file
 
 		result, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return r
@@ -380,7 +382,9 @@ func TestDecrypter_Stream(t *testing.T) {
 
 	t.Run("stream with empty reader", func(t *testing.T) {
 		decrypter := NewDecrypter()
-		decrypter.reader = mock.NewFile([]byte{}, "empty.txt")
+		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
+		decrypter.reader = file
 
 		result, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return r
@@ -397,7 +401,9 @@ func TestDecrypter_Stream(t *testing.T) {
 		}
 
 		decrypter := NewDecrypter()
-		decrypter.reader = mock.NewFile(largeData, "large.dat")
+		file := mock.NewFile(largeData, "large.dat")
+		defer file.Close()
+		decrypter.reader = file
 
 		result, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return r
@@ -421,7 +427,9 @@ func TestDecrypter_Stream(t *testing.T) {
 
 	t.Run("stream with error in copy", func(t *testing.T) {
 		decrypter := NewDecrypter()
-		decrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
+		decrypter.reader = file
 
 		_, err := decrypter.stream(func(r io.Reader) io.Reader {
 			return mock.NewErrorReadWriteCloser(assert.AnError)
@@ -436,6 +444,7 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 	t.Run("from raw file", func(t *testing.T) {
 		data := []byte("hello world")
 		file := mock.NewFile(data, "test.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawFile(file)
@@ -448,6 +457,7 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 	t.Run("from empty file", func(t *testing.T) {
 		var data []byte
 		file := mock.NewFile(data, "empty.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawFile(file)
@@ -463,6 +473,7 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 			data[i] = byte(i % 256)
 		}
 		file := mock.NewFile(data, "large.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromRawFile(file)
@@ -475,6 +486,7 @@ func TestDecrypter_FromRawFile(t *testing.T) {
 	t.Run("with existing error", func(t *testing.T) {
 		data := []byte("test")
 		file := mock.NewFile(data, "test.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		decrypter.Error = assert.AnError
@@ -491,6 +503,7 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 	t.Run("from base64 file", func(t *testing.T) {
 		base64Data := []byte("aGVsbG8gd29ybGQ=") // "hello world" in base64
 		file := mock.NewFile(base64Data, "test.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
@@ -503,6 +516,7 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 	t.Run("from empty base64 file", func(t *testing.T) {
 		base64Data := []byte("")
 		file := mock.NewFile(base64Data, "empty.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
@@ -515,6 +529,7 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 	t.Run("from unicode base64 file", func(t *testing.T) {
 		base64Data := []byte("5L2g5aW95LiW55WM") // "你好世界" in base64
 		file := mock.NewFile(base64Data, "unicode.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
@@ -527,6 +542,7 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 	t.Run("from invalid base64 file", func(t *testing.T) {
 		base64Data := []byte("invalid base64!")
 		file := mock.NewFile(base64Data, "invalid.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
@@ -539,6 +555,7 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 	t.Run("from binary base64 file", func(t *testing.T) {
 		base64Data := []byte("AAECA//+/fw=") // Binary data in base64
 		file := mock.NewFile(base64Data, "binary.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromBase64File(file)
@@ -551,6 +568,7 @@ func TestDecrypter_FromBase64File(t *testing.T) {
 	t.Run("with existing error", func(t *testing.T) {
 		base64Data := []byte("aGVsbG8gd29ybGQ=")
 		file := mock.NewFile(base64Data, "test.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		decrypter.Error = assert.AnError
@@ -578,6 +596,7 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 	t.Run("from hex file", func(t *testing.T) {
 		hexData := []byte("68656c6c6f20776f726c64") // "hello world" in hex
 		file := mock.NewFile(hexData, "test.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
@@ -590,6 +609,7 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 	t.Run("from empty hex file", func(t *testing.T) {
 		hexData := []byte("")
 		file := mock.NewFile(hexData, "empty.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
@@ -602,6 +622,7 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 	t.Run("from unicode hex file", func(t *testing.T) {
 		hexData := []byte("e4bda0e5a5bde4b896e7958c") // "你好世界" in hex
 		file := mock.NewFile(hexData, "unicode.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
@@ -614,6 +635,7 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 	t.Run("from invalid hex file", func(t *testing.T) {
 		hexData := []byte("invalid hex!")
 		file := mock.NewFile(hexData, "invalid.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
@@ -626,6 +648,7 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 	t.Run("from binary hex file", func(t *testing.T) {
 		hexData := []byte("000102ff") // Binary data in hex
 		file := mock.NewFile(hexData, "binary.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		result := decrypter.FromHexFile(file)
@@ -638,6 +661,7 @@ func TestDecrypter_FromHexFile(t *testing.T) {
 	t.Run("with existing error", func(t *testing.T) {
 		hexData := []byte("68656c6c6f20776f726c64")
 		file := mock.NewFile(hexData, "test.txt")
+		defer file.Close()
 
 		decrypter := NewDecrypter()
 		decrypter.Error = assert.AnError

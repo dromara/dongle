@@ -48,6 +48,7 @@ func TestEncrypterByRsa(t *testing.T) {
 		kp.GenKeyPair(1024)
 
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		enc := NewEncrypter()
 		enc.reader = file
 		enc.ByRsa(kp)
@@ -93,6 +94,7 @@ func TestEncrypterByRsa(t *testing.T) {
 		kp.SetPublicKey([]byte("invalid key"))
 
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		enc := NewEncrypter()
 		enc.reader = file
 		enc.ByRsa(kp)
@@ -188,6 +190,7 @@ func TestDecrypterByRsa(t *testing.T) {
 
 		// Test streaming decryption
 		file := mock.NewFile(enc.dst, "test.txt")
+		defer file.Close()
 		dec := NewDecrypter()
 		dec.reader = file
 		dec.ByRsa(kp)
@@ -233,6 +236,7 @@ func TestDecrypterByRsa(t *testing.T) {
 		kp.SetPrivateKey([]byte("invalid key"))
 
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		dec := NewDecrypter()
 		dec.reader = file
 		dec.ByRsa(kp)
@@ -322,6 +326,7 @@ func TestSignerByRsa(t *testing.T) {
 
 		// Sign data using streaming
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		signer := NewSigner()
 		signer.reader = file
 		signer.ByRsa(kp)
@@ -367,6 +372,7 @@ func TestSignerByRsa(t *testing.T) {
 		kp.SetPrivateKey([]byte("invalid key"))
 
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		signer := NewSigner()
 		signer.reader = file
 		signer.ByRsa(kp)
@@ -462,6 +468,7 @@ func TestVerifierByRsa(t *testing.T) {
 
 		// Verify signature using streaming
 		file := mock.NewFile([]byte(data), "test.txt")
+		defer file.Close()
 		verifier := NewVerifier().WithRawSign(signer.ToRawBytes())
 		verifier.reader = file
 		verifier.data = []byte(data)
@@ -506,6 +513,7 @@ func TestVerifierByRsa(t *testing.T) {
 		kp.SetPublicKey([]byte("invalid key"))
 
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		verifier := NewVerifier()
 		verifier.reader = file
 		verifier.ByRsa(kp)
@@ -742,6 +750,7 @@ func TestVerifierByRsa(t *testing.T) {
 
 		// Test streaming verification with empty data
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		verifier := NewVerifier()
 		verifier.reader = file
 		verifier.data = []byte{} // Empty data

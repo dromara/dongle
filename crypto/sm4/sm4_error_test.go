@@ -244,6 +244,7 @@ func TestErrorIntegration(t *testing.T) {
 
 	t.Run("KeySizeError in StreamDecrypter", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.NewSm4Cipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
@@ -287,6 +288,7 @@ func TestErrorIntegration(t *testing.T) {
 
 	t.Run("DecryptError in StreamDecrypter Read", func(t *testing.T) {
 		file := mock.NewFile([]byte("invalid data"), "test.txt")
+		defer file.Close()
 		c := cipher.NewSm4Cipher(cipher.CBC)
 		c.SetKey([]byte("invalid_key_size")) // This will cause a decrypt error
 

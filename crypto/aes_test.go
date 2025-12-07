@@ -61,6 +61,7 @@ func TestEncrypter_ByAes(t *testing.T) {
 		c.SetIV(iv16)
 		c.SetPadding(cipher.PKCS7)
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file).ByAes(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
@@ -74,6 +75,7 @@ func TestEncrypter_ByAes(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 		largeData := strings.Repeat("hello world ", 1000)
 		file := mock.NewFile([]byte(largeData), "large.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file).ByAes(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
@@ -86,6 +88,7 @@ func TestEncrypter_ByAes(t *testing.T) {
 		c.SetIV(iv16)
 		c.SetPadding(cipher.PKCS7)
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file).ByAes(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
@@ -97,6 +100,7 @@ func TestEncrypter_ByAes(t *testing.T) {
 		c.SetIV(iv16)
 		c.SetPadding(cipher.PKCS7)
 		file := mock.NewFile([]byte("hello world"), "error.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file).ByAes(c)
 		// This should succeed as the error is handled in the goroutine
 		assert.Nil(t, encrypter.Error)
@@ -109,6 +113,7 @@ func TestEncrypter_ByAes(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 		// Create a reader that will cause write error in the pipe
 		file := mock.NewFile([]byte("hello world"), "write.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file).ByAes(c)
 		// This should succeed as the error is handled in the goroutine
 		assert.Nil(t, encrypter.Error)
@@ -250,6 +255,7 @@ func TestEncrypter_ByAes(t *testing.T) {
 		// Create a reader that will cause buffer overflow
 		largeData := strings.Repeat("hello world ", 10000)
 		file := mock.NewFile([]byte(largeData), "overflow.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file).ByAes(c)
 		assert.Nil(t, encrypter.Error)
 		assert.NotNil(t, encrypter.dst)
@@ -317,6 +323,7 @@ func TestDecrypter_ByAes(t *testing.T) {
 
 		// Then decrypt it using streaming
 		file := mock.NewFile(encryptedData, "stream.txt")
+		defer file.Close()
 		decrypter := NewDecrypter().FromRawFile(file).ByAes(c)
 		assert.Nil(t, decrypter.Error)
 		assert.Equal(t, testData, decrypter.dst)
@@ -335,6 +342,7 @@ func TestDecrypter_ByAes(t *testing.T) {
 
 		// Then decrypt it using streaming
 		file := mock.NewFile(encryptedData, "large.txt")
+		defer file.Close()
 		decrypter := NewDecrypter().FromRawFile(file).ByAes(c)
 		assert.Nil(t, decrypter.Error)
 		assert.Equal(t, []byte(largeData), decrypter.dst)
@@ -346,6 +354,7 @@ func TestDecrypter_ByAes(t *testing.T) {
 		c.SetIV(iv16)
 		c.SetPadding(cipher.PKCS7)
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decrypter := NewDecrypter().FromRawFile(file).ByAes(c)
 		assert.Nil(t, decrypter.Error)
 		assert.NotNil(t, decrypter.dst)
@@ -363,6 +372,7 @@ func TestDecrypter_ByAes(t *testing.T) {
 
 		// Then decrypt it using error reader
 		file := mock.NewFile(encryptedData, "error.txt")
+		defer file.Close()
 		decrypter := NewDecrypter().FromRawFile(file).ByAes(c)
 		assert.Nil(t, decrypter.Error)
 		assert.NotNil(t, decrypter.dst)
@@ -592,6 +602,7 @@ func TestDecrypter_ByAes(t *testing.T) {
 
 		// Then decrypt it using streaming
 		file := mock.NewFile(encryptedData, "overflow.txt")
+		defer file.Close()
 		decrypter := NewDecrypter().FromRawFile(file).ByAes(c)
 		assert.Nil(t, decrypter.Error)
 		assert.Equal(t, []byte(largeData), decrypter.dst)

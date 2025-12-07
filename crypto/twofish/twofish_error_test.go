@@ -374,6 +374,7 @@ func TestErrorIntegration(t *testing.T) {
 
 	t.Run("KeySizeError in StreamDecrypter", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.NewTwofishCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
@@ -916,6 +917,7 @@ func TestStreamDecrypter_Read_Comprehensive(t *testing.T) {
 	t.Run("read with empty data", func(t *testing.T) {
 		// Create an empty encrypted file
 		reader := mock.NewFile([]byte{}, "empty.dat")
+		defer reader.Close()
 		c := cipher.NewTwofishCipher(cipher.CBC)
 		c.SetKey(key16Error)
 		c.SetIV(iv16Error)
@@ -935,6 +937,7 @@ func TestStreamDecrypter_Read_Comprehensive(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 

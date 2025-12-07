@@ -223,6 +223,7 @@ func TestErrorIntegration(t *testing.T) {
 
 	t.Run("invalid key size for StreamDecrypter", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.bin")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid")) // 7 bytes - invalid for 3DES
 		c.SetIV(iv8Error)
@@ -333,6 +334,7 @@ func TestErrorEdgeCases(t *testing.T) {
 
 	t.Run("stream decrypter with invalid key", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.bin")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid")) // 7 bytes - invalid for 3DES
 		c.SetIV(iv8Error)
@@ -433,6 +435,7 @@ func TestTripleDes_Errors(t *testing.T) {
 
 	t.Run("stream decrypter with key size error", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.bin")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid")) // 7 bytes - invalid for 3DES
 		c.SetIV(iv8Error)
@@ -571,6 +574,7 @@ func TestCoverage_MissingPaths(t *testing.T) {
 		invalidKey := make([]byte, 15) // 15 bytes - invalid for 3DES
 
 		file := mock.NewFile([]byte("test data"), "test.bin")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(invalidKey)
 		c.SetIV(iv8Error)
@@ -731,6 +735,7 @@ func TestCoverage_MissingPaths(t *testing.T) {
 	t.Run("StreamDecrypter successful initialization", func(t *testing.T) {
 		// Test normal StreamDecrypter initialization
 		file := mock.NewFile([]byte("test data"), "test.bin")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key16Error)
 		c.SetIV(iv8Error)

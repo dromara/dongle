@@ -167,6 +167,7 @@ func TestRc4Streaming(t *testing.T) {
 
 		// Create a mock file for streaming
 		mockFile := mock.NewFile([]byte(plaintext), "test.txt")
+		defer mockFile.Close()
 		encrypted := NewEncrypter().FromFile(mockFile).ByRc4(rc4Cipher).ToRawString()
 		assert.NotEmpty(t, encrypted)
 
@@ -183,6 +184,7 @@ func TestRc4Streaming(t *testing.T) {
 		plaintext := "Hello, RC4 streaming!"
 
 		mockFile := mock.NewFile([]byte(plaintext), "test.txt")
+		defer mockFile.Close()
 		encrypted := NewEncrypter().FromFile(mockFile).ByRc4(rc4Cipher).ToRawString()
 		assert.Empty(t, encrypted)
 	})
@@ -393,6 +395,7 @@ func TestRc4PackageDirect(t *testing.T) {
 		plaintext := "Hello, RC4 streaming!"
 
 		mockFile := mock.NewFile([]byte(plaintext), "test.txt")
+		defer mockFile.Close()
 		encrypted := NewEncrypter().FromFile(mockFile).ByRc4(rc4Cipher).ToRawString()
 		assert.Empty(t, encrypted)
 	})
@@ -407,6 +410,7 @@ func TestRc4ByRc4StreamBranch(t *testing.T) {
 		plaintext := "Hello, RC4 streaming!"
 
 		mockFile := mock.NewFile([]byte(plaintext), "test.txt")
+		defer mockFile.Close()
 		encrypted := NewEncrypter().FromFile(mockFile).ByRc4(rc4Cipher).ToRawString()
 		assert.NotEmpty(t, encrypted)
 
@@ -591,7 +595,9 @@ func TestRc4EdgeCases(t *testing.T) {
 
 		// Create decrypter with reader set to trigger streaming branch
 		decrypter := NewDecrypter()
-		decrypter.reader = mock.NewFile([]byte("test"), "test.txt")
+		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
+		decrypter.reader = file
 		decrypter.src = nil // Ensure src is nil
 		result := decrypter.ByRc4(rc4Cipher)
 

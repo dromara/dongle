@@ -50,7 +50,7 @@ func TestEncrypt(t *testing.T) {
 	// Test with valid input
 	src := make([]byte, BlockSize)
 	dst := make([]byte, BlockSize)
-
+	
 	// Should not panic
 	c.Encrypt(dst, src)
 
@@ -81,7 +81,7 @@ func TestDecrypt(t *testing.T) {
 	// Test with valid input
 	src := make([]byte, BlockSize)
 	dst := make([]byte, BlockSize)
-
+	
 	// Should not panic
 	c.Decrypt(dst, src)
 
@@ -108,9 +108,9 @@ func TestDecrypt(t *testing.T) {
 func TestEncryptDecrypt(t *testing.T) {
 	// Test with known test vectors
 	testCases := []struct {
-		keyHex    string
-		plainHex  string
-		cipherHex string
+		keyHex     string
+		plainHex   string
+		cipherHex  string
 	}{
 		{
 			"0123456789abcdeffedcba9876543210",
@@ -323,7 +323,7 @@ func TestEncryptRounds(t *testing.T) {
 func TestDecryptRounds(t *testing.T) {
 	// Test with known values
 	key := [KeySize]byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10}
-
+	
 	// Start with known ciphertext
 	x := [4]uint32{0x681edf34, 0xd206965e, 0x86b3e94f, 0x536e4246}
 
@@ -341,10 +341,10 @@ func TestDecryptRounds(t *testing.T) {
 // TestCipherInterface ensures sm4Cipher implements the cipher.Block interface
 func TestCipherInterface(t *testing.T) {
 	var _ cipher.Block = &sm4Cipher{}
-
+	
 	key := make([]byte, KeySize)
 	c := NewCipher(key)
-
+	
 	// Test that it implements the interface correctly
 	if c.BlockSize() != BlockSize {
 		t.Errorf("BlockSize() = %d, want %d", c.BlockSize(), BlockSize)
@@ -429,11 +429,11 @@ func TestInPlaceEncryptionDecryption(t *testing.T) {
 func TestEncryptPanic(t *testing.T) {
 	key := make([]byte, KeySize)
 	c := NewCipher(key)
-
+	
 	// Test with short src
 	shortSrc := make([]byte, BlockSize-1)
 	dst := make([]byte, BlockSize)
-
+	
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Encrypt did not panic for short src")
@@ -448,11 +448,11 @@ func TestEncryptPanic(t *testing.T) {
 func TestDecryptPanic(t *testing.T) {
 	key := make([]byte, KeySize)
 	c := NewCipher(key)
-
+	
 	// Test with short src
 	shortSrc := make([]byte, BlockSize-1)
 	dst := make([]byte, BlockSize)
-
+	
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Decrypt did not panic for short src")
@@ -467,10 +467,10 @@ func TestDecryptPanic(t *testing.T) {
 func TestEncryptPanicShortDst(t *testing.T) {
 	key := make([]byte, KeySize)
 	c := NewCipher(key)
-
+	
 	src := make([]byte, BlockSize)
 	shortDst := make([]byte, BlockSize-1)
-
+	
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Encrypt did not panic for short dst")
@@ -485,10 +485,10 @@ func TestEncryptPanicShortDst(t *testing.T) {
 func TestDecryptPanicShortDst(t *testing.T) {
 	key := make([]byte, KeySize)
 	c := NewCipher(key)
-
+	
 	src := make([]byte, BlockSize)
 	shortDst := make([]byte, BlockSize-1)
-
+	
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Decrypt did not panic for short dst")

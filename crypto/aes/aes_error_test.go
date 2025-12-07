@@ -307,6 +307,7 @@ func TestErrorIntegration(t *testing.T) {
 
 	t.Run("KeySizeError in StreamDecrypter", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.NewAesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
@@ -782,6 +783,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
@@ -796,6 +798,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 	t.Run("read with empty data", func(t *testing.T) {
 		// Create an empty encrypted file
 		reader := mock.NewFile([]byte{}, "empty.dat")
+		defer reader.Close()
 		c := cipher.NewAesCipher(cipher.CBC)
 		c.SetKey(key16Error)
 		c.SetIV(iv16Error)
@@ -815,6 +818,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 
@@ -838,6 +842,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		buf := make([]byte, 100)
@@ -859,6 +864,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		buf := make([]byte, 100)
@@ -878,6 +884,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// First read
@@ -906,6 +913,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Use a very small buffer
@@ -925,6 +933,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Use a large buffer
@@ -944,6 +953,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Use a buffer of exact size
@@ -963,6 +973,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Use a zero-sized buffer
@@ -982,6 +993,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Use a nil buffer
@@ -1001,6 +1013,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		// Set block to nil to test the aes.NewCipher retry logic
@@ -1023,6 +1036,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Read partial data
@@ -1042,6 +1056,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile(testDataError, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Read exact data size

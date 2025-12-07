@@ -840,6 +840,7 @@ func TestStreamVerifier(t *testing.T) {
 
 	t.Run("write and close success", func(t *testing.T) {
 		reader := mock.NewFile(sign, "signature")
+		defer reader.Close()
 		sv := NewStreamVerifier(reader, validKP).(*StreamVerifier)
 		require.NoError(t, sv.Error)
 		n, err := sv.Write([]byte("stream verify"))

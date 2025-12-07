@@ -344,6 +344,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		c.SetNonce(nonce12ChaCha20)
 
 		file := mock.NewFile(testdataChaCha20, "test.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 	})
@@ -354,6 +355,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		c.SetNonce(nonce12ChaCha20)
 
 		file := mock.NewFile(testdataChaCha20, "test.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c)
 		assert.NotNil(t, streamDecrypter.(*StreamDecrypter).Error)
 		assert.Contains(t, streamDecrypter.(*StreamDecrypter).Error.Error(), "invalid key size 5")
@@ -365,6 +367,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 		c.SetNonce([]byte("short")) // 5 bytes
 
 		file := mock.NewFile(testdataChaCha20, "test.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c)
 		assert.NotNil(t, streamDecrypter.(*StreamDecrypter).Error)
 		assert.Contains(t, streamDecrypter.(*StreamDecrypter).Error.Error(), "invalid nonce size 5")
@@ -389,6 +392,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c2.SetNonce(nonce12ChaCha20)
 
 		file := mock.NewFile(encrypted, "encrypted.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c2)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
@@ -406,6 +410,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetNonce(nonce12ChaCha20)
 
 		file := mock.NewFile(testdataChaCha20, "test.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
@@ -421,6 +426,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetNonce(nonce12ChaCha20)
 
 		file := mock.NewFile(testdataChaCha20, "test.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
@@ -452,6 +458,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c.SetNonce(nonce12ChaCha20)
 
 		eofReader := mock.NewFile([]byte{}, "eof.txt")
+		defer eofReader.Close()
 		streamDecrypter := NewStreamDecrypter(eofReader, c)
 		assert.Nil(t, streamDecrypter.(*StreamDecrypter).Error)
 
@@ -476,6 +483,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c2.SetNonce(nonce12ChaCha20)
 
 		file := mock.NewFile(encrypted, "test.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c2)
 
 		// Read once to get all data
@@ -506,6 +514,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		c2.SetNonce(nonce12ChaCha20)
 
 		file := mock.NewFile(encrypted, "test.dat")
+		defer file.Close()
 		streamDecrypter := NewStreamDecrypter(file, c2)
 		streamDecrypter.(*StreamDecrypter).stream = nil
 

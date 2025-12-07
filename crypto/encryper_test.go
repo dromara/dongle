@@ -76,6 +76,7 @@ func TestEncrypter_FromBytes(t *testing.T) {
 func TestEncrypter_FromFile(t *testing.T) {
 	t.Run("from file", func(t *testing.T) {
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file)
 		assert.Equal(t, file, encrypter.reader)
 		assert.Equal(t, encrypter, encrypter)
@@ -83,6 +84,7 @@ func TestEncrypter_FromFile(t *testing.T) {
 
 	t.Run("from empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file)
 		assert.Equal(t, file, encrypter.reader)
 		assert.Equal(t, encrypter, encrypter)
@@ -94,6 +96,7 @@ func TestEncrypter_FromFile(t *testing.T) {
 			largeData[i] = byte(i % 256)
 		}
 		file := mock.NewFile(largeData, "large.txt")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file)
 		assert.Equal(t, file, encrypter.reader)
 		assert.Equal(t, encrypter, encrypter)
@@ -102,6 +105,7 @@ func TestEncrypter_FromFile(t *testing.T) {
 	t.Run("from binary file", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}
 		file := mock.NewFile(binaryData, "binary.bin")
+		defer file.Close()
 		encrypter := NewEncrypter().FromFile(file)
 		assert.Equal(t, file, encrypter.reader)
 		assert.Equal(t, encrypter, encrypter)
@@ -338,7 +342,9 @@ func TestEncrypter_ToHexBytes(t *testing.T) {
 func TestEncrypter_Stream(t *testing.T) {
 	t.Run("stream with success", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
+		encrypter.reader = file
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -350,7 +356,9 @@ func TestEncrypter_Stream(t *testing.T) {
 
 	t.Run("stream with empty reader", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = mock.NewFile([]byte{}, "empty.txt")
+		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
+		encrypter.reader = file
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -367,7 +375,9 @@ func TestEncrypter_Stream(t *testing.T) {
 		}
 
 		encrypter := NewEncrypter()
-		encrypter.reader = mock.NewFile(largeData, "test.bin")
+		file := mock.NewFile(largeData, "test.bin")
+		defer file.Close()
+		encrypter.reader = file
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -391,7 +401,9 @@ func TestEncrypter_Stream(t *testing.T) {
 
 	t.Run("stream with error in write", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
+		encrypter.reader = file
 
 		_, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewErrorWriteCloser(assert.AnError)
@@ -403,7 +415,9 @@ func TestEncrypter_Stream(t *testing.T) {
 
 	t.Run("stream with close error", func(t *testing.T) {
 		encrypter := NewEncrypter()
-		encrypter.reader = mock.NewFile([]byte("hello world"), "test.txt")
+		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
+		encrypter.reader = file
 
 		result, err := encrypter.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewCloseErrorWriteCloser(w, assert.AnError)

@@ -538,6 +538,7 @@ func TestStreamEncrypter_Close(t *testing.T) {
 func TestNewStreamDecrypter(t *testing.T) {
 	t.Run("valid key", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 
@@ -548,6 +549,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 
 	t.Run("invalid key", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
@@ -559,6 +561,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 
 	t.Run("valid key with successful initialization", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24) // Use valid 24-byte key
 		c.SetIV(iv8)
@@ -572,6 +575,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 
 	t.Run("test decrypter error path coverage", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		// Use the same weak key pattern
 		weakKey := []byte{
@@ -596,6 +600,7 @@ func TestNewStreamDecrypter(t *testing.T) {
 
 	t.Run("test decrypter cipher creation error", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		// Use an extremely weak key that the des package might reject
 		// Try using null bytes which are often rejected by cryptographic implementations
@@ -679,6 +684,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 
 		// Then decrypt
 		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		defer file.Close()
 		decrypter := NewStreamDecrypter(file, c)
 		resultBuf := make([]byte, 100)
 		n, err := decrypter.Read(resultBuf)
@@ -689,6 +695,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 
 	t.Run("read with existing error", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 
@@ -716,6 +723,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 
 	t.Run("read with empty data", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 
@@ -728,6 +736,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 
 	t.Run("read with invalid key", func(t *testing.T) {
 		file := mock.NewFile([]byte("test data"), "test.txt")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
@@ -757,6 +766,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 
 		// Then decrypt with small buffer
 		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		defer file.Close()
 		decrypter := NewStreamDecrypter(file, c)
 		smallBuf := make([]byte, 5)
 		n, err := decrypter.Read(smallBuf)
@@ -779,6 +789,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 		// Create invalid encrypted data that will cause decryption error
 		invalidData := []byte("invalid_encrypted_data_that_cannot_be_decrypted")
 		file := mock.NewFile(invalidData, "invalid.dat")
+		defer file.Close()
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key24)
 		c.SetIV(iv8)
@@ -808,6 +819,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 
 		// Now decrypt it
 		file := mock.NewFile(encBuf.Bytes(), "encrypted.dat")
+		defer file.Close()
 		decrypter := NewStreamDecrypter(file, c)
 
 		buf := make([]byte, 100)
@@ -833,6 +845,7 @@ func TestStreamDecrypter_Read(t *testing.T) {
 
 		// Then decrypt with multiple reads
 		file := mock.NewFile(buf.Bytes(), "encrypted.dat")
+		defer file.Close()
 		decrypter := NewStreamDecrypter(file, c)
 
 		// First read - should get data

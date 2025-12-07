@@ -117,6 +117,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile([]byte("test"), "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		streamDecrypter.Error = errors.New("test error")
@@ -150,6 +151,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile([]byte{}, "empty.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		buf := make([]byte, 10)
@@ -165,6 +167,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile([]byte("test"), "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		// Force block to be nil to trigger block creation
@@ -187,6 +190,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 
 		// Use invalid encrypted data that will cause decryption to fail
 		reader := mock.NewFile([]byte("invalid encrypted data"), "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		buf := make([]byte, 10)
@@ -208,6 +212,7 @@ func TestStreamDecrypter_Read_ErrorPaths(t *testing.T) {
 		assert.Nil(t, err)
 
 		reader := mock.NewFile(encrypted, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Read all data
@@ -945,6 +950,7 @@ func TestStreamDecrypter_Read_EdgeCases(t *testing.T) {
 		assert.Nil(t, err)
 
 		reader := mock.NewFile(encrypted, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		// Manually set block to nil to test the fallback path
@@ -968,6 +974,7 @@ func TestStreamDecrypter_Read_EdgeCases(t *testing.T) {
 		assert.Nil(t, err)
 
 		reader := mock.NewFile(encrypted, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Read with small buffer to test partial reads
@@ -997,6 +1004,7 @@ func TestStreamDecrypter_Read_EdgeCases(t *testing.T) {
 		assert.Nil(t, err)
 
 		reader := mock.NewFile(encrypted, "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 
 		// Read all data
@@ -1344,6 +1352,7 @@ func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile([]byte("test"), "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
@@ -1357,6 +1366,7 @@ func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile([]byte("test"), "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
@@ -1370,6 +1380,7 @@ func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile([]byte("test"), "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.NotNil(t, streamDecrypter.Error)
@@ -1383,6 +1394,7 @@ func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 		c.SetPadding(cipher.PKCS7)
 
 		reader := mock.NewFile([]byte("test"), "test.txt")
+		defer reader.Close()
 		decrypter := NewStreamDecrypter(reader, c)
 		streamDecrypter := decrypter.(*StreamDecrypter)
 		assert.Nil(t, streamDecrypter.Error)

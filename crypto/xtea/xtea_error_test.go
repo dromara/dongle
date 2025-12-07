@@ -313,6 +313,7 @@ func TestNewStreamEncrypter_ErrorPaths(t *testing.T) {
 func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 	t.Run("KeySizeError in StreamDecrypter", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.NewXteaCipher(cipher.CBC)
 		c.SetKey([]byte("invalid"))
 
@@ -324,6 +325,7 @@ func TestNewStreamDecrypter_ErrorPaths(t *testing.T) {
 
 	t.Run("valid configuration", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		c := cipher.NewXteaCipher(cipher.CBC)
 		c.SetKey(key16Error)
 		c.SetIV(iv8Error)
