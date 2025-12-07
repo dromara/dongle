@@ -1,7 +1,6 @@
 package base58
 
 import (
-	"bytes"
 	"errors"
 	"io"
 	"testing"
@@ -507,7 +506,8 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream encoder with existing error", func(t *testing.T) {
 		// Base58 uses custom implementation, so we can set custom errors
-		encoder := NewStreamEncoder(&bytes.Buffer{})
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 		streamEncoder, ok := encoder.(*StreamEncoder)
 		assert.True(t, ok)
 		streamEncoder.Error = assert.AnError
@@ -516,7 +516,8 @@ func TestStreamError(t *testing.T) {
 	})
 
 	t.Run("stream encoder close with existing error", func(t *testing.T) {
-		encoder := NewStreamEncoder(&bytes.Buffer{})
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file)
 		streamEncoder, ok := encoder.(*StreamEncoder)
 		assert.True(t, ok)
 		streamEncoder.Error = assert.AnError

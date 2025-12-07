@@ -402,13 +402,15 @@ func TestStreamDecoder_Read(t *testing.T) {
 	})
 
 	t.Run("read hex data", func(t *testing.T) {
-		var encodeBuf bytes.Buffer
-		encoder := NewStreamEncoder(&encodeBuf)
+		file := mock.NewFile(nil, "test.bin")
+		encoder := NewStreamEncoder(file)
 		encoder.Write([]byte("hello world"))
 		encoder.Close()
 
-		reader := mock.NewFile(encodeBuf.Bytes(), "test.bin")
-		decoder := NewStreamDecoder(reader)
+		// Reset file position for reading
+		file.Reset()
+
+		decoder := NewStreamDecoder(file)
 
 		buf := make([]byte, 20)
 		n, err := decoder.Read(buf)

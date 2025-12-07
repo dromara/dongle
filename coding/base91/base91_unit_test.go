@@ -205,8 +205,8 @@ func TestStdDecoder_Decode(t *testing.T) {
 // TestStreamEncoder_Write tests writing to the stream encoder.
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := []byte("hello")
 		n, err := encoder.Write(data)
@@ -218,8 +218,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write multiple times", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data1 := []byte("hello")
 		data2 := []byte(" world")
@@ -232,7 +232,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 		assert.Equal(t, 6, n2)
 		assert.Nil(t, err2)
 		// With true streaming, data is processed immediately and state is maintained
-		assert.Greater(t, buf.Len(), 0) // Should have encoded output
+		assert.Greater(t, len(file.Bytes()), 0) // Should have encoded output
 	})
 
 	t.Run("write with existing error", func(t *testing.T) {
@@ -245,8 +245,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write empty data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 		var data []byte
 		n, err := encoder.Write(data)
 		assert.Equal(t, 0, n)
@@ -270,8 +270,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with exact chunk size", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 13) // Exactly 13 bytes
 		for i := range data {
@@ -284,8 +284,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with multiple chunks", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 26) // Exactly 2 chunks of 13 bytes
 		for i := range data {
@@ -298,8 +298,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 	})
 
 	t.Run("write with remainder", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 20) // 13 + 7 bytes, will have 7 bytes remainder
 		for i := range data {
@@ -315,8 +315,8 @@ func TestStreamEncoder_Write(t *testing.T) {
 // TestStreamEncoder_Close tests closing the stream encoder.
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		// Write some data
 		encoder.Write([]byte("hello"))
@@ -327,16 +327,16 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 		// Check that data was encoded and written
 		expected := "TPwJh>A" // "hello" encoded with base91
-		assert.Equal(t, expected, buf.String())
+		assert.Equal(t, expected, string(file.Bytes()))
 	})
 
 	t.Run("close without data", func(t *testing.T) {
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.Empty(t, buf.String())
+		assert.Empty(t, string(file.Bytes()))
 	})
 
 	t.Run("close with existing error", func(t *testing.T) {
@@ -562,8 +562,8 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream encoder write with v <= 88 path", func(t *testing.T) {
 		// Test the else branch in Write where v <= 88 (takes 14 bits)
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		// Use specific bytes that will trigger v <= 88 condition
 		// When v & 8191 <= 88, it takes 14 bits instead of 13
@@ -576,8 +576,8 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream encoder close with numBits > 7 or queue > 90", func(t *testing.T) {
 		// Test the close path where numBits > 7 || queue > 90
-		var buf bytes.Buffer
-		encoder := NewStreamEncoder(&buf).(*StreamEncoder)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		// Write data that leaves significant bits in queue
 		data := []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
@@ -585,7 +585,7 @@ func TestStreamError(t *testing.T) {
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		assert.NotEmpty(t, buf.String())
+		assert.NotEmpty(t, string(file.Bytes()))
 	})
 
 	t.Run("stream decoder decode with remaining odd character", func(t *testing.T) {

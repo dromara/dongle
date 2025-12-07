@@ -618,15 +618,17 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read with hex alphabet", func(t *testing.T) {
 		// First encode with hex alphabet
-		var encodeBuf bytes.Buffer
-		encoder := NewStreamEncoder(&encodeBuf, HexAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, HexAlphabet)
 		_, err := encoder.Write([]byte("hello world"))
 		assert.Nil(t, err)
 		err = encoder.Close()
 		assert.Nil(t, err)
 
+		// Reset file position for reading
+		file.Reset()
+
 		// Then decode with hex alphabet
-		file := mock.NewFile(encodeBuf.Bytes(), "test.txt")
 		decoder := NewStreamDecoder(file, HexAlphabet)
 
 		buf := make([]byte, 20)
@@ -873,15 +875,17 @@ func TestRoundTrip(t *testing.T) {
 		testData := []byte("Hello, World! 你好世界")
 
 		// Encode
-		var encodeBuf bytes.Buffer
-		encoder := NewStreamEncoder(&encodeBuf, StdAlphabet)
+		file := mock.NewFile(nil, "test.txt")
+		encoder := NewStreamEncoder(file, StdAlphabet)
 		_, err := encoder.Write(testData)
 		assert.NoError(t, err)
 		err = encoder.Close()
 		assert.NoError(t, err)
 
+		// Reset file position for reading
+		file.Reset()
+
 		// Decode
-		file := mock.NewFile(encodeBuf.Bytes(), "test.txt")
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 1024)
