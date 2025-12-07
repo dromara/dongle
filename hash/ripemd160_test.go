@@ -29,20 +29,14 @@ func TestHasher_ByRipemd160_Hash(t *testing.T) {
 		hasher := NewHasher().FromString(string(ripemd160HashSrc)).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HashHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromString(string(ripemd160HashSrc)).ByRipemd160()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, ripemd160HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, ripemd160HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(ripemd160HashSrc).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HashHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromBytes(ripemd160HashSrc).ByRipemd160()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, ripemd160HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, ripemd160HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash file", func(t *testing.T) {
@@ -50,11 +44,7 @@ func TestHasher_ByRipemd160_Hash(t *testing.T) {
 		hasher := NewHasher().FromFile(file).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HashHexDst, hasher.ToHexString())
-
-		file2 := mock.NewFile(ripemd160HashSrc, "test2.txt")
-		hasher2 := NewHasher().FromFile(file2).ByRipemd160()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, ripemd160HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, ripemd160HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("empty string", func(t *testing.T) {
@@ -82,33 +72,21 @@ func TestHasher_ByRipemd160_Hash(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected hash for large data using the same method
-		expectedHasher := NewHasher().FromString(data).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.NotEmpty(t, hasher.ToHexString())
 	})
 
 	t.Run("unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected hash for unicode data using the same method
-		expectedHasher := NewHasher().FromString(unicodeData).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.NotEmpty(t, hasher.ToHexString())
 	})
 
 	t.Run("binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected hash for binary data using the same method
-		expectedHasher := NewHasher().FromBytes(binaryData).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.NotEmpty(t, hasher.ToHexString())
 	})
 
 	t.Run("empty file", func(t *testing.T) {
@@ -132,20 +110,14 @@ func TestHasher_ByRipemd160_HMAC(t *testing.T) {
 		hasher := NewHasher().FromString(string(ripemd160HmacSrc)).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HmacHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromString(string(ripemd160HmacSrc)).WithKey(ripemd160HmacKey).ByRipemd160()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, ripemd160HmacBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, ripemd160HmacBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hmac bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(ripemd160HmacSrc).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HmacHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromBytes(ripemd160HmacSrc).WithKey(ripemd160HmacKey).ByRipemd160()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, ripemd160HmacBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, ripemd160HmacBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hmac file", func(t *testing.T) {
@@ -153,11 +125,7 @@ func TestHasher_ByRipemd160_HMAC(t *testing.T) {
 		hasher := NewHasher().FromFile(file).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, ripemd160HmacHexDst, hasher.ToHexString())
-
-		file2 := mock.NewFile(ripemd160HmacSrc, "test2.txt")
-		hasher2 := NewHasher().FromFile(file2).WithKey(ripemd160HmacKey).ByRipemd160()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, ripemd160HmacBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, ripemd160HmacBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hmac empty string", func(t *testing.T) {
@@ -178,45 +146,28 @@ func TestHasher_ByRipemd160_HMAC(t *testing.T) {
 		data := strings.Repeat("a", 10000)
 		hasher := NewHasher().FromString(data).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected HMAC for large data using the same method
-		expectedHasher := NewHasher().FromString(data).WithKey(ripemd160HmacKey).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.NotEmpty(t, hasher.ToHexString())
 	})
 
 	t.Run("hmac unicode data", func(t *testing.T) {
 		unicodeData := "你好世界"
 		hasher := NewHasher().FromString(unicodeData).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected HMAC for unicode data using the same method
-		expectedHasher := NewHasher().FromString(unicodeData).WithKey(ripemd160HmacKey).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.NotEmpty(t, hasher.ToHexString())
 	})
 
 	t.Run("hmac binary data", func(t *testing.T) {
 		binaryData := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 		hasher := NewHasher().FromBytes(binaryData).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected HMAC for binary data using the same method
-		expectedHasher := NewHasher().FromBytes(binaryData).WithKey(ripemd160HmacKey).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.NotEmpty(t, hasher.ToHexString())
 	})
 
 	t.Run("hmac empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
 		hasher := NewHasher().FromFile(file).WithKey(ripemd160HmacKey).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected HMAC for empty file using the same method
-		file2 := mock.NewFile([]byte{}, "empty2.txt")
-		expectedHasher := NewHasher().FromFile(file2).WithKey(ripemd160HmacKey).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.Empty(t, hasher.ToHexString())
 	})
 
 	t.Run("hmac with large key", func(t *testing.T) {
@@ -226,11 +177,7 @@ func TestHasher_ByRipemd160_HMAC(t *testing.T) {
 		}
 		hasher := NewHasher().FromString(string(ripemd160HmacSrc)).WithKey(key).ByRipemd160()
 		assert.Nil(t, hasher.Error)
-		// Calculate expected HMAC for large key using the same method
-		expectedHasher := NewHasher().FromString(string(ripemd160HmacSrc)).WithKey(key).ByRipemd160()
-		assert.Nil(t, expectedHasher.Error)
-		expectedHex := expectedHasher.ToHexString()
-		assert.Equal(t, expectedHex, hasher.ToHexString())
+		assert.NotEmpty(t, hasher.ToHexString())
 	})
 }
 

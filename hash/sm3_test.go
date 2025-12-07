@@ -29,20 +29,14 @@ func TestHasher_BySm3_Hash(t *testing.T) {
 		hasher := NewHasher().FromString(string(sm3HashSrc)).BySm3()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sm3HashHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromString(string(sm3HashSrc)).BySm3()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, sm3HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, sm3HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(sm3HashSrc).BySm3()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sm3HashHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromBytes(sm3HashSrc).BySm3()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, sm3HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, sm3HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash file", func(t *testing.T) {
@@ -50,11 +44,7 @@ func TestHasher_BySm3_Hash(t *testing.T) {
 		hasher := NewHasher().FromFile(file).BySm3()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, sm3HashHexDst, hasher.ToHexString())
-
-		file2 := mock.NewFile(sm3HashSrc, "test2.txt")
-		hasher2 := NewHasher().FromFile(file2).BySm3()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, sm3HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, sm3HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("empty string", func(t *testing.T) {

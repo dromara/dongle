@@ -31,20 +31,14 @@ func TestHasher_ByBlake2s_Hash(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2sHashSrc)).ByBlake2s(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2sHash256HexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromString(string(blake2sHashSrc)).ByBlake2s(256)
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, blake2sHash256Base64Dst, hasher2.ToBase64String())
+		assert.Equal(t, blake2sHash256Base64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(blake2sHashSrc).ByBlake2s(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2sHash256HexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromBytes(blake2sHashSrc).ByBlake2s(256)
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, blake2sHash256Base64Dst, hasher2.ToBase64String())
+		assert.Equal(t, blake2sHash256Base64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash file", func(t *testing.T) {
@@ -52,21 +46,14 @@ func TestHasher_ByBlake2s_Hash(t *testing.T) {
 		hasher := NewHasher().FromFile(file).ByBlake2s(256)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2sHash256HexDst, hasher.ToHexString())
-
-		file2 := mock.NewFile(blake2sHashSrc, "test2.txt")
-		hasher2 := NewHasher().FromFile(file2).ByBlake2s(256)
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, blake2sHash256Base64Dst, hasher2.ToBase64String())
+		assert.Equal(t, blake2sHash256Base64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash string 128 with key", func(t *testing.T) {
 		hasher := NewHasher().FromString(string(blake2sHashSrc)).WithKey(blake2sHmacKey).ByBlake2s(128)
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, blake2sHash128HexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromString(string(blake2sHashSrc)).WithKey(blake2sHmacKey).ByBlake2s(128)
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, blake2sHash128Base64Dst, hasher2.ToBase64String())
+		assert.Equal(t, blake2sHash128Base64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash empty string", func(t *testing.T) {

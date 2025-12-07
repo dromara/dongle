@@ -29,20 +29,14 @@ func TestHasher_ByMd4_Hash(t *testing.T) {
 		hasher := NewHasher().FromString(string(md4HashSrc)).ByMd4()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, md4HashHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromString(string(md4HashSrc)).ByMd4()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, md4HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, md4HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash bytes", func(t *testing.T) {
 		hasher := NewHasher().FromBytes(md4HashSrc).ByMd4()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, md4HashHexDst, hasher.ToHexString())
-
-		hasher2 := NewHasher().FromBytes(md4HashSrc).ByMd4()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, md4HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, md4HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("hash file", func(t *testing.T) {
@@ -50,11 +44,7 @@ func TestHasher_ByMd4_Hash(t *testing.T) {
 		hasher := NewHasher().FromFile(file).ByMd4()
 		assert.Nil(t, hasher.Error)
 		assert.Equal(t, md4HashHexDst, hasher.ToHexString())
-
-		file2 := mock.NewFile(md4HashSrc, "test2.txt")
-		hasher2 := NewHasher().FromFile(file2).ByMd4()
-		assert.Nil(t, hasher2.Error)
-		assert.Equal(t, md4HashBase64Dst, hasher2.ToBase64String())
+		assert.Equal(t, md4HashBase64Dst, hasher.ToBase64String())
 	})
 
 	t.Run("empty string", func(t *testing.T) {
