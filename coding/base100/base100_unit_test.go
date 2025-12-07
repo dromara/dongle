@@ -226,6 +226,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		data := []byte("hello world")
 		n, err := encoder.Write(data)
@@ -235,6 +236,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write multiple times", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("hello"))
@@ -260,6 +262,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with existing error", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		streamEncoder := NewStreamEncoder(file).(*StreamEncoder)
 		streamEncoder.Error = assert.AnError
 
@@ -271,6 +274,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write empty data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		var data []byte
 		n, err := encoder.Write(data)
@@ -295,6 +299,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with exact chunk size", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 4) // Exactly 4 bytes
@@ -309,6 +314,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with multiple chunks", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 8) // Exactly 2 chunks of 4 bytes
@@ -323,6 +329,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with remainder", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file).(*StreamEncoder)
 
 		data := make([]byte, 6) // 4 + 2 bytes, will have 2 bytes remainder
@@ -339,6 +346,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		encoder.Write([]byte("hello world"))
 
@@ -362,6 +370,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close without data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 
 		err := encoder.Close()
@@ -371,6 +380,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close with existing error", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		streamEncoder := NewStreamEncoder(file).(*StreamEncoder)
 		streamEncoder.Error = assert.AnError
 
@@ -387,6 +397,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello"))
 
 		file := mock.NewFile(encoded, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file)
 
 		buf := make([]byte, 10)
@@ -402,6 +413,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		file := mock.NewFile(encoded, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file)
 
 		buf := make([]byte, 20)
@@ -417,6 +429,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		file := mock.NewFile(encoded, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file)
 
 		// Read with small buffer
@@ -436,6 +449,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read from empty reader", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file)
 
 		buf := make([]byte, 10)
@@ -527,6 +541,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
 		file := mock.NewFile([]byte("invalid!"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file)
 
 		buf := make([]byte, 10)
@@ -547,6 +562,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("read with existing error", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "test.txt")
+		defer file.Close()
 		streamDecoder := NewStreamDecoder(file).(*StreamDecoder)
 		streamDecoder.Error = assert.AnError
 

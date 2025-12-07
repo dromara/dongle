@@ -78,6 +78,7 @@ func TestEncoder_ByHex_Encode(t *testing.T) {
 
 	t.Run("encode file", func(t *testing.T) {
 		file := mock.NewFile(hexSrc, "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByHex()
 		assert.Nil(t, encoder.Error)
 		assert.Equal(t, hexEncoded, encoder.ToString())
@@ -103,6 +104,7 @@ func TestEncoder_ByHex_Encode(t *testing.T) {
 
 	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByHex()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -203,6 +205,7 @@ func TestDecoder_ByHex_Decode(t *testing.T) {
 
 	t.Run("decode file", func(t *testing.T) {
 		file := mock.NewFile([]byte(hexEncoded), "test.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByHex()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, hexSrc, decoder.ToBytes())
@@ -228,6 +231,7 @@ func TestDecoder_ByHex_Decode(t *testing.T) {
 
 	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByHex()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
@@ -333,10 +337,12 @@ func TestHexRoundTrip(t *testing.T) {
 	t.Run("hex round trip with file", func(t *testing.T) {
 		testData := "hello world"
 		file := mock.NewFile([]byte(testData), "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByHex()
 		assert.Nil(t, encoder.Error)
 
 		decoderFile := mock.NewFile(encoder.ToBytes(), "encoded.txt")
+		defer decoderFile.Close()
 		decoder := NewDecoder().FromFile(decoderFile).ByHex()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, testData, decoder.ToString())

@@ -78,6 +78,7 @@ func TestEncoder_ByBase58_Encode(t *testing.T) {
 
 	t.Run("encode file", func(t *testing.T) {
 		file := mock.NewFile(base58Src, "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase58()
 		assert.Nil(t, encoder.Error)
 		// File encoding may produce different results due to streaming vs non-streaming
@@ -104,6 +105,7 @@ func TestEncoder_ByBase58_Encode(t *testing.T) {
 
 	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase58()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -203,6 +205,7 @@ func TestDecoder_ByBase58_Decode(t *testing.T) {
 
 	t.Run("decode file", func(t *testing.T) {
 		file := mock.NewFile([]byte(base58Encoded), "test.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase58()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, base58Src, decoder.ToBytes())
@@ -228,6 +231,7 @@ func TestDecoder_ByBase58_Decode(t *testing.T) {
 
 	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase58()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
@@ -326,10 +330,12 @@ func TestBase58RoundTrip(t *testing.T) {
 		testData := "Hello, World! 你好世界"
 
 		file := mock.NewFile([]byte(testData), "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase58()
 		assert.Nil(t, encoder.Error)
 
 		decoderFile := mock.NewFile(encoder.ToBytes(), "decoded.txt")
+		defer decoderFile.Close()
 		decoder := NewDecoder().FromFile(decoderFile).ByBase58()
 		assert.Nil(t, decoder.Error)
 		assert.NotEmpty(t, decoder.ToBytes())

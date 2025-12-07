@@ -224,6 +224,7 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 
 	// Create a reader from the encoded data
 	reader := mock.NewFile(encoded, "test.bin")
+	defer reader.Close()
 	decoder := NewStreamDecoder(reader, StdAlphabet)
 
 	// Buffer to read into
@@ -245,6 +246,7 @@ func BenchmarkStreamDecoder_ReadLarge(b *testing.B) {
 
 	// Create a reader from the encoded data
 	reader := mock.NewFile(encoded, "test.bin")
+	defer reader.Close()
 	decoder := NewStreamDecoder(reader, StdAlphabet)
 
 	// Buffer to read into

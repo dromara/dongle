@@ -104,6 +104,7 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 	original := []byte("Hello, World! This is a test string for streaming base45 decoding benchmark.")
 	encoded := encoder.Encode(original)
 	reader := mock.NewFile(encoded, "test.bin")
+	defer reader.Close()
 	decoder := NewStreamDecoder(reader)
 
 	buffer := make([]byte, 1024)
@@ -175,6 +176,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			reader := mock.NewFile(encoded, "test.bin")
+			defer reader.Close()
 			decoder := NewStreamDecoder(reader)
 			decoder.Read(buf)
 		}
@@ -239,6 +241,7 @@ func BenchmarkLargeFileStreaming(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				reader := mock.NewFile(encoded, "test.bin")
+				defer reader.Close()
 				decoder := NewStreamDecoder(reader)
 				decoder.Read(buf)
 			}
@@ -265,6 +268,7 @@ func BenchmarkStreamingBufferSizes(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				reader := mock.NewFile(encoded, "test.bin")
+				defer reader.Close()
 				decoder := NewStreamDecoder(reader)
 				decoder.Read(buf)
 			}

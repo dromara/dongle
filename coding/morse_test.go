@@ -150,6 +150,7 @@ func TestEncoder_ByMorse_Encode(t *testing.T) {
 
 	t.Run("encode file", func(t *testing.T) {
 		file := mock.NewFile(morseSrc, "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByMorse()
 		assert.Nil(t, encoder.Error)
 		assert.Equal(t, morseEncoded, encoder.ToString())
@@ -175,6 +176,7 @@ func TestEncoder_ByMorse_Encode(t *testing.T) {
 
 	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByMorse()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -347,6 +349,7 @@ func TestDecoder_ByMorse_Decode(t *testing.T) {
 
 	t.Run("decode file", func(t *testing.T) {
 		file := mock.NewFile([]byte(morseEncoded), "test.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByMorse()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, morseSrc, decoder.ToBytes())
@@ -372,6 +375,7 @@ func TestDecoder_ByMorse_Decode(t *testing.T) {
 
 	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByMorse()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
@@ -550,10 +554,12 @@ func TestMorseRoundTrip(t *testing.T) {
 	t.Run("morse round trip with file", func(t *testing.T) {
 		testData := "hello world"
 		file := mock.NewFile([]byte(testData), "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByMorse()
 		assert.Nil(t, encoder.Error)
 
 		decoderFile := mock.NewFile(encoder.ToBytes(), "encoded.txt")
+		defer decoderFile.Close()
 		decoder := NewDecoder().FromFile(decoderFile).ByMorse()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, testData, decoder.ToString())

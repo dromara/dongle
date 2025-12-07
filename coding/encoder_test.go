@@ -77,6 +77,7 @@ func TestEncoder_FromBytes(t *testing.T) {
 func TestEncoder_FromFile(t *testing.T) {
 	t.Run("from file", func(t *testing.T) {
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file)
 		assert.Equal(t, file, encoder.reader)
 		assert.Equal(t, encoder, encoder)
@@ -84,6 +85,7 @@ func TestEncoder_FromFile(t *testing.T) {
 
 	t.Run("from empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file)
 		assert.Equal(t, file, encoder.reader)
 		assert.Equal(t, encoder, encoder)
@@ -102,6 +104,7 @@ func TestEncoder_FromFile(t *testing.T) {
 			largeData[i] = byte(i % 256)
 		}
 		file := mock.NewFile(largeData, "large.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file)
 		assert.Equal(t, file, encoder.reader)
 		assert.Equal(t, encoder, encoder)
@@ -197,6 +200,7 @@ func TestEncoder_stream(t *testing.T) {
 	t.Run("success with data", func(t *testing.T) {
 		data := []byte("hello stream")
 		file := mock.NewFile(data, "data.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file)
 		out, err := encoder.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -207,6 +211,7 @@ func TestEncoder_stream(t *testing.T) {
 
 	t.Run("empty reader returns empty", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file)
 		out, err := encoder.stream(func(w io.Writer) io.WriteCloser {
 			return mock.NewWriteCloser(w)
@@ -232,6 +237,7 @@ func TestEncoder_stream(t *testing.T) {
 
 	t.Run("close error after successful copy", func(t *testing.T) {
 		file := mock.NewFile([]byte("payload"), "p.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file)
 		out, err := encoder.stream(func(w io.Writer) io.WriteCloser {
 			// Write succeeds, but Close returns error

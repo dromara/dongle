@@ -300,6 +300,7 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				reader := mock.NewFile(encoded, "test.bin")
+				defer reader.Close()
 				decoder := NewStreamDecoder(reader)
 
 				// Read all data
@@ -326,6 +327,7 @@ func BenchmarkStreamDecoder_ReadLarge(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				reader := mock.NewFile(encoded, "test.bin")
+				defer reader.Close()
 				decoder := NewStreamDecoder(reader)
 
 				// Read data in chunks
@@ -356,6 +358,7 @@ func BenchmarkStreamDecoder_ReadChunked(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				reader := mock.NewFile(encoded, "test.bin")
+				defer reader.Close()
 				decoder := NewStreamDecoder(reader)
 
 				// Read data in chunks
@@ -543,6 +546,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 		encoder := NewStdEncoder()
 		encoded := encoder.Encode(data)
 		reader := mock.NewFile(encoded, "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 		b.ResetTimer()
 		b.ReportAllocs()
@@ -578,6 +582,7 @@ func BenchmarkLargeFileStreaming(b *testing.B) {
 		b.Run(fmt.Sprintf("decode_%dKB", size/1024), func(b *testing.B) {
 			encoded := NewStdEncoder().Encode(data)
 			reader := mock.NewFile(encoded, "test.bin")
+			defer reader.Close()
 			decoder := NewStreamDecoder(reader)
 			b.ResetTimer()
 			b.ReportAllocs()

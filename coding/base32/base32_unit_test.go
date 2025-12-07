@@ -98,6 +98,7 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 	t.Run("write multiple times", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		data1 := []byte("hello")
@@ -118,6 +119,7 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 	t.Run("close with data success", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("test"))
@@ -129,6 +131,7 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 	t.Run("close with single byte", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("a"))
@@ -140,6 +143,7 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 	t.Run("close with two bytes", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("ab"))
@@ -151,6 +155,7 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 	t.Run("close with data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("hello"))
@@ -261,6 +266,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		data := []byte("hello")
@@ -272,6 +278,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write multiple times", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		data1 := []byte("hello")
@@ -293,6 +300,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write empty data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		var data []byte
@@ -304,6 +312,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with hex alphabet", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, HexAlphabet)
 
 		data := []byte("hello world")
@@ -338,6 +347,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with exact block size", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write exactly 5 bytes (complete block, no remainder)
@@ -351,6 +361,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with multiple complete blocks", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write 10 bytes (2 complete blocks, no remainder)
@@ -376,6 +387,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with no remainder", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write exactly 5 bytes (complete block, no remainder)
@@ -394,6 +406,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("hello"))
@@ -405,6 +418,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close without data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		err := encoder.Close()
@@ -431,6 +445,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close with 3 bytes buffered", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write 3 bytes (incomplete block)
@@ -444,6 +459,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close with 4 bytes buffered", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write 4 bytes (incomplete block)
@@ -457,6 +473,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close with no buffered data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		// Write complete blocks only, no remainder
@@ -535,6 +552,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	t.Run("read decoded data", func(t *testing.T) {
 		encoded := "NBSWY3DP"
 		file := mock.NewFile([]byte(encoded), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 20)
@@ -548,6 +566,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	t.Run("read with large buffer", func(t *testing.T) {
 		encoded := "NBSWY3DP"
 		file := mock.NewFile([]byte(encoded), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 100)
@@ -561,6 +580,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	t.Run("read with small buffer", func(t *testing.T) {
 		encoded := "NBSWY3DP"
 		file := mock.NewFile([]byte(encoded), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 3)
@@ -583,6 +603,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read with decode error", func(t *testing.T) {
 		file := mock.NewFile([]byte("invalid!"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -607,6 +628,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read eof", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -619,6 +641,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	t.Run("read with hex alphabet", func(t *testing.T) {
 		// First encode with hex alphabet
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, HexAlphabet)
 		_, err := encoder.Write([]byte("hello world"))
 		assert.Nil(t, err)
@@ -641,6 +664,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 	t.Run("read with decode error", func(t *testing.T) {
 		// Test that Read properly handles decode errors
 		file := mock.NewFile([]byte("INVALID!"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -664,6 +688,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		// Test that Read handles case where buffer can fit all decoded data
 		encoded := "NBSWY3DP"
 		file := mock.NewFile([]byte(encoded), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		// Use a large buffer that can fit all decoded data
@@ -757,6 +782,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
 		file := mock.NewFile([]byte("invalid!"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -777,6 +803,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("read with invalid data", func(t *testing.T) {
 		file := mock.NewFile([]byte("invalid!"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -876,6 +903,7 @@ func TestRoundTrip(t *testing.T) {
 
 		// Encode
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 		_, err := encoder.Write(testData)
 		assert.NoError(t, err)

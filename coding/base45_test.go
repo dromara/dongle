@@ -78,6 +78,7 @@ func TestEncoder_ByBase45_Encode(t *testing.T) {
 
 	t.Run("encode file", func(t *testing.T) {
 		file := mock.NewFile(base45Src, "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase45()
 		assert.Nil(t, encoder.Error)
 		assert.Equal(t, base45Encoded, encoder.ToString())
@@ -103,6 +104,7 @@ func TestEncoder_ByBase45_Encode(t *testing.T) {
 
 	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase45()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -202,6 +204,7 @@ func TestDecoder_ByBase45_Decode(t *testing.T) {
 
 	t.Run("decode file", func(t *testing.T) {
 		file := mock.NewFile([]byte(base45Encoded), "test.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase45()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, base45Src, decoder.ToBytes())
@@ -227,6 +230,7 @@ func TestDecoder_ByBase45_Decode(t *testing.T) {
 
 	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase45()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
@@ -330,10 +334,12 @@ func TestBase45RoundTrip(t *testing.T) {
 		testData := "Hello, World! 你好世界"
 
 		file := mock.NewFile([]byte(testData), "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase45()
 		assert.Nil(t, encoder.Error)
 
 		decoderFile := mock.NewFile(encoder.ToBytes(), "decoded.txt")
+		defer decoderFile.Close()
 		decoder := NewDecoder().FromFile(decoderFile).ByBase45()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, []byte(testData), decoder.ToBytes())

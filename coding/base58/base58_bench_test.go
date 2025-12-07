@@ -436,6 +436,7 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 
 	// Create a reader from the encoded data
 	reader := mock.NewFile(encoded, "test.bin")
+	defer reader.Close()
 	decoder := NewStreamDecoder(reader)
 
 	// Buffer to read into
@@ -457,6 +458,7 @@ func BenchmarkStreamDecoder_ReadLarge(b *testing.B) {
 
 	// Create a reader from the encoded data
 	reader := mock.NewFile(encoded, "test.bin")
+	defer reader.Close()
 	decoder := NewStreamDecoder(reader)
 
 	// Buffer to read into
@@ -620,6 +622,7 @@ func BenchmarkStreamingVsStandard(b *testing.B) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			reader := mock.NewFile(encoded, "test.bin")
+			defer reader.Close()
 			decoder := NewStreamDecoder(reader)
 			io.Copy(io.Discard, decoder)
 		}
@@ -653,6 +656,7 @@ func BenchmarkLargeFileStreaming(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				reader := mock.NewFile(encoded, "test.bin")
+				defer reader.Close()
 				decoder := NewStreamDecoder(reader)
 				io.Copy(io.Discard, decoder)
 			}

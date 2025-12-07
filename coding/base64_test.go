@@ -45,6 +45,7 @@ func TestEncoder_ByBase64_Encode(t *testing.T) {
 
 	t.Run("encode file", func(t *testing.T) {
 		file := mock.NewFile(base64Src, "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase64()
 		assert.Nil(t, encoder.Error)
 		assert.Equal(t, base64Encoded, encoder.ToString())
@@ -70,6 +71,7 @@ func TestEncoder_ByBase64_Encode(t *testing.T) {
 
 	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase64()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -163,6 +165,7 @@ func TestDecoder_ByBase64_Decode(t *testing.T) {
 
 	t.Run("decode file", func(t *testing.T) {
 		file := mock.NewFile([]byte(base64Encoded), "test.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase64()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, base64Src, decoder.ToBytes())
@@ -188,6 +191,7 @@ func TestDecoder_ByBase64_Decode(t *testing.T) {
 
 	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase64()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
@@ -279,6 +283,7 @@ func TestEncoder_ByBase64Url_Encode(t *testing.T) {
 
 	t.Run("encode file", func(t *testing.T) {
 		file := mock.NewFile(base64Src, "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase64Url()
 		assert.Nil(t, encoder.Error)
 		assert.Equal(t, base64UrlEncoded, encoder.ToString())
@@ -304,6 +309,7 @@ func TestEncoder_ByBase64Url_Encode(t *testing.T) {
 
 	t.Run("encode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase64Url()
 		assert.Nil(t, encoder.Error)
 		assert.Empty(t, encoder.ToString())
@@ -397,6 +403,7 @@ func TestDecoder_ByBase64Url_Decode(t *testing.T) {
 
 	t.Run("decode file", func(t *testing.T) {
 		file := mock.NewFile([]byte(base64UrlEncoded), "test.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase64Url()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, base64Src, decoder.ToBytes())
@@ -422,6 +429,7 @@ func TestDecoder_ByBase64Url_Decode(t *testing.T) {
 
 	t.Run("decode empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file).ByBase64Url()
 		assert.Nil(t, decoder.Error)
 		assert.Empty(t, decoder.ToBytes())
@@ -514,10 +522,12 @@ func TestBase64RoundTrip(t *testing.T) {
 		testData := "Hello, World! 你好世界"
 
 		file := mock.NewFile([]byte(testData), "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase64()
 		assert.Nil(t, encoder.Error)
 
 		decoderFile := mock.NewFile(encoder.ToBytes(), "decoded.txt")
+		defer decoderFile.Close()
 		decoder := NewDecoder().FromFile(decoderFile).ByBase64()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, []byte(testData), decoder.ToBytes())
@@ -551,10 +561,12 @@ func TestBase64URLRoundTrip(t *testing.T) {
 		testData := "Hello, World! 你好世界"
 
 		file := mock.NewFile([]byte(testData), "test.txt")
+		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase64Url()
 		assert.Nil(t, encoder.Error)
 
 		decoderFile := mock.NewFile(encoder.ToBytes(), "decoded.txt")
+		defer decoderFile.Close()
 		decoder := NewDecoder().FromFile(decoderFile).ByBase64Url()
 		assert.Nil(t, decoder.Error)
 		assert.Equal(t, []byte(testData), decoder.ToBytes())

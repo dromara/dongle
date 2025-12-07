@@ -77,6 +77,7 @@ func TestDecoder_FromBytes(t *testing.T) {
 func TestDecoder_FromFile(t *testing.T) {
 	t.Run("from file", func(t *testing.T) {
 		file := mock.NewFile([]byte("hello world"), "test.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file)
 		assert.Equal(t, file, decoder.reader)
 		assert.Equal(t, decoder, decoder)
@@ -84,6 +85,7 @@ func TestDecoder_FromFile(t *testing.T) {
 
 	t.Run("from empty file", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file)
 		assert.Equal(t, file, decoder.reader)
 		assert.Equal(t, decoder, decoder)
@@ -102,6 +104,7 @@ func TestDecoder_FromFile(t *testing.T) {
 			largeData[i] = byte(i % 256)
 		}
 		file := mock.NewFile(largeData, "large.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file)
 		assert.Equal(t, file, decoder.reader)
 		assert.Equal(t, decoder, decoder)
@@ -197,6 +200,7 @@ func TestDecoder_stream(t *testing.T) {
 	t.Run("success with data", func(t *testing.T) {
 		data := []byte("hello decode stream")
 		file := mock.NewFile(data, "d.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file)
 		out, err := decoder.stream(func(r io.Reader) io.Reader {
 			return r
@@ -207,6 +211,7 @@ func TestDecoder_stream(t *testing.T) {
 
 	t.Run("empty reader returns empty", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "empty.txt")
+		defer file.Close()
 		decoder := NewDecoder().FromFile(file)
 		out, err := decoder.stream(func(r io.Reader) io.Reader { return r })
 		assert.NoError(t, err)

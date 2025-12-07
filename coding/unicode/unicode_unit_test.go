@@ -221,6 +221,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write empty data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		n, err := encoder.Write([]byte{})
 		assert.Equal(t, 0, n)
@@ -230,6 +231,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write simple string", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		n, err := encoder.Write([]byte("hello"))
 		assert.Equal(t, 5, n)
@@ -242,6 +244,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write unicode string", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		n, err := encoder.Write([]byte("你好"))
 		assert.Equal(t, 6, n) // 3 bytes per character
@@ -254,6 +257,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write with existing error", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := &StreamEncoder{writer: file, Error: assert.AnError}
 		n, err := encoder.Write([]byte("hello"))
 		assert.Equal(t, 0, n)
@@ -262,6 +266,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write multiple times", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 
 		encoder.Write([]byte("hello"))
@@ -288,6 +293,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write large data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 
 		data := bytes.Repeat([]byte("Hello, World! "), 100)
@@ -302,6 +308,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write empty data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file).(*StreamEncoder)
 		var data []byte
 		n, err := encoder.Write(data)
@@ -314,6 +321,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with no buffered data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		err := encoder.Close()
 		assert.Nil(t, err)
@@ -322,6 +330,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close with buffered data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		// Write partial data that will be buffered
 		encoder.Write([]byte("h"))
@@ -332,6 +341,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close with existing error", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := &StreamEncoder{writer: file, Error: assert.AnError}
 		err := encoder.Close()
 		assert.Equal(t, assert.AnError, err)
@@ -395,6 +405,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello"))
 
 		reader := mock.NewFile(encoded, "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -410,6 +421,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		reader := mock.NewFile(encoded, "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 20)
@@ -425,6 +437,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		reader := mock.NewFile(encoded, "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		// Read with small buffer
@@ -444,6 +457,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read from empty reader", func(t *testing.T) {
 		reader := mock.NewFile([]byte{}, "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -454,6 +468,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read unicode data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.bin")
+		defer file.Close()
 		encoder := NewStreamEncoder(file)
 		encoder.Write([]byte("hello world"))
 		encoder.Close()
@@ -482,6 +497,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read with decode error", func(t *testing.T) {
 		reader := mock.NewFile([]byte("invalid!"), "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -504,6 +520,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read with error state", func(t *testing.T) {
 		reader := mock.NewFile([]byte("hello"), "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader).(*StreamDecoder)
 		decoder.Error = io.ErrUnexpectedEOF
 
@@ -529,6 +546,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		reader := mock.NewFile(encoded, "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		// Read with large buffer
@@ -545,6 +563,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		reader := mock.NewFile(encoded, "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		// Read with small buffer to trigger partial copy
@@ -677,6 +696,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
 		reader := mock.NewFile([]byte("invalid!"), "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader)
 
 		buf := make([]byte, 10)
@@ -699,6 +719,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream encoder with error state", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file).(*StreamEncoder)
 		encoder.Error = io.ErrShortWrite
 
@@ -709,6 +730,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream decoder with error state", func(t *testing.T) {
 		reader := mock.NewFile([]byte("hello"), "test.bin")
+		defer reader.Close()
 		decoder := NewStreamDecoder(reader).(*StreamDecoder)
 		decoder.Error = io.ErrUnexpectedEOF
 

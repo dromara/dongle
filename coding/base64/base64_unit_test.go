@@ -256,6 +256,7 @@ func TestStdDecoder_Decode(t *testing.T) {
 func TestNewStreamEncoder(t *testing.T) {
 	t.Run("new stream encoder", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 		assert.NotNil(t, encoder)
 	})
@@ -264,6 +265,7 @@ func TestNewStreamEncoder(t *testing.T) {
 func TestStreamEncoder_Write(t *testing.T) {
 	t.Run("write data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 		data := []byte("hello world")
 		n, err := encoder.Write(data)
@@ -273,6 +275,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 
 	t.Run("write multiple times", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		encoder.Write([]byte("hello"))
@@ -287,6 +290,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 func TestStreamEncoder_Close(t *testing.T) {
 	t.Run("close with data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 		encoder.Write([]byte("hello world"))
 
@@ -297,6 +301,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 
 	t.Run("close without data", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 
 		err := encoder.Close()
@@ -328,6 +333,7 @@ func TestStreamEncoder_Close(t *testing.T) {
 func TestNewStreamDecoder(t *testing.T) {
 	t.Run("new stream decoder", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 		assert.NotNil(t, decoder)
 	})
@@ -339,6 +345,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello"))
 
 		file := mock.NewFile(encoded, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -354,6 +361,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		file := mock.NewFile(encoded, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 20)
@@ -369,6 +377,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 		encoded := encoder.Encode([]byte("hello world"))
 
 		file := mock.NewFile(encoded, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		// Read with small buffer
@@ -391,6 +400,7 @@ func TestStreamDecoder_Read(t *testing.T) {
 
 	t.Run("read from empty reader", func(t *testing.T) {
 		file := mock.NewFile([]byte{}, "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -464,6 +474,7 @@ func TestStreamError(t *testing.T) {
 
 	t.Run("stream decoder with decode error", func(t *testing.T) {
 		file := mock.NewFile([]byte("invalid!"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 
 		buf := make([]byte, 10)
@@ -572,6 +583,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream encoder with empty alphabet", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, "")
 		// Type assert to access Error field
 		streamEncoder := encoder.(*StreamEncoder)
@@ -581,6 +593,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream decoder with empty alphabet", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, "")
 		// Type assert to access Error field
 		streamDecoder := decoder.(*StreamDecoder)
@@ -590,6 +603,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream encoder with very long alphabet", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		longAlphabet := string(make([]byte, 100)) // 100 bytes
 		encoder := NewStreamEncoder(file, longAlphabet)
 		// Type assert to access Error field
@@ -600,6 +614,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream decoder with very long alphabet", func(t *testing.T) {
 		file := mock.NewFile([]byte("test"), "test.txt")
+		defer file.Close()
 		longAlphabet := string(make([]byte, 100)) // 100 bytes
 		decoder := NewStreamDecoder(file, longAlphabet)
 		// Type assert to access Error field
@@ -640,6 +655,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream encoder write with nil buffer", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 		n, err := encoder.Write(nil)
 		assert.NoError(t, err)
@@ -648,6 +664,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream encoder write with empty buffer", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 		n, err := encoder.Write([]byte{})
 		assert.NoError(t, err)
@@ -656,6 +673,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream encoder close with empty buffer", func(t *testing.T) {
 		file := mock.NewFile(nil, "test.txt")
+		defer file.Close()
 		encoder := NewStreamEncoder(file, StdAlphabet)
 		err := encoder.Close()
 		assert.NoError(t, err)
@@ -664,6 +682,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream decoder read with nil buffer", func(t *testing.T) {
 		file := mock.NewFile([]byte("aGVsbG8="), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 		n, err := decoder.Read(nil)
 		assert.NoError(t, err)
@@ -672,6 +691,7 @@ func TestEdgeCases(t *testing.T) {
 
 	t.Run("stream decoder read with empty buffer", func(t *testing.T) {
 		file := mock.NewFile([]byte("aGVsbG8="), "test.txt")
+		defer file.Close()
 		decoder := NewStreamDecoder(file, StdAlphabet)
 		emptyBuf := make([]byte, 0)
 		n, err := decoder.Read(emptyBuf)
