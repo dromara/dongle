@@ -90,7 +90,7 @@ func (e *StdEncoder) Encode(src []byte) (dst []byte) {
 		}
 	}
 
-	return []byte(builder.String())
+	return utils.String2Bytes(builder.String())
 }
 
 // StdDecoder represents a morse decoder for standard decoding operations.
@@ -151,7 +151,7 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 		}
 	}
 
-	return []byte(builder.String()), nil
+	return utils.String2Bytes(builder.String()), nil
 }
 
 // StreamEncoder represents a streaming morse encoder that implements io.WriteCloser.
