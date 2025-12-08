@@ -12,7 +12,10 @@
 
 ## プロジェクト概要
 
-`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go") に収録されています。
+`Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go") に収録されています。また、`gitee` 2024 年最有価値プロジェクト（`GVP`）と `gitcode` 2024 年度オープンソーススター計画（`G-Star`）プロジェクトを受賞しました。
+
+<img src="https://dongle.go-pkg.com/gvp.jpg?v=1.1.x" width="100%" alt="gvp"/>
+<img src="https://dongle.go-pkg.com/gstar.jpg?v=1.1.x" width="100%" alt="g-star"/>
 
 ## リポジトリ
 
@@ -115,8 +118,10 @@ import (
 kp := keypair.NewRsaKeyPair()
 // 鍵形式を設定（オプション、デフォルトはPKCS8）
 kp.SetFormat(keypair.PKCS8)
-// ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256）
-kp.SetHash(crypto.SHA256)   
+// パディングモードを設定（オプション、デフォルトは空、PKCS1 形式はデフォルトで PKCS1v15 を使用、PKCS8 形式はデフォルトで OAEP を使用）
+kp.SetPadding(keypair.OAEP) 
+// ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256，OAEP パディングモード用）
+kp.SetHash(crypto.SHA256)
 
 // 公開鍵を設定
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
@@ -145,8 +150,10 @@ import (
 kp := keypair.NewRsaKeyPair()
 // キー形式を設定（オプション、デフォルトは PKCS8）
 kp.SetFormat(keypair.PKCS8)
-// ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256）
-kp.SetHash(crypto.SHA256)   
+// パディングモードを設定（オプション、デフォルトは空、PKCS1 形式はデフォルトで PKCS1v15 を使用、PKCS8 形式はデフォルトで PSS を使用）
+kp.SetPadding(keypair.PSS) 
+// ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256，PSS パディングモード用）
+kp.SetHash(crypto.SHA256)
 
 // 秘密鍵を設定
 kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
@@ -163,7 +170,7 @@ dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
 dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).ToBool()
 ```
 
-より多くの使用例については、<a href="https://dongle.go-pkg.com/ja" target="_blank">公式ドキュメント</a>をご覧ください。
+より多くの使用例については、<a href="https://dongle.go-pkg.com/ja" target="_blank">公式ドキュメント</a>をご覧ください。オンラインツールについては、<a href="https://tools.go-pkg.com" target="_blank">Playground</a> にアクセスしてください。
 
 ## コントリビューター
 
@@ -177,7 +184,7 @@ dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).To
 
 ## 謝辞
 
-`Dongle` は無料の JetBrains オープンソースライセンスの下で GoLand を使用して開発されており、ここで感謝の意を表したいと思います。
+`Dongle` は無料の `JetBrains` オープンソースライセンスを取得しており、ここで感謝の意を表したいと思います。
 
 <a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg" height="50" alt="JetBrains"/></a>
 

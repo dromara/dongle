@@ -12,7 +12,10 @@ English | [简体中文](README.cn.md) | [日本語](README.ja.md)
 
 ## Introduction
 
-`Dongle` is a simple, semantic and developer-friendly golang crypto package with `100%` unit test coverage，has been included by [awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn")
+`Dongle` is a simple, semantic and developer-friendly golang crypto package with `100%` unit test coverage，has been included by [awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go-cn"), and has won the `gitee` 2024 Most Valuable Project (`GVP`) and `gitcode` 2024 Open Source Star Project (`G-Star`) awards
+
+<img src="https://dongle.go-pkg.com/gvp.jpg?v=1.1.x" width="100%" alt="gvp"/>
+<img src="https://dongle.go-pkg.com/gstar.jpg?v=1.1.x" width="100%" alt="g-star"/>
 
 ## Repository
 
@@ -117,8 +120,10 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256, only PKCS8 key format need to set hash algorithm)
-kp.SetHash(crypto.SHA256)   
+// Set padding mode (optional, default is empty, PKCS1 format defaults to PKCS1v15, PKCS8 format defaults to OAEP)
+kp.SetPadding(keypair.OAEP) 
+// Set hash algorithm (optional, default is SHA256, used for OAEP padding mode)
+kp.SetHash(crypto.SHA256)
 
 // Set public key
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
@@ -147,8 +152,10 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
-// Set hash algorithm (optional, default is SHA256, only PKCS8 key format need to set hash algorithm)
-kp.SetHash(crypto.SHA256)   
+// Set padding mode (optional, default is empty, PKCS1 format defaults to PKCS1v15, PKCS8 format defaults to PSS)
+kp.SetPadding(keypair.PSS) 
+// Set hash algorithm (optional, default is SHA256, used for PSS padding mode)
+kp.SetHash(crypto.SHA256)
 
 // Set private key
 kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
@@ -165,7 +172,7 @@ dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
 dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).ToBool()
 ```
 
-For more usage examples, please refer to <a href="https://dongle.go-pkg.com" target="_blank">official document</a>.
+For more usage examples, please refer to <a href="https://dongle.go-pkg.com" target="_blank">official document</a>, and visit <a href="https://tools.go-pkg.com" target="_blank">Playground</a> for online tools.
 
 ## Contributors
 
@@ -179,9 +186,9 @@ Thanks to all the following who contributed to `dongle`:
 
 ## Thanks
 
-`Dongle` had been being developed with GoLand under the free JetBrains Open Source license, I would like to express my thanks here.
+`Dongle` has obtained a free `JetBrains` open source license, and we would like to express our thanks here.
 
-<a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg?v=2.6.x" height="50" alt="JetBrains"/></a>
+<a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg" height="50" alt="JetBrains"/></a>
 
 ## License
 
