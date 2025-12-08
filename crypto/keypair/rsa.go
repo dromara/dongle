@@ -116,14 +116,6 @@ type RsaKeyPair struct {
 }
 
 // NewRsaKeyPair returns a new RsaKeyPair instance with default settings.
-// Defaults:
-//   - Format: PKCS8 (modern standard for key generation)
-//   - Padding: "" (empty, will use PKCS1v15 as fallback in cryptographic operations)
-//   - Hash: SHA256
-//
-// Note: When Padding is not explicitly set, cryptographic operations will use PKCS1v15
-// as the default fallback, which works for both encryption and signing.
-//
 // For explicit security requirements:
 //   - For encryption: kp.SetPadding(keypair.OAEP)
 //   - For signing: kp.SetPadding(keypair.PSS)
