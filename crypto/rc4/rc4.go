@@ -38,14 +38,6 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-
-	// Use pre-created cipher for better performance
-	if e.cipher == nil {
-		// Fallback: create cipher if not available
-		if cipher, err := rc4.NewCipher(e.key); err == nil {
-			e.cipher = cipher
-		}
-	}
 	dst = make([]byte, len(src))
 	e.cipher.XORKeyStream(dst, src)
 	return

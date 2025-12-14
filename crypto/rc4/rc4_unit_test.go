@@ -230,18 +230,6 @@ func TestStdEncrypter_Encrypt(t *testing.T) {
 		assert.IsType(t, KeySizeError(0), err)
 	})
 
-	t.Run("encrypt with nil cipher fallback", func(t *testing.T) {
-		// Create an encrypter with valid key but nil cipher
-		key := []byte("testkey")
-		enc := &StdEncrypter{key: key, cipher: nil}
-
-		// Should create cipher on demand and encrypt successfully
-		ciphertext, err := enc.Encrypt([]byte("test"))
-		assert.Nil(t, err)
-		assert.NotNil(t, ciphertext)
-		assert.NotNil(t, enc.cipher) // cipher should be created
-	})
-
 	t.Run("new encrypter with cipher creation error", func(t *testing.T) {
 		// This test ensures we handle rc4.NewCipher errors in constructor
 		// In practice, RC4 rarely fails with valid keys, but we test the error path
