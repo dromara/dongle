@@ -2,897 +2,454 @@ package ed25519
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"errors"
 	"testing"
 
 	"github.com/dromara/dongle/crypto/keypair"
 	"github.com/dromara/dongle/internal/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestNewStdSigner(t *testing.T) {
-	t.Run("create new standard signer with empty key pair", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
+func genEd25519KeyPair(t *testing.T) *keypair.Ed25519KeyPair {
+	t.Helper()
+
+	kp := keypair.NewEd25519KeyPair()
+	require.NoError(t, kp.GenKeyPair())
+	return kp
+}
+
+func parseEd25519Keys(t *testing.T, kp *keypair.Ed25519KeyPair) (ed25519.PublicKey, ed25519.PrivateKey) {
+	t.Helper()
+
+	pub, err := kp.ParsePublicKey()
+	require.NoError(t, err)
+
+	pri, err := kp.ParsePrivateKey()
+	require.NoError(t, err)
+
+	return pub, pri
+}
+
+func TestErrorMessages(t *testing.T) {
+	assert.Equal(t, "crypto/ed25519: failed to sign data: boom", SignError{Err: errors.New("boom")}.Error())
+	assert.Equal(t, "crypto/ed25519: failed to verify signature: oops", VerifyError{Err: errors.New("oops")}.Error())
+	assert.Equal(t, "crypto/ed25519: failed to read data: nope", ReadError{Err: errors.New("nope")}.Error())
+}
+
+func TestStdSigner(t *testing.T) {
+	t.Run("signs data with valid key", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		pub, _ := parseEd25519Keys(t, kp)
+
 		signer := NewStdSigner(kp)
-		assert.NotNil(t, signer)
-		assert.NotNil(t, signer.Error)
+		require.NoError(t, signer.Error)
 
-		var signErr SignError
-		assert.True(t, errors.As(signer.Error, &signErr))
-
-		var emptyPrivateKeyErr keypair.EmptyPrivateKeyError
-		assert.True(t, errors.As(signErr.Err, &emptyPrivateKeyErr))
+		signature, err := signer.Sign([]byte("hello world"))
+		require.NoError(t, err)
+		assert.True(t, ed25519.Verify(pub, []byte("hello world"), signature))
 	})
 
-	t.Run("create new standard signer with valid key pair", func(t *testing.T) {
+	t.Run("returns error when private key missing", func(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
 		signer := NewStdSigner(kp)
-		assert.NotNil(t, signer)
-		assert.Nil(t, signer.Error)
+
+		assert.Error(t, signer.Error)
+
+		_, err := signer.Sign([]byte("data"))
+		assert.Error(t, err)
+
+		var signErr SignError
+		assert.ErrorAs(t, err, &signErr)
+	})
+
+	t.Run("returns error when private key invalid", func(t *testing.T) {
+		kp := &keypair.Ed25519KeyPair{PrivateKey: []byte("invalid pem")}
+		signer := NewStdSigner(kp)
+
+		assert.Error(t, signer.Error)
+
+		_, err := signer.Sign([]byte("data"))
+		assert.Error(t, err)
+	})
+
+	t.Run("no signature when data empty", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		signer := NewStdSigner(kp)
+		require.NoError(t, signer.Error)
+
+		signature, err := signer.Sign(nil)
+		assert.NoError(t, err)
+		assert.Nil(t, signature)
 	})
 }
 
-func TestNewStdVerifier(t *testing.T) {
-	t.Run("create new standard verifier with empty key pair", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		verifier := NewStdVerifier(kp)
-		assert.NotNil(t, verifier)
-		assert.NotNil(t, verifier.Error)
+func TestStreamSigner(t *testing.T) {
+	t.Run("write and close with closer succeeds", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		pub, _ := parseEd25519Keys(t, kp)
 
-		var verifyErr VerifyError
-		assert.True(t, errors.As(verifier.Error, &verifyErr))
+		buf := &bytes.Buffer{}
+		wc := mock.NewWriteCloser(buf)
+		signer := NewStreamSigner(wc, kp).(*StreamSigner)
+		require.NoError(t, signer.Error)
 
-		var emptyPublicKeyErr keypair.EmptyPublicKeyError
-		assert.True(t, errors.As(verifyErr.Err, &emptyPublicKeyErr))
+		n, err := signer.Write([]byte("stream data"))
+		require.NoError(t, err)
+		assert.Equal(t, len("stream data"), n)
+
+		err = signer.Close()
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, buf.Bytes())
+		assert.True(t, ed25519.Verify(pub, []byte("stream data"), buf.Bytes()))
 	})
 
-	t.Run("create new standard verifier with valid key pair", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+	t.Run("close with empty buffer and plain writer", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		buf := &bytes.Buffer{}
 
-		verifier := NewStdVerifier(kp)
-		assert.NotNil(t, verifier)
-		assert.Nil(t, verifier.Error)
-	})
-}
+		signer := NewStreamSigner(buf, kp).(*StreamSigner)
+		require.NoError(t, signer.Error)
 
-func TestStdSignerSign(t *testing.T) {
-	t.Run("sign with empty private key error", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("test data"))
-		assert.Nil(t, signature)
-		assert.NotNil(t, err)
-		assert.IsType(t, SignError{}, err)
+		// No Write call; buffer remains empty so sign() returns nil
+		err := signer.Close()
+		assert.NoError(t, err)
+		assert.Equal(t, 0, buf.Len())
 	})
 
-	t.Run("sign with empty data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+	t.Run("propagates write error", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		errWriter := mock.NewErrorWriteCloser(errors.New("write failure"))
 
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte{})
-		assert.Nil(t, signature)
-		assert.Nil(t, err)
+		signer := NewStreamSigner(errWriter, kp).(*StreamSigner)
+		require.NoError(t, signer.Error)
+
+		_, err := signer.Write([]byte("payload"))
+		require.NoError(t, err)
+
+		err = signer.Close()
+		assert.EqualError(t, err, "write failure")
 	})
 
-	t.Run("sign with valid data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+	t.Run("propagates close error from writer", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		buf := &bytes.Buffer{}
+		closeErr := errors.New("close failure")
+		wc := mock.NewCloseErrorWriteCloser(buf, closeErr)
 
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("test data"))
-		assert.Nil(t, err)
-		assert.NotNil(t, signature)
-		assert.NotEmpty(t, signature)
+		signer := NewStreamSigner(wc, kp).(*StreamSigner)
+		require.NoError(t, signer.Error)
+
+		_, err := signer.Write([]byte("payload"))
+		require.NoError(t, err)
+
+		err = signer.Close()
+		assert.EqualError(t, err, closeErr.Error())
+		assert.NotZero(t, buf.Len())
 	})
 
-	t.Run("sign with invalid private key", func(t *testing.T) {
+	t.Run("returns existing error on close and write", func(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
-		kp.SetPrivateKey([]byte("invalid private key"))
 
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("test data"))
-		assert.Nil(t, signature)
-		assert.NotNil(t, err)
+		signer := NewStreamSigner(&bytes.Buffer{}, kp).(*StreamSigner)
+		assert.Error(t, signer.Error)
 
-		var signErr SignError
-		assert.True(t, errors.As(err, &signErr))
+		_, writeErr := signer.Write([]byte("data"))
+		assert.Equal(t, signer.Error, writeErr)
+
+		closeErr := signer.Close()
+		assert.Equal(t, signer.Error, closeErr)
 	})
 
-	t.Run("sign with invalid formatted private key content", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		_ = kp.SetPrivateKey([]byte("aGVsbG8="))
-
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("test data"))
-		assert.Nil(t, signature)
-		assert.NotNil(t, err)
-		assert.IsType(t, SignError{}, err)
-	})
-
-	t.Run("sign with large data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStdSigner(kp)
-		largeData := make([]byte, 10000)
-		for i := range largeData {
-			largeData[i] = byte(i % 256)
+	t.Run("close short-circuits when error preset", func(t *testing.T) {
+		w := mock.NewErrorWriteAfterN(1, errors.New("should not write"))
+		signer := &StreamSigner{
+			writer: w,
+			Error:  errors.New("preset"),
 		}
-		signature, err := signer.Sign(largeData)
-		assert.Nil(t, err)
-		assert.NotNil(t, signature)
-		assert.NotEmpty(t, signature)
+
+		err := signer.Close()
+		assert.EqualError(t, err, "preset")
+		assert.Equal(t, 0, w.WriteCount())
 	})
 
-	t.Run("sign with corrupted private key", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.SetPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
-invalid base64 content
------END PRIVATE KEY-----`))
+	t.Run("invalid private key sets error", func(t *testing.T) {
+		kp := &keypair.Ed25519KeyPair{PrivateKey: []byte("invalid pem")}
+		signer := NewStreamSigner(&bytes.Buffer{}, kp).(*StreamSigner)
+		assert.Error(t, signer.Error)
+	})
 
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("test data"))
+	t.Run("sign returns error when preset error exists", func(t *testing.T) {
+		s := &StreamSigner{Error: errors.New("sign blocked")}
+		_, err := s.sign([]byte("data"))
+		assert.EqualError(t, err, "sign blocked")
+	})
+
+	t.Run("sign returns nil signature for empty data", func(t *testing.T) {
+		s := &StreamSigner{}
+		signature, err := s.sign([]byte{})
+		assert.NoError(t, err)
 		assert.Nil(t, signature)
-		assert.NotNil(t, err)
-
-		var signErr SignError
-		assert.True(t, errors.As(err, &signErr))
-	})
-}
-
-func TestStdVerifierVerify(t *testing.T) {
-	t.Run("verify with empty public key error", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify([]byte("test data"), []byte("signature"))
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-		assert.IsType(t, VerifyError{}, err)
 	})
 
-	t.Run("verify with empty data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+	t.Run("write handles empty payload", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		signer := NewStreamSigner(&bytes.Buffer{}, kp).(*StreamSigner)
+		require.NoError(t, signer.Error)
 
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify([]byte{}, []byte("some signature"))
-		assert.False(t, valid)
-		assert.Nil(t, err)
-	})
-
-	t.Run("verify with empty signature", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify([]byte("test data"), []byte{})
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-
-		var verifyErr VerifyError
-		assert.True(t, errors.As(err, &verifyErr))
-
-		var emptySignatureErr keypair.EmptySignatureError
-		assert.True(t, errors.As(verifyErr.Err, &emptySignatureErr))
-	})
-
-	t.Run("verify with valid data and signature", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("test data"))
-		assert.Nil(t, err)
-		assert.NotNil(t, signature)
-
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify([]byte("test data"), signature)
-		assert.True(t, valid)
-		assert.Nil(t, err)
-	})
-
-	t.Run("verify with invalid signature", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify([]byte("test data"), []byte("invalid signature"))
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-
-		var verifyErr VerifyError
-		assert.True(t, errors.As(err, &verifyErr))
-	})
-
-	t.Run("verify with invalid public key", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.SetPublicKey([]byte("invalid public key"))
-
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify([]byte("test data"), []byte("signature"))
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-
-		var verifyErr VerifyError
-		assert.True(t, errors.As(err, &verifyErr))
-	})
-
-	t.Run("verify with large data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStdSigner(kp)
-		largeData := make([]byte, 10000)
-		for i := range largeData {
-			largeData[i] = byte(i % 256)
-		}
-		signature, err := signer.Sign(largeData)
-		assert.Nil(t, err)
-		assert.NotNil(t, signature)
-
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify(largeData, signature)
-		assert.True(t, valid)
-		assert.Nil(t, err)
-	})
-
-	t.Run("verify with corrupted public key", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("test data"))
-		assert.Nil(t, err)
-		assert.NotNil(t, signature)
-
-		kp.PublicKey = []byte("-----BEGIN PUBLIC KEY-----\ninvalid base64 content\n-----END PUBLIC KEY-----")
-
-		verifier := NewStdVerifier(kp)
-		valid, err := verifier.Verify([]byte("test data"), signature)
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-
-		var verifyErr VerifyError
-		assert.True(t, errors.As(err, &verifyErr))
-	})
-}
-
-func TestNewStreamSigner(t *testing.T) {
-	t.Run("create new stream signer with empty key pair", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		signer := NewStreamSigner(&buf, kp)
-		assert.NotNil(t, signer)
-	})
-
-	t.Run("create new stream signer with valid key pair", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&buf, kp)
-		assert.NotNil(t, signer)
-	})
-}
-
-func TestStreamSignerWrite(t *testing.T) {
-	t.Run("write with empty data", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&buf, kp)
 		n, err := signer.Write([]byte{})
+		assert.NoError(t, err)
 		assert.Equal(t, 0, n)
-		assert.Nil(t, err)
 	})
 
-	t.Run("write with valid data", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&buf, kp)
-		n, err := signer.Write([]byte("test data"))
-		assert.Equal(t, 9, n)
-		assert.Nil(t, err)
+	t.Run("write fails when signer has error", func(t *testing.T) {
+		signer := &StreamSigner{Error: errors.New("blocked")}
+		n, err := signer.Write([]byte("payload"))
+		assert.Equal(t, 0, n)
+		assert.EqualError(t, err, "blocked")
 	})
 }
 
-func TestStreamSignerClose(t *testing.T) {
-	t.Run("close with valid data", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+func TestStdVerifier(t *testing.T) {
+	t.Run("verifies signature with valid key", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		pub, pri := parseEd25519Keys(t, kp)
 
-		signer := NewStreamSigner(&buf, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.Nil(t, err)
-		assert.NotEmpty(t, buf.Bytes())
+		signature := ed25519.Sign(pri, []byte("verify me"))
+
+		verifier := NewStdVerifier(kp)
+		require.NoError(t, verifier.Error)
+
+		valid, err := verifier.Verify([]byte("verify me"), signature)
+		assert.NoError(t, err)
+		assert.True(t, valid)
+		assert.Nil(t, verifier.Error)
+		assert.True(t, ed25519.Verify(pub, []byte("verify me"), signature))
 	})
 
-	t.Run("close with empty key pair error", func(t *testing.T) {
-		var buf bytes.Buffer
+	t.Run("missing public key yields error", func(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
-		signer := NewStreamSigner(&buf, kp)
-		err := signer.Close()
-		assert.NotNil(t, err)
-		assert.IsType(t, SignError{}, err)
+		verifier := NewStdVerifier(kp)
+		assert.Error(t, verifier.Error)
+
+		valid, err := verifier.Verify([]byte("data"), []byte("sign"))
+		assert.False(t, valid)
+		assert.Equal(t, verifier.Error, err)
 	})
 
-	t.Run("close with empty data and writer implements Closer", func(t *testing.T) {
-		file := mock.NewFile([]byte{}, "sig.bin")
-		defer file.Close()
+	t.Run("invalid public key yields error", func(t *testing.T) {
+		kp := &keypair.Ed25519KeyPair{PublicKey: []byte("bad pem")}
+		verifier := NewStdVerifier(kp)
+		assert.Error(t, verifier.Error)
 
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(file, kp)
-		err := signer.Close()
-		assert.Nil(t, err)
+		_, err := verifier.Verify([]byte("data"), []byte("sign"))
+		assert.Equal(t, verifier.Error, err)
 	})
 
-	t.Run("close with writer that writes ok but close fails", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		wc := mock.NewCloseErrorWriteCloser(&buf, assert.AnError)
-		signer := NewStreamSigner(wc, kp)
-		_, _ = signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.NotNil(t, err)
+	t.Run("existing error short circuits", func(t *testing.T) {
+		verifier := &StdVerifier{Error: errors.New("already failed")}
+		valid, err := verifier.Verify([]byte("data"), []byte("sign"))
+		assert.False(t, valid)
+		assert.EqualError(t, err, "already failed")
 	})
 
-	t.Run("close with empty data and close fails", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+	t.Run("returns no error for empty data", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		verifier := NewStdVerifier(kp)
+		require.NoError(t, verifier.Error)
 
-		wc := mock.NewCloseErrorWriteCloser(&buf, assert.AnError)
-		signer := NewStreamSigner(wc, kp)
-		err := signer.Close()
-		assert.NotNil(t, err)
+		valid, err := verifier.Verify(nil, []byte("sign"))
+		assert.False(t, valid)
+		assert.NoError(t, err)
 	})
 
-	t.Run("close with invalid private key", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.SetPrivateKey([]byte("invalid private key"))
+	t.Run("returns error for empty signature", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		verifier := NewStdVerifier(kp)
+		require.NoError(t, verifier.Error)
 
-		signer := NewStreamSigner(&buf, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.NotNil(t, err)
-
-		var signErr SignError
-		assert.True(t, errors.As(err, &signErr))
+		valid, err := verifier.Verify([]byte("data"), nil)
+		assert.False(t, valid)
+		assert.Error(t, err)
+		var verifyErr VerifyError
+		assert.ErrorAs(t, err, &verifyErr)
 	})
 
-	t.Run("close with write error", func(t *testing.T) {
-		errorWriter := mock.NewErrorFile(assert.AnError)
-		defer errorWriter.Close()
+	t.Run("captures invalid signature", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		verifier := NewStdVerifier(kp)
+		require.NoError(t, verifier.Error)
 
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(errorWriter, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.NotNil(t, err)
-	})
-
-	t.Run("close with sign error", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		_ = kp.SetPrivateKey([]byte("aGVsbG8="))
-
-		signer := NewStreamSigner(&buf, kp)
-		_, _ = signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.NotNil(t, err)
-		assert.IsType(t, SignError{}, err)
+		valid, err := verifier.Verify([]byte("data"), []byte("bad sign"))
+		assert.False(t, valid)
+		assert.Error(t, err)
+		assert.Equal(t, verifier.Error, err)
 	})
 }
 
-func TestStreamSignerSign(t *testing.T) {
-	t.Run("sign with invalid private key", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.SetPrivateKey([]byte("invalid private key"))
+func TestStreamVerifier(t *testing.T) {
+	t.Run("stream verification succeeds without closer", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		pub, pri := parseEd25519Keys(t, kp)
+		signature := ed25519.Sign(pri, []byte("stream verify"))
 
-		signer := NewStreamSigner(&bytes.Buffer{}, kp)
-		streamSigner, ok := signer.(*StreamSigner)
-		assert.True(t, ok)
-		signature, err := streamSigner.sign([]byte("test data"))
-		assert.Nil(t, signature)
-		assert.NotNil(t, err)
-		assert.IsType(t, SignError{}, err)
-	})
-}
+		reader := bytes.NewReader(signature)
+		verifier := NewStreamVerifier(reader, kp).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
 
-func TestNewStreamVerifier(t *testing.T) {
-	t.Run("create new stream verifier with empty key pair", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		verifier := NewStreamVerifier(&buf, kp)
-		assert.NotNil(t, verifier)
+		n, err := verifier.Write([]byte("stream verify"))
+		require.NoError(t, err)
+		assert.Equal(t, len("stream verify"), n)
+
+		err = verifier.Close()
+		assert.NoError(t, err)
+		assert.True(t, verifier.verified)
+		assert.True(t, ed25519.Verify(pub, []byte("stream verify"), signature))
 	})
 
-	t.Run("create new stream verifier with valid key pair", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+	t.Run("stream verification closes reader with error", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		_, pri := parseEd25519Keys(t, kp)
+		signature := ed25519.Sign(pri, []byte("stream close error"))
 
-		verifier := NewStreamVerifier(&buf, kp)
-		assert.NotNil(t, verifier)
+		reader := mock.NewCloseErrorReadCloser(bytes.NewReader(signature), errors.New("close error"))
+		verifier := NewStreamVerifier(reader, kp).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
+
+		_, err := verifier.Write([]byte("stream close error"))
+		require.NoError(t, err)
+
+		err = verifier.Close()
+		assert.EqualError(t, err, "close error")
+		assert.True(t, verifier.verified)
 	})
-}
 
-func TestStreamVerifierWrite(t *testing.T) {
-	t.Run("write with empty data", func(t *testing.T) {
-		var buf bytes.Buffer
+	t.Run("returns error when public key missing", func(t *testing.T) {
 		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+		verifier := NewStreamVerifier(bytes.NewReader(nil), kp).(*StreamVerifier)
+		assert.Error(t, verifier.Error)
 
-		verifier := NewStreamVerifier(&buf, kp)
+		_, err := verifier.Write([]byte("data"))
+		assert.Equal(t, verifier.Error, err)
+
+		closeErr := verifier.Close()
+		assert.Equal(t, verifier.Error, closeErr)
+	})
+
+	t.Run("returns error when public key invalid", func(t *testing.T) {
+		kp := &keypair.Ed25519KeyPair{PublicKey: []byte("invalid pem")}
+		verifier := NewStreamVerifier(bytes.NewReader(nil), kp).(*StreamVerifier)
+		assert.Error(t, verifier.Error)
+	})
+
+	t.Run("close returns read error", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		reader := mock.NewErrorFile(errors.New("read failure"))
+
+		verifier := NewStreamVerifier(reader, kp).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
+
+		err := verifier.Close()
+		var readErr ReadError
+		assert.ErrorAs(t, err, &readErr)
+	})
+
+	t.Run("close returns nil when signature empty", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		reader := bytes.NewReader(nil)
+		verifier := NewStreamVerifier(reader, kp).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
+
+		_, err := verifier.Write([]byte("data"))
+		require.NoError(t, err)
+
+		err = verifier.Close()
+		assert.NoError(t, err)
+		assert.False(t, verifier.verified)
+	})
+
+	t.Run("close verifies with empty data buffer", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		_, pri := parseEd25519Keys(t, kp)
+		signature := ed25519.Sign(pri, []byte("bufferless"))
+
+		verifier := NewStreamVerifier(bytes.NewReader(signature), kp).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
+
+		err := verifier.Close()
+		assert.NoError(t, err)
+		assert.False(t, verifier.verified)
+	})
+
+	t.Run("close returns verify error for invalid signature", func(t *testing.T) {
+		kpGood := genEd25519KeyPair(t)
+		kpBad := genEd25519KeyPair(t)
+		_, badPri := parseEd25519Keys(t, kpBad)
+
+		signature := ed25519.Sign(badPri, []byte("data"))
+		verifier := NewStreamVerifier(bytes.NewReader(signature), kpGood).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
+
+		_, err := verifier.Write([]byte("data"))
+		require.NoError(t, err)
+
+		err = verifier.Close()
+		assert.Error(t, err)
+		assert.Equal(t, verifier.Error, err)
+		assert.False(t, verifier.verified)
+	})
+
+	t.Run("write handles empty payload", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		verifier := NewStreamVerifier(bytes.NewReader(nil), kp).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
+
 		n, err := verifier.Write([]byte{})
-		assert.Equal(t, 0, n)
-		assert.Nil(t, err)
-	})
-
-	t.Run("write with valid data", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(&buf, kp)
-		n, err := verifier.Write([]byte("test data"))
-		assert.Equal(t, 9, n)
-		assert.Nil(t, err)
-	})
-}
-
-func TestStreamVerifierClose(t *testing.T) {
-	t.Run("close with valid data and signature", func(t *testing.T) {
-		var signBuf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&signBuf, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.Nil(t, err)
-		signature := signBuf.Bytes()
-
-		var verifyBuf bytes.Buffer
-		verifyBuf.Write(signature)
-		verifier := NewStreamVerifier(&verifyBuf, kp)
-		verifier.Write([]byte("test data"))
-		err = verifier.Close()
-		assert.Nil(t, err)
-	})
-
-	t.Run("close with invalid public key", func(t *testing.T) {
-		var signBuf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&signBuf, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.Nil(t, err)
-		signature := signBuf.Bytes()
-
-		var verifyBuf bytes.Buffer
-		verifyBuf.Write(signature)
-		invalidKp := keypair.NewEd25519KeyPair()
-		invalidKp.SetPublicKey([]byte("invalid public key"))
-		verifier := NewStreamVerifier(&verifyBuf, invalidKp)
-		verifier.Write([]byte("test data"))
-		err = verifier.Close()
-		assert.NotNil(t, err)
-
-		var verifyErr VerifyError
-		assert.True(t, errors.As(err, &verifyErr))
-	})
-
-	t.Run("close with read error", func(t *testing.T) {
-		errorReader := mock.NewErrorFile(assert.AnError)
-		defer errorReader.Close()
-
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(errorReader, kp)
-		verifier.Write([]byte("test data"))
-		err := verifier.Close()
-		assert.NotNil(t, err)
-
-		var readErr ReadError
-		assert.True(t, errors.As(err, &readErr))
-	})
-
-	t.Run("close with verify error", func(t *testing.T) {
-		var signBuf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&signBuf, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.Nil(t, err)
-		signature := signBuf.Bytes()
-
-		var verifyBuf bytes.Buffer
-		verifyBuf.Write(signature)
-		verifier := NewStreamVerifier(&verifyBuf, kp)
-		verifier.Write([]byte("wrong data"))
-		err = verifier.Close()
-		assert.NotNil(t, err)
-
-		var verifyErr VerifyError
-		assert.True(t, errors.As(err, &verifyErr))
-	})
-
-	t.Run("close with initialization error", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		verifier := NewStreamVerifier(&buf, kp)
-		err := verifier.Close()
-		assert.NotNil(t, err)
-		assert.IsType(t, VerifyError{}, err)
-	})
-
-	t.Run("close with reader that implements Closer", func(t *testing.T) {
-		var signBuf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&signBuf, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.Nil(t, err)
-		signature := signBuf.Bytes()
-
-		file := mock.NewFile(signature, "signature.txt")
-		defer file.Close()
-
-		verifier := NewStreamVerifier(file, kp)
-		verifier.Write([]byte("test data"))
-		err = verifier.Close()
-		assert.Nil(t, err)
-	})
-
-	t.Run("close with reader that implements Closer and returns error", func(t *testing.T) {
-		var signBuf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&signBuf, kp)
-		signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.Nil(t, err)
-		signature := signBuf.Bytes()
-
-		errorFile := mock.NewErrorFile(assert.AnError)
-		defer errorFile.Close()
-
-		_, _ = errorFile.Write(signature)
-
-		verifier := NewStreamVerifier(errorFile, kp)
-		verifier.Write([]byte("test data"))
-		err = verifier.Close()
-		assert.NotNil(t, err)
-		assert.IsType(t, ReadError{}, err)
-	})
-
-	t.Run("close with empty signature", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		var verifyBuf bytes.Buffer
-		verifier := NewStreamVerifier(&verifyBuf, kp)
-		verifier.Write([]byte("test data"))
-		err := verifier.Close()
-		assert.Nil(t, err)
-	})
-}
-
-func TestStreamVerifierVerify(t *testing.T) {
-	t.Run("verify with invalid public key", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.SetPublicKey([]byte("invalid public key"))
-
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-		valid, err := streamVerifier.verify([]byte("test data"), []byte("signature"))
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-		assert.IsType(t, VerifyError{}, err)
-	})
-
-	t.Run("verify with invalid signature", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-		valid, err := streamVerifier.verify([]byte("test data"), []byte("invalid signature"))
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-		assert.IsType(t, VerifyError{}, err)
-	})
-
-	t.Run("verify with valid signature but wrong data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStdSigner(kp)
-		signature, err := signer.Sign([]byte("original data"))
-		assert.Nil(t, err)
-		assert.NotNil(t, signature)
-
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-		valid, err := streamVerifier.verify([]byte("different data"), signature)
-		assert.False(t, valid)
-		assert.NotNil(t, err)
-		assert.IsType(t, VerifyError{}, err)
-	})
-
-	t.Run("verify with empty data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-		valid, err := streamVerifier.verify([]byte{}, []byte("signature"))
-		assert.False(t, valid)
-		assert.Nil(t, err)
-	})
-
-	t.Run("verify with empty signature", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-		valid, err := streamVerifier.verify([]byte("test data"), []byte{})
-		assert.False(t, valid)
-		assert.Nil(t, err)
-	})
-}
-
-func TestStreamVerifierWriteEdgeCases(t *testing.T) {
-	t.Run("write with buffer growth", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-
-		largeData := make([]byte, 1000)
-		n, err := verifier.Write(largeData)
-		assert.Nil(t, err)
-		assert.Equal(t, 1000, n)
-		assert.Equal(t, 1000, len(streamVerifier.buffer))
-
-		moreData := make([]byte, 2000)
-		n, err = verifier.Write(moreData)
-		assert.Nil(t, err)
-		assert.Equal(t, 2000, n)
-		assert.Equal(t, 3000, len(streamVerifier.buffer))
-	})
-
-	t.Run("write with initialization error", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-
-		data := []byte("test data")
-		n, err := verifier.Write(data)
-		assert.NotNil(t, err)
-		assert.Equal(t, 0, n)
-		assert.IsType(t, VerifyError{}, err)
-	})
-
-	t.Run("write with nil data", func(t *testing.T) {
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(&bytes.Buffer{}, kp)
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-
-		n, err := verifier.Write(nil)
-		assert.Nil(t, err)
-		assert.Equal(t, 0, n)
-		assert.Equal(t, 0, len(streamVerifier.buffer))
-	})
-}
-
-func TestErrorTypes(t *testing.T) {
-	t.Run("SignError", func(t *testing.T) {
-		innerErr := keypair.EmptyPrivateKeyError{}
-		err := SignError{Err: innerErr}
-
-		_ = err.Error()
-
-		var signErr SignError
-		assert.True(t, errors.As(err, &signErr))
-
-		var emptyPrivateKeyErr keypair.EmptyPrivateKeyError
-		assert.True(t, errors.As(signErr.Err, &emptyPrivateKeyErr))
-	})
-
-	t.Run("VerifyError", func(t *testing.T) {
-		innerErr := keypair.EmptyPublicKeyError{}
-		err := VerifyError{Err: innerErr}
-
-		_ = err.Error()
-
-		var verifyErr VerifyError
-		assert.True(t, errors.As(err, &verifyErr))
-
-		var emptyPublicKeyErr keypair.EmptyPublicKeyError
-		assert.True(t, errors.As(verifyErr.Err, &emptyPublicKeyErr))
-	})
-
-	t.Run("ReadError", func(t *testing.T) {
-		innerErr := assert.AnError
-		err := ReadError{Err: innerErr}
-
-		_ = err.Error()
-
-		var readErr ReadError
-		assert.True(t, errors.As(err, &readErr))
-		assert.Equal(t, innerErr, readErr.Err)
-	})
-}
-
-func TestStreamSignerWriteBufferGrowth(t *testing.T) {
-	t.Run("write with buffer capacity expansion", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&buf, kp)
-		streamSigner, ok := signer.(*StreamSigner)
-		assert.True(t, ok)
-
-		initialData := make([]byte, 100)
-		n, err := signer.Write(initialData)
-		assert.Nil(t, err)
-		assert.Equal(t, 100, n)
-
-		expansionData := make([]byte, 50)
-		n, err = signer.Write(expansionData)
-		assert.Nil(t, err)
-		assert.Equal(t, 50, n)
-		assert.Equal(t, 150, len(streamSigner.buffer))
-		assert.True(t, cap(streamSigner.buffer) >= 150)
-	})
-
-	t.Run("write with large buffer expansion", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&buf, kp)
-		streamSigner, ok := signer.(*StreamSigner)
-		assert.True(t, ok)
-
-		initialData := make([]byte, 100)
-		n, err := signer.Write(initialData)
-		assert.Nil(t, err)
-		assert.Equal(t, 100, n)
-
-		largeExpansionData := make([]byte, 150)
-		n, err = signer.Write(largeExpansionData)
-		assert.Nil(t, err)
-		assert.Equal(t, 150, n)
-		assert.Equal(t, 250, len(streamSigner.buffer))
-		assert.True(t, cap(streamSigner.buffer) >= 250)
-	})
-}
-
-func TestStreamSignerWriteEdgeCases(t *testing.T) {
-	t.Run("write with initialization error", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		signer := NewStreamSigner(&buf, kp)
-
-		data := []byte("test data")
-		n, err := signer.Write(data)
-		assert.NotNil(t, err)
-		assert.Equal(t, 0, n)
-		assert.IsType(t, SignError{}, err)
-	})
-
-	t.Run("write with nil data", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&buf, kp)
-		n, err := signer.Write(nil)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 0, n)
 	})
-}
 
-func TestCloseWithoutWriterCloser(t *testing.T) {
-	t.Run("close with writer that does NOT implement io.Closer", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		signer := NewStreamSigner(&buf, kp)
-		_, _ = signer.Write([]byte("test data"))
-		err := signer.Close()
-		assert.Nil(t, err)
-		assert.NotEmpty(t, buf.Bytes())
-	})
-}
-
-func TestNewStreamVerifierWithValidKeyPair(t *testing.T) {
-	t.Run("create stream verifier with valid key pair and successful parsing", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
-
-		verifier := NewStreamVerifier(&buf, kp)
-		assert.NotNil(t, verifier)
-
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-		assert.NotNil(t, streamVerifier.pubKey)
-		assert.Nil(t, streamVerifier.Error)
+	t.Run("write fails when verifier has error", func(t *testing.T) {
+		verifier := &StreamVerifier{Error: errors.New("blocked")}
+		n, err := verifier.Write([]byte("payload"))
+		assert.Equal(t, 0, n)
+		assert.EqualError(t, err, "blocked")
 	})
 
-	t.Run("create stream verifier with invalid public key that fails parsing", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.PublicKey = []byte(`-----BEGIN PUBLIC KEY-----
-invalid base64 content
------END PUBLIC KEY-----`)
+	t.Run("verify handles preset error and empty values", func(t *testing.T) {
+		verifier := &StreamVerifier{Error: errors.New("existing")}
+		_, err := verifier.verify([]byte("data"), []byte("sign"))
+		assert.EqualError(t, err, "existing")
 
-		verifier := NewStreamVerifier(&buf, kp)
-		assert.NotNil(t, verifier)
+		verifier.Error = nil
+		valid, err := verifier.verify([]byte{}, []byte("sign"))
+		assert.False(t, valid)
+		assert.NoError(t, err)
 
-		streamVerifier, ok := verifier.(*StreamVerifier)
-		assert.True(t, ok)
-		assert.NotNil(t, streamVerifier.Error)
-		assert.IsType(t, VerifyError{}, streamVerifier.Error)
+		valid, err = verifier.verify([]byte("data"), []byte{})
+		assert.False(t, valid)
+		assert.Error(t, err)
 	})
-}
 
-func TestStreamSignerCloseWithSignError(t *testing.T) {
-	t.Run("close when Sign returns error due to nil private key", func(t *testing.T) {
-		var buf bytes.Buffer
-		kp := keypair.NewEd25519KeyPair()
-		kp.GenKeyPair()
+	t.Run("verify detects invalid and valid signatures", func(t *testing.T) {
+		kp := genEd25519KeyPair(t)
+		pub, pri := parseEd25519Keys(t, kp)
+		data := []byte("payload")
+		signature := ed25519.Sign(pri, data)
 
-		signer := NewStreamSigner(&buf, kp)
-		streamSigner, ok := signer.(*StreamSigner)
-		assert.True(t, ok)
+		verifier := NewStreamVerifier(bytes.NewReader(nil), kp).(*StreamVerifier)
+		require.NoError(t, verifier.Error)
 
-		streamSigner.priKey = nil
+		valid, err := verifier.verify(data, []byte("bad sign"))
+		assert.False(t, valid)
+		assert.Equal(t, verifier.Error, err)
 
-		_, _ = signer.Write([]byte("test data"))
-
-		err := signer.Close()
-		assert.NotNil(t, err)
-		assert.IsType(t, SignError{}, err)
+		verifier.Error = nil
+		valid, err = verifier.verify(data, signature)
+		assert.True(t, valid)
+		assert.NoError(t, err)
+		assert.True(t, ed25519.Verify(pub, data, signature))
 	})
 }
