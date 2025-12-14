@@ -99,8 +99,8 @@ func Encrypt(random io.Reader, pub *ecdsa.PublicKey, plaintext []byte, order Cip
 
 // Decrypt decrypts ciphertext using SM2 private key decryption.
 // The ciphertext format follows GM/T 0003-2012 standard.
-func Decrypt(priv *ecdsa.PrivateKey, ciphertext []byte, order CipherOrder, window int) ([]byte, error) {
-	if priv == nil {
+func Decrypt(pri *ecdsa.PrivateKey, ciphertext []byte, order CipherOrder, window int) ([]byte, error) {
+	if pri == nil {
 		return nil, io.ErrUnexpectedEOF
 	}
 
@@ -126,7 +126,7 @@ func Decrypt(priv *ecdsa.PrivateKey, ciphertext []byte, order CipherOrder, windo
 	x := new(big.Int).SetBytes(src[:coordLen])
 	y := new(big.Int).SetBytes(src[coordLen : 2*coordLen])
 
-	x2, y2 := curve.ScalarMult(x, y, priv.D.Bytes())
+	x2, y2 := curve.ScalarMult(x, y, pri.D.Bytes())
 	x2b := padLeft(x2.Bytes(), coordLen)
 	y2b := padLeft(y2.Bytes(), coordLen)
 
@@ -168,21 +168,21 @@ func Decrypt(priv *ecdsa.PrivateKey, ciphertext []byte, order CipherOrder, windo
 // Sign generates an SM2 signature for the given message
 // It internally calculates ZA and digest (e = SM3(ZA || M))
 // Returns the signature in ASN.1 DER format
-func Sign(random io.Reader, priv *ecdsa.PrivateKey, message []byte, uid []byte) ([]byte, error) {
+func Sign(random io.Reader, pri *ecdsa.PrivateKey, message []byte, uid []byte) ([]byte, error) {
 	if random == nil {
 		random = rand.Reader
 	}
 
-	curve := priv.Curve
+	curve := pri.Curve
 	params := curve.Params()
 	n := params.N
 
-	if priv.D.Sign() == 0 || priv.D.Cmp(n) >= 0 {
+	if pri.D.Sign() == 0 || pri.D.Cmp(n) >= 0 {
 		return nil, errors.New("invalid private key")
 	}
 
 	// Calculate ZA = SM3(ENTLA || IDA || a || b || xG || yG || xA || yA)
-	zaInput := getZA(&priv.PublicKey, uid)
+	zaInput := getZA(&pri.PublicKey, uid)
 	h := sm3.New()
 	h.Write(zaInput)
 	za := h.Sum(nil)
@@ -218,12 +218,12 @@ func Sign(random io.Reader, priv *ecdsa.PrivateKey, message []byte, uid []byte) 
 		// Or using formula: s = d^(-1) · k - r mod n (after simplification)
 
 		// Compute d + 1
-		dPlus1 := new(big.Int).Add(priv.D, big.NewInt(1))
+		dPlus1 := new(big.Int).Add(pri.D, big.NewInt(1))
 		// Compute (d + 1)^(-1) mod n
 		dPlus1Inv := new(big.Int).ModInverse(dPlus1, n)
 
 		// Compute r·d mod n
-		rd := new(big.Int).Mul(r, priv.D)
+		rd := new(big.Int).Mul(r, pri.D)
 		rd.Mod(rd, n)
 
 		// Compute k - r·d mod n
