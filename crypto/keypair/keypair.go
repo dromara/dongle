@@ -11,3 +11,13 @@
 //   - Formatting keys to PEM format
 //   - Setting algorithm-specific parameters
 package keypair
+
+// KeyType represents the type of cryptographic key (public or private).
+// This is used to distinguish between public key and private key
+// in key pair operations and management.
+type KeyType string
+
+const (
+	PublicKey  KeyType = "publicKey"
+	PrivateKey KeyType = "privateKey"
+)
