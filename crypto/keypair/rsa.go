@@ -88,6 +88,9 @@ type RsaKeyPair struct {
 	// Signature contains the signature bytes for verification
 	Signature []byte
 
+	// Type specifies the key type (public or private).
+	Type KeyType
+
 	// Format specifies the key format for PEM encoding.
 	// This field affects:
 	//   - GenKeyPair(): PEM header format when generating keys
@@ -195,14 +198,9 @@ func (k *RsaKeyPair) SetPrivateKey(privateKey []byte) error {
 	return err
 }
 
-// SetPadding sets the padding scheme for RSA cryptographic operations.
-//
-// Padding schemes:
-//   - PKCS1v15: Can be used for both encryption and signing
-//   - OAEP: ONLY for encryption (returns error if used for signing)
-//   - PSS: ONLY for signing (returns error if used for encryption)
-func (k *RsaKeyPair) SetPadding(padding RsaPaddingScheme) {
-	k.Padding = padding
+// SetType sets the key type (public or private) for the RSA key pair.
+func (k *RsaKeyPair) SetType(typ KeyType) {
+	k.Type = typ
 }
 
 // SetFormat sets the key format for the RSA key pair.
@@ -212,6 +210,16 @@ func (k *RsaKeyPair) SetPadding(padding RsaPaddingScheme) {
 //   - FormatPrivateKey(): Determines the PEM header format when formatting private keys
 func (k *RsaKeyPair) SetFormat(format RsaKeyFormat) {
 	k.Format = format
+}
+
+// SetPadding sets the padding scheme for RSA cryptographic operations.
+//
+// Padding schemes:
+//   - PKCS1v15: Can be used for both encryption and signing
+//   - OAEP: ONLY for encryption (returns error if used for signing)
+//   - PSS: ONLY for signing (returns error if used for encryption)
+func (k *RsaKeyPair) SetPadding(padding RsaPaddingScheme) {
+	k.Padding = padding
 }
 
 // SetHash sets the hash function used for OAEP padding in RSA operations.
