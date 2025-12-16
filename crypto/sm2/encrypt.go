@@ -1,7 +1,6 @@
 package sm2
 
 import (
-	"crypto/rand"
 	"io"
 
 	"github.com/dromara/dongle/crypto/internal/sm2"
@@ -41,7 +40,7 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.Encrypt(rand.Reader, e.cache.pubKey, src, sm2.CipherOrder(e.keypair.Order), e.keypair.Window)
+	dst, err = sm2.EncryptWithPublicKey(e.cache.pubKey, src, e.keypair.Window, string(e.keypair.Order))
 	if err != nil {
 		err = EncryptError{Err: err}
 		return
@@ -80,15 +79,15 @@ func NewStreamEncrypter(w io.Writer, kp *keypair.Sm2KeyPair) io.WriteCloser {
 }
 
 // encrypt encrypts plaintext with SM2 public key.
-func (e *StreamEncrypter) encrypt(data []byte) (dst []byte, err error) {
+func (e *StreamEncrypter) encrypt(src []byte) (dst []byte, err error) {
 	if e.Error != nil {
 		err = e.Error
 		return
 	}
-	if len(data) == 0 {
+	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.Encrypt(rand.Reader, e.cache.pubKey, data, sm2.CipherOrder(e.keypair.Order), e.keypair.Window)
+	dst, err = sm2.EncryptWithPublicKey(e.cache.pubKey, src, e.keypair.Window, string(e.keypair.Order))
 	if err != nil {
 		err = EncryptError{Err: err}
 		return
@@ -121,9 +120,9 @@ func (e *StreamEncrypter) Close() error {
 		}
 		return nil
 	}
-	dst, err := e.encrypt(e.buffer)
-	if err != nil {
-		return err
+	dst, encErr := e.encrypt(e.buffer)
+	if encErr != nil {
+		return encErr
 	}
 	if _, writeErr := e.writer.Write(dst); writeErr != nil {
 		return writeErr
