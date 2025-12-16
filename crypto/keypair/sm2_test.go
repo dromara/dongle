@@ -17,16 +17,22 @@ import (
 
 func TestNewSm2KeyPair_Defaults(t *testing.T) {
 	kp := NewSm2KeyPair()
-	if kp.Order != C1C3C2 || kp.Window != 4 {
+	if kp.Mode != C1C3C2 || kp.Window != 4 {
 		t.Fatalf("defaults not set: %+v", kp)
 	}
 }
 
-func TestSetOrderAndWindow_Clamp(t *testing.T) {
+func TestSetOrderAndModeAndWindow_Clamp(t *testing.T) {
 	kp := NewSm2KeyPair()
+
 	kp.SetOrder(C1C2C3)
-	if kp.Order != C1C2C3 {
+	if kp.Mode != C1C2C3 {
 		t.Fatalf("order not set")
+	}
+
+	kp.SetMode(C1C3C2)
+	if kp.Mode != C1C3C2 {
+		t.Fatalf("mode not set")
 	}
 
 	kp.SetWindow(1)

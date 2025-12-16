@@ -11,20 +11,20 @@ import (
 	"github.com/dromara/dongle/internal/utils"
 )
 
-// Sm2CipherOrder specifies the concatenation order of SM2 ciphertext
+// Sm2CipherMode specifies the concatenation mode of SM2 ciphertext
 // components. It controls how the library assembles (encrypt) and
 // interprets (decrypt) the C1, C2, C3 parts.
 //
 // C1: EC point (x1||y1) in uncompressed form; C2: XORed plaintext;
 // C3: SM3 digest over x2 || M || y2.
-type Sm2CipherOrder string
+type Sm2CipherMode string
 
 // Supported SM2 ciphertext orders.
 const (
 	// C1C2C3 means ciphertext bytes are C1 || C2 || C3.
-	C1C2C3 Sm2CipherOrder = "c1c2c3"
+	C1C2C3 Sm2CipherMode = "c1c2c3"
 	// C1C3C2 means ciphertext bytes are C1 || C3 || C2.
-	C1C3C2 Sm2CipherOrder = "c1c3c2"
+	C1C3C2 Sm2CipherMode = "c1c3c2"
 )
 
 var (
@@ -41,7 +41,10 @@ type Sm2KeyPair struct {
 	// PrivateKey contains the PEM-encoded private key
 	PrivateKey []byte
 
-	Order Sm2CipherOrder
+	// Order specifies the mode of SM2 ciphertext components.
+	// It controls how Encrypt assembles and Decrypt interprets ciphertext.
+	Mode Sm2CipherMode
+
 	// Window controls internal SM2 fixed-base/wNAF window size (2..6).
 	// 4 means use library default.
 	Window int
@@ -55,7 +58,7 @@ type Sm2KeyPair struct {
 // (Order=C1C3C2, Window=4).
 func NewSm2KeyPair() *Sm2KeyPair {
 	return &Sm2KeyPair{
-		Order:  C1C3C2,
+		Mode:   C1C3C2,
 		Window: 4,
 	}
 }
@@ -84,10 +87,16 @@ func (k *Sm2KeyPair) GenKeyPair() error {
 	return nil
 }
 
-// SetOrder sets ciphertext component order to C1C3C2 or C1C2C3.
+// SetOrder sets ciphertext order to C1C3C2 or C1C2C3.
+// Deprecated: `SetOrder` will be removed in the future, use `SetMode` instead.
+func (k *Sm2KeyPair) SetOrder(order Sm2CipherMode) {
+	k.SetMode(order)
+}
+
+// SetMode sets ciphertext mode to C1C3C2 or C1C2C3.
 // It affects how Encrypt assembles and Decrypt interprets ciphertext.
-func (k *Sm2KeyPair) SetOrder(order Sm2CipherOrder) {
-	k.Order = order
+func (k *Sm2KeyPair) SetMode(mode Sm2CipherMode) {
+	k.Mode = mode
 }
 
 // SetWindow sets scalar-multiplication window (2..6).
