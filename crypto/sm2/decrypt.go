@@ -39,7 +39,7 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.Decrypt(d.cache.priKey, src, sm2.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
+	dst, err = sm2.DecryptWithPrivateKey(d.cache.priKey, src, d.keypair.Window, string(d.keypair.Order))
 	if err != nil {
 		err = DecryptError{Err: err}
 		return
@@ -80,15 +80,15 @@ func NewStreamDecrypter(r io.Reader, kp *keypair.Sm2KeyPair) io.Reader {
 }
 
 // decrypt decrypts ciphertext with SM2 private key.
-func (d *StreamDecrypter) decrypt(data []byte) (dst []byte, err error) {
+func (d *StreamDecrypter) decrypt(src []byte) (dst []byte, err error) {
 	if d.Error != nil {
 		err = d.Error
 		return
 	}
-	if len(data) == 0 {
+	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.Decrypt(d.cache.priKey, data, sm2.CipherOrder(string(d.keypair.Order)), d.keypair.Window)
+	dst, err = sm2.DecryptWithPrivateKey(d.cache.priKey, src, d.keypair.Window, string(d.keypair.Order))
 	if err != nil {
 		err = DecryptError{Err: err}
 		return
