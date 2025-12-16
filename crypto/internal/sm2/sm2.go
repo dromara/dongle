@@ -18,9 +18,9 @@ var (
 )
 
 const (
-	// c1c2c3 represents ciphertext order: C1 || C2 || C3
+	// c1c2c3 represents ciphertext mode: C1 || C2 || C3
 	c1c2c3 = "c1c2c3"
-	// c1c3c2 represents ciphertext order: C1 || C3 || C2
+	// c1c3c2 represents ciphertext mode: C1 || C3 || C2
 	c1c3c2 = "c1c3c2"
 )
 
@@ -29,7 +29,7 @@ type sm2Sign struct {
 	R, S *big.Int
 }
 
-func EncryptWithPublicKey(pub *ecdsa.PublicKey, plaintext []byte, window int, order string) ([]byte, error) {
+func EncryptWithPublicKey(pub *ecdsa.PublicKey, plaintext []byte, window int, mode string) ([]byte, error) {
 	if pub == nil {
 		return nil, io.ErrUnexpectedEOF
 	}
@@ -80,16 +80,16 @@ func EncryptWithPublicKey(pub *ecdsa.PublicKey, plaintext []byte, window int, or
 	}
 
 	var payload []byte
-	if order == c1c2c3 {
+	if mode == c1c2c3 {
 		payload = append(append(c1, c2...), c3...)
 	}
-	if order == c1c3c2 {
+	if mode == c1c3c2 {
 		payload = append(append(c1, c3...), c2...)
 	}
 	return append([]byte{0x04}, payload...), nil
 }
 
-func DecryptWithPrivateKey(pri *ecdsa.PrivateKey, ciphertext []byte, window int, order string) ([]byte, error) {
+func DecryptWithPrivateKey(pri *ecdsa.PrivateKey, ciphertext []byte, window int, mode string) ([]byte, error) {
 	if pri == nil {
 		return nil, io.ErrUnexpectedEOF
 	}
@@ -124,12 +124,12 @@ func DecryptWithPrivateKey(pri *ecdsa.PrivateKey, ciphertext []byte, window int,
 
 	// Determine C2 and C3 positions based on ciphertext order
 	var c2Start, c3Start, c3End int
-	if order == c1c2c3 {
+	if mode == c1c2c3 {
 		c2Start = 2 * coordLen
 		c3Start = 2*coordLen + n
 		c3End = len(src)
 	}
-	if order == c1c3c2 {
+	if mode == c1c3c2 {
 		c2Start = 2*coordLen + 32
 		c3Start = 2 * coordLen
 		c3End = 2*coordLen + 32
