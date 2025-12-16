@@ -46,7 +46,7 @@ func (v *StdVerifier) Verify(src, sign []byte) (valid bool, err error) {
 	}
 
 	// Verify the signature (Verify internally calculates ZA and digest)
-	valid = sm2.Verify(v.cache.pubKey, src, v.keypair.UID, sign)
+	valid = sm2.VerifyWithPublicKey(v.cache.pubKey, src, v.keypair.UID, sign)
 	if !valid {
 		v.Error = VerifyError{Err: nil}
 		return false, v.Error
@@ -97,7 +97,7 @@ func (v *StreamVerifier) verify(data, signature []byte) (valid bool, err error) 
 	}
 
 	// Verify the signature (Verify internally calculates ZA and digest)
-	valid = sm2.Verify(v.cache.pubKey, data, v.keypair.UID, signature)
+	valid = sm2.VerifyWithPublicKey(v.cache.pubKey, data, v.keypair.UID, signature)
 	if !valid {
 		v.Error = VerifyError{Err: nil}
 		return false, v.Error
