@@ -4,8 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/pem"
-	"io"
-	"io/fs"
 	"strings"
 
 	"github.com/dromara/dongle/coding"
@@ -124,24 +122,6 @@ func (k *Sm2KeyPair) SetPublicKey(publicKey []byte) error {
 // Accepts base64-encoded DER of PKCS#8 PrivateKeyInfo.
 func (k *Sm2KeyPair) SetPrivateKey(privateKey []byte) error {
 	key, err := k.FormatPrivateKey(privateKey)
-	if err == nil {
-		k.PrivateKey = key
-	}
-	return err
-}
-
-// LoadPublicKey reads a PEM-encoded public key from a file.
-func (k *Sm2KeyPair) LoadPublicKey(f fs.File) error {
-	key, err := io.ReadAll(f)
-	if err == nil {
-		k.PublicKey = key
-	}
-	return err
-}
-
-// LoadPrivateKey reads a PEM-encoded private key from a file.
-func (k *Sm2KeyPair) LoadPrivateKey(f fs.File) error {
-	key, err := io.ReadAll(f)
 	if err == nil {
 		k.PrivateKey = key
 	}

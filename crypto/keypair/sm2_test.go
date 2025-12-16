@@ -117,34 +117,6 @@ func TestFormatAndSetKeys(t *testing.T) {
 	}
 }
 
-func TestLoadPublicPrivateKey(t *testing.T) {
-	kp := NewSm2KeyPair()
-	if err := kp.GenKeyPair(); err != nil {
-		t.Fatalf("GenKeyPair: %v", err)
-	}
-
-	pubFile := mock.NewFile(kp.PublicKey, "public.pem")
-	defer pubFile.Close()
-	priFile := mock.NewFile(kp.PrivateKey, "private.pem")
-	defer priFile.Close()
-
-	if err := kp.LoadPublicKey(pubFile); err != nil {
-		t.Fatalf("LoadPublicKey: %v", err)
-	}
-
-	priFile.Reset()
-	if err := kp.LoadPrivateKey(priFile); err != nil {
-		t.Fatalf("LoadPrivateKey: %v", err)
-	}
-
-	if err := kp.LoadPublicKey(mock.NewErrorFile(errors.New("boom"))); err == nil {
-		t.Fatalf("LoadPublicKey expected error")
-	}
-	if err := kp.LoadPrivateKey(mock.NewErrorFile(errors.New("boom"))); err == nil {
-		t.Fatalf("LoadPrivateKey expected error")
-	}
-}
-
 func TestParseKey_ErrorPaths(t *testing.T) {
 	kp := NewSm2KeyPair()
 	if _, err := kp.ParsePublicKey(); err == nil {
