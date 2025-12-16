@@ -40,7 +40,7 @@ func (e *StdEncrypter) Encrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.EncryptWithPublicKey(e.cache.pubKey, src, e.keypair.Window, string(e.keypair.Order))
+	dst, err = sm2.EncryptWithPublicKey(e.cache.pubKey, src, e.keypair.Window, string(e.keypair.Mode))
 	if err != nil {
 		err = EncryptError{Err: err}
 		return
@@ -87,7 +87,7 @@ func (e *StreamEncrypter) encrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.EncryptWithPublicKey(e.cache.pubKey, src, e.keypair.Window, string(e.keypair.Order))
+	dst, err = sm2.EncryptWithPublicKey(e.cache.pubKey, src, e.keypair.Window, string(e.keypair.Mode))
 	if err != nil {
 		err = EncryptError{Err: err}
 		return

@@ -39,7 +39,7 @@ func (d *StdDecrypter) Decrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.DecryptWithPrivateKey(d.cache.priKey, src, d.keypair.Window, string(d.keypair.Order))
+	dst, err = sm2.DecryptWithPrivateKey(d.cache.priKey, src, d.keypair.Window, string(d.keypair.Mode))
 	if err != nil {
 		err = DecryptError{Err: err}
 		return
@@ -88,7 +88,7 @@ func (d *StreamDecrypter) decrypt(src []byte) (dst []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	dst, err = sm2.DecryptWithPrivateKey(d.cache.priKey, src, d.keypair.Window, string(d.keypair.Order))
+	dst, err = sm2.DecryptWithPrivateKey(d.cache.priKey, src, d.keypair.Window, string(d.keypair.Mode))
 	if err != nil {
 		err = DecryptError{Err: err}
 		return

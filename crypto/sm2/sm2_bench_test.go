@@ -185,7 +185,7 @@ func BenchmarkEncryptionOrders(b *testing.B) {
 	testData := []byte("Test message for benchmarking different SM2 cipher orders")
 
 	b.Run("C1C3C2_Order", func(b *testing.B) {
-		kp.SetOrder(keypair.C1C3C2)
+		kp.SetMode(keypair.C1C3C2)
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
@@ -198,7 +198,7 @@ func BenchmarkEncryptionOrders(b *testing.B) {
 	})
 
 	b.Run("C1C2C3_Order", func(b *testing.B) {
-		kp.SetOrder(keypair.C1C2C3)
+		kp.SetMode(keypair.C1C2C3)
 		b.ResetTimer()
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
