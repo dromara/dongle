@@ -17,28 +17,19 @@ var (
 	defaultUID = []byte("1234567812345678")
 )
 
+const (
+	// c1c2c3 represents ciphertext order: C1 || C2 || C3
+	c1c2c3 = "c1c2c3"
+	// c1c3c2 represents ciphertext order: C1 || C3 || C2
+	c1c3c2 = "c1c3c2"
+)
+
 // signature represents an SM2 signature in ASN.1 format
 type sm2Sign struct {
 	R, S *big.Int
 }
 
-// CipherOrder represents the order of ciphertext components
-type CipherOrder string
-
-const (
-	// C1C2C3 represents ciphertext order: C1 || C2 || C3
-	C1C2C3 CipherOrder = "c1c2c3"
-	// C1C3C2 represents ciphertext order: C1 || C3 || C2
-	C1C3C2 CipherOrder = "c1c3c2"
-)
-
-// Encrypt encrypts plaintext using SM2 public key encryption.
-// The ciphertext format follows GM/T 0003-2012 standard.
-func Encrypt(random io.Reader, pub *ecdsa.PublicKey, plaintext []byte, order CipherOrder, window int) ([]byte, error) {
-	if random == nil {
-		random = rand.Reader
-	}
-
+func EncryptWithPublicKey(pub *ecdsa.PublicKey, plaintext []byte, window int, order string) ([]byte, error) {
 	if pub == nil {
 		return nil, io.ErrUnexpectedEOF
 	}
@@ -54,7 +45,7 @@ func Encrypt(random io.Reader, pub *ecdsa.PublicKey, plaintext []byte, order Cip
 	}
 	coordLen := (curve.Params().BitSize + 7) / 8
 
-	k, err := RandScalar(curve, random)
+	k, err := RandScalar(curve, rand.Reader)
 	if err != nil {
 		return nil, err
 	}
@@ -89,17 +80,16 @@ func Encrypt(random io.Reader, pub *ecdsa.PublicKey, plaintext []byte, order Cip
 	}
 
 	var payload []byte
-	if order == C1C2C3 {
+	if order == c1c2c3 {
 		payload = append(append(c1, c2...), c3...)
-	} else {
+	}
+	if order == c1c3c2 {
 		payload = append(append(c1, c3...), c2...)
 	}
 	return append([]byte{0x04}, payload...), nil
 }
 
-// Decrypt decrypts ciphertext using SM2 private key decryption.
-// The ciphertext format follows GM/T 0003-2012 standard.
-func Decrypt(pri *ecdsa.PrivateKey, ciphertext []byte, order CipherOrder, window int) ([]byte, error) {
+func DecryptWithPrivateKey(pri *ecdsa.PrivateKey, ciphertext []byte, window int, order string) ([]byte, error) {
 	if pri == nil {
 		return nil, io.ErrUnexpectedEOF
 	}
@@ -132,13 +122,14 @@ func Decrypt(pri *ecdsa.PrivateKey, ciphertext []byte, order CipherOrder, window
 
 	n := len(src) - (2*coordLen + 32)
 
-	// Determine C2 and C3 positions based on order
+	// Determine C2 and C3 positions based on ciphertext order
 	var c2Start, c3Start, c3End int
-	if order == C1C2C3 {
+	if order == c1c2c3 {
 		c2Start = 2 * coordLen
 		c3Start = 2*coordLen + n
 		c3End = len(src)
-	} else {
+	}
+	if order == c1c3c2 {
 		c2Start = 2*coordLen + 32
 		c3Start = 2 * coordLen
 		c3End = 2*coordLen + 32
@@ -165,14 +156,10 @@ func Decrypt(pri *ecdsa.PrivateKey, ciphertext []byte, order CipherOrder, window
 	return m, nil
 }
 
-// Sign generates an SM2 signature for the given message
+// SignWithPrivateKey generates an SM2 signature for the given message
 // It internally calculates ZA and digest (e = SM3(ZA || M))
 // Returns the signature in ASN.1 DER format
-func Sign(random io.Reader, pri *ecdsa.PrivateKey, message []byte, uid []byte) ([]byte, error) {
-	if random == nil {
-		random = rand.Reader
-	}
-
+func SignWithPrivateKey(pri *ecdsa.PrivateKey, message []byte, uid []byte) ([]byte, error) {
 	curve := pri.Curve
 	params := curve.Params()
 	n := params.N
@@ -201,7 +188,7 @@ func Sign(random io.Reader, pri *ecdsa.PrivateKey, message []byte, uid []byte) (
 	// Retry loop for signature generation
 	for {
 		// Generate random k ∈ [1, n-1]
-		k, err := RandScalar(curve, random)
+		k, err := RandScalar(curve, rand.Reader)
 		if err != nil {
 			return nil, err
 		}
@@ -242,10 +229,10 @@ func Sign(random io.Reader, pri *ecdsa.PrivateKey, message []byte, uid []byte) (
 	return asn1.Marshal(sm2Sign{R: r, S: s})
 }
 
-// Verify verifies an SM2 signature
+// VerifyWithPublicKey verifies an SM2 signature
 // It internally calculates ZA and digest (e = SM3(ZA || M))
 // sig is the signature in ASN.1 DER format
-func Verify(pub *ecdsa.PublicKey, message []byte, uid []byte, sig []byte) bool {
+func VerifyWithPublicKey(pub *ecdsa.PublicKey, message []byte, uid []byte, sig []byte) bool {
 	// Unmarshal signature from ASN.1 DER format
 	var sign sm2Sign
 	_, err := asn1.Unmarshal(sig, &sign)
