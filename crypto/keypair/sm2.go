@@ -17,14 +17,20 @@ import (
 //
 // C1: EC point (x1||y1) in uncompressed form; C2: XORed plaintext;
 // C3: SM3 digest over x2 || M || y2.
+//
+// NOTE: For performance and boundary checks, would it be better to set the type to uint8?
 type Sm2CipherMode string
 
 // Supported SM2 ciphertext orders.
 const (
-	// C1C2C3 means ciphertext bytes are C1 || C2 || C3.
+	// C1C2C3 means ciphertext bytes are C1 || C2 || C3 in bytes.
 	C1C2C3 Sm2CipherMode = "c1c2c3"
-	// C1C3C2 means ciphertext bytes are C1 || C3 || C2.
+	// C1C3C2 means ciphertext bytes are C1 || C3 || C2 in bytes.
 	C1C3C2 Sm2CipherMode = "c1c3c2"
+	// ASN1C1C2C3 means ciphertext bytes are C1 || C2 || C3 in ASN1.
+	ASN1C1C2C3 Sm2CipherMode = "asn1_c1c2c3"
+	// ASN1C1C3C2 means ciphertext bytes are C1 || C3 || C2 in ASN1.
+	ASN1C1C3C2 Sm2CipherMode = "asn1_c1c3c2"
 )
 
 var (

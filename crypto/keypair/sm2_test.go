@@ -30,8 +30,18 @@ func TestSetOrderAndModeAndWindow_Clamp(t *testing.T) {
 		t.Fatalf("order not set")
 	}
 
+	kp.SetMode(ASN1C1C2C3)
+	if kp.Mode != ASN1C1C2C3 {
+		t.Fatalf("mode not set")
+	}
+
 	kp.SetMode(C1C3C2)
 	if kp.Mode != C1C3C2 {
+		t.Fatalf("mode not set")
+	}
+
+	kp.SetMode(ASN1C1C3C2)
+	if kp.Mode != ASN1C1C3C2 {
 		t.Fatalf("mode not set")
 	}
 
