@@ -45,6 +45,15 @@ func TestSetOrderAndModeAndWindow_Clamp(t *testing.T) {
 		t.Fatalf("mode not set")
 	}
 
+	if kp.SingMode != ASN1 {
+		t.Fatalf("sing mode default value error")
+	}
+
+	kp.SetSingMode(Bytes)
+	if kp.SingMode != ASN1 {
+		t.Fatalf("sing mode not set")
+	}
+
 	kp.SetWindow(1)
 	if kp.Window != 2 {
 		t.Fatalf("window clamp low: %d", kp.Window)

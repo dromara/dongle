@@ -27,7 +27,7 @@ type errReader struct{}
 
 func (errReader) Read(_ []byte) (int, error) { return 0, io.ErrUnexpectedEOF }
 
-func TestFromBytes(t *testing.T) {
+func TestSM2CipherFromBytes(t *testing.T) {
 	payload := []byte{
 		0x30, 0x7A, // SEQUENCE
 		/***/ 0x02, 0x21, // INTEGER
@@ -51,8 +51,8 @@ func TestFromBytes(t *testing.T) {
 		/*********/ 0x88, 0x49, 0x4F, 0x07, 0xDE, 0x25, 0xCF, 0x88,
 		/*********/ 0x2E, 0x9C, 0x0C, 0x10, 0x11, 0x19, 0x0D, 0xAB,
 	}
-	if _, err := fromBytes(asn1_c1c3c2, payload, 0); err != nil {
-		t.Fatalf("fromBytes failed: %v", err)
+	if _, err := sm2CipherFromBytes(asn1_c1c3c2, payload, 0); err != nil {
+		t.Fatalf("sm2CipherFromBytes failed: %v", err)
 	}
 }
 
@@ -282,7 +282,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 	t.Run("invalid private key: d=0", func(t *testing.T) {
 		curve := NewCurve()
 		badPri := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: curve}, D: big.NewInt(0)}
-		_, err := SignWithPrivateKey(badPri, msg, nil)
+		_, err := SignWithPrivateKey(badPri, msg, nil, sm2SignASN1)
 		if err == nil {
 			t.Fatal("expected error")
 		}
@@ -292,7 +292,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		curve := NewCurve()
 		params := curve.Params()
 		badPri := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: curve}, D: new(big.Int).Set(params.N)}
-		_, err := SignWithPrivateKey(badPri, msg, nil)
+		_, err := SignWithPrivateKey(badPri, msg, nil, sm2SignASN1)
 		if err == nil {
 			t.Fatal("expected error")
 		}
@@ -303,35 +303,51 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		rand.Reader = errReader{}
 		t.Cleanup(func() { rand.Reader = orig })
 
-		_, err := SignWithPrivateKey(pri, msg, nil)
+		_, err := SignWithPrivateKey(pri, msg, nil, sm2SignASN1)
 		if err == nil {
 			t.Fatal("expected error")
 		}
 	})
 
 	t.Run("sign/verify with default uid", func(t *testing.T) {
-		sig, err := SignWithPrivateKey(pri, msg, nil)
+		sig, err := SignWithPrivateKey(pri, msg, nil, sm2SignASN1)
 		if err != nil {
 			t.Fatalf("sign failed: %v", err)
 		}
-		if !VerifyWithPublicKey(pub, msg, nil, sig) {
+		if !VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
+			t.Fatal("verify failed")
+		}
+	})
+
+	t.Run("sign/verify with default uid, bytes mode", func(t *testing.T) {
+		sig, err := SignWithPrivateKey(pri, msg, nil, sm2SignBytes)
+		if err != nil {
+			t.Fatalf("sign failed: %v", err)
+		}
+		if !VerifyWithPublicKey(pub, msg, nil, sig, sm2SignBytes) {
 			t.Fatal("verify failed")
 		}
 	})
 
 	t.Run("sign/verify with custom uid", func(t *testing.T) {
 		uid := []byte("uid")
-		sig, err := SignWithPrivateKey(pri, msg, uid)
+		sig, err := SignWithPrivateKey(pri, msg, uid, sm2SignASN1)
 		if err != nil {
 			t.Fatalf("sign failed: %v", err)
 		}
-		if !VerifyWithPublicKey(pub, msg, uid, sig) {
+		if !VerifyWithPublicKey(pub, msg, uid, sig, sm2SignASN1) {
 			t.Fatal("verify failed")
 		}
 	})
 
 	t.Run("verify invalid asn1", func(t *testing.T) {
-		if VerifyWithPublicKey(pub, msg, nil, []byte{0xff, 0x00}) {
+		if VerifyWithPublicKey(pub, msg, nil, []byte{0xff, 0x00}, sm2SignASN1) {
+			t.Fatal("expected verify to fail")
+		}
+	})
+
+	t.Run("verify invalid bytes", func(t *testing.T) {
+		if VerifyWithPublicKey(pub, msg, nil, []byte{}, sm2SignBytes) {
 			t.Fatal("expected verify to fail")
 		}
 	})
@@ -344,7 +360,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		if err != nil {
 			t.Fatalf("marshal failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, msg, nil, sig) {
+		if VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
@@ -355,7 +371,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		if err != nil {
 			t.Fatalf("marshal failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, msg, nil, sig) {
+		if VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
@@ -370,17 +386,17 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		if err != nil {
 			t.Fatalf("marshal failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, msg, nil, sig) {
+		if VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
 
 	t.Run("verify v != r", func(t *testing.T) {
-		sig, err := SignWithPrivateKey(pri, msg, nil)
+		sig, err := SignWithPrivateKey(pri, msg, nil, sm2SignASN1)
 		if err != nil {
 			t.Fatalf("sign failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, []byte("different"), nil, sig) {
+		if VerifyWithPublicKey(pub, []byte("different"), nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
