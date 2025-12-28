@@ -17,14 +17,29 @@ import (
 //
 // C1: EC point (x1||y1) in uncompressed form; C2: XORed plaintext;
 // C3: SM3 digest over x2 || M || y2.
+//
+// NOTE: For performance and boundary checks, would it be better to set the type to uint8?
 type Sm2CipherMode string
 
 // Supported SM2 ciphertext orders.
 const (
-	// C1C2C3 means ciphertext bytes are C1 || C2 || C3.
+	// C1C2C3 means ciphertext bytes are C1 || C2 || C3 in bytes.
 	C1C2C3 Sm2CipherMode = "c1c2c3"
-	// C1C3C2 means ciphertext bytes are C1 || C3 || C2.
+	// C1C3C2 means ciphertext bytes are C1 || C3 || C2 in bytes.
 	C1C3C2 Sm2CipherMode = "c1c3c2"
+	// ASN1C1C2C3 means ciphertext bytes are C1 || C2 || C3 in ASN1.
+	ASN1C1C2C3 Sm2CipherMode = "asn1_c1c2c3"
+	// ASN1C1C3C2 means ciphertext bytes are C1 || C3 || C2 in ASN1.
+	ASN1C1C3C2 Sm2CipherMode = "asn1_c1c3c2"
+)
+
+type Sm2SingMode uint8
+
+const (
+	// Digital signature in ASN1 format
+	ASN1 Sm2SingMode = iota
+	// Digital signature in bytes format
+	Bytes
 )
 
 var (
@@ -43,7 +58,15 @@ type Sm2KeyPair struct {
 
 	// Order specifies the mode of SM2 ciphertext components.
 	// It controls how Encrypt assembles and Decrypt interprets ciphertext.
+	// NOTE: Perhaps renaming this to CipherMode would be more appropriate?
 	Mode Sm2CipherMode
+
+	// SingMode controls the logic of signing and verification.
+	// There are two common ways to handle SM2 signature data:
+	// one is to encode R and S in ASN1 format, and the other is to concatenate R and S.
+	//
+	// Default is ASN1 format.
+	SingMode Sm2SingMode
 
 	// Window controls internal SM2 fixed-base/wNAF window size (2..6).
 	// 4 means use library default.
@@ -97,6 +120,11 @@ func (k *Sm2KeyPair) SetOrder(order Sm2CipherMode) {
 // It affects how Encrypt assembles and Decrypt interprets ciphertext.
 func (k *Sm2KeyPair) SetMode(mode Sm2CipherMode) {
 	k.Mode = mode
+}
+
+// SetSingMode sets the mode for SM2 Sign and Verify
+func (k *Sm2KeyPair) SetSingMode(mode Sm2SingMode) {
+	k.SingMode = mode
 }
 
 // SetWindow sets scalar-multiplication window (2..6).

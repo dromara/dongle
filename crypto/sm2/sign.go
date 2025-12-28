@@ -39,7 +39,7 @@ func (s *StdSigner) Sign(src []byte) (sign []byte, err error) {
 	if len(src) == 0 {
 		return
 	}
-	sign, err = sm2.SignWithPrivateKey(s.cache.priKey, src, s.keypair.UID)
+	sign, err = sm2.SignWithPrivateKey(s.cache.priKey, src, s.keypair.UID, uint8(s.keypair.SingMode))
 	if err != nil {
 		err = SignError{Err: err}
 		return
@@ -86,7 +86,7 @@ func (s *StreamSigner) sign(data []byte) (sign []byte, err error) {
 	if len(data) == 0 {
 		return
 	}
-	sign, err = sm2.SignWithPrivateKey(s.cache.priKey, data, s.keypair.UID)
+	sign, err = sm2.SignWithPrivateKey(s.cache.priKey, data, s.keypair.UID, uint8(s.keypair.SingMode))
 	if err != nil {
 		err = SignError{Err: err}
 		return
