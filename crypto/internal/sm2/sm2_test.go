@@ -27,6 +27,35 @@ type errReader struct{}
 
 func (errReader) Read(_ []byte) (int, error) { return 0, io.ErrUnexpectedEOF }
 
+func TestSM2CipherFromBytes(t *testing.T) {
+	payload := []byte{
+		0x30, 0x7A, // SEQUENCE
+		/***/ 0x02, 0x21, // INTEGER
+		/*********/ 0x00,
+		/*********/ 0xD6, 0xBD, 0xE2, 0xAB, 0xB7, 0x1E, 0x95, 0xAE,
+		/*********/ 0x8B, 0x27, 0x61, 0x01, 0xCD, 0x06, 0x74, 0x63,
+		/*********/ 0xA2, 0x5A, 0xE5, 0x9A, 0x2F, 0xE6, 0x1F, 0x03,
+		/*********/ 0x16, 0x29, 0x4E, 0x1B, 0x0F, 0x16, 0xA4, 0x43,
+		/***/ 0x02, 0x21, // INTEGER
+		/*********/ 0x00,
+		/*********/ 0x7D, 0x25, 0xF6, 0xD2, 0xCF, 0x82, 0x8B, 0x54,
+		/*********/ 0xAF, 0x15, 0x00, 0x60, 0xC7, 0xE9, 0x11, 0x31,
+		/*********/ 0x4D, 0xD9, 0xD7, 0x16, 0xC7, 0xB5, 0x3D, 0x24,
+		/*********/ 0xA5, 0x97, 0xC0, 0x5D, 0x51, 0xFC, 0xA6, 0x87,
+		/***/ 0x04, 0x20, // OCTET STRING
+		/*********/ 0x49, 0x0E, 0x0D, 0x1A, 0x37, 0x29, 0xD0, 0xF6,
+		/*********/ 0x2F, 0x73, 0xF1, 0xA3, 0x85, 0x8D, 0x7A, 0xCA,
+		/*********/ 0x71, 0xB5, 0x9B, 0x9A, 0x70, 0xDD, 0x19, 0xEE,
+		/*********/ 0xDB, 0xF5, 0xAD, 0xB5, 0xCA, 0xDD, 0x7E, 0xA5,
+		/***/ 0x04, 0x10, // OCTET STRING
+		/*********/ 0x88, 0x49, 0x4F, 0x07, 0xDE, 0x25, 0xCF, 0x88,
+		/*********/ 0x2E, 0x9C, 0x0C, 0x10, 0x11, 0x19, 0x0D, 0xAB,
+	}
+	if _, err := sm2CipherFromBytes(asn1_c1c3c2, payload, 0); err != nil {
+		t.Fatalf("sm2CipherFromBytes failed: %v", err)
+	}
+}
+
 func TestEncryptWithPublicKey(t *testing.T) {
 	_, pub := deterministicKeyPair(t)
 	plaintext := []byte("hello")
@@ -48,6 +77,16 @@ func TestEncryptWithPublicKey(t *testing.T) {
 		}
 	})
 
+	t.Run("empty plaintext asn1", func(t *testing.T) {
+		ciphertext, err := EncryptWithPublicKey(pub, nil, 4, asn1_c1c2c3)
+		if err != nil {
+			t.Fatalf("encrypt failed: %v", err)
+		}
+		if !bytes.Equal(ciphertext, []byte{0x30, 0x0a, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00, 0x04, 0x00, 0x04, 0x00}) {
+			t.Fatalf("unexpected ciphertext: %x", ciphertext)
+		}
+	})
+
 	t.Run("c1c2c3 order", func(t *testing.T) {
 		ciphertext, err := EncryptWithPublicKey(pub, plaintext, 4, c1c2c3)
 		if err != nil {
@@ -58,12 +97,32 @@ func TestEncryptWithPublicKey(t *testing.T) {
 		}
 	})
 
+	t.Run("asn1_c1c2c3 order", func(t *testing.T) {
+		ciphertext, err := EncryptWithPublicKey(pub, plaintext, 4, asn1_c1c2c3)
+		if err != nil {
+			t.Fatalf("encrypt failed: %v", err)
+		}
+		if len(ciphertext) < 12 || ciphertext[0] != 0x30 {
+			t.Fatalf("unexpected ciphertext: %x", ciphertext)
+		}
+	})
+
 	t.Run("c1c3c2 order", func(t *testing.T) {
 		ciphertext, err := EncryptWithPublicKey(pub, plaintext, 4, c1c3c2)
 		if err != nil {
 			t.Fatalf("encrypt failed: %v", err)
 		}
 		if len(ciphertext) < 2 || ciphertext[0] != 0x04 {
+			t.Fatalf("unexpected ciphertext: %x", ciphertext)
+		}
+	})
+
+	t.Run("asn1_c1c3c2 order", func(t *testing.T) {
+		ciphertext, err := EncryptWithPublicKey(pub, plaintext, 4, asn1_c1c3c2)
+		if err != nil {
+			t.Fatalf("encrypt failed: %v", err)
+		}
+		if len(ciphertext) < 12 || ciphertext[0] != 0x30 {
 			t.Fatalf("unexpected ciphertext: %x", ciphertext)
 		}
 	})
@@ -98,8 +157,22 @@ func TestDecryptWithPrivateKey(t *testing.T) {
 		}
 	})
 
+	t.Run("empty ciphertext asn1", func(t *testing.T) {
+		_, err := DecryptWithPrivateKey(pri, nil, 4, asn1_c1c2c3)
+		if !errors.Is(err, io.ErrUnexpectedEOF) {
+			t.Fatalf("expected %v, got %v", io.ErrUnexpectedEOF, err)
+		}
+	})
+
 	t.Run("ciphertext too short", func(t *testing.T) {
 		_, err := DecryptWithPrivateKey(pri, []byte{0x04, 0x01}, 4, c1c2c3)
+		if !errors.Is(err, io.ErrUnexpectedEOF) {
+			t.Fatalf("expected %v, got %v", io.ErrUnexpectedEOF, err)
+		}
+	})
+
+	t.Run("ciphertext too short", func(t *testing.T) {
+		_, err := DecryptWithPrivateKey(pri, []byte{0x04, 0x01}, 4, asn1_c1c2c3)
 		if !errors.Is(err, io.ErrUnexpectedEOF) {
 			t.Fatalf("expected %v, got %v", io.ErrUnexpectedEOF, err)
 		}
@@ -111,6 +184,20 @@ func TestDecryptWithPrivateKey(t *testing.T) {
 			t.Fatalf("encrypt failed: %v", err)
 		}
 		got, err := DecryptWithPrivateKey(pri, ciphertext, 4, c1c2c3)
+		if err != nil {
+			t.Fatalf("decrypt failed: %v", err)
+		}
+		if !bytes.Equal(got, plaintext) {
+			t.Fatalf("plaintext mismatch: got %q want %q", got, plaintext)
+		}
+	})
+
+	t.Run("decrypt c1c2c3 asn1", func(t *testing.T) {
+		ciphertext, err := EncryptWithPublicKey(pub, plaintext, 4, asn1_c1c2c3)
+		if err != nil {
+			t.Fatalf("encrypt failed: %v", err)
+		}
+		got, err := DecryptWithPrivateKey(pri, ciphertext, 4, asn1_c1c2c3)
 		if err != nil {
 			t.Fatalf("decrypt failed: %v", err)
 		}
@@ -133,9 +220,23 @@ func TestDecryptWithPrivateKey(t *testing.T) {
 		}
 	})
 
+	t.Run("decrypt c1c3c2 asn1", func(t *testing.T) {
+		ciphertext, err := EncryptWithPublicKey(pub, plaintext, 4, asn1_c1c3c2)
+		if err != nil {
+			t.Fatalf("encrypt failed: %v", err)
+		}
+		got, err := DecryptWithPrivateKey(pri, ciphertext, 4, asn1_c1c3c2)
+		if err != nil {
+			t.Fatalf("decrypt failed: %v", err)
+		}
+		if !bytes.Equal(got, plaintext) {
+			t.Fatalf("plaintext mismatch: got %q want %q", got, plaintext)
+		}
+	})
+
 	t.Run("decrypt without 0x04 prefix", func(t *testing.T) {
 		var ciphertext []byte
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			c, err := EncryptWithPublicKey(pub, plaintext, 4, c1c2c3)
 			if err != nil {
 				t.Fatalf("encrypt failed: %v", err)
@@ -181,7 +282,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 	t.Run("invalid private key: d=0", func(t *testing.T) {
 		curve := NewCurve()
 		badPri := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: curve}, D: big.NewInt(0)}
-		_, err := SignWithPrivateKey(badPri, msg, nil)
+		_, err := SignWithPrivateKey(badPri, msg, nil, sm2SignASN1)
 		if err == nil {
 			t.Fatal("expected error")
 		}
@@ -191,7 +292,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		curve := NewCurve()
 		params := curve.Params()
 		badPri := &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: curve}, D: new(big.Int).Set(params.N)}
-		_, err := SignWithPrivateKey(badPri, msg, nil)
+		_, err := SignWithPrivateKey(badPri, msg, nil, sm2SignASN1)
 		if err == nil {
 			t.Fatal("expected error")
 		}
@@ -202,35 +303,51 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		rand.Reader = errReader{}
 		t.Cleanup(func() { rand.Reader = orig })
 
-		_, err := SignWithPrivateKey(pri, msg, nil)
+		_, err := SignWithPrivateKey(pri, msg, nil, sm2SignASN1)
 		if err == nil {
 			t.Fatal("expected error")
 		}
 	})
 
 	t.Run("sign/verify with default uid", func(t *testing.T) {
-		sig, err := SignWithPrivateKey(pri, msg, nil)
+		sig, err := SignWithPrivateKey(pri, msg, nil, sm2SignASN1)
 		if err != nil {
 			t.Fatalf("sign failed: %v", err)
 		}
-		if !VerifyWithPublicKey(pub, msg, nil, sig) {
+		if !VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
+			t.Fatal("verify failed")
+		}
+	})
+
+	t.Run("sign/verify with default uid, bytes mode", func(t *testing.T) {
+		sig, err := SignWithPrivateKey(pri, msg, nil, sm2SignBytes)
+		if err != nil {
+			t.Fatalf("sign failed: %v", err)
+		}
+		if !VerifyWithPublicKey(pub, msg, nil, sig, sm2SignBytes) {
 			t.Fatal("verify failed")
 		}
 	})
 
 	t.Run("sign/verify with custom uid", func(t *testing.T) {
 		uid := []byte("uid")
-		sig, err := SignWithPrivateKey(pri, msg, uid)
+		sig, err := SignWithPrivateKey(pri, msg, uid, sm2SignASN1)
 		if err != nil {
 			t.Fatalf("sign failed: %v", err)
 		}
-		if !VerifyWithPublicKey(pub, msg, uid, sig) {
+		if !VerifyWithPublicKey(pub, msg, uid, sig, sm2SignASN1) {
 			t.Fatal("verify failed")
 		}
 	})
 
 	t.Run("verify invalid asn1", func(t *testing.T) {
-		if VerifyWithPublicKey(pub, msg, nil, []byte{0xff, 0x00}) {
+		if VerifyWithPublicKey(pub, msg, nil, []byte{0xff, 0x00}, sm2SignASN1) {
+			t.Fatal("expected verify to fail")
+		}
+	})
+
+	t.Run("verify invalid bytes", func(t *testing.T) {
+		if VerifyWithPublicKey(pub, msg, nil, []byte{}, sm2SignBytes) {
 			t.Fatal("expected verify to fail")
 		}
 	})
@@ -243,7 +360,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		if err != nil {
 			t.Fatalf("marshal failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, msg, nil, sig) {
+		if VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
@@ -254,7 +371,7 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		if err != nil {
 			t.Fatalf("marshal failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, msg, nil, sig) {
+		if VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
@@ -269,17 +386,17 @@ func TestSignVerifyWithPublicKey(t *testing.T) {
 		if err != nil {
 			t.Fatalf("marshal failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, msg, nil, sig) {
+		if VerifyWithPublicKey(pub, msg, nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
 
 	t.Run("verify v != r", func(t *testing.T) {
-		sig, err := SignWithPrivateKey(pri, msg, nil)
+		sig, err := SignWithPrivateKey(pri, msg, nil, sm2SignASN1)
 		if err != nil {
 			t.Fatalf("sign failed: %v", err)
 		}
-		if VerifyWithPublicKey(pub, []byte("different"), nil, sig) {
+		if VerifyWithPublicKey(pub, []byte("different"), nil, sig, sm2SignASN1) {
 			t.Fatal("expected verify to fail")
 		}
 	})
