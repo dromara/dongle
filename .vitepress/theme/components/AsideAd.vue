@@ -36,7 +36,7 @@ const adList = [
   {
     title: '雨云',
     desc: 'KVM高配版，4核 8G 300M，仅需68元/月起，半年付八折，年付七折，七天无理由退订（送5折券）',
-    link: 'https://www.rainyun.com/gocarbon_?s=web',
+    link: 'https://www.rainyun.com/gopkg_?s=dongle',
   },
   {
     title: '林枫云',
