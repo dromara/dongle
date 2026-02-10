@@ -1,0 +1,62 @@
+/* 确保导航栏有足够的空间显示所有菜单项 */
+.VPNav .VPNavBar .container {
+  max-width: 100% !important;
+}
+
+/* 修复大屏幕下导航栏右侧内边距过大的问题 */
+@media (min-width: 1440px) {
+  .VPNavBar.has-sidebar .content-body {
+    padding-right: 32px !important;
+  }
+}
+
+/* 调整导航栏布局 */
+.VPNav .VPNavBar .content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center;
+}
+
+.VPNav .VPNavBar .content-body {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 导航菜单 */
+.VPNavBar .VPNavBarMenu.VPNavBarMenu {
+  flex-wrap: nowrap !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  gap: 0;
+}
+
+/* 导航菜单项 */
+.VPNavBarMenuLink {
+  padding: 0 12px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* 搜索框 */
+.VPNavBarSearch.VPNavBarSearch {
+  flex-shrink: 1 !important;
+}
+
+/* 社交链接 */
+.VPSocialLinks {
+  flex-shrink: 0;
+  margin-left: 8px !important;
+}
+
+/* 翻译按钮 */
+.VPNavBarTranslations {
+  flex-shrink: 0;
+}
+
+/* 外观切换按钮 */
+.VPNavBarAppearance {
+  flex-shrink: 0;
+}
