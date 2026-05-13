@@ -15,34 +15,86 @@ var StdSeparator = " "
 // StdAlphabet is the standard morse code alphabet following international standards.
 // Extended to include letters a-z, numbers 0-9, punctuation marks, and special characters.
 // Added support for space character and more comprehensive punctuation.
+// Rec. ITU-R M.1677-1
+// https://codigomorse.org/en/morse-table
 var StdAlphabet = map[string]string{
-	// Letters (a-z)
+	// [Rec. ITU-R M.1677-1] 1.1.1 Letters (a-z)
+	// [codigomorse.org] International Alphabet (A-Z)
 	"a": ".-", "b": "-...", "c": "-.-.", "d": "-..", "e": ".", "f": "..-.",
 	"g": "--.", "h": "....", "i": "..", "j": ".---", "k": "-.-", "l": ".-..",
 	"m": "--", "n": "-.", "o": "---", "p": ".--.", "q": "--.-", "r": ".-.",
 	"s": "...", "t": "-", "u": "..-", "v": "...-", "w": ".--", "x": "-..-",
 	"y": "-.--", "z": "--..",
 
-	// Numbers (0-9)
+	// [Rec. ITU-R M.1677-1] 1.1.2 Figures (0-9)
+	// [codigomorse.org] Numbers (0-9)
 	"0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
 	"5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
 
-	// Basic punctuation
-	".": ".-.-.-", ",": "--..--", "?": "..--..", "'": ".----.", "!": "-.-.--",
-	"(": "-.--.", ")": "-.--.-", "&": ".-...", ":": "---...",
-	";": "-.-.-.", "=": "-...-", "+": ".-.-.", "-": "-....-", "_": "..--.-",
-	"\"": ".-..-.", "$": "...-..-", "@": ".--.-.",
+	// [Rec. ITU-R M.1677-1] 1.1.3 Punctuation marks and miscellaneous signs
+	".":  ".-.-.-", // Full stop (period)
+	",":  "--..--", // Comma
+	":":  "---...", // Colon or division sign
+	"?":  "..--..", // Question mark (note of interrogation or request for repetition of a transmission not understood)
+	"'":  ".----.", // Apostrophe
+	"-":  "-....-", // Hyphen or dash or subtraction sign
+	"/":  "-..-.",  // Fraction bar or division sign
+	"(":  "-.--.",  // Left-hand bracket (parenthesis)
+	")":  "-.--.-", // Right-hand bracket (parenthesis)
+	"\"": ".-..-.", // Inverted commas (quotation marks) (before and after the words)
+	"=":  "-...-",  // Double hyphen
+	"+":  ".-.-.",  // Cross or addition sign
+	"@":  ".--.-.", // Commercial at
+	//"":   "...-.",    // Understood
+	//"":   "........", // Error (eight dots)
+	//"":   "-.-",      // Invitation to transmit
+	//"":   ".-...",    // Wait
+	//"":   ".-.-.",    // End of work
+	//"":   "-.-.-",    // Starting signal (to precede every transmission)
+
+	// [Rec. ITU-R M.1677-1] 3.2.1 For the multiplication sign, the signal corresponding to the letter X shall be transmitted
+	//"x":  "-..-",     // Multiplication sign (same to letter x)
+
+	// [codigomorse.org] Punctuation and Special Characters
+	"_": "..--.-",
+	//"-":  "-....-",
+	//",": "--..--",
+	";": "-.-.-.",
+	//":": "---...",
+	"!": "-.-.--",
+	"¡": "--...-",
+	//"?":  "..--..",
+	"¿": "..-.-",
+	//".":  ".-.-.-",
+	//"'":  ".----.",
+	//"\"": ".-..-.",
+	//"(":  "-.--.",
+	//")":  "-.--.-",
+	//"@":  ".--.-.",
+	//"/":  "-..-.",
+	"&": ".-...",
+	//"+":  ".-.-.",
+	//"=":  "-...-",
+	"$": "...-..-",
+
+	// [codigomorse.org] International Extended Characters
+	"å": ".--.-", "Å": ".--.-",
+	"ä": ".-.-", "Ä": ".-.-",
+	"é": "..-..", "É": "..-..",
+	"ñ": "--.--", "Ñ": "--.--",
+	"ó": "---.", "Ó": "---.",
+	"ö": "---.-", "Ö": "---.-",
+	"ú": "..--", "Ú": "..--",
 
 	// Extended punctuation and symbols (using unique codes)
 	"[": "-.--.--", "]": "--.--.--", "{": "-.--.---", "}": "--.--.---",
 	"|": "-.-..-", "\\": "-.-..-.", "~": ".--.--..", "`": ".-..--.",
 	"^": ".-.--.-", "%": "..---.", "#": "..-..-", "*": ".-..-", // Changed ^ to unique code
-	"<": ".--.-", ">": "--.-.", "§": ".--..-..",
-	"/": "-..-.", // Keep original slash
+	"<": ".--.--", ">": "--.-.", "§": ".--..-..",
 
 	// Special characters
 	" ":  "/",                                         // Use slash for space (prosign for word break)
-	"\n": ".-..-.-", "\r": ".-..-.-", "\t": "-...-..", // Unique codes for whitespace
+	"\n": ".-..-..", "\r": ".-..-.-", "\t": "-...-..", // Unique codes for whitespace
 }
 
 // StdEncoder represents a morse encoder for standard encoding operations.

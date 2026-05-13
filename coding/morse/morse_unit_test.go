@@ -3,6 +3,7 @@ package morse
 import (
 	"errors"
 	"io"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -11,6 +12,27 @@ import (
 )
 
 func TestStdEncoder_Encode(t *testing.T) {
+	t.Run("each item in StdAlphabet is unique", func(t *testing.T) {
+		StdAlphabetLower := make(map[string]string)
+		for k, v := range StdAlphabet {
+			StdAlphabetLower[strings.ToLower(k)] = v
+		}
+		StdAlphabetCount := make(map[string]int)
+		for _, v := range StdAlphabetLower {
+			StdAlphabetCount[v]++
+		}
+		for code, count := range StdAlphabetCount {
+			assert.Equal(t, 1, count)
+			if 1 != count {
+				for k, v := range StdAlphabet {
+					if v == code {
+						t.Errorf("%s: %s\n", strconv.Quote(k), strconv.Quote(v))
+					}
+				}
+			}
+		}
+	})
+
 	t.Run("encode empty input", func(t *testing.T) {
 		encoder := NewStdEncoder()
 		result := encoder.Encode([]byte{})
