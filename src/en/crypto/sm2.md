@@ -74,15 +74,16 @@ privateKey := kp.PrivateKey
 ```go
 // Set PEM format public key
 kp.PublicKey = []byte(`-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXy
-RHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA==
+MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pv
+BuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg==
 -----END PUBLIC KEY-----`)
 
 // Set PEM format private key
 kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5
-u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJE
-crAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg
+MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP
+5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOT
+NDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5A
+SnC/d6ZC
 -----END PRIVATE KEY-----`)
 ```
 
@@ -90,20 +91,20 @@ crAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg
 
 ```go
 // Set Base64 encoded DER format public key
-kp.SetPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXyRHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA=="))
+kp.SetPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pvBuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg=="))
 
 // Set Base64 encoded DER format private key
-kp.SetPrivateKey([]byte("MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJEcrAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg"))
+kp.SetPrivateKey([]byte("MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOTNDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5ASnC/d6ZC"))
 ```
 
 ### Format `DER` Format Keys to `PEM` Format
 
 ```go
 // Format base64 encoded DER format public key to PEM format
-publicKey, err := kp.FormatPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXyRHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA=="))
+publicKey, err := kp.FormatPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pvBuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg=="))
 
 // Format base64 encoded DER format private key to PEM format
-privateKey, err := kp.FormatPrivateKey([]byte("MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJEcrAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg"))
+privateKey, err := kp.FormatPrivateKey([]byte("MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOTNDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5ASnC/d6ZC"))
 ```
 
 ### Compress `PEM` Format Keys to `DER` Format
@@ -111,15 +112,16 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VA
 ```go
 // Compress PEM format public key to base64 encoded DER format (remove PEM format public key's header/footer and line breaks)
 publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXy
-RHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA==
+MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pv
+BuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg==
 -----END PUBLIC KEY-----`))
 
 // Compress PEM format private key to base64 encoded DER format (remove PEM format private key's header/footer and line breaks)
 privateKey, err := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5
-u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJE
-crAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg
+MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP
+5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOT
+NDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5A
+SnC/d6ZC
 -----END PRIVATE KEY-----`))
 ```
 

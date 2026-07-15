@@ -74,15 +74,16 @@ privateKey := kp.PrivateKey
 ```go
 // 设置 PEM 格式公钥
 kp.PublicKey = []byte(`-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXy
-RHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA==
+MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pv
+BuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg==
 -----END PUBLIC KEY-----`)
 
 // 设置 PEM 格式私钥
 kp.PrivateKey = []byte(`-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5
-u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJE
-crAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg
+MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP
+5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOT
+NDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5A
+SnC/d6ZC
 -----END PRIVATE KEY-----`)
 ```
 
@@ -90,20 +91,20 @@ crAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg
 
 ```go
 // 设置 Base64 编码的 DER 格式公钥
-kp.SetPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXyRHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA=="))
+kp.SetPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pvBuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg=="))
 
 // 设置 Base64 编码的 DER 格式私钥
-kp.SetPrivateKey([]byte("MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJEcrAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg"))
+kp.SetPrivateKey([]byte("MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOTNDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5ASnC/d6ZC"))
 ```
 
 ### 将 `DER` 格式密钥格式化成 `PEM` 格式
 
 ```go
 // 将 base64 编码的 DER 格式公钥格式化为 PEM 格式
-publicKey, err := kp.FormatPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXyRHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA=="))
+publicKey, err := kp.FormatPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pvBuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg=="))
 
 // 将 base64 编码的 DER 格式私钥格式化为 PEM 格式
-privateKey, err := kp.FormatPrivateKey([]byte("MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJEcrAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg"))
+privateKey, err := kp.FormatPrivateKey([]byte("MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOTNDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5ASnC/d6ZC"))
 ```
 
 ### 将 `PEM` 格式密钥压缩成 `DER` 格式
@@ -111,15 +112,16 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VA
 ```go
 // 将 PEM 格式公钥压缩成经过 base64 编码的 DER 格式(去掉 PEM 格式公钥的头尾和换行符)
 publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEVJKqUmu59VTLhqCiVBmKqRjL5MXy
-RHKwFAI+qG2Hqy5Wf5cLRlIf7aSMKqwGvYpP6gVOqQpvBdDQhDqr8rqrYA==
+MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pv
+BuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg==
 -----END PUBLIC KEY-----`))
 
 // 将 PEM 格式私钥压缩成经过 base64 编码的 DER 格式(去掉 PEM 格式私钥的头尾和换行符)
 privateKey, err := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBG0wawIBAQQgKvp8GZUkqT8UH/Z5
-u8mjNM0JIvqmFolR6LczGEZmSvmhRANCAARUkqpSa7n1VMuGoKJUGYqpGMvkxfJE
-crAUAj6obYerLlZ/lwtGUh/tpIwqrAa9ik/qBU6pCm8F0NCEOqvyuqtg
+MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP
+5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOT
+NDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5A
+SnC/d6ZC
 -----END PRIVATE KEY-----`))
 ```
 
