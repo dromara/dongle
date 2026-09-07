@@ -4,6 +4,7 @@
 package base85
 
 import (
+	"bytes"
 	"encoding/ascii85"
 	"io"
 )
@@ -79,15 +80,16 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 	}
 
 	// Use Go's standard ascii85 decoding
-	dst = make([]byte, len(paddedSrc)) // ASCII85 decoding can't produce more bytes than input
+	dst = make([]byte, 4*len(paddedSrc)) // each 'z' shortcut expands to 4 bytes
 	n, _, err := ascii85.Decode(dst, paddedSrc, true)
 	if err != nil {
 		return nil, CorruptInputError(0)
 	}
 
 	// Calculate the actual number of bytes based on the original input length
-	// For incomplete groups, we need to determine how many bytes were actually encoded
-	actualBytes := d.calculateActualBytes(len(src))
+	// A 'z' shortcut is 1 char but 4 bytes, so it is excluded from the 5:4 ratio
+	zCount := bytes.Count(src, []byte{'z'})
+	actualBytes := zCount*4 + d.calculateActualBytes(len(src)-zCount)
 	if actualBytes < n {
 		return dst[:actualBytes], nil
 	}
@@ -290,14 +292,15 @@ func (d *StreamDecoder) decode(src []byte) ([]byte, error) {
 	}
 
 	// Use Go's standard ascii85 decoding
-	dst := make([]byte, len(paddedSrc))
+	dst := make([]byte, 4*len(paddedSrc)) // each 'z' shortcut expands to 4 bytes
 	n, _, err := ascii85.Decode(dst, paddedSrc, true)
 	if err != nil {
 		return nil, CorruptInputError(0)
 	}
 
-	// Calculate the actual number of bytes based on the original input length
-	actualBytes := d.calculateActualBytes(len(src))
+	// A 'z' shortcut is 1 char but 4 bytes, so it is excluded from the 5:4 ratio
+	zCount := bytes.Count(src, []byte{'z'})
+	actualBytes := zCount*4 + d.calculateActualBytes(len(src)-zCount)
 	if actualBytes < n {
 		return dst[:actualBytes], nil
 	}
