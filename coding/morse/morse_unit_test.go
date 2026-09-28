@@ -753,3 +753,55 @@ func TestMissingCoverage(t *testing.T) {
 		assert.Equal(t, "decode error", err.Error())
 	})
 }
+
+func TestStdDecoder_DecodeDeterminism(t *testing.T) {
+	// Codes shared by more than one character. Decoding must resolve them the
+	// same way on every run, otherwise the result depends on the randomised
+	// order in which Go ranges over a map.
+	collisions := map[string]string{
+		".--.-": "å",
+		".-.-":  "ä",
+		"..-..": "é",
+		"--.--": "ñ",
+		"---.":  "ó",
+		"---.-": "ö",
+		"..--":  "ú",
+	}
+
+	t.Run("shared codes decode to the lower-case character", func(t *testing.T) {
+		for code, want := range collisions {
+			decoded, err := NewStdDecoder().Decode([]byte(code))
+			assert.Nil(t, err)
+			assert.Equal(t, want, string(decoded), "code %s", strconv.Quote(code))
+		}
+	})
+
+	t.Run("repeated decoding of the same code is stable", func(t *testing.T) {
+		for code := range collisions {
+			first, err := NewStdDecoder().Decode([]byte(code))
+			assert.Nil(t, err)
+			for i := 0; i < 100; i++ {
+				decoded, err := NewStdDecoder().Decode([]byte(code))
+				assert.Nil(t, err)
+				assert.Equal(t, string(first), string(decoded), "code %s is not decoded deterministically", strconv.Quote(code))
+			}
+		}
+	})
+
+	t.Run("every alphabet entry survives an encode and decode round trip", func(t *testing.T) {
+		for char := range StdAlphabet {
+			// Encode lower-cases its input, so the upper-case keys of a
+			// colliding pair can only ever be reached through their lower-case
+			// form. That form is what a round trip has to return.
+			lower := strings.ToLower(char)
+
+			encoder := NewStdEncoder()
+			encoded := encoder.Encode([]byte(lower))
+			assert.Nil(t, encoder.Error, "encoding %s", strconv.Quote(lower))
+
+			decoded, err := NewStdDecoder().Decode(encoded)
+			assert.Nil(t, err, "decoding %s", strconv.Quote(lower))
+			assert.Equal(t, lower, string(decoded), "round trip of %s", strconv.Quote(lower))
+		}
+	})
+}

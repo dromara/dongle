@@ -97,6 +97,23 @@ var StdAlphabet = map[string]string{
 	"\n": ".-..-..", "\r": ".-..-.-", "\t": "-...-..", // Unique codes for whitespace
 }
 
+// stdReverseAlphabet is the inverse of StdAlphabet, derived once at package
+// initialisation instead of being re-scanned on every decoded symbol.
+// Several codes are shared by an upper- and lower-case pair (e.g. "Å" and "å"
+// both encode to ".--.-"). Encode lowercases its input, so the upper-case keys
+// are unreachable when encoding; decoding therefore resolves such collisions to
+// the lower-case form, which also makes the result deterministic — ranging over
+// a map picks a random winner on every run.
+var stdReverseAlphabet = make(map[string]string, len(StdAlphabet))
+
+func init() {
+	for char, code := range StdAlphabet {
+		if prev, ok := stdReverseAlphabet[code]; !ok || char > prev {
+			stdReverseAlphabet[code] = char
+		}
+	}
+}
+
 // StdEncoder represents a morse encoder for standard encoding operations.
 // It implements morse encoding following the International Morse Code standard.
 type StdEncoder struct {
@@ -189,18 +206,12 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 			continue
 		}
 
-		found := false
-		for key, morseCode := range d.alphabet {
-			if morseCode == part {
-				builder.WriteString(key)
-				found = true
-				break
-			}
-		}
+		char, found := stdReverseAlphabet[part]
 		if !found {
 			// For unknown morse codes, return error
 			return nil, InvalidCharacterError{Char: part}
 		}
+		builder.WriteString(char)
 	}
 
 	return utils.String2Bytes(builder.String()), nil
