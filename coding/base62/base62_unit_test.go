@@ -114,8 +114,8 @@ func TestStdEncoder_Encode(t *testing.T) {
 
 		err := encoder.Close()
 		assert.Nil(t, err)
-		// Now with true streaming, we get block-by-block encoding results
-		assert.Equal(t, "8xhIpNzLldvVSnE", string(file.Bytes()))
+		// Multiple writes produce the same output as encoding the whole input at once
+		assert.Equal(t, "AAwf93rvy4aWQVw", string(file.Bytes()))
 	})
 
 	t.Run("close with data success", func(t *testing.T) {
@@ -389,10 +389,14 @@ func TestStreamEncoder_Write(t *testing.T) {
 		errorWriter := mock.NewErrorWriteCloser(errors.New("write error"))
 		encoder := NewStreamEncoder(errorWriter)
 
-		data := []byte("hello world") // 11 bytes, will trigger chunk processing
+		data := []byte("hello world")
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 11, n)
+		assert.Nil(t, err)
+
+		// The encoded data is written on Close, so the writer error is returned there
+		err = encoder.Close()
 		assert.Error(t, err)
 		assert.Equal(t, "write error", err.Error())
 	})
@@ -449,8 +453,7 @@ func TestStreamEncoder_Write(t *testing.T) {
 		err = encoder.Close()
 		assert.Nil(t, err)
 
-		// Verify the result with true streaming (block-by-block encoding)
-		expected := "2Q3IiUYU6h" // "testing" encoded with 8-byte chunks
+		expected := "2Q3IiUYU6h" // "testing" encoded as a whole
 		assert.Equal(t, expected, string(file.Bytes()))
 	})
 
@@ -463,9 +466,12 @@ func TestStreamEncoder_Write(t *testing.T) {
 		streamEncoder := encoder.(*StreamEncoder)
 		streamEncoder.encoder.Error = errors.New("encoder error")
 
-		// Write 8 bytes to trigger chunk processing and error
+		// The data is encoded on Close, so the encoder error is returned there
 		n, err := encoder.Write([]byte("12345678"))
 		assert.Equal(t, 8, n)
+		assert.Nil(t, err)
+
+		err = encoder.Close()
 		assert.Error(t, err)
 		assert.Equal(t, "encoder error", err.Error())
 	})
