@@ -68,10 +68,12 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 
 	// For incomplete groups, we need to pad to complete 5-character groups
 	// Go's ascii85.Decode requires complete groups
+	// A 'z' shortcut is a group of its own, so it does not count towards the partial group
+	zCount := bytes.Count(src, []byte{'z'})
 	paddedSrc := src
-	if len(src)%5 != 0 {
+	if (len(src)-zCount)%5 != 0 {
 		// Pad with 'u' characters to complete the group
-		padding := 5 - (len(src) % 5)
+		padding := 5 - ((len(src) - zCount) % 5)
 		paddedSrc = make([]byte, len(src)+padding)
 		copy(paddedSrc, src)
 		for i := len(src); i < len(paddedSrc); i++ {
@@ -88,7 +90,6 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 
 	// Calculate the actual number of bytes based on the original input length
 	// A 'z' shortcut is 1 char but 4 bytes, so it is excluded from the 5:4 ratio
-	zCount := bytes.Count(src, []byte{'z'})
 	actualBytes := zCount*4 + d.calculateActualBytes(len(src)-zCount)
 	if actualBytes < n {
 		return dst[:actualBytes], nil
@@ -280,10 +281,12 @@ func (d *StreamDecoder) decode(src []byte) ([]byte, error) {
 	}
 
 	// For incomplete groups, we need to pad to complete 5-character groups
+	// A 'z' shortcut is a group of its own, so it does not count towards the partial group
+	zCount := bytes.Count(src, []byte{'z'})
 	paddedSrc := src
-	if len(src)%5 != 0 {
+	if (len(src)-zCount)%5 != 0 {
 		// Pad with 'u' characters to complete the group
-		padding := 5 - (len(src) % 5)
+		padding := 5 - ((len(src) - zCount) % 5)
 		paddedSrc = make([]byte, len(src)+padding)
 		copy(paddedSrc, src)
 		for i := len(src); i < len(paddedSrc); i++ {
@@ -299,7 +302,6 @@ func (d *StreamDecoder) decode(src []byte) ([]byte, error) {
 	}
 
 	// A 'z' shortcut is 1 char but 4 bytes, so it is excluded from the 5:4 ratio
-	zCount := bytes.Count(src, []byte{'z'})
 	actualBytes := zCount*4 + d.calculateActualBytes(len(src)-zCount)
 	if actualBytes < n {
 		return dst[:actualBytes], nil
