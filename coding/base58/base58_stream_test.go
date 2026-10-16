@@ -45,3 +45,30 @@ func TestStream_MatchesStd(t *testing.T) {
 		assert.Equal(t, src, got)
 	})
 }
+
+// Retaining a drained decoder must not keep the full decoded payload alive.
+func TestStreamDecoder_ReleasesDrainedBuffer(t *testing.T) {
+	src := bytes.Repeat([]byte("payload"), 300)
+	encoded := NewStdEncoder().Encode(src)
+	for _, size := range []int{17, len(src) * 2} {
+		d := NewStreamDecoder(bytes.NewReader(encoded)).(*StreamDecoder)
+		var got []byte
+		buf := make([]byte, size)
+		for {
+			n, err := d.Read(buf)
+			got = append(got, buf[:n]...)
+			if len(got) == len(src) {
+				if d.buffer != nil {
+					t.Fatal("drained decoder retains decoded input")
+				}
+			}
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		assert.Equal(t, src, got)
+	}
+}

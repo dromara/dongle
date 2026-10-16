@@ -194,8 +194,8 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // string2bigInt converts a base62 string to a big.Int representation.
 // Uses the standard base62 decoding algorithm with big integer arithmetic.
 func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
-	encodedLen := len(encoded)
 	int0 := big.NewInt(0)
+	digit := new(big.Int)
 
 	for i, x := range encoded {
 		// Check if the character is in the valid range
@@ -209,9 +209,8 @@ func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
 			return
 		}
 
-		power := new(big.Int).Exp(bigInt62, big.NewInt(int64(encodedLen-(i+1))), nil)
-		term := new(big.Int).Mul(big.NewInt(val), power)
-		int0.Add(int0, term)
+		int0.Mul(int0, bigInt62)
+		int0.Add(int0, digit.SetInt64(val))
 	}
 
 	return int0, nil
@@ -313,6 +312,10 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	if d.pos < len(d.buffer) {
 		n = copy(p, d.buffer[d.pos:])
 		d.pos += n
+		if d.pos == len(d.buffer) {
+			d.buffer = nil
+			d.pos = 0
+		}
 		return n, nil
 	}
 
@@ -338,6 +341,11 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	d.buffer = decoded
-	d.pos = copy(p, decoded)
-	return d.pos, nil
+	n = copy(p, decoded)
+	d.pos = n
+	if n == len(decoded) {
+		d.buffer = nil
+		d.pos = 0
+	}
+	return n, nil
 }

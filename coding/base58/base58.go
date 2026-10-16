@@ -277,6 +277,10 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	if d.pos < len(d.buffer) {
 		n = copy(p, d.buffer[d.pos:])
 		d.pos += n
+		if d.pos == len(d.buffer) {
+			d.buffer = nil
+			d.pos = 0
+		}
 		return n, nil
 	}
 
@@ -302,8 +306,13 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	}
 
 	d.buffer = decoded
-	d.pos = copy(p, decoded)
-	return d.pos, nil
+	n = copy(p, decoded)
+	d.pos = n
+	if n == len(decoded) {
+		d.buffer = nil
+		d.pos = 0
+	}
+	return n, nil
 }
 
 // Encode encodes the given byte slice using base58 encoding.
