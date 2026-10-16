@@ -45,7 +45,7 @@ func TestEncoder_ByBase62_Encode(t *testing.T) {
 		defer file.Close()
 		encoder := NewEncoder().FromFile(file).ByBase62()
 		assert.Nil(t, encoder.Error)
-		assert.Equal(t, "8xhIpNzLldvVSnE", encoder.ToString())
+		assert.Equal(t, base62Encoded, encoder.ToString())
 	})
 
 	t.Run("encode empty string", func(t *testing.T) {

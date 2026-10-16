@@ -266,13 +266,16 @@ func TestStreamEncoder_Write(t *testing.T) {
 		defer file.Close()
 		encoder := NewStreamEncoder(file)
 
-		// Write exactly 8 bytes (complete chunk, no remainder)
-		data := []byte("12345678") // 8 bytes = complete chunk
+		// base58 encodes the whole input as one number, so nothing is written until Close
+		data := []byte("12345678")
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 8, n)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, string(file.Bytes())) // Should have written encoded data
+		assert.Empty(t, file.Bytes())
+
+		assert.Nil(t, encoder.Close())
+		assert.Equal(t, string(NewStdEncoder().Encode(data)), string(file.Bytes()))
 	})
 
 	t.Run("write with multiple chunks", func(t *testing.T) {
@@ -280,13 +283,16 @@ func TestStreamEncoder_Write(t *testing.T) {
 		defer file.Close()
 		encoder := NewStreamEncoder(file)
 
-		// Write 16 bytes (2 complete chunks, no remainder)
-		data := []byte("1234567812345678") // 16 bytes = 2 complete chunks
+		// base58 encodes the whole input as one number, so nothing is written until Close
+		data := []byte("1234567812345678")
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 16, n)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, string(file.Bytes())) // Should have written encoded data
+		assert.Empty(t, file.Bytes())
+
+		assert.Nil(t, encoder.Close())
+		assert.Equal(t, string(NewStdEncoder().Encode(data)), string(file.Bytes()))
 	})
 
 	t.Run("write with remainder", func(t *testing.T) {
@@ -294,25 +300,30 @@ func TestStreamEncoder_Write(t *testing.T) {
 		defer file.Close()
 		encoder := NewStreamEncoder(file)
 
-		// Write 10 bytes (1 complete chunk + 2 remainder)
-		data := []byte("1234567890") // 10 bytes = 1 chunk + 2 remainder
+		// base58 encodes the whole input as one number, so nothing is written until Close
+		data := []byte("1234567890")
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 10, n)
 		assert.Nil(t, err)
-		assert.NotEmpty(t, string(file.Bytes())) // Should have written encoded data for complete chunk
+		assert.Empty(t, file.Bytes())
+
+		assert.Nil(t, encoder.Close())
+		assert.Equal(t, string(NewStdEncoder().Encode(data)), string(file.Bytes()))
 	})
 
 	t.Run("write with writer error", func(t *testing.T) {
-		// Test that Write properly handles writer errors
+		// Test that writer errors are returned when the encoded data is written on Close
 		errorWriter := mock.NewErrorWriteCloser(errors.New("writer error"))
 		encoder := NewStreamEncoder(errorWriter)
 
-		// Write data that will trigger encoding and writing
-		data := []byte("12345678") // 8 bytes = complete chunk
+		data := []byte("12345678")
 		n, err := encoder.Write(data)
 
 		assert.Equal(t, 8, n)
+		assert.Nil(t, err)
+
+		err = encoder.Close()
 		assert.Error(t, err)
 		assert.Equal(t, "writer error", err.Error())
 	})

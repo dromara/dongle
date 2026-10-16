@@ -194,8 +194,8 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // string2bigInt converts a base62 string to a big.Int representation.
 // Uses the standard base62 decoding algorithm with big integer arithmetic.
 func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
-	encodedLen := len(encoded)
 	int0 := big.NewInt(0)
+	digit := new(big.Int)
 
 	for i, x := range encoded {
 		// Check if the character is in the valid range
@@ -209,9 +209,8 @@ func (d *StdDecoder) string2bigInt(encoded string) (int *big.Int, err error) {
 			return
 		}
 
-		power := new(big.Int).Exp(bigInt62, big.NewInt(int64(encodedLen-(i+1))), nil)
-		term := new(big.Int).Mul(big.NewInt(val), power)
-		int0.Add(int0, term)
+		int0.Mul(int0, bigInt62)
+		int0.Add(int0, digit.SetInt64(val))
 	}
 
 	return int0, nil
@@ -239,8 +238,7 @@ func NewStreamEncoder(w io.Writer) io.WriteCloser {
 }
 
 // Write implements the io.Writer interface for streaming base62 encoding.
-// Processes data in chunks while maintaining minimal state for cross-Write calls.
-// This is true streaming - processes data immediately without accumulating large buffers.
+// Buffers the data; the encoded output is written by Close.
 func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 	if e.Error != nil {
 		return 0, e.Error
@@ -250,45 +248,21 @@ func (e *StreamEncoder) Write(p []byte) (n int, err error) {
 		return 0, nil
 	}
 
-	// Combine any leftover bytes from previous write with new data
-	// This is necessary for true streaming across multiple Write calls
-	data := append(e.buffer, p...)
-	e.buffer = nil // Clear buffer after combining
-
-	// Process data in chunks of 8 bytes (optimal for base62 encoding)
-	// Base62 encoding typically produces ~1.37x the input size
-	chunkSize := 8
-	chunks := len(data) / chunkSize
-
-	for i := 0; i < chunks*chunkSize; i += chunkSize {
-		chunk := data[i : i+chunkSize]
-		encoded := e.encoder.Encode(chunk)
-		if e.encoder.Error != nil {
-			return len(p), e.encoder.Error
-		}
-		if _, err = e.writer.Write(encoded); err != nil {
-			return len(p), err
-		}
-	}
-
-	// Buffer remaining 0-7 bytes for next write or close
-	remainder := len(data) % chunkSize
-	if remainder > 0 {
-		e.buffer = data[len(data)-remainder:]
-	}
+	// base62 treats the whole input as one big number, so it cannot be encoded
+	// in independent chunks. Buffer everything and encode once in Close.
+	e.buffer = append(e.buffer, p...)
 
 	return len(p), nil
 }
 
 // Close implements the io.Closer interface for streaming base62 encoding.
-// Encodes any remaining buffered bytes from the last Write call.
-// This is the only place where we handle cross-Write state.
+// Encodes all data buffered by Write as a single base62 value.
 func (e *StreamEncoder) Close() error {
 	if e.Error != nil {
 		return e.Error
 	}
 
-	// Encode any remaining bytes (1-7 bytes) from the last Write
+	// Encode all buffered input at once
 	if len(e.buffer) > 0 {
 		encoded := e.encoder.Encode(e.buffer)
 		if e.encoder.Error != nil {
@@ -312,7 +286,7 @@ type StreamDecoder struct {
 	pos      int         // Current position in the decoded buffer
 	alphabet string      // The alphabet used for decoding
 	decoder  *StdDecoder // Reuse decoder instance
-	readBuf  [1024]byte  // Reusable buffer for reading encoded data
+	done     bool        // Whether the encoded input has been read and decoded
 	Error    error       // Error field for storing decoding errors
 }
 
@@ -338,32 +312,40 @@ func (d *StreamDecoder) Read(p []byte) (n int, err error) {
 	if d.pos < len(d.buffer) {
 		n = copy(p, d.buffer[d.pos:])
 		d.pos += n
+		if d.pos == len(d.buffer) {
+			d.buffer = nil
+			d.pos = 0
+		}
 		return n, nil
 	}
 
-	// Read encoded data in chunks using reusable buffer
-	rn, err := d.reader.Read(d.readBuf[:])
-	if err != nil && err != io.EOF {
-		return 0, err
-	}
-
-	if rn == 0 {
+	if d.done {
 		return 0, io.EOF
 	}
 
-	// Decode the data using the configured decoder
-	decoded, err := d.decoder.Decode(d.readBuf[:rn])
+	// base62 treats the whole input as one big number, so it cannot be decoded
+	// in independent chunks. Read all encoded data and decode it once.
+	encoded, err := io.ReadAll(d.reader)
+	if err != nil {
+		return 0, err
+	}
+	d.done = true
+
+	if len(encoded) == 0 {
+		return 0, io.EOF
+	}
+
+	decoded, err := d.decoder.Decode(encoded)
 	if err != nil {
 		return 0, err
 	}
 
-	// Copy decoded data to the provided buffer
-	copied := copy(p, decoded)
-	if copied < len(decoded) {
-		// Buffer remaining data for next read
-		d.buffer = decoded[copied:]
+	d.buffer = decoded
+	n = copy(p, decoded)
+	d.pos = n
+	if n == len(decoded) {
+		d.buffer = nil
 		d.pos = 0
 	}
-
-	return copied, nil
+	return n, nil
 }
