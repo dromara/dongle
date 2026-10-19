@@ -10,7 +10,7 @@ type InvalidInputError struct {
 
 // Error returns a formatted error message describing the invalid input.
 func (e InvalidInputError) Error() string {
-	return fmt.Sprintf("coding/morse: invalid input")
+	return "coding/morse: invalid input"
 }
 
 // InvalidCharacterError represents an error when an invalid morse character is found

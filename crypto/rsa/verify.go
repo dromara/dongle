@@ -143,13 +143,13 @@ func NewStreamVerifier(r io.Reader, kp *keypair.RsaKeyPair) io.WriteCloser {
 	return v
 }
 
-func (v *StreamVerifier) verify(hashed, signature []byte) (valid bool, err error) {
+func (v *StreamVerifier) verify(hashed, signature []byte) error {
+	var err error
 	if v.Error != nil {
-		err = v.Error
-		return
+		return v.Error
 	}
 	if len(hashed) == 0 {
-		return
+		return nil
 	}
 	switch {
 	case v.keypair.Type == keypair.PublicKey && v.keypair.Padding == keypair.PKCS1v15:
@@ -164,10 +164,9 @@ func (v *StreamVerifier) verify(hashed, signature []byte) (valid bool, err error
 		err = keypair.UnsupportedPaddingSchemeError{Padding: string(v.keypair.Padding)}
 	}
 	if err != nil {
-		err = VerifyError{Err: err}
-		return
+		return VerifyError{Err: err}
 	}
-	return true, nil
+	return nil
 }
 
 // Write processes data through the hash function for streaming verification
@@ -201,7 +200,7 @@ func (v *StreamVerifier) Close() error {
 	// Get the final hash sum from the hash
 	hashed := v.cache.hash.Sum(nil)
 	// Verify the signature using the hashed data
-	if _, err = v.verify(hashed, v.signature); err != nil {
+	if err = v.verify(hashed, v.signature); err != nil {
 		return err
 	}
 	// Mark verification as completed

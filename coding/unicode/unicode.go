@@ -77,10 +77,9 @@ func (d *StdDecoder) Decode(src []byte) (dst []byte, err error) {
 // It provides efficient encoding for large data streams by processing data
 // in chunks and writing encoded output immediately.
 type StreamEncoder struct {
-	writer    io.Writer // Underlying writer for encoded output
-	buffer    []byte    // Buffer for accumulating partial bytes
-	encodeBuf [512]byte // Fixed-size reusable buffer for encoding output
-	Error     error     // Error field for storing encoding errors
+	writer io.Writer // Underlying writer for encoded output
+	buffer []byte    // Buffer for accumulating partial bytes
+	Error  error     // Error field for storing encoding errors
 }
 
 // NewStreamEncoder creates a new streaming unicode encoder that writes encoded data
@@ -143,12 +142,11 @@ func (e *StreamEncoder) Close() error {
 // It provides efficient decoding for large data streams by processing data
 // in chunks and maintaining an internal buffer for partial reads.
 type StreamDecoder struct {
-	reader    io.Reader  // Underlying reader for encoded input
-	buffer    []byte     // Buffer for decoded data not yet read
-	pos       int        // Current position in the decoded buffer
-	readBuf   [1024]byte // Fixed-size reusable buffer for reading encoded data
-	decodeBuf [512]byte  // Fixed-size reusable buffer for decoded data
-	Error     error      // Error field for storing decoding errors
+	reader  io.Reader  // Underlying reader for encoded input
+	buffer  []byte     // Buffer for decoded data not yet read
+	pos     int        // Current position in the decoded buffer
+	readBuf [1024]byte // Fixed-size reusable buffer for reading encoded data
+	Error   error      // Error field for storing decoding errors
 }
 
 // NewStreamDecoder creates a new streaming unicode decoder that reads encoded data
