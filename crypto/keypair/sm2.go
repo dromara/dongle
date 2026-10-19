@@ -81,8 +81,9 @@ type Sm2KeyPair struct {
 // (Order=C1C3C2, Window=4).
 func NewSm2KeyPair() *Sm2KeyPair {
 	return &Sm2KeyPair{
-		Mode:   C1C3C2,
-		Window: 4,
+		Mode:     C1C3C2,
+		SingMode: ASN1,
+		Window:   4,
 	}
 }
 
