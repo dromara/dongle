@@ -10,7 +10,7 @@ export default defineConfig({
     title: 'dongle',
     lastUpdated: true,
     metaChunk: true,
-    base: '/',
+    base: '/dongle/',
     srcDir: './src/',
     outDir: './dist',
     appearance: 'dark',
@@ -30,6 +30,6 @@ export default defineConfig({
         'en/:rest*': ':rest*'
     },
     sitemap: {
-        hostname: 'https://dongle.go-pkg.com'
+        hostname: 'https://dromara.github.io/dongle'
     }
 })
