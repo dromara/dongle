@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	encodingAsn1 "encoding/asn1"
 	"math/big"
+	"strings"
 	"testing"
 
 	"golang.org/x/crypto/cryptobyte"
@@ -496,5 +497,29 @@ func TestASN1_ParsePKCS8PrivateKey_ErrorBranches(t *testing.T) {
 	der, _ = p8d.Bytes()
 	if _, err := ParsePKCS8PrivateKey(der); err == nil {
 		t.Fatalf("expect missing EC privateKey")
+	}
+}
+
+// TestParseBitStringPrivateKey_ScalarRange makes sure the private scalar is
+// validated to be in [1, n-1]: d = 0 has no inverse and d >= n would wrap.
+func TestParseBitStringPrivateKey_ScalarRange(t *testing.T) {
+	cv := NewCurve()
+	order := make([]byte, 32)
+	cv.Params().N.FillBytes(order)
+
+	for name, scalar := range map[string][]byte{
+		"zero":  make([]byte, 32),
+		"order": order,
+	} {
+		pri, err := ParseBitStringPrivateKey(scalar)
+		if err == nil {
+			t.Fatalf("%s scalar accepted", name)
+		}
+		if pri != nil {
+			t.Fatalf("%s scalar returned a key", name)
+		}
+		if !strings.Contains(err.Error(), "out of range") {
+			t.Fatalf("%s scalar error %q does not mention the range", name, err)
+		}
 	}
 }
