@@ -74,8 +74,8 @@ function nav(): DefaultTheme.NavItem[] {
         },
 		{
             text: 'Carbon',
-            link: 'https://carbon.go-pkg.com/ja',
-            activeMatch: 'https://carbon.go-pkg.com/ja'
+            link: 'https://dromara.github.io/carbon/ja',
+            activeMatch: 'https://dromara.github.io/carbon/ja'
         },
     ]
 }
