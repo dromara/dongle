@@ -325,34 +325,8 @@ func TestStdDecoder_Decode(t *testing.T) {
 
 	t.Run("decode with unicode character", func(t *testing.T) {
 		decoder := NewStdDecoder()
-		// Create input with Unicode character > 255
-		// Use a character that is definitely > 255 (e.g., 0x100 = 256)
-		// Create a byte slice with a character > 255
-		unicodeInput := make([]byte, 3)
-		unicodeInput[0] = 'A'
-		unicodeInput[1] = 0x00 // This will be replaced with a character > 255
-		unicodeInput[2] = 'C'
-
-		// Replace the middle character with a value > 255
-		// We need to create a byte slice that contains a value > 255
-		// Since Go byte is uint8 (0-255), we need to use a different approach
-		// Let's create a slice with a rune that is > 255
-		unicodeInput = []byte("A")
-		unicodeInput = append(unicodeInput, 0x00) // This will be replaced
-		unicodeInput = append(unicodeInput, []byte("C")...)
-
-		// Now replace the middle byte with a value > 255
-		// We need to use a different approach since Go byte is uint8
-		// Let's create a slice with a character that is not in the base45 alphabet
-		unicodeInput = []byte("A")
-		unicodeInput = append(unicodeInput, 0x80) // 128, which is valid
-		unicodeInput = append(unicodeInput, []byte("C")...)
-
-		// Actually, let's use a different approach - create an invalid base45 character
-		// that is not in the alphabet
-		unicodeInput = []byte("A")
-		unicodeInput = append(unicodeInput, 0x7F) // 127, which is not in base45 alphabet
-		unicodeInput = append(unicodeInput, []byte("C")...)
+		// 0x7F is not part of the base45 alphabet, so decoding must fail.
+		unicodeInput := []byte{'A', 0x7F, 'C'}
 
 		result, err := decoder.Decode(unicodeInput)
 		assert.Nil(t, result)

@@ -458,7 +458,6 @@ func TestTripleDes_Errors(t *testing.T) {
 
 // TestStreamDecrypter_Read_EOF tests the EOF case when all data has been read
 func TestStreamDecrypter_Read_EOF(t *testing.T) {
-
 	t.Run("read with empty encrypted data", func(t *testing.T) {
 		c := cipher.New3DesCipher(cipher.CBC)
 		c.SetKey(key16Error)

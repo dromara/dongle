@@ -105,14 +105,13 @@ func BenchmarkStreamDecoder_Read(b *testing.B) {
 	encoded := encoder.Encode(original)
 	reader := mock.NewFile(encoded, "test.bin")
 	defer reader.Close()
-	decoder := NewStreamDecoder(reader)
 
 	buffer := make([]byte, 1024)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		reader.Reset()
 		reader = mock.NewFile(encoded, "test.bin")
-		decoder = NewStreamDecoder(reader)
+		decoder := NewStreamDecoder(reader)
 		decoder.Read(buffer)
 	}
 }

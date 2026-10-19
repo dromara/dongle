@@ -552,5 +552,4 @@ func TestHasher_Error(t *testing.T) {
 		assert.Equal(t, "existing error", result.Error.Error())
 		assert.Nil(t, result.dst)
 	})
-
 }

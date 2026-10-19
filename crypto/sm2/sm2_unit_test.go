@@ -235,7 +235,6 @@ func TestStdSignVerify(t *testing.T) {
 	// empty signature error
 	_, err = v.Verify([]byte("msg"), nil)
 	assert.EqualError(t, err, VerifyError{Err: keypair.EmptySignatureError{}}.Error())
-
 }
 
 func TestStreamSignerAndVerifier(t *testing.T) {

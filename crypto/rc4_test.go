@@ -198,7 +198,6 @@ func TestRc4Streaming(t *testing.T) {
 		encrypted := NewEncrypter().FromFile(errorReader).ByRc4(rc4Cipher).ToRawString()
 		assert.Empty(t, encrypted)
 	})
-
 }
 
 // TestRc4StdEncrypter tests RC4 standard encrypter functionality

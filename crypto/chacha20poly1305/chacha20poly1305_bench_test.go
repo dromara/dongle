@@ -292,6 +292,7 @@ func BenchmarkMemoryEfficiency(b *testing.B) {
 					b.Fatalf("Read failed: %v", err)
 				}
 			}
+			b.SetBytes(int64(len(result))) // report the decrypted throughput
 		}
 	})
 }

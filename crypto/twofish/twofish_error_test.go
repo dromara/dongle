@@ -13,10 +13,8 @@ import (
 
 // Test data for error testing
 var (
-	key16Error    = []byte("1234567890123456")                 // Twofish-128 key
-	key24Error    = []byte("123456789012345678901234")         // Twofish-192 key
-	key32Error    = []byte("12345678901234567890123456789012") // Twofish-256 key
-	iv16Error     = []byte("1234567890123456")                 // 16-byte IV
+	key16Error    = []byte("1234567890123456") // Twofish-128 key
+	iv16Error     = []byte("1234567890123456") // 16-byte IV
 	testDataError = []byte("hello world")
 )
 
@@ -657,7 +655,6 @@ func TestStreamEncrypter_Write_ErrorHandling(t *testing.T) {
 		assert.Equal(t, 4, n)  // Should write the data successfully
 		assert.NoError(t, err) // Should work because block gets recreated
 	})
-
 }
 
 func TestStreamEncrypter_Close_ErrorHandling(t *testing.T) {

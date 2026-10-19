@@ -180,7 +180,6 @@ func TestECBStreamEncryption(t *testing.T) {
 func TestECBStreamDecryption(t *testing.T) {
 	for i, tc := range ecbTestCases {
 		t.Run(fmt.Sprintf("test_case_%d", i), func(t *testing.T) {
-
 			// Create cipher
 			c := cipher.NewTwofishCipher(cipher.ECB)
 			c.SetKey(tc.key)

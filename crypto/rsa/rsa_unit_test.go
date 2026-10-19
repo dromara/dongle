@@ -60,15 +60,6 @@ func mustKeyPair(t *testing.T, format keypair.RsaKeyFormat) *keypair.RsaKeyPair 
 	return kp
 }
 
-func mustSizedKeyPair(t *testing.T, bits int, format keypair.RsaKeyFormat) *keypair.RsaKeyPair {
-	t.Helper()
-	kp := keypair.NewRsaKeyPair()
-	kp.SetFormat(format)
-	kp.SetHash(crypto.SHA256)
-	require.NoError(t, kp.GenKeyPair(bits))
-	return kp
-}
-
 func mustStdEncrypter(t *testing.T, kp *keypair.RsaKeyPair) *StdEncrypter {
 	t.Helper()
 	e := NewStdEncrypter(kp)
@@ -263,7 +254,7 @@ func TestStdEncrypterEncrypt(t *testing.T) {
 	})
 
 	t.Run("encryption failure wrapped", func(t *testing.T) {
-		kp := mustSizedKeyPair(t, 1024, keypair.PKCS1)
+		kp := mustKeyPair(t, keypair.PKCS1)
 		e := mustStdEncrypter(t, kp)
 		tooLong := bytes.Repeat([]byte("a"), e.cache.pubKey.Size())
 		_, err := e.Encrypt(tooLong)
@@ -369,7 +360,7 @@ func TestStreamEncrypterWriteAndClose(t *testing.T) {
 	})
 
 	t.Run("multiple chunks and close flush", func(t *testing.T) {
-		kp := mustSizedKeyPair(t, 1024, keypair.PKCS1)
+		kp := mustKeyPair(t, keypair.PKCS1)
 		writer := &trackingWriter{}
 		e := streamEncrypter(t, writer, kp)
 		require.NoError(t, e.Error)
@@ -386,7 +377,7 @@ func TestStreamEncrypterWriteAndClose(t *testing.T) {
 	})
 
 	t.Run("write encryption error", func(t *testing.T) {
-		kp := mustSizedKeyPair(t, 1024, keypair.PKCS1)
+		kp := mustKeyPair(t, keypair.PKCS1)
 		writer := &bytes.Buffer{}
 		e := streamEncrypter(t, writer, kp)
 		require.NoError(t, e.Error)
@@ -634,7 +625,7 @@ func TestStreamDecrypterNew(t *testing.T) {
 
 func TestStreamDecrypterRead(t *testing.T) {
 	t.Run("reads across buffer and eof", func(t *testing.T) {
-		kp := mustSizedKeyPair(t, 1024, keypair.PKCS1)
+		kp := mustKeyPair(t, keypair.PKCS1)
 		plain := []byte("streaming plaintext")
 		cipher := encryptWith(t, kp, plain)
 
@@ -656,7 +647,7 @@ func TestStreamDecrypterRead(t *testing.T) {
 	})
 
 	t.Run("public oaep decrypt", func(t *testing.T) {
-		kp := mustSizedKeyPair(t, 1024, keypair.PKCS8)
+		kp := mustKeyPair(t, keypair.PKCS8)
 		kp.SetType(keypair.PrivateKey)
 		cipher := encryptWith(t, kp, []byte("public oaep stream"))
 
@@ -677,7 +668,7 @@ func TestStreamDecrypterRead(t *testing.T) {
 	})
 
 	t.Run("unexpected eof", func(t *testing.T) {
-		kp := mustSizedKeyPair(t, 1024, keypair.PKCS1)
+		kp := mustKeyPair(t, keypair.PKCS1)
 		cipher := encryptWith(t, kp, []byte("short"))
 		kp.SetType(keypair.PrivateKey)
 		reader := bytes.NewReader(cipher[:len(cipher)-1])
@@ -1120,11 +1111,11 @@ func TestStreamVerifier(t *testing.T) {
 		kp := mustKeyPair(t, keypair.PKCS1)
 		v := streamVerifier(t, bytes.NewReader(nil), kp)
 		require.NoError(t, v.Error)
-		_, err := v.verify(nil, []byte("sig"))
+		err := v.verify(nil, []byte("sig"))
 		require.NoError(t, err)
 
 		v.keypair.Padding = "bad"
-		_, err = v.verify([]byte{1}, []byte("sig"))
+		err = v.verify([]byte{1}, []byte("sig"))
 		require.Error(t, err)
 	})
 
@@ -1176,27 +1167,27 @@ func TestStreamVerifierAdditional(t *testing.T) {
 	t.Run("verify helper combinations", func(t *testing.T) {
 		pubPSS := mustKeyPair(t, keypair.PKCS8)
 		v1 := streamVerifier(t, bytes.NewReader(nil), pubPSS)
-		_, err := v1.verify(make([]byte, v1.keypair.Hash.Size()), []byte{1, 2, 3})
+		err := v1.verify(make([]byte, v1.keypair.Hash.Size()), []byte{1, 2, 3})
 		require.Error(t, err)
 
 		privPKCS1 := mustKeyPair(t, keypair.PKCS1)
 		privPKCS1.SetType(keypair.PrivateKey)
 		v2 := streamVerifier(t, bytes.NewReader(nil), privPKCS1)
-		_, err = v2.verify(make([]byte, v2.keypair.Hash.Size()), []byte{1})
+		err = v2.verify(make([]byte, v2.keypair.Hash.Size()), []byte{1})
 		require.Error(t, err)
 
 		privPSS := mustKeyPair(t, keypair.PKCS8)
 		privPSS.SetType(keypair.PrivateKey)
 		v3 := streamVerifier(t, bytes.NewReader(nil), privPSS)
-		_, err = v3.verify(make([]byte, v3.keypair.Hash.Size()), []byte{1})
+		err = v3.verify(make([]byte, v3.keypair.Hash.Size()), []byte{1})
 		require.Error(t, err)
 
 		preset := &StreamVerifier{Error: errors.New("stop")}
-		_, err = preset.verify([]byte{1}, []byte{2})
+		err = preset.verify([]byte{1}, []byte{2})
 		require.EqualError(t, err, "stop")
 
 		v3.keypair.Padding = "bad"
-		_, err = v3.verify([]byte{1}, []byte{2})
+		err = v3.verify([]byte{1}, []byte{2})
 		require.Error(t, err)
 	})
 }

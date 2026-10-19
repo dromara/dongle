@@ -711,7 +711,6 @@ func TestStreamEncrypter_Write_ErrorPaths(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, len(testDataError), n)
 	})
-
 }
 
 func TestStreamEncrypter_Close_ErrorPaths(t *testing.T) {

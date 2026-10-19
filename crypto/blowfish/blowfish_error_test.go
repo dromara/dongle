@@ -1174,7 +1174,6 @@ func TestStdEncrypter_Encrypt_ErrorPaths(t *testing.T) {
 		assert.Empty(t, result)
 		assert.NotNil(t, err)
 		assert.IsType(t, KeySizeError(3), err)
-
 	})
 
 	t.Run("encrypt with invalid key causing blowfish.NewCipher error", func(t *testing.T) {

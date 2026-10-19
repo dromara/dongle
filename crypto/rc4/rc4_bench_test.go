@@ -179,6 +179,7 @@ func BenchmarkMemoryEfficiency(b *testing.B) {
 					break
 				}
 			}
+			b.SetBytes(int64(len(result))) // report the decrypted throughput
 		}
 	})
 

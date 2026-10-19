@@ -118,7 +118,7 @@ func TestErrorMessages(t *testing.T) {
 }
 
 // mustECDSAPKIX returns a P-256 public key marshalled as PKIX DER.
-func mustECDSAPKIX(t *testing.T) ([]byte, *ecdsa.PublicKey) {
+func mustECDSAPKIX(t *testing.T) []byte {
 	t.Helper()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -128,13 +128,13 @@ func mustECDSAPKIX(t *testing.T) ([]byte, *ecdsa.PublicKey) {
 	if err != nil {
 		t.Fatalf("MarshalPKIXPublicKey: %v", err)
 	}
-	return der, &key.PublicKey
+	return der
 }
 
 // TestParsePublicKey_RejectsOtherKeyType covers keys that parse fine but are
 // not the requested type, reported through describeKey instead of a panic.
 func TestParsePublicKey_RejectsOtherKeyType(t *testing.T) {
-	der, _ := mustECDSAPKIX(t)
+	der := mustECDSAPKIX(t)
 
 	kp := NewEd25519KeyPair()
 	kp.PublicKey = pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
@@ -219,7 +219,7 @@ func TestParsePrivateKey_RejectsPublicKeyBlock(t *testing.T) {
 // TestParsePublicKey_RejectsOtherAlgorithmBlock covers a PEM block labelled for
 // another algorithm, for example an "EC PUBLIC KEY" block in an Ed25519 pair.
 func TestParsePublicKey_RejectsOtherAlgorithmBlock(t *testing.T) {
-	der, _ := mustECDSAPKIX(t)
+	der := mustECDSAPKIX(t)
 
 	kp := NewEd25519KeyPair()
 	kp.PublicKey = pem.EncodeToMemory(&pem.Block{Type: "EC PUBLIC KEY", Bytes: der})

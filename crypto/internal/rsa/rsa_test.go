@@ -39,9 +39,9 @@ func (f fixedSizeHash) Reset()         {}
 func (f fixedSizeHash) Size() int      { return f.size }
 func (f fixedSizeHash) BlockSize() int { return 1 }
 
-func mustKey(t *testing.T, bits int) *rsa.PrivateKey {
+func mustKey(t *testing.T) *rsa.PrivateKey {
 	t.Helper()
-	key, err := rsa.GenerateKey(rand.Reader, bits)
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
 	if err != nil {
 		t.Fatalf("generate key: %v", err)
 	}
@@ -114,7 +114,7 @@ func oaepCiphertext(t *testing.T, priv *rsa.PrivateKey, h hash.Hash, msg []byte)
 }
 
 func TestEncryptDecryptWrappers(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	msg := []byte("wrapper message")
 
 	c1, err := EncryptPKCS1v15WithPublicKey(rand.Reader, &key.PublicKey, msg)
@@ -190,7 +190,7 @@ func TestEncryptDecryptWrappers(t *testing.T) {
 }
 
 func TestDecryptPKCS1v15WithPublicKey(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	msg := []byte("rsa public decrypt")
 	cipher := pkcs1Ciphertext(t, key, msg)
 	plain, err := DecryptPKCS1v15WithPublicKey(&key.PublicKey, cipher)
@@ -203,7 +203,7 @@ func TestDecryptPKCS1v15WithPublicKey(t *testing.T) {
 }
 
 func TestDecryptPKCS1v15WithPublicKeyErrors(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	k := key.PublicKey.Size()
 	msg := []byte("bad padding")
 
@@ -278,7 +278,7 @@ func TestDecryptPKCS1v15WithPublicKeyErrors(t *testing.T) {
 }
 
 func TestDecryptOAEPWithPublicKey(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	msg := []byte("oaep plaintext")
 	cipher, _ := oaepCiphertext(t, key, sha256.New(), msg)
 	plain, err := DecryptOAEPWithPublicKey(sha256.New(), &key.PublicKey, cipher)
@@ -291,7 +291,7 @@ func TestDecryptOAEPWithPublicKey(t *testing.T) {
 }
 
 func TestDecryptOAEPWithPublicKeyErrors(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	smallPub := &rsa.PublicKey{N: big.NewInt(257), E: 3}
 	k := key.PublicKey.Size()
 	h := sha256.New()
@@ -364,7 +364,7 @@ func TestDecryptOAEPWithPublicKeyErrors(t *testing.T) {
 }
 
 func TestSignPKCS1v15WithPublicKey(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	msg := []byte("public sign")
 	digest := sha256.Sum256(msg)
 
@@ -433,7 +433,7 @@ func TestSignPKCS1v15WithPublicKeySmallPaddingWindow(t *testing.T) {
 }
 
 func TestSignPSSWithPublicKey(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	digest := sha256.Sum256([]byte("pss"))
 
 	if _, err := SignPSSWithPublicKey(rand.Reader, nil, crypto.SHA256, digest[:]); err == nil {
@@ -485,7 +485,7 @@ func TestSignPSSWithPublicKey(t *testing.T) {
 }
 
 func TestSignPSSWithPublicKeyEncodeError(t *testing.T) {
-	key := mustKey(t, 1024)
+	key := mustKey(t)
 	hashID := crypto.SHA3_256
 
 	crypto.RegisterHash(hashID, func() hash.Hash { return fixedSizeHash{size: 1} })

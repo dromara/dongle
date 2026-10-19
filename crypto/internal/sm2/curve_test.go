@@ -549,7 +549,7 @@ func TestCurve_RandScalar_EdgeCases(t *testing.T) {
 	seqR3 := &seqReader{
 		seq: [][]byte{highBits, paddedValid},
 	}
-	d, err = RandScalar(c, seqR3)
+	_, err = RandScalar(c, seqR3)
 	if err != nil {
 		t.Fatalf("RandScalar with high bits: %v", err)
 	}

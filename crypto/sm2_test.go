@@ -155,7 +155,6 @@ func TestEncrypterBySm2(t *testing.T) {
 		assert.Nil(t, dec.Error)
 		assert.Equal(t, "hello world", dec.ToString())
 	})
-
 }
 
 // TestDecrypterBySm2 tests Decrypter.BySm2 method

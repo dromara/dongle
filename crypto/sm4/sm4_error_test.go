@@ -626,29 +626,6 @@ func TestStreamEncrypterCloseError(t *testing.T) {
 	})
 }
 
-// mockBlock is a mock implementation of cipher.Block for testing error paths
-type mockBlock struct {
-	blockSize int
-	encrypt   func(dst, src []byte)
-	decrypt   func(dst, src []byte)
-}
-
-func (m *mockBlock) BlockSize() int { return m.blockSize }
-func (m *mockBlock) Encrypt(dst, src []byte) {
-	if m.encrypt != nil {
-		m.encrypt(dst, src)
-	} else {
-		copy(dst, src)
-	}
-}
-func (m *mockBlock) Decrypt(dst, src []byte) {
-	if m.decrypt != nil {
-		m.decrypt(dst, src)
-	} else {
-		copy(dst, src)
-	}
-}
-
 // TestStdEncrypterEncryptError tests error paths in StdEncrypter Encrypt method
 func TestStdEncrypterEncryptError(t *testing.T) {
 	t.Run("StdEncrypter Encrypt with empty data", func(t *testing.T) {

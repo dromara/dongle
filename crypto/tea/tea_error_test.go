@@ -309,7 +309,6 @@ func TestStreamEncrypter_Write_ErrorPaths(t *testing.T) {
 		// This should trigger the block creation fallback path
 		assert.NoError(t, err) // Should succeed with valid key
 	})
-
 }
 
 func TestStreamEncrypter_Close_ErrorPaths(t *testing.T) {

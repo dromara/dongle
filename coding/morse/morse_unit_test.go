@@ -23,7 +23,7 @@ func TestStdEncoder_Encode(t *testing.T) {
 		}
 		for code, count := range StdAlphabetCount {
 			assert.Equal(t, 1, count)
-			if 1 != count {
+			if count != 1 {
 				for k, v := range StdAlphabet {
 					if v == code {
 						t.Errorf("%s: %s\n", strconv.Quote(k), strconv.Quote(v))
