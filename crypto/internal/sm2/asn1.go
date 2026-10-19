@@ -155,6 +155,11 @@ func ParseBitStringPublicKey(key []byte) (*ecdsa.PublicKey, error) {
 func ParseBitStringPrivateKey(key []byte) (*ecdsa.PrivateKey, error) {
 	cv := NewCurve()
 	d := new(big.Int).SetBytes(key)
+	// The scalar has to be in [1, n-1]: d = 0 has no inverse and would produce
+	// a key without a public point, d >= n would silently wrap around.
+	if d.Sign() <= 0 || d.Cmp(cv.Params().N) >= 0 {
+		return nil, encodingAsn1.StructuralError{Msg: "private key scalar out of range [1, n-1]"}
+	}
 	x, y := cv.ScalarBaseMult(key)
 	return &ecdsa.PrivateKey{PublicKey: ecdsa.PublicKey{Curve: cv, X: x, Y: y}, D: d}, nil
 }

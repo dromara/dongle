@@ -5,10 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
-	"strings"
-
-	"github.com/dromara/dongle/coding"
-	"github.com/dromara/dongle/internal/utils"
+	"fmt"
 )
 
 // Ed25519KeyPair represents an ED25519 key pair with public and private keys.
@@ -58,8 +55,9 @@ func (k *Ed25519KeyPair) GenKeyPair() error {
 	return nil
 }
 
-// SetPublicKey sets the public key and formats it in PKCS8 format.
-// The input key is expected to be in PEM format and will be reformatted if necessary.
+// SetPublicKey sets the public key and formats it in PEM format.
+// The input may be PEM, base64, hex or raw key material and is rewritten as a
+// canonical "PUBLIC KEY" block. See FormatPublicKey for the accepted inputs.
 func (k *Ed25519KeyPair) SetPublicKey(publicKey []byte) error {
 	key, err := k.FormatPublicKey(publicKey)
 	if err == nil {
@@ -68,8 +66,9 @@ func (k *Ed25519KeyPair) SetPublicKey(publicKey []byte) error {
 	return err
 }
 
-// SetPrivateKey sets the private key and formats it in PKCS8 format.
-// The input key is expected to be in PEM format and will be reformatted if necessary.
+// SetPrivateKey sets the private key and formats it in PEM format.
+// The input may be PEM, base64, hex or raw key material and is rewritten as a
+// canonical "PRIVATE KEY" block. See FormatPrivateKey for the accepted inputs.
 func (k *Ed25519KeyPair) SetPrivateKey(privateKey []byte) error {
 	key, err := k.FormatPrivateKey(privateKey)
 	if err == nil {
@@ -78,142 +77,129 @@ func (k *Ed25519KeyPair) SetPrivateKey(privateKey []byte) error {
 	return err
 }
 
-// ParsePublicKey parses the public key from PEM format and returns a Go crypto/ed25519.PublicKey.
-// It supports PKCS8 format.
+// ParsePublicKey parses the public key and returns a crypto/ed25519.PublicKey.
 //
-// Note: This method automatically detects the key format from the PEM headers.
+// In addition to the PEM produced by GenKeyPair it accepts:
+//   - a PEM block whose body is the raw 32 byte key instead of PKIX DER
+//   - base64 or hex encoded PKIX DER, or base64/hex of the raw 32 byte key
+//   - the raw 32 byte key
 func (k *Ed25519KeyPair) ParsePublicKey() (ed25519.PublicKey, error) {
-	publicKey := k.PublicKey
-	if len(publicKey) == 0 {
+	if len(k.PublicKey) == 0 {
 		return nil, EmptyPublicKeyError{}
 	}
-	block, _ := pem.Decode(publicKey)
-	if block == nil {
-		return nil, InvalidPublicKeyError{}
-	}
-
-	// Parse based on the PEM block type
-	if block.Type == "PUBLIC KEY" {
-		// PKCS8 format public key
-		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-		if err != nil {
-			return nil, InvalidPublicKeyError{Err: err}
-		}
-		return pub.(ed25519.PublicKey), nil
-	}
-	return nil, UnsupportedKeyFormatError{}
+	return selectKey(k.PublicKey, PublicKey, "Ed25519", parseEd25519PublicKey)
 }
 
-// ParsePrivateKey parses the private key from PEM format and returns a Go crypto/ed25519.PrivateKey.
-// It supports PKCS8 format.
+// parseEd25519PublicKey reads a raw 32 byte key or a PKIX SubjectPublicKeyInfo.
+func parseEd25519PublicKey(body []byte) (ed25519.PublicKey, error) {
+	if len(body) == ed25519.PublicKeySize {
+		return ed25519.PublicKey(body), nil
+	}
+
+	publicKey, err := x509.ParsePKIXPublicKey(body)
+	if err != nil {
+		return nil, err
+	}
+	key, ok := publicKey.(ed25519.PublicKey)
+	if !ok {
+		return nil, UnsupportedKeyFormatError{
+			Algorithm: "Ed25519",
+			Detail:    fmt.Sprintf("the parsed key is %s, not an Ed25519 key", describeKey(publicKey)),
+		}
+	}
+	return key, nil
+}
+
+// ParsePrivateKey parses the private key and returns a crypto/ed25519.PrivateKey.
 //
-// Note: This method automatically detects the key format from the PEM headers.
+// In addition to the PEM produced by GenKeyPair it accepts:
+//   - base64 or hex encoded PKCS#8 DER
+//   - base64 or hex encoded 32 byte seed, as printed by many key generators
+//   - the raw 32 byte seed or 64 byte private key
 func (k *Ed25519KeyPair) ParsePrivateKey() (ed25519.PrivateKey, error) {
-	privateKey := k.PrivateKey
-	if len(privateKey) == 0 {
+	if len(k.PrivateKey) == 0 {
 		return nil, EmptyPrivateKeyError{}
 	}
-	block, _ := pem.Decode(privateKey)
-	if block == nil {
-		return nil, InvalidPrivateKeyError{}
-	}
-
-	// Parse based on the PEM block type
-	if block.Type == "PRIVATE KEY" {
-		// PKCS8 format private key
-		pri, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, InvalidPrivateKeyError{Err: err}
-		}
-		return pri.(ed25519.PrivateKey), nil
-	}
-	return nil, UnsupportedKeyFormatError{}
+	return selectKey(k.PrivateKey, PrivateKey, "Ed25519", parseEd25519PrivateKey)
 }
 
-// FormatPublicKey formats base64-encoded der public key into the specified PEM format.
+// parseEd25519PrivateKey reads a PKCS#8 PrivateKeyInfo, a 32 byte seed or a
+// 64 byte private key.
+func parseEd25519PrivateKey(body []byte) (ed25519.PrivateKey, error) {
+	switch len(body) {
+	case ed25519.SeedSize:
+		return ed25519.NewKeyFromSeed(body), nil
+	case ed25519.PrivateKeySize:
+		return ed25519.PrivateKey(body), nil
+	}
+
+	privateKey, err := x509.ParsePKCS8PrivateKey(body)
+	if err != nil {
+		return nil, err
+	}
+	key, ok := privateKey.(ed25519.PrivateKey)
+	if !ok {
+		return nil, UnsupportedKeyFormatError{
+			Algorithm: "Ed25519",
+			Detail:    fmt.Sprintf("the parsed key is %s, not an Ed25519 key", describeKey(privateKey)),
+		}
+	}
+	return key, nil
+}
+
+// FormatPublicKey formats the public key into a PEM "PUBLIC KEY" block.
+// It accepts the same inputs as ParsePublicKey, so keys copied from other tools
+// are normalized instead of being rejected.
 func (k *Ed25519KeyPair) FormatPublicKey(publicKey []byte) ([]byte, error) {
 	if len(publicKey) == 0 {
 		return []byte{}, EmptyPublicKeyError{}
 	}
 
-	decoder := coding.NewDecoder().FromBytes(publicKey).ByBase64()
-	if decoder.Error != nil {
-		return []byte{}, InvalidPublicKeyError{Err: decoder.Error}
+	key, err := selectKey(publicKey, PublicKey, "Ed25519", parseEd25519PublicKey)
+	if err != nil {
+		return []byte{}, err
 	}
-
-	// ED25519 only supports PKCS8 format
-	// Use pem.EncodeToMemory to format the key
+	der, err := x509.MarshalPKIXPublicKey(key)
+	if err != nil {
+		return []byte{}, InvalidPublicKeyError{Err: err}
+	}
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  "PUBLIC KEY",
-		Bytes: decoder.ToBytes(),
+		Bytes: der,
 	}), nil
 }
 
-// FormatPrivateKey formats base64-encoded der private key into the specified PEM format.
+// FormatPrivateKey formats the private key into a PEM "PRIVATE KEY" block.
+// It accepts the same inputs as ParsePrivateKey.
 func (k *Ed25519KeyPair) FormatPrivateKey(privateKey []byte) ([]byte, error) {
 	if len(privateKey) == 0 {
 		return []byte{}, EmptyPrivateKeyError{}
 	}
 
-	decoder := coding.NewDecoder().FromBytes(privateKey).ByBase64()
-	if decoder.Error != nil {
-		return []byte{}, InvalidPrivateKeyError{Err: decoder.Error}
+	key, err := selectKey(privateKey, PrivateKey, "Ed25519", parseEd25519PrivateKey)
+	if err != nil {
+		return []byte{}, err
 	}
-
-	// ED25519 only supports PKCS8 format
-	// Use pem.EncodeToMemory to format the key
+	der, err := x509.MarshalPKCS8PrivateKey(key)
+	if err != nil {
+		return []byte{}, InvalidPrivateKeyError{Err: err}
+	}
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  "PRIVATE KEY",
-		Bytes: decoder.ToBytes(),
+		Bytes: der,
 	}), nil
 }
 
-// CompressPublicKey removes the PEM headers and footers from the public key.
-// It supports PKCS8 format and removes all whitespace characters.
-// The resulting byte slice contains only the base64-encoded key data.
+// CompressPublicKey returns the base64 body of the public key PEM block.
+// The input is decoded with pem.Decode, so optional block headers such as
+// "Bag Attributes" are dropped instead of ending up in the body.
 func (k *Ed25519KeyPair) CompressPublicKey(publicKey []byte) []byte {
-	// Convert byte slice to string for easier manipulation
-	keyStr := utils.Bytes2String(publicKey)
-
-	// Remove the PEM headers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PUBLIC KEY-----", "")
-
-	// Remove the PEM footers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----END PUBLIC KEY-----", "")
-
-	// Remove all newline characters and whitespace
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-
-	// Remove any remaining whitespace that might be present
-	keyStr = strings.TrimSpace(keyStr)
-
-	return utils.String2Bytes(keyStr)
+	return compressKey(publicKey)
 }
 
-// CompressPrivateKey removes the PEM headers and footers from the private key.
-// It supports PKCS8 format and removes all whitespace characters.
-// The resulting byte slice contains only the base64-encoded key data.
+// CompressPrivateKey returns the base64 body of the private key PEM block.
+// The input is decoded with pem.Decode, so optional block headers such as
+// "Bag Attributes" are dropped instead of ending up in the body.
 func (k *Ed25519KeyPair) CompressPrivateKey(privateKey []byte) []byte {
-	// Convert byte slice to string for easier manipulation
-	keyStr := utils.Bytes2String(privateKey)
-
-	// Remove the PEM headers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PRIVATE KEY-----", "")
-
-	// Remove the PEM footers (only PKCS8 for ED25519)
-	keyStr = strings.ReplaceAll(keyStr, "-----END PRIVATE KEY-----", "")
-
-	// Remove all newline characters and whitespace
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-
-	// Remove any remaining whitespace that might be present
-	keyStr = strings.TrimSpace(keyStr)
-
-	return utils.String2Bytes(keyStr)
+	return compressKey(privateKey)
 }

@@ -33,7 +33,7 @@ func TestEmptyPrivateKeyError_Error(t *testing.T) {
 func TestInvalidPrivateKeyError_Error(t *testing.T) {
 	originalErr := errors.New("test error")
 	err := InvalidPrivateKeyError{Err: originalErr}
-	expected := " invalid private key: test error"
+	expected := "invalid private key: test error"
 	if err.Error() != expected {
 		t.Errorf("InvalidPrivateKeyError.Error() = %q, want %q", err.Error(), expected)
 	}

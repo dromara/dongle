@@ -4,11 +4,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/pem"
-	"strings"
+	"fmt"
 
-	"github.com/dromara/dongle/coding"
 	"github.com/dromara/dongle/crypto/internal/sm2"
-	"github.com/dromara/dongle/internal/utils"
 )
 
 // Sm2CipherMode specifies the concatenation mode of SM2 ciphertext
@@ -146,8 +144,13 @@ func (k *Sm2KeyPair) SetUID(uid []byte) {
 	k.UID = uid
 }
 
-// SetPublicKey sets the public key after formatting to PEM.
-// Accepts base64-encoded DER of SubjectPublicKeyInfo.
+// sm2CoordinateSize is the byte length of an sm2p256v1 coordinate and of
+// the private key scalar.
+const sm2CoordinateSize = 32
+
+// SetPublicKey sets the public key after formatting it to PEM.
+// The input may be PEM, base64, hex or raw key material and is rewritten as a
+// canonical "PUBLIC KEY" block. See FormatPublicKey for the accepted inputs.
 func (k *Sm2KeyPair) SetPublicKey(publicKey []byte) error {
 	key, err := k.FormatPublicKey(publicKey)
 	if err == nil {
@@ -156,8 +159,9 @@ func (k *Sm2KeyPair) SetPublicKey(publicKey []byte) error {
 	return err
 }
 
-// SetPrivateKey sets the private key after formatting to PEM.
-// Accepts base64-encoded DER of PKCS#8 PrivateKeyInfo.
+// SetPrivateKey sets the private key after formatting it to PEM.
+// The input may be PEM, base64, hex or raw key material and is rewritten as a
+// canonical "PRIVATE KEY" block. See FormatPrivateKey for the accepted inputs.
 func (k *Sm2KeyPair) SetPrivateKey(privateKey []byte) error {
 	key, err := k.FormatPrivateKey(privateKey)
 	if err == nil {
@@ -166,108 +170,119 @@ func (k *Sm2KeyPair) SetPrivateKey(privateKey []byte) error {
 	return err
 }
 
-// ParsePublicKey parses the PEM-encoded public key and returns *sm2.PublicKey.
+// ParsePublicKey parses the public key and returns an *ecdsa.PublicKey on the
+// sm2p256v1 curve.
+//
+// In addition to the PEM produced by GenKeyPair it accepts:
+//   - base64 or hex encoded PKIX DER
+//   - base64 or hex encoded 65 byte uncompressed point (0x04 || X || Y)
+//   - the raw 65 byte uncompressed point
+//
+// Keys generated for another curve are rejected, a point that belongs to
+// P-256 while being wrapped in an SM2 SubjectPublicKeyInfo is reported as
+// "point not on curve".
 func (k *Sm2KeyPair) ParsePublicKey() (*ecdsa.PublicKey, error) {
-	publicKey := k.PublicKey
-	if len(publicKey) == 0 {
+	if len(k.PublicKey) == 0 {
 		return nil, EmptyPublicKeyError{}
 	}
-	if len(publicKey) == 65 {
-		pub, err := bitStringPublicKeyParser(publicKey)
-		if err != nil {
-			return nil, InvalidPublicKeyError{Err: err}
-		}
-		return pub, nil
-	}
-	block, _ := pem.Decode(publicKey)
-	if block == nil || block.Type != "PUBLIC KEY" {
-		return nil, InvalidPublicKeyError{}
-	}
-	pub, err := sm2.ParseSPKIPublicKey(block.Bytes)
-	if err != nil {
-		return nil, InvalidPublicKeyError{Err: err}
-	}
-	return pub, nil
+	return selectKey(k.PublicKey, PublicKey, "SM2", parseSm2PublicKey)
 }
 
-// ParsePrivateKey parses the PEM-encoded private key and returns *sm2.PrivateKey.
+// parseSm2PublicKey reads an uncompressed point or a PKIX SubjectPublicKeyInfo.
+func parseSm2PublicKey(body []byte) (*ecdsa.PublicKey, error) {
+	// Uncompressed point: 0x04 || X || Y.
+	if len(body) == 1+2*sm2CoordinateSize {
+		return bitStringPublicKeyParser(body)
+	}
+
+	publicKey, err := sm2.ParseSPKIPublicKey(body)
+	if err != nil {
+		return nil, fmt.Errorf("%w (want an sm2p256v1 SubjectPublicKeyInfo or a %d byte uncompressed point)", err, 1+2*sm2CoordinateSize)
+	}
+	return publicKey, nil
+}
+
+// ParsePrivateKey parses the private key and returns an *ecdsa.PrivateKey on
+// the sm2p256v1 curve.
+//
+// In addition to the PEM produced by GenKeyPair it accepts:
+//   - base64 or hex encoded PKCS#8 DER
+//   - base64 or hex encoded 32 byte scalar
+//   - the raw 32 byte scalar
 func (k *Sm2KeyPair) ParsePrivateKey() (*ecdsa.PrivateKey, error) {
-	privateKey := k.PrivateKey
-	if len(privateKey) == 0 {
+	if len(k.PrivateKey) == 0 {
 		return nil, EmptyPrivateKeyError{}
 	}
-	if len(privateKey) == 32 {
-		pri, err := bitStringPrivateKeyParser(privateKey)
-		if err != nil {
-			return nil, InvalidPrivateKeyError{Err: err}
-		}
-		return pri, nil
-	}
-	block, _ := pem.Decode(privateKey)
-	if block == nil || block.Type != "PRIVATE KEY" {
-		return nil, InvalidPrivateKeyError{}
-	}
-	pri, err := sm2.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, InvalidPrivateKeyError{Err: err}
-	}
-	return pri, nil
+	return selectKey(k.PrivateKey, PrivateKey, "SM2", parseSm2PrivateKey)
 }
 
-// FormatPublicKey formats base64-encoded der public key into the specified PEM format.
+// parseSm2PrivateKey reads a raw scalar or a PKCS#8 PrivateKeyInfo.
+func parseSm2PrivateKey(body []byte) (*ecdsa.PrivateKey, error) {
+	// Raw scalar.
+	if len(body) == sm2CoordinateSize {
+		return bitStringPrivateKeyParser(body)
+	}
+
+	privateKey, err := sm2.ParsePKCS8PrivateKey(body)
+	if err != nil {
+		return nil, fmt.Errorf("%w (want a PKCS#8 sm2p256v1 private key, a SEC1 \"EC PRIVATE KEY\" has to be converted first)", err)
+	}
+	return privateKey, nil
+}
+
+// FormatPublicKey formats the public key into a PEM "PUBLIC KEY" block.
+// It accepts the same inputs as ParsePublicKey, so keys copied from other tools
+// are normalized instead of being rejected.
 func (k *Sm2KeyPair) FormatPublicKey(publicKey []byte) ([]byte, error) {
 	if len(publicKey) == 0 {
 		return []byte{}, EmptyPublicKeyError{}
 	}
-	decoder := coding.NewDecoder().FromBytes(publicKey).ByBase64()
-	if decoder.Error != nil {
-		return []byte{}, InvalidPublicKeyError{Err: decoder.Error}
+
+	pub, err := selectKey(publicKey, PublicKey, "SM2", parseSm2PublicKey)
+	if err != nil {
+		return []byte{}, err
+	}
+	der, err := sm2.MarshalSPKIPublicKey(pub)
+	if err != nil {
+		return []byte{}, InvalidPublicKeyError{Err: err}
 	}
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  "PUBLIC KEY",
-		Bytes: decoder.ToBytes(),
+		Bytes: der,
 	}), nil
 }
 
-// FormatPrivateKey formats base64-encoded der private key into the specified PEM format.
+// FormatPrivateKey formats the private key into a PEM "PRIVATE KEY" block.
+// It accepts the same inputs as ParsePrivateKey.
 func (k *Sm2KeyPair) FormatPrivateKey(privateKey []byte) ([]byte, error) {
 	if len(privateKey) == 0 {
 		return []byte{}, EmptyPrivateKeyError{}
 	}
-	decoder := coding.NewDecoder().FromBytes(privateKey).ByBase64()
-	if decoder.Error != nil {
-		return []byte{}, InvalidPrivateKeyError{Err: decoder.Error}
+
+	pri, err := selectKey(privateKey, PrivateKey, "SM2", parseSm2PrivateKey)
+	if err != nil {
+		return []byte{}, err
+	}
+	der, err := sm2.MarshalPKCS8PrivateKey(pri)
+	if err != nil {
+		return []byte{}, InvalidPrivateKeyError{Err: err}
 	}
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  "PRIVATE KEY",
-		Bytes: decoder.ToBytes(),
+		Bytes: der,
 	}), nil
 }
 
-// CompressPublicKey strips headers/footers and whitespace from the PEM public key.
+// CompressPublicKey returns the base64 body of the public key PEM block.
+// The input is decoded with pem.Decode, so optional block headers such as
+// "Bag Attributes" are dropped instead of ending up in the body.
 func (k *Sm2KeyPair) CompressPublicKey(publicKey []byte) []byte {
-	keyStr := utils.Bytes2String(publicKey)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PUBLIC KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----END PUBLIC KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-	keyStr = strings.TrimSpace(keyStr)
-	return utils.String2Bytes(keyStr)
+	return compressKey(publicKey)
 }
 
-// CompressPrivateKey strips headers/footers and whitespace from the PEM private key.
+// CompressPrivateKey returns the base64 body of the private key PEM block.
+// The input is decoded with pem.Decode, so optional block headers such as
+// "Bag Attributes" are dropped instead of ending up in the body.
 func (k *Sm2KeyPair) CompressPrivateKey(privateKey []byte) []byte {
-	keyStr := utils.Bytes2String(privateKey)
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN PRIVATE KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----END PRIVATE KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "-----END ENCRYPTED PRIVATE KEY-----", "")
-	keyStr = strings.ReplaceAll(keyStr, "\n", "")
-	keyStr = strings.ReplaceAll(keyStr, "\r", "")
-	keyStr = strings.ReplaceAll(keyStr, " ", "")
-	keyStr = strings.ReplaceAll(keyStr, "\t", "")
-	keyStr = strings.TrimSpace(keyStr)
-	return utils.String2Bytes(keyStr)
+	return compressKey(privateKey)
 }
