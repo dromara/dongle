@@ -1,4 +1,4 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/ja" target="_blank"><img src="https://dongle.go-pkg.com/logo.svg?v=1.1.x" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/ja" target="_blank"><img src="assets/logo.svg" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
@@ -14,8 +14,8 @@
 
 `Dongle` は、軽量で、意味的に分かりやすく、開発者に優しい `golang` エンコーディング＆暗号化ライブラリです。`100%` のユニットテストカバレッジを達成し、[awesome-go](https://github.com/avelino/awesome-go?tab=readme-ov-file#security "awesome-go") に収録されています。また、`gitee` 2024 年最有価値プロジェクト（`GVP`）と `gitcode` 2024 年度オープンソーススター計画（`G-Star`）プロジェクトを受賞しました。
 
-<img src="https://dongle.go-pkg.com/gvp.jpg?v=1.1.x" width="100%" alt="gvp"/>
-<img src="https://dongle.go-pkg.com/gstar.jpg?v=1.1.x" width="100%" alt="g-star"/>
+<img src="assets/gvp.jpg" width="100%" alt="gvp"/>
+<img src="assets/gstar.jpg" width="100%" alt="g-star"/>
 
 ## リポジトリ
 
@@ -186,7 +186,7 @@ dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).To
 
 `Dongle` は無料の `JetBrains` オープンソースライセンスを取得しており、ここで感謝の意を表したいと思います。
 
-<a href="https://www.jetbrains.com" target="_blank"><img src="https://dongle.go-pkg.com/jetbrains.svg" height="50" alt="JetBrains"/></a>
+<a href="https://www.jetbrains.com" target="_blank"><img src="assets/jetbrains.svg" height="50" alt="JetBrains"/></a>
 
 ## ライセンス
 
