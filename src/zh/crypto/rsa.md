@@ -68,11 +68,15 @@ import (
 kp := keypair.NewRsaKeyPair()
 // 设置密钥格式（可选，默认为 PKCS8）
 kp.SetFormat(keypair.PKCS8)
+// 设置密钥类型（可选，默认为空，按操作自动回退）
+kp.SetType(keypair.PublicKey) // 或 keypair.PrivateKey
 // 设置填充模式（可选，默认为空，PKCS1 格式默认使用 PKCS1v15，PKCS8 格式默认使用 OAEP）
 kp.SetPadding(keypair.OAEP)  // 或 keypair.PKCS1v15
 // 设置哈希算法（可选，默认为 SHA256，用于 OAEP 填充模式）
 kp.SetHash(crypto.SHA256)   
 ```
+
+> `Type` 用于指定密钥对只持有公钥还是只持有私钥：`Type` 为空时按操作自动回退（加密、验签使用 `PublicKey`，解密、签名使用 `PrivateKey`）。只持有公钥的密钥对可以加密、验签，只持有私钥的密钥对可以解密、签名。
 
 ### 生成密钥对
 
@@ -121,6 +125,8 @@ RPgUNaDGIh5o
 
 ### 从已有 DER 格式密钥设置密钥对
 
+除 base64 编码的 DER 外，`SetPublicKey` / `SetPrivateKey` 还接受 hex 编码的 DER、裸 DER 以及 PEM（自动识别 PKIX 与 PKCS#1），并统一归一化为当前 `Format` 对应的 PEM。
+
 ```go
 // 设置经过 base64 编码的 DER 格式公钥
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
@@ -141,16 +147,16 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCA
 ### 将 `PEM` 格式密钥压缩成 `DER` 格式
 
 ```go
-// 将 PEM 格式公钥压缩成经过 base64 编码的 DER 格式(去掉 PEM 格式公钥的头尾和换行符)
-publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
+// 将 PEM 格式公钥压缩成经过 base64 编码的 DER 格式(提取 PEM 中的 base64 编码 DER)
+publicKey := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHq
 X1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJ
 y4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMez
 HC1outlM6x+/BB0BSQIDAQAB
 -----END PUBLIC KEY-----`))
 
-// 将 PEM 格式私钥压缩成经过 base64 编码的 DER 格式(去掉 PEM 格式私钥的头尾和换行符)
-privateKey, err :=kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
+// 将 PEM 格式私钥压缩成经过 base64 编码的 DER 格式(提取 PEM 中的 base64 编码 DER)
+privateKey := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
 MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTr
 AOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9
 a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjh

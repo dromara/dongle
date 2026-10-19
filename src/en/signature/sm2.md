@@ -3,10 +3,10 @@ title: SM2 Digital Signature Algorithm
 head:
   - - meta
     - name: description
-      content: SM2 digital signature algorithm, a Chinese national cryptographic standard developed by the State Cryptography Administration, based on elliptic curve cryptography, uses private key for signing and public key for verification, supports standard and streaming processing, supports Hex and Base64 output formats
+      content: SM2 digital signature algorithm, a Chinese national cryptographic standard developed by the State Cryptography Administration, based on elliptic curve cryptography, uses private key for signing and public key for verification, supports ASN.1 DER and fixed 64-byte r || s signature formats, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: dongle, go-dongle, sign, verify, SM2, digital signature algorithm, asymmetric encryption, elliptic curve, private key signing, public key verification, Chinese cryptography, PKCS8, SPKI, UID, SM3
+      content: dongle, go-dongle, sign, verify, SM2, digital signature algorithm, asymmetric encryption, elliptic curve, private key signing, public key verification, Chinese cryptography, ASN1, Bytes, PKCS8, SPKI, UID, SM3
 ---
 
 # SM2
@@ -19,12 +19,14 @@ SM2 signature algorithm features:
 - **High Security**: Uses 256-bit elliptic curve, providing security strength equivalent to RSA 3072 bits
 - **User Identifier**: Supports custom UID (User Identifier), default is `"1234567812345678"`
 - **Hash Algorithm**: Built-in SM3 hash algorithm for message digest
-- **Signature Format**: Uses ASN.1 DER format to store signatures (standard format)
+- **Signature Format**: Uses ASN.1 DER format (`SEQUENCE { r, s }`) by default, and can be switched to the fixed 64-byte `r || s` format with `SetSingMode(keypair.Bytes)`
 - **Performance Optimization**: Supports window size optimization to improve signature and verification performance
 
 Notes:
 
 - **Key format**: Uses `PKCS#8` format for private keys, `SPKI/PKIX` format for public keys
+- **Signature format**: Signing and verification must use the same `SingMode`; the default is `ASN1`, which is what BouncyCastle and Java usually produce, while some gateways and embedded devices use the fixed 64-byte raw signature
+- **Key material**: In addition to PEM, `SetPublicKey` / `SetPrivateKey` accept base64 or hex encoded DER and raw key material (a 65 byte uncompressed point for public keys, a 32 byte scalar for private keys), and normalize the result to PEM
 - **UID Consistency**: Signing and verification must use the same UID, otherwise verification will fail
 - **Default UID**: If UID is not set, the default value `"1234567812345678"` will be used (compliant with GM/T 0009-2012)
 - **Private key security**: Private keys must be properly secured and not leaked. Only the private key holder can generate valid signatures
@@ -45,6 +47,8 @@ import (
 kp := keypair.NewSm2KeyPair()
 // Set user identifier UID (optional, default is "1234567812345678")
 kp.SetUID([]byte("user@example.com"))
+// Set signature format (optional, default is ASN1)
+kp.SetSingMode(keypair.ASN1) // or keypair.Bytes
 // Set window size (optional, default is 4, range 2-6, for performance optimization)
 kp.SetWindow(4)
 ```
@@ -84,6 +88,8 @@ SnC/d6ZC
 
 ### Set Key Pair from Existing DER Format Keys
 
+Besides base64 encoded DER, `SetPublicKey` / `SetPrivateKey` also accept hex encoded DER and raw key material (a 65 byte uncompressed point for public keys, a 32 byte scalar for private keys), and normalize the result to PEM.
+
 ```go
 // Set Base64 encoded DER format public key
 kp.SetPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pvBuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg=="))
@@ -105,14 +111,14 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VA
 ### Compress `PEM` Format Keys to `DER` Format
 
 ```go
-// Compress PEM format public key to base64 encoded DER format (remove PEM format public key's header/footer and line breaks)
-publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
+// Compress PEM format public key to base64 encoded DER format (extract the base64 encoded DER from the PEM block)
+publicKey := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pv
 BuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg==
 -----END PUBLIC KEY-----`))
 
-// Compress PEM format private key to base64 encoded DER format (remove PEM format private key's header/footer and line breaks)
-privateKey, err := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
+// Compress PEM format private key to base64 encoded DER format (extract the base64 encoded DER from the PEM block)
+privateKey := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
 MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP
 5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOT
 NDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5A
@@ -120,7 +126,11 @@ SnC/d6ZC
 -----END PRIVATE KEY-----`))
 ```
 
+> `CompressPublicKey` / `CompressPrivateKey` decode the input with `pem.Decode`, so PEM blocks with optional headers such as `Bag Attributes` are handled as well.
+
 ## Private Key Signing
+
+> Streaming SM2 signatures buffer the whole input and sign it once on `Close`.
 
 ### Input Data
 
@@ -158,6 +168,8 @@ rawString := signer.ToRawString()
 // Output raw unencoded signature byte slice
 rawBytes := signer.ToRawBytes()
 ```
+
+> With `keypair.Bytes`, `ToRawBytes()` returns a fixed 64-byte `r || s` value (32 bytes each for `r` and `s`), and `ToHexString()` returns 128 hexadecimal characters.
 
 ## Public Key Verification
 

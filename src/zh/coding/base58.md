@@ -16,6 +16,8 @@ Base58 是一种将二进制数据编码为 `ASCII` 字符的编码方式，使�
 > 默认字符集为 `123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz`,
 > 可以通过设置 `base58.StdAlphabet` 来自定义字符集
 
+> 流式编解码会在内部缓存全部输入，在 `Close` 时一次性完成编码/解码，以保证结果与一次性处理完全一致；内存占用与输入数据量成正比。
+
 ### 编码数据
 输入数据
 

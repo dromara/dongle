@@ -68,11 +68,15 @@ import (
 kp := keypair.NewRsaKeyPair()
 // Set key format (optional, default is PKCS8)
 kp.SetFormat(keypair.PKCS8)
+// Set key type (optional, default is empty, falling back per operation)
+kp.SetType(keypair.PublicKey) // or keypair.PrivateKey
 // Set padding mode (optional, default is empty, PKCS1 format defaults to PKCS1v15, PKCS8 format defaults to OAEP)
 kp.SetPadding(keypair.OAEP)  // or keypair.PKCS1v15
 // Set hash algorithm (optional, default is SHA256, used for OAEP padding mode)
 kp.SetHash(crypto.SHA256)   
 ```
+
+> `Type` specifies whether the key pair holds only the public key or only the private key. When it is empty, it falls back per operation (encryption and verification use `PublicKey`, decryption and signing use `PrivateKey`). A public-key-only pair can encrypt and verify, while a private-key-only pair can decrypt and sign.
 
 ### Generate key pair
 
@@ -121,6 +125,8 @@ RPgUNaDGIh5o
 
 ### Set key pair from existing DER format keys
 
+Besides base64 encoded DER, `SetPublicKey` / `SetPrivateKey` also accept hex encoded DER, raw DER and PEM (PKIX and PKCS#1 are detected automatically), and normalize the result to the PEM header selected by `Format`.
+
 ```go
 // Set base64 encoded DER format public key
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
@@ -141,16 +147,16 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCA
 ### Compress `PEM` format keys to `DER` format
 
 ```go
-// Compress PEM format public key to base64 encoded DER format (remove PEM format public key's header/footer and line breaks)
-publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
+// Compress PEM format public key to base64 encoded DER format (extract the base64 encoded DER from the PEM block)
+publicKey := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHq
 X1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJ
 y4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMez
 HC1outlM6x+/BB0BSQIDAQAB
 -----END PUBLIC KEY-----`))
 
-// Compress PEM format private key to base64 encoded DER format (remove PEM format private key's header/footer and line breaks)
-privateKey, err :=kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
+// Compress PEM format private key to base64 encoded DER format (extract the base64 encoded DER from the PEM block)
+privateKey := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
 MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTr
 AOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9
 a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjh

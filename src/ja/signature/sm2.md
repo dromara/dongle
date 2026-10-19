@@ -3,10 +3,10 @@ title: SM2 デジタル署名アルゴリズム
 head:
   - - meta
     - name: description
-      content: SM2 デジタル署名アルゴリズム、中国国家暗号管理局が制定した国産商用暗号アルゴリズム、楕円曲線暗号に基づき、秘密鍵で署名、公開鍵で検証を使用、標準およびストリーム処理をサポート、Hex と Base64 出力形式をサポート
+      content: SM2 デジタル署名アルゴリズム、中国国家暗号管理局が制定した国産商用暗号アルゴリズム、楕円曲線暗号に基づき、秘密鍵で署名、公開鍵で検証を使用、署名は ASN.1 DER と固定 64 バイトの r || s の 2 形式をサポート、標準およびストリーム処理をサポート、Hex と Base64 出力形式をサポート
   - - meta
     - name: keywords
-      content: dongle, go-dongle, 署名, 検証, SM2, デジタル署名アルゴリズム, 非対称暗号化, 楕円曲線, 秘密鍵署名, 公開鍵検証, 国密アルゴリズム, PKCS8, SPKI, UID, SM3
+      content: dongle, go-dongle, 署名, 検証, SM2, デジタル署名アルゴリズム, 非対称暗号化, 楕円曲線, 秘密鍵署名, 公開鍵検証, 国密アルゴリズム, ASN1, Bytes, PKCS8, SPKI, UID, SM3
 ---
 
 # SM2
@@ -19,12 +19,14 @@ SM2 署名アルゴリズムの特徴：
 - **高いセキュリティ**：256 ビット楕円曲線を使用し、RSA 3072 ビットに相当するセキュリティ強度を提供
 - **ユーザー識別子**：カスタム UID（ユーザー識別子）をサポート、デフォルトは `"1234567812345678"`
 - **ハッシュアルゴリズム**：メッセージダイジェストに SM3 ハッシュアルゴリズムを内蔵使用
-- **署名形式**：ASN.1 DER 形式で署名を保存（標準形式）
+- **署名形式**：デフォルトは ASN.1 DER 形式（`SEQUENCE { r, s }`）、`SetSingMode(keypair.Bytes)` で固定 64 バイトの `r || s` 形式に切り替え可能
 - **パフォーマンス最適化**：ウィンドウサイズ最適化をサポートし、署名および検証のパフォーマンスを向上
 
 注意事項：
 
 - **鍵形式**：秘密鍵は `PKCS#8` 形式で保存、公開鍵は `SPKI/PKIX` 形式で保存
+- **署名形式**：署名と検証は同じ `SingMode` を使用する必要があります。デフォルトは `ASN1` で、BouncyCastle や Java との相互運用では通常 ASN.1 を使用し、一部のゲートウェイや組み込み機器では固定 64 バイトの生署名を使用します
+- **鍵素材**：`SetPublicKey` / `SetPrivateKey` は PEM に加えて、base64 または hex でエンコードされた DER、および生の鍵素材（公開鍵は 65 バイトの非圧縮点、秘密鍵は 32 バイトのスカラー）を受け取り、PEM に正規化します
 - **UID の一貫性**：署名と検証は同じ UID を使用する必要があります。そうでない場合、検証は失敗します
 - **デフォルト UID**：UID が設定されていない場合、デフォルト値 `"1234567812345678"` が使用されます（GM/T 0009-2012 に準拠）
 - **秘密鍵のセキュリティ**：秘密鍵は適切に保管し、漏洩してはいけません。秘密鍵の保持者のみが有効な署名を生成できます
@@ -45,6 +47,8 @@ import (
 kp := keypair.NewSm2KeyPair()
 // ユーザー識別子 UID を設定（オプション、デフォルトは "1234567812345678"）
 kp.SetUID([]byte("user@example.com"))
+// 署名形式を設定（オプション、デフォルトは ASN1）
+kp.SetSingMode(keypair.ASN1) // または keypair.Bytes
 // ウィンドウサイズを設定（オプション、デフォルトは 4、範囲 2-6、パフォーマンス最適化用）
 kp.SetWindow(4)
 ```
@@ -84,6 +88,8 @@ SnC/d6ZC
 
 ### 既存 DER 形式鍵から鍵ペアを設定
 
+base64 エンコードされた DER に加えて、`SetPublicKey` / `SetPrivateKey` は hex でエンコードされた DER や生の鍵素材（公開鍵は 65 バイトの非圧縮点、秘密鍵は 32 バイトのスカラー）も受け取り、PEM に正規化します。
+
 ```go
 // Base64 エンコードされた DER 形式公開鍵を設定
 kp.SetPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pvBuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg=="))
@@ -105,14 +111,14 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VA
 ### `PEM` 形式鍵を `DER` 形式に圧縮
 
 ```go
-// PEM 形式公開鍵を base64 エンコードされた DER 形式に圧縮（PEM 形式のヘッダー/フッターと改行を削除）
-publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
+// PEM 形式公開鍵を base64 エンコードされた DER 形式に圧縮（PEM ブロックから base64 エンコードされた DER を抽出）
+publicKey := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pv
 BuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg==
 -----END PUBLIC KEY-----`))
 
-// PEM 形式秘密鍵を base64 エンコードされた DER 形式に圧縮（PEM 形式のヘッダー/フッターと改行を削除）
-privateKey, err := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
+// PEM 形式秘密鍵を base64 エンコードされた DER 形式に圧縮（PEM ブロックから base64 エンコードされた DER を抽出）
+privateKey := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
 MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP
 5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOT
 NDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5A
@@ -120,7 +126,11 @@ SnC/d6ZC
 -----END PRIVATE KEY-----`))
 ```
 
+> `CompressPublicKey` / `CompressPrivateKey` は `pem.Decode` で入力を解析するため、`Bag Attributes` などの任意のブロックヘッダーを含む PEM も処理できます。
+
 ## 秘密鍵署名
+
+> SM2 のストリーム署名は入力をすべて内部にバッファリングし、`Close` 時に一度だけ署名して出力します。
 
 ### 入力データ
 
@@ -158,6 +168,8 @@ rawString := signer.ToRawString()
 // エンコードされていない生の署名バイトスライスを出力
 rawBytes := signer.ToRawBytes()
 ```
+
+> `keypair.Bytes` に切り替えると、`ToRawBytes()` は固定 64 バイトの `r || s`（`r`、`s` 各 32 バイト）を返し、`ToHexString()` は 128 文字の 16 進文字列を返します。
 
 ## 公開鍵検証
 

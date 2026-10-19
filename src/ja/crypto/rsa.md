@@ -68,11 +68,15 @@ import (
 kp := keypair.NewRsaKeyPair()
 // 鍵形式を設定（オプション、デフォルトはPKCS8）
 kp.SetFormat(keypair.PKCS8)
+// 鍵タイプを設定（オプション、デフォルトは空、操作に応じて自動フォールバック）
+kp.SetType(keypair.PublicKey) // または keypair.PrivateKey
 // パディングモードを設定（オプション、デフォルトは空、PKCS1形式はデフォルトでPKCS1v15、PKCS8形式はデフォルトでOAEP）
 kp.SetPadding(keypair.OAEP)  // または keypair.PKCS1v15
 // ハッシュアルゴリズムを設定（オプション、デフォルトはSHA256、OAEPパディングモード用）
 kp.SetHash(crypto.SHA256)   
 ```
+
+> `Type` は鍵ペアが公開鍵のみ、または秘密鍵のみを保持するかを指定します。空の場合は操作に応じて自動的にフォールバックします（暗号化・検証は `PublicKey`、復号化・署名は `PrivateKey`）。公開鍵のみの鍵ペアは暗号化と検証、秘密鍵のみの鍵ペアは復号化と署名が可能です。
 
 ### 鍵ペアの生成
 
@@ -121,6 +125,8 @@ RPgUNaDGIh5o
 
 ### 既存 DER 形式鍵から鍵ペアを設定
 
+base64 エンコードされた DER に加えて、`SetPublicKey` / `SetPrivateKey` は hex でエンコードされた DER、生の DER、および PEM（PKIX と PKCS#1 を自動判別）も受け取り、`Format` に対応する PEM に正規化します。
+
 ```go
 // base64 エンコードされた DER 形式公開鍵を設定
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
@@ -141,16 +147,16 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCA
 ### `PEM` 形式鍵を `DER` 形式に圧縮
 
 ```go
-// PEM 形式公開鍵を base64 エンコードされた DER 形式に圧縮（PEM 形式のヘッダー/フッターと改行を削除）
-publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
+// PEM 形式公開鍵を base64 エンコードされた DER 形式に圧縮（PEM ブロックから base64 エンコードされた DER を抽出）
+publicKey := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHq
 X1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJ
 y4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMez
 HC1outlM6x+/BB0BSQIDAQAB
 -----END PUBLIC KEY-----`))
 
-// PEM 形式秘密鍵を base64 エンコードされた DER 形式に圧縮（PEM 形式のヘッダー/フッターと改行を削除）
-privateKey, err :=kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
+// PEM 形式秘密鍵を base64 エンコードされた DER 形式に圧縮（PEM ブロックから base64 エンコードされた DER を抽出）
+privateKey := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
 MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTr
 AOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9
 a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjh

@@ -16,6 +16,8 @@ Base58 is an encoding method that converts binary data to `ASCII` characters, us
 > The default alphabet is `123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz`,
 > You can customize the alphabet by setting `base58.StdAlphabet`
 
+> The streaming encoder/decoder buffers the whole input and finishes on `Close` so the result is identical to one-shot processing; memory usage grows with the input size.
+
 ### Encoding Data
 Input Data
 

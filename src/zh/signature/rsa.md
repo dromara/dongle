@@ -68,11 +68,15 @@ import (
 kp := keypair.NewRsaKeyPair()
 // 设置密钥格式（可选，默认为 PKCS8）
 kp.SetFormat(keypair.PKCS8)
+// 设置密钥类型（可选，默认为空，按操作自动回退）
+kp.SetType(keypair.PrivateKey) // 或 keypair.PublicKey
 // 设置填充模式（可选，默认为空，PKCS1 格式默认使用 PKCS1v15，PKCS8 格式默认使用 PSS）
 kp.SetPadding(keypair.PSS)  // 或 keypair.PKCS1v15
 // 设置哈希算法（可选，默认为 SHA256，用于 PSS 填充模式）
 kp.SetHash(crypto.SHA256)   
 ```
+
+> `Type` 用于指定密钥对持有的是公钥还是私钥：签名默认使用 `PrivateKey`，验签默认使用 `PublicKey`，`Type` 为空时按操作自动回退；只持有公钥的密钥对同样可以用 `SetType(keypair.PublicKey)` 进行签名。
 
 ### 生成密钥对
 
@@ -121,6 +125,8 @@ RPgUNaDGIh5o
 
 ### 从已有 DER 格式密钥设置密钥对
 
+除 base64 编码的 DER 外，`SetPublicKey` / `SetPrivateKey` 还接受 hex 编码的 DER、裸 DER 以及 PEM（自动识别 PKIX 与 PKCS#1），并统一归一化为当前 `Format` 对应的 PEM。
+
 ```go
 // 设置经过 base64 编码的 DER 格式公钥
 kp.SetPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
@@ -135,22 +141,22 @@ kp.SetPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r
 publicKey, err := kp.FormatPublicKey([]byte("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHqX1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJy4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMezHC1outlM6x+/BB0BSQIDAQAB"))
 
 // 将 base64 编码的 DER 格式私钥格式化为 PEM 格式
-privateKey, err :=kp.FormatPrivateKey([]byte("+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
+privateKey, err := kp.FormatPrivateKey([]byte("MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTrAOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjhsg67DUu0x7McLWi62UzrH78EHQFJAgMBAAECgYAeo3nHWzPNURVUsUMcan96U5bEYA2AugxfQVMNf2HvOGidZ2adh3udWrQY/MglERNcTd5gKriG2rDEH0liBecIrNKsBL4lV+qHEGRUcnDDdtUBdGInEU8lve5keDgmX+/huXSRJ+3tYA5u9j+32RquVczvIdtb5XnBLUl61k0osQJBAON5+eJjtw6xpn+pveU92BSHvaJYVyrLHwUjR07aNKb7GlGVM3MGf1FCa8WQUo9uUzYxGLtg5Qf3sqwOrwPd5UsCQQDAOF/zWqGuY3HfV/1wgiXiWp8rc+S8tanMj5M37QQbYW5YLjUmJImoklVahv3qlgLZdEN5ZSueM5jfoSFtNts7AkBKoRDvSiGbi4MBbTHkzLZgfewkH/FxE7S4nctePk553fXTgCyh9ya8BRuQdHnxnpNkOxVPHEnnpEcVFbgrf5gjAkB7KmRI4VTiEfRgINhTJAG0VU7SH/N7+4cufPzfA+7ywG5c8Fa79wOB0SoB1KeUjcSLo5Ssj2fwea1F9dAeU90LAkBJQFofveaDa3YlN4EQZOcCvJKmg7xwWuGxFVTZDVVEws7UCQbEOEEXZrNd9x0IF5kpPLR+rxuaRPgUNaDGIh5o"))
 ```
 
 ### 将 `PEM` 格式密钥压缩成 `DER` 格式
 
 ```go
-// 将 PEM 格式公钥压缩成经过 base64 编码的 DER 格式(去掉 PEM 格式公钥的头尾和换行符)
-publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
+// 将 PEM 格式公钥压缩成经过 base64 编码的 DER 格式(提取 PEM 中的 base64 编码 DER)
+publicKey := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqzZNa9VrcewyU6wDoV7Y9kAHq
 X1VK0B3Rb6GNmQe4zLEfce7cVTaLrc4VGTKl35tADG1cRHqtaG4S/WttpiGZBhxJ
 y4MpOXb6eIPiVLsn2lL+rJo5XdbSr3gyjxEOQQ97ihtw4lDd5wMo4bIOuw1LtMez
 HC1outlM6x+/BB0BSQIDAQAB
 -----END PUBLIC KEY-----`))
 
-// 将 PEM 格式私钥压缩成经过 base64 编码的 DER 格式(去掉 PEM 格式私钥的头尾和换行符)
-privateKey, err :=kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
+// 将 PEM 格式私钥压缩成经过 base64 编码的 DER 格式(提取 PEM 中的 base64 编码 DER)
+privateKey := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
 MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKrNk1r1Wtx7DJTr
 AOhXtj2QAepfVUrQHdFvoY2ZB7jMsR9x7txVNoutzhUZMqXfm0AMbVxEeq1obhL9
 a22mIZkGHEnLgyk5dvp4g+JUuyfaUv6smjld1tKveDKPEQ5BD3uKG3DiUN3nAyjh
@@ -223,9 +229,9 @@ file, _ := os.Open("test.txt")
 verifier := dongle.Verify.FromFile(file)
 
 // 设置 Hex 编码签名
-verifier.WithHexSign(rawBytes).ByRsa(kp)
+verifier.WithHexSign(hexBytes).ByRsa(kp)
 // 设置 Base64 编码签名
-verifier.WithBase64Sign(rawBytes).ByRsa(kp)
+verifier.WithBase64Sign(base64Bytes).ByRsa(kp)
 // 设置未编码原始签名
 verifier.WithRawSign(rawBytes).ByRsa(kp)
 

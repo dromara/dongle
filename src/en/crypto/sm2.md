@@ -3,23 +3,27 @@ title: SM2 Elliptic Curve Asymmetric Encryption
 head:
   - - meta
     - name: description
-      content: SM2 asymmetric encryption algorithm, a Chinese national cryptographic standard developed by the State Cryptography Administration, based on elliptic curve cryptography, supports C1C3C2 and C1C2C3 ciphertext orders, uses public key encryption and private key decryption, supports standard and streaming processing, supports Hex and Base64 output formats
+      content: SM2 asymmetric encryption algorithm, a Chinese national cryptographic standard developed by the State Cryptography Administration, based on elliptic curve cryptography, supports the raw C1C3C2 and C1C2C3 ciphertext orders as well as the ASN1C1C3C2 and ASN1C1C2C3 ASN.1 DER formats, uses public key encryption and private key decryption, supports standard and streaming processing, supports Hex and Base64 output formats
   - - meta
     - name: keywords
-      content: dongle, go-dongle, encrypt, decrypt, SM2, asymmetric encryption, public key encryption, private key decryption, Chinese cryptography, elliptic curve, C1C3C2, C1C2C3, PKCS8, SPKI
+      content: dongle, go-dongle, encrypt, decrypt, SM2, asymmetric encryption, public key encryption, private key decryption, Chinese cryptography, elliptic curve, C1C3C2, C1C2C3, ASN1C1C3C2, ASN1C1C2C3, PKCS8, SPKI
 ---
 
 # SM2
 
 SM2 is an elliptic curve public key cryptographic algorithm (GM/T 0003-2012) established by China's State Cryptography Administration, and is one of the core algorithms of China's commercial cryptography standards. `dongle` supports standard and streaming `SM2` encryption, providing various ciphertext formats and performance optimization options.
 
-Supported ciphertext formats:
+Supported ciphertext formats (specified by `Sm2CipherMode`):
 
-- **C1C3C2**: Recommended format by Chinese cryptographic standards (default), ciphertext structure is `0x04 || C1(64 bytes) || C3(32 bytes) || C2(ciphertext data)`
+- **C1C3C2**: Recommended format by Chinese cryptographic standards (default), raw byte structure is `0x04 || C1(64 bytes) || C3(32 bytes) || C2(ciphertext data)`
   - C1: Elliptic curve point (randomly generated)
   - C3: SM3 message digest (for integrity verification)
   - C2: Encrypted data
-- **C1C2C3**: Legacy standard compatible format, ciphertext structure is `0x04 || C1(64 bytes) || C2(ciphertext data) || C3(32 bytes)`
+- **C1C2C3**: Legacy standard compatible format, raw byte structure is `0x04 || C1(64 bytes) || C2(ciphertext data) || C3(32 bytes)`
+- **ASN1C1C3C2**: ASN.1 DER format, ciphertext is `SEQUENCE { x INTEGER, y INTEGER, C3 OCTET STRING, C2 OCTET STRING }`, the default output of BouncyCastle, Java and most national-crypto gateways, **without the `0x04` prefix**
+- **ASN1C1C2C3**: ASN.1 DER format, ciphertext is `SEQUENCE { x INTEGER, y INTEGER, C2 OCTET STRING, C3 OCTET STRING }`
+
+> Both ASN.1 formats are parsed with `cryptobyte`, so truncated data or a payload that is not valid DER returns an error instead of being silently misread.
 
 Supported performance optimization options:
 
@@ -30,9 +34,10 @@ Supported performance optimization options:
 Notes:
 
 - **Key format**: Uses `PKCS#8` format for private keys, `SPKI/PKIX` format for public keys
-- **Ciphertext order**: Encryption and decryption must use the same ciphertext order (C1C3C2 or C1C2C3)
-- **Data security**: SM2 provides 256-bit security strength, equivalent to RSA 3072 bits
-- **Interoperability**: When interoperating with libraries such as OpenSSL, the same ciphertext order must be explicitly specified
+- **Ciphertext format**: Encryption and decryption must use the same `Sm2CipherMode` (`C1C3C2`, `C1C2C3`, `ASN1C1C3C2` or `ASN1C1C2C3`)
+- **Key material**: In addition to PEM, `SetPublicKey` / `SetPrivateKey` accept base64 or hex encoded DER and raw key material (a 65 byte uncompressed point for public keys, a 32 byte scalar for private keys), and normalize the result to PEM
+- **Data security**: SM2 provides 128-bit security strength, equivalent to RSA 3072 bits
+- **Interoperability**: When interoperating with OpenSSL, BouncyCastle, Java and similar libraries, confirm the ciphertext format used by the other side; most national-crypto gateways output ASN.1
 - **Private key security**: Private keys must be properly secured and not leaked
 - **Standards compliance**: Fully compliant with GM/T 0003.4-2012 (encryption algorithm) and GM/T 0003.5-2012 (curve parameters)
 
@@ -48,8 +53,10 @@ import (
 
 ```go
 kp := keypair.NewSm2KeyPair()
-// Set ciphertext order (optional, default is C1C3C2)
-kp.SetOrder(keypair.C1C3C2)
+// Set ciphertext format (optional, default is C1C3C2)
+kp.SetMode(keypair.C1C3C2)
+// Use the ASN.1 format when interoperating with BouncyCastle, Java and most national-crypto gateways
+// kp.SetMode(keypair.ASN1C1C3C2)
 // Set window size (optional, default is 4, range 2-6)
 kp.SetWindow(4)
 ```
@@ -89,6 +96,8 @@ SnC/d6ZC
 
 ### Set Key Pair from Existing DER Format Keys
 
+Besides base64 encoded DER, `SetPublicKey` / `SetPrivateKey` also accept hex encoded DER and raw key material (a 65 byte uncompressed point for public keys, a 32 byte scalar for private keys), and normalize the result to PEM.
+
 ```go
 // Set Base64 encoded DER format public key
 kp.SetPublicKey([]byte("MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pvBuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg=="))
@@ -110,14 +119,14 @@ privateKey, err := kp.FormatPrivateKey([]byte("MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VA
 ### Compress `PEM` Format Keys to `DER` Format
 
 ```go
-// Compress PEM format public key to base64 encoded DER format (remove PEM format public key's header/footer and line breaks)
-publicKey, err := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
+// Compress PEM format public key to base64 encoded DER format (extract the base64 encoded DER from the PEM block)
+publicKey := kp.CompressPublicKey([]byte(`-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEv6TXzg5xkLbTkzQzmucCcGbVF1pv
 BuOVxSa7tZEvT1bEKqF7WJx8UQ/a7R5YDslbMxPByZGqfPaeQEpwv3emQg==
 -----END PUBLIC KEY-----`))
 
-// Compress PEM format private key to base64 encoded DER format (remove PEM format private key's header/footer and line breaks)
-privateKey, err := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
+// Compress PEM format private key to base64 encoded DER format (extract the base64 encoded DER from the PEM block)
+privateKey := kp.CompressPrivateKey([]byte(`-----BEGIN PRIVATE KEY-----
 MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgsXklJOzFBfCXQGaP
 5kVornBxt1WjgUIv21Imv7ALAtygCgYIKoEcz1UBgi2hRANCAAS/pNfODnGQttOT
 NDOa5wJwZtUXWm8G45XFJru1kS9PVsQqoXtYnHxRD9rtHlgOyVszE8HJkap89p5A
@@ -125,7 +134,11 @@ SnC/d6ZC
 -----END PRIVATE KEY-----`))
 ```
 
+> `CompressPublicKey` / `CompressPrivateKey` decode the input with `pem.Decode`, so PEM blocks with optional headers such as `Bag Attributes` are handled as well.
+
 ## Public Key Encryption
+
+> Streaming SM2 encryption buffers the whole plaintext and encrypts it once on `Close`.
 
 Input data
 ```go

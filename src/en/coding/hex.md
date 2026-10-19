@@ -3,15 +3,15 @@ title: Hex Encoding/Decoding
 head:
   - - meta
     - name: description
-      content: Hex encoding/decoding, also known as Base16, uses 16 characters (0-9, A-F), supports custom case, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
+      content: Hex encoding/decoding, also known as Base16, uses 16 characters (0-9, A-F), outputs lowercase hexadecimal characters, supports standard and streaming processing, supports string, byte and file input, provides string and byte output
   - - meta
     - name: keywords
-      content: dongle, go-dongle, encoding, decoding, Hex, Base16, case, custom character set, streaming processing, string input, byte input, file input, string output, byte output
+      content: dongle, go-dongle, encoding, decoding, Hex, Base16, hexadecimal, lowercase, streaming processing, string input, byte input, file input, string output, byte output
 ---
 
 # Hex
 
-Hex is an encoding method that converts binary data to `ASCII` characters, using `16` characters (0-9, A-F) to represent data. `dongle` supports standard and streaming `Hex` encoding, also known as `Base16` encoding.
+Hex is an encoding method that converts binary data to `ASCII` characters, using `16` characters (0-9, A-F) to represent data. `dongle` supports standard and streaming `Hex` encoding, also known as `Base16` encoding, and always outputs lowercase hexadecimal characters.
 
 ### Encoding Data
 Input Data
