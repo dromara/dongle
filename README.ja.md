@@ -1,4 +1,4 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/ja" target="_blank"><img src="assets/logo.svg" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dromara.github.io/dongle/ja" target="_blank"><img src="assets/logo.svg" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
@@ -170,7 +170,7 @@ dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
 dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).ToBool()
 ```
 
-より多くの使用例については、<a href="https://dongle.go-pkg.com/ja" target="_blank">公式ドキュメント</a>をご覧ください。オンラインツールについては、<a href="https://tools.go-pkg.com" target="_blank">Playground</a> にアクセスしてください。
+より多くの使用例については、<a href="https://dromara.github.io/dongle/ja" target="_blank">公式ドキュメント</a>をご覧ください。オンラインツールについては、<a href="https://tools.go-pkg.com" target="_blank">Playground</a> にアクセスしてください。
 
 ## コントリビューター
 
@@ -180,7 +180,7 @@ dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).To
 
 ## スポンサー
 
-`Dongle` は非営利のオープンソースプロジェクトです。`dongle` をサポートしたい場合は、開発者に[コーヒーを一杯](https://dongle.go-pkg.com/ja/sponsor.html)おごることができます。
+`Dongle` は非営利のオープンソースプロジェクトです。`dongle` をサポートしたい場合は、開発者に[コーヒーを一杯](https://dromara.github.io/dongle/ja/sponsor.html)おごることができます。
 
 ## 謝辞
 

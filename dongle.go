@@ -1,7 +1,7 @@
 // @Package dongle
 // @Description a simple, semantic and developer-friendly golang crypto package
 // @Source github.com/dromara/dongle
-// @Document dongle.go-pkg.com
+// @Document dromara.github.io/dongle
 // @Developer gouguoyin
 // @Email 245629560@qq.com
 

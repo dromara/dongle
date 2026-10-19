@@ -1,4 +1,4 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com" target="_blank"><img src="assets/logo.svg" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dromara.github.io/dongle" target="_blank"><img src="assets/logo.svg" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
@@ -172,7 +172,7 @@ dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
 dongle.Verify.FromString("hello world").WithBase64Sign(base64Bytes).ByRsa(kp).ToBool()
 ```
 
-For more usage examples, please refer to <a href="https://dongle.go-pkg.com" target="_blank">official document</a>, and visit <a href="https://tools.go-pkg.com" target="_blank">Playground</a> for online tools.
+For more usage examples, please refer to <a href="https://dromara.github.io/dongle" target="_blank">official document</a>, and visit <a href="https://tools.go-pkg.com" target="_blank">Playground</a> for online tools.
 
 ## Contributors
 
@@ -182,7 +182,7 @@ Thanks to all the following who contributed to `dongle`:
 
 ## Sponsors
 
-`Dongle` is a non-commercial open source project. If you want to support `dongle`, you can [buy a cup of coffee](https://dongle.go-pkg.com/sponsor.html) for developer.
+`Dongle` is a non-commercial open source project. If you want to support `dongle`, you can [buy a cup of coffee](https://dromara.github.io/dongle/sponsor.html) for developer.
 
 ## Thanks
 

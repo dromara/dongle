@@ -1,4 +1,4 @@
-<p align="center" style="margin-bottom: -10px"><a href="https://dongle.go-pkg.com/zh" target="_blank"><img src="assets/logo.svg" width="15%" alt="dongle" /></a></p>
+<p align="center" style="margin-bottom: -10px"><a href="https://dromara.github.io/dongle/zh" target="_blank"><img src="assets/logo.svg" width="15%" alt="dongle" /></a></p>
 
 [![Carbon Release](https://img.shields.io/github/release/dromara/dongle.svg)](https://github.com/dromara/dongle/releases)
 [![Go Test](https://github.com/dromara/dongle/actions/workflows/test.yml/badge.svg)](https://github.com/dromara/dongle/actions)
@@ -172,7 +172,7 @@ dongle.Verify.FromString("hello world").WithHexSign(hexBytes).ByRsa(kp).ToBool()
 dongle.Verify.FromString("hello world").WithBase64Sign(hexBytes).ByRsa(kp).ToBool()
 ```
 
-更多用法示例请查看 <a href="https://dongle.go-pkg.com/zh" target="_blank">官方文档</a>, 在线工具请访问 <a href="https://tools.go-pkg.com" target="_blank">Playground</a>
+更多用法示例请查看 <a href="https://dromara.github.io/dongle/zh" target="_blank">官方文档</a>, 在线工具请访问 <a href="https://tools.go-pkg.com" target="_blank">Playground</a>
 
 ## 贡献者
 
@@ -182,7 +182,7 @@ dongle.Verify.FromString("hello world").WithBase64Sign(hexBytes).ByRsa(kp).ToBoo
 
 ## 赞助
 
-`Dongle` 是一个非商业开源项目, 如果你想支持 `dongle`, 你可以为开发者 [购买一杯咖啡](https://dongle.go-pkg.com/zh/sponsor.html)
+`Dongle` 是一个非商业开源项目, 如果你想支持 `dongle`, 你可以为开发者 [购买一杯咖啡](https://dromara.github.io/dongle/zh/sponsor.html)
 
 - **雨云**  
   KVM高配版，4核 8G 300M，仅需68元/月起，半年付八折，年付七折，七天无理由退订（送5折券）  
