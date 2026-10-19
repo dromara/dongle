@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
@@ -79,6 +80,14 @@ func decodeHex(text string) ([]byte, bool) {
 	}
 	return decoded, true
 }
+
+// Key marshalling goes through variables so that the error branches can be
+// exercised in tests: crypto/x509 never fails for a key that has already been
+// parsed into its typed form.
+var (
+	marshalPKIXPublicKey   = x509.MarshalPKIXPublicKey
+	marshalPKCS8PrivateKey = x509.MarshalPKCS8PrivateKey
+)
 
 // keyBlockAlgorithms maps the PEM block types that carry a single key to the
 // algorithm they belong to. An empty algorithm means the block type is generic

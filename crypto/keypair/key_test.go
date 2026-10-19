@@ -15,6 +15,70 @@ import (
 	"testing"
 )
 
+// TestFormatPublicKeyMarshalError covers the DER encoding error branch of
+// FormatPublicKey; it can only be reached by stubbing the marshal function.
+func TestFormatPublicKeyMarshalError(t *testing.T) {
+	marshalErr := errors.New("marshal public key failed")
+	old := marshalPKIXPublicKey
+	defer func() { marshalPKIXPublicKey = old }()
+	marshalPKIXPublicKey = func(any) ([]byte, error) { return nil, marshalErr }
+
+	edKp := NewEd25519KeyPair()
+	if err := edKp.GenKeyPair(); err != nil {
+		t.Fatalf("GenKeyPair: %v", err)
+	}
+	rsaKp := NewRsaKeyPair()
+	if err := rsaKp.GenKeyPair(1024); err != nil {
+		t.Fatalf("GenKeyPair: %v", err)
+	}
+
+	for _, tc := range []struct {
+		format func([]byte) ([]byte, error)
+		key    []byte
+	}{
+		{edKp.FormatPublicKey, edKp.PublicKey},
+		{rsaKp.FormatPublicKey, rsaKp.PublicKey},
+	} {
+		_, err := tc.format(tc.key)
+		var target InvalidPublicKeyError
+		if !errors.As(err, &target) || target.Err != marshalErr {
+			t.Fatalf("FormatPublicKey error = %v, want InvalidPublicKeyError with cause %v", err, marshalErr)
+		}
+	}
+}
+
+// TestFormatPrivateKeyMarshalError covers the DER encoding error branch of
+// FormatPrivateKey; it can only be reached by stubbing the marshal function.
+func TestFormatPrivateKeyMarshalError(t *testing.T) {
+	marshalErr := errors.New("marshal private key failed")
+	old := marshalPKCS8PrivateKey
+	defer func() { marshalPKCS8PrivateKey = old }()
+	marshalPKCS8PrivateKey = func(any) ([]byte, error) { return nil, marshalErr }
+
+	edKp := NewEd25519KeyPair()
+	if err := edKp.GenKeyPair(); err != nil {
+		t.Fatalf("GenKeyPair: %v", err)
+	}
+	rsaKp := NewRsaKeyPair()
+	if err := rsaKp.GenKeyPair(1024); err != nil {
+		t.Fatalf("GenKeyPair: %v", err)
+	}
+
+	for _, tc := range []struct {
+		format func([]byte) ([]byte, error)
+		key    []byte
+	}{
+		{edKp.FormatPrivateKey, edKp.PrivateKey},
+		{rsaKp.FormatPrivateKey, rsaKp.PrivateKey},
+	} {
+		_, err := tc.format(tc.key)
+		var target InvalidPrivateKeyError
+		if !errors.As(err, &target) || target.Err != marshalErr {
+			t.Fatalf("FormatPrivateKey error = %v, want InvalidPrivateKeyError with cause %v", err, marshalErr)
+		}
+	}
+}
+
 // TestDescribeKey covers the naming used in "the parsed key is %s" messages.
 func TestDescribeKey(t *testing.T) {
 	for name, tc := range map[string]struct {
