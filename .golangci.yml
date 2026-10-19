@@ -1,0 +1,64 @@
+version: "2"
+
+run:
+  tests: true
+
+linters:
+  default: standard
+  enable:
+    - misspell
+    - unconvert
+    - unparam
+    - whitespace
+  settings:
+    errcheck:
+      # Rewinding a stream is best-effort by design: a reader that cannot seek
+      # keeps its current position, and the copy that follows reports real
+      # failures.
+      exclude-functions:
+        - (io.Seeker).Seek
+    staticcheck:
+      checks:
+        - all
+        # Style/quickfix checks are too opinionated for this code base.
+        - -ST1000
+        - -ST1003
+        - -ST1016
+        - -ST1020
+        - -ST1021
+        - -ST1022
+        - -QF1001
+        - -QF1003
+        - -QF1008
+  exclusions:
+    generated: lax
+    presets:
+      # Ignores common best-effort error checks such as (*os.File).Close.
+      - std-error-handling
+    rules:
+      # This library implements legacy algorithms on purpose: MD4, RIPEMD-160,
+      # TEA, XTEA, Twofish, Blowfish, DSA and the low-level elliptic API are
+      # exposed by design, so deprecation notices are expected here.
+      - linters:
+          - staticcheck
+        text: SA1019
+      # Benchmarks and table tests deliberately discard the results of the
+      # calls they measure (encode/decode/write loops, mock key setup).
+      - linters:
+          - errcheck
+        path: _test\.go
+      # The MD2 digest feeds its own padding, which never fails.
+      - linters:
+          - errcheck
+        path: ^hash/md2/md2\.go$
+        text: dig\.Write
+      # y1 of the point addition is only needed as an input of the sum.
+      - linters:
+          - ineffassign
+          - staticcheck
+        path: ^crypto/internal/sm2/sm2\.go$
+        text: y1
+
+formatters:
+  enable:
+    - gofmt
