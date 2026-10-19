@@ -319,7 +319,7 @@ func (k *RsaKeyPair) FormatPublicKey(publicKey []byte) ([]byte, error) {
 	var der []byte
 	if k.Format == PKCS1 {
 		der = x509.MarshalPKCS1PublicKey(pub)
-	} else if der, err = x509.MarshalPKIXPublicKey(pub); err != nil {
+	} else if der, err = marshalPKIXPublicKey(pub); err != nil {
 		return []byte{}, InvalidPublicKeyError{Err: err}
 	}
 	return pem.EncodeToMemory(&pem.Block{
@@ -353,7 +353,7 @@ func (k *RsaKeyPair) FormatPrivateKey(privateKey []byte) ([]byte, error) {
 	var der []byte
 	if k.Format == PKCS1 {
 		der = x509.MarshalPKCS1PrivateKey(pri)
-	} else if der, err = x509.MarshalPKCS8PrivateKey(pri); err != nil {
+	} else if der, err = marshalPKCS8PrivateKey(pri); err != nil {
 		return []byte{}, InvalidPrivateKeyError{Err: err}
 	}
 	return pem.EncodeToMemory(&pem.Block{
