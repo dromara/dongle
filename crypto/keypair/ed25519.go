@@ -159,7 +159,7 @@ func (k *Ed25519KeyPair) FormatPublicKey(publicKey []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	der, err := x509.MarshalPKIXPublicKey(key)
+	der, err := marshalPKIXPublicKey(key)
 	if err != nil {
 		return []byte{}, InvalidPublicKeyError{Err: err}
 	}
@@ -180,7 +180,7 @@ func (k *Ed25519KeyPair) FormatPrivateKey(privateKey []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	der, err := x509.MarshalPKCS8PrivateKey(key)
+	der, err := marshalPKCS8PrivateKey(key)
 	if err != nil {
 		return []byte{}, InvalidPrivateKeyError{Err: err}
 	}
