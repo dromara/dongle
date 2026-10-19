@@ -353,3 +353,32 @@ func TestSetUID(t *testing.T) {
 		t.Fatalf("SetUID: expected %v, got %v", uid2, kp.UID)
 	}
 }
+
+// TestFormatSm2Keys_MarshalError covers the DER encoding error branches of
+// FormatPublicKey and FormatPrivateKey; they can only be reached by stubbing
+// the marshal helpers.
+func TestFormatSm2Keys_MarshalError(t *testing.T) {
+	kp := NewSm2KeyPair()
+	if err := kp.GenKeyPair(); err != nil {
+		t.Fatalf("GenKeyPair: %v", err)
+	}
+	marshalErr := errors.New("marshal sm2 key failed")
+
+	oldPub := marshalSm2PublicKey
+	defer func() { marshalSm2PublicKey = oldPub }()
+	marshalSm2PublicKey = func(*ecdsa.PublicKey) ([]byte, error) { return nil, marshalErr }
+	_, pubErr := kp.FormatPublicKey(kp.PublicKey)
+	var pubTarget InvalidPublicKeyError
+	if !errors.As(pubErr, &pubTarget) || pubTarget.Err != marshalErr {
+		t.Fatalf("FormatPublicKey error = %v, want InvalidPublicKeyError with cause %v", pubErr, marshalErr)
+	}
+
+	oldPri := marshalSm2PrivateKey
+	defer func() { marshalSm2PrivateKey = oldPri }()
+	marshalSm2PrivateKey = func(*ecdsa.PrivateKey) ([]byte, error) { return nil, marshalErr }
+	_, priErr := kp.FormatPrivateKey(kp.PrivateKey)
+	var priTarget InvalidPrivateKeyError
+	if !errors.As(priErr, &priTarget) || priTarget.Err != marshalErr {
+		t.Fatalf("FormatPrivateKey error = %v, want InvalidPrivateKeyError with cause %v", priErr, marshalErr)
+	}
+}

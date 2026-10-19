@@ -40,9 +40,14 @@ const (
 	Bytes
 )
 
+// The SM2 DER helpers are routed through variables so that the error branches
+// of FormatPublicKey and FormatPrivateKey can be exercised in tests: the
+// helpers never fail for a key that has already been parsed.
 var (
 	bitStringPublicKeyParser  = sm2.ParseBitStringPublicKey
 	bitStringPrivateKeyParser = sm2.ParseBitStringPrivateKey
+	marshalSm2PublicKey       = sm2.MarshalSPKIPublicKey
+	marshalSm2PrivateKey      = sm2.MarshalPKCS8PrivateKey
 )
 
 // Sm2KeyPair represents an SM2 key pair with public and private keys.
@@ -242,7 +247,7 @@ func (k *Sm2KeyPair) FormatPublicKey(publicKey []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	der, err := sm2.MarshalSPKIPublicKey(pub)
+	der, err := marshalSm2PublicKey(pub)
 	if err != nil {
 		return []byte{}, InvalidPublicKeyError{Err: err}
 	}
@@ -263,7 +268,7 @@ func (k *Sm2KeyPair) FormatPrivateKey(privateKey []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	der, err := sm2.MarshalPKCS8PrivateKey(pri)
+	der, err := marshalSm2PrivateKey(pri)
 	if err != nil {
 		return []byte{}, InvalidPrivateKeyError{Err: err}
 	}
